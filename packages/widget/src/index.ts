@@ -1,4 +1,4 @@
-import type { PostContext } from '@pleasenobugs/core';
+import type { AppLogin, PostContext } from '@pleasenobugs/core';
 import { define, TAG, type PleaseNoBugsElement } from './element.js';
 import type { Strings } from './i18n.js';
 import type { Signer } from './signer.js';
@@ -20,6 +20,8 @@ export interface OpenOptions {
   /** A display name to suggest when the user chooses to show theirs. */
   name?: string;
   signer?: Signer;
+  /** Your app's own login, reused so nobody signs twice (see `appLogin` on the element). */
+  appLogin?: AppLogin | null;
   context?: PostContext;
   noise?: string[];
   strings?: Strings;
@@ -44,6 +46,7 @@ export function open(options: OpenOptions): () => void {
   if (options.appName) el.setAttribute('app-name', options.appName);
   if (options.name) el.setAttribute('name', options.name);
   el.signer = options.signer;
+  el.appLogin = options.appLogin;
   el.context = options.context;
   el.noise = options.noise;
   el.strings = options.strings;

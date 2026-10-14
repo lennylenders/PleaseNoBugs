@@ -4,7 +4,7 @@ import { parseArgs } from 'node:util';
 import { isNimiqAddress } from '@pleasenobugs/core';
 import { createApp } from './app.js';
 import { importBoard, ImportError } from './importer.js';
-import { cleanName, cleanOrigins, newProject } from './projects.js';
+import { cleanLoginMessages, cleanName, cleanOrigins, newProject } from './projects.js';
 import { SqliteStore } from './sqlite-store.js';
 
 /**
@@ -37,24 +37,27 @@ if (command === 'create-project') {
       name: { type: 'string' },
       origin: { type: 'string', multiple: true },
       owner: { type: 'string' },
+      'login-message': { type: 'string', multiple: true },
     },
   });
   const name = cleanName(values.name);
   const origins = cleanOrigins(values.origin ?? []);
-  if (!name || !origins || !isNimiqAddress(values.owner)) {
+  const loginMessages = cleanLoginMessages(values['login-message'] ?? []);
+  if (!name || !origins || !loginMessages || !isNimiqAddress(values.owner)) {
     console.error(
-      'Usage: pleasenobugs-server create-project --name "My app" --origin https://my.app [--origin ...] --owner "NQ.."',
+      'Usage: pleasenobugs-server create-project --name "My app" --origin https://my.app [--origin ...] --owner "NQ.." [--login-message "Sign in to My app"]',
     );
     process.exit(1);
   }
   const store = new SqliteStore(db);
-  const project = newProject({ name, origins, owner: values.owner });
+  const project = newProject({ name, origins, owner: values.owner, loginMessages });
   await store.putProject(project);
   store.close();
   console.log(`Created "${project.name}"`);
   console.log(`Project id: ${project.id}`);
   console.log(`Origins:    ${project.origins.join(', ')}`);
   console.log(`Owner:      ${project.owners[0]}`);
+  if (project.loginMessages) console.log(`App logins: ${project.loginMessages.map((m) => JSON.stringify(m)).join(', ')}`);
 } else if (command === 'import') {
   const { values } = parseArgs({
     args: process.argv.slice(3),

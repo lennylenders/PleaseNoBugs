@@ -98,6 +98,30 @@ project and the origin makes a proof useless anywhere but where it was given.
 Any other failure answers `401 unauthorized`, without saying which check
 failed.
 
+### App logins
+
+An app that already has a wallet login has its users sign a fixed sentence of
+its own ("Sign in to Shitti"). Asking them to sign a second one for the board
+is friction, and in a browser it can mean a Hub popup that strands people on
+phones. So a project may list its own login messages (`loginMessages`, set by
+an owner), and a proof over one of those is accepted **on that project and no
+other**:
+
+```ts
+{ address, publicKey, signature, origin, issued: 0, message: 'Sign in to Shitti' }
+```
+
+- The server verifies the signature over `message` itself, and only if the
+  project lists that exact string, byte for byte.
+- **It does not expire**, because the message has no timestamp. That is what
+  the owner accepts by listing it, and why the feature is off by default.
+- The origin rules apply exactly as for a scoped proof.
+- What it costs: anything that can get a user to sign "Sign in to Shitti" can
+  post on Shitti's board as them. It can already use Shitti itself as them with
+  that signature, so the board adds nothing to that risk.
+- Never accepted on the dashboard, and our own `PleaseNoBugs login` format can
+  never be listed, so a scoped proof cannot be made permanent this way.
+
 ### Dashboard proofs
 
 The dashboard manages several projects at once, so it signs with
@@ -258,8 +282,11 @@ There are no notifications in v1. This count is how an owner finds out.
 #### `PATCH /v1/projects/:pid`
 
 ```ts
-{ name?: string; origins?: string[]; owners?: string[]; rules?: Partial<Rules> }
+{ name?: string; origins?: string[]; owners?: string[]; rules?: Partial<Rules>; loginMessages?: string[] }
 ```
+
+`loginMessages` takes at most 3, each at most 200 characters, stored exactly
+as given; an empty array turns app logins off. See "App logins".
 
 Owner only. `owners` may never be emptied: a project nobody owns is a project
 nobody can answer.

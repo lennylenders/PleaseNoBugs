@@ -195,6 +195,77 @@ describe('proofs belong to one project and one origin', () => {
   });
 });
 
+describe('app logins', () => {
+  const LOGIN = 'Sign in to Shitti';
+
+  async function withAppLogin() {
+    const env = await setup({ dashboard: true });
+    await env.store.putProject({ ...(await env.store.getProject('board1'))!, loginMessages: [LOGIN] });
+    return env;
+  }
+
+  it('lets a project accept the signature its app already has', async () => {
+    const { call } = await withAppLogin();
+    const res = await call('POST', '/v1/projects/board1/posts', {
+      auth: A.appProof(LOGIN, APP),
+      origin: APP,
+      body: { id: 'x', kind: 'idea', text: 'No second signature' },
+    });
+    expect(res.status).toBe(200);
+    const board = await call('GET', '/v1/projects/board1/posts', { auth: A.appProof(LOGIN, APP), origin: APP });
+    expect(board.data.posts[0].mine).toBe(true);
+  });
+
+  it('never expires, which is what the owner opted into', async () => {
+    const { call, advance } = await withAppLogin();
+    advance(LOGIN_TTL_MS * 10);
+    const res = await call('GET', '/v1/projects/board1/me', { auth: A.appProof(LOGIN, APP), origin: APP });
+    expect(res.status).toBe(200);
+  });
+
+  it('is worth nothing on a project that did not list the message', async () => {
+    const { call } = await withAppLogin();
+    const res = await call('GET', '/v1/projects/board2/me', { auth: A.appProof(LOGIN, OTHER_APP), origin: OTHER_APP });
+    expect(res.status).toBe(401);
+  });
+
+  it('is refused off by default, and for a message nobody listed', async () => {
+    const { call } = await setup();
+    expect((await call('GET', '/v1/projects/board1/me', { auth: A.appProof(LOGIN, APP), origin: APP })).status).toBe(401);
+    const env = await withAppLogin();
+    expect(
+      (await env.call('GET', '/v1/projects/board1/me', { auth: A.appProof('Sign in to Evil', APP), origin: APP })).status,
+    ).toBe(401);
+  });
+
+  it('still answers to the origin rules', async () => {
+    const { call } = await withAppLogin();
+    const elsewhere = await call('GET', '/v1/projects/board1/me', {
+      auth: A.appProof(LOGIN, 'https://evil.example'),
+      origin: 'https://evil.example',
+    });
+    expect(elsewhere.data.error).toBe('origin_not_allowed');
+  });
+
+  it('cannot run the dashboard', async () => {
+    const { call } = await withAppLogin();
+    const res = await call('GET', '/v1/projects', { auth: OWNER.appProof(LOGIN, DASH), origin: DASH });
+    expect(res.status).toBe(401);
+  });
+
+  it('is set and cleared by the owner, exactly as written, and never in our own format', async () => {
+    const { call } = await setup({ dashboard: true });
+    const dash = { auth: OWNER.proof('dashboard', DASH), origin: DASH };
+    const set = await call('PATCH', '/v1/projects/board1', { ...dash, body: { loginMessages: [`${LOGIN} `] } });
+    expect(set.data.loginMessages).toEqual([`${LOGIN} `]);
+    expect((await call('PATCH', '/v1/projects/board1', { ...dash, body: { loginMessages: ['PleaseNoBugs login'] } })).status).toBe(400);
+    const cleared = await call('PATCH', '/v1/projects/board1', { ...dash, body: { loginMessages: [] } });
+    expect(cleared.data.loginMessages).toBeUndefined();
+    // And a stranger never learns what it is.
+    expect((await call('GET', '/v1/projects/board1')).data.loginMessages).toBeUndefined();
+  });
+});
+
 describe('posting', () => {
   it('answers what is left of the day, and the board says the same', async () => {
     const { as, post } = await setup();

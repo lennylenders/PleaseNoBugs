@@ -87,6 +87,15 @@ export interface Project extends PublicProject {
   owners: string[];
   /** Where the widget may run, as `URL.origin` strings. */
   origins: string[];
+  /**
+   * Fixed messages this app's own wallet login already signs, accepted as a
+   * proof on this project and no other. Lets an app with a login hand the
+   * widget the signature it already has, so nobody signs twice.
+   *
+   * Off unless the owner sets it, because such a proof never expires: the
+   * message has no timestamp in it. See "App logins" in `docs/api-v1.md`.
+   */
+  loginMessages?: string[];
   createdAt: number;
 }
 
@@ -129,10 +138,25 @@ export interface LoginProof {
   publicKey: string;
   /** Hex. */
   signature: string;
-  /** The origin written into the signed message. */
+  /** The origin written into the signed message, or where an app login is used. */
   origin: string;
-  /** Milliseconds since the epoch, as written into the signed message. */
+  /** Milliseconds since the epoch, as written into the signed message. 0 on an app login. */
   issued: number;
+  /**
+   * Present only on an **app login**: the app's own fixed login message, which
+   * is what was signed instead of `loginMessage()`. Accepted only by a project
+   * that lists it in `loginMessages`.
+   */
+  message?: string;
+}
+
+/** An app's own login signature, handed to the client to reuse. */
+export interface AppLogin {
+  address: string;
+  publicKey: string;
+  signature: string;
+  /** The exact text that was signed. */
+  message: string;
 }
 
 /** Every error the API answers with, as `{ error: ErrorCode }`. */

@@ -160,6 +160,31 @@ describe('createClient', () => {
     expect(sixth).toMatchObject({ ok: false, status: 429, error: 'too_many', body: { perDay: 5 } });
   });
 
+  it('reuses the app’s own login and never asks the wallet', async () => {
+    const { url, store } = await server();
+    await store.putProject({ ...(await store.getProject('board1'))!, loginMessages: ['Sign in to Shitti'] });
+    const s = signerFor('a1');
+    const login = wallet('a1').appLogin('Sign in to Shitti');
+    const client = createClient({ server: url, project: 'board1', origin: APP, signer: s.sign, appLogin: () => login, storage: null });
+    expect(client.address()).not.toBeNull();
+    expect((await client.post({ id: 'p1', kind: 'idea', text: 'One signature, ever' })).ok).toBe(true);
+    const board = await client.board();
+    expect(board.ok && board.data.me?.left).toBe(4);
+    expect(s.asked()).toBe(0);
+  });
+
+  it('falls back to the signer once when the project does not accept the app login', async () => {
+    const { url } = await server();
+    const s = signerFor('a1');
+    const login = wallet('a1').appLogin('Sign in to Shitti');
+    const client = createClient({ server: url, project: 'board1', origin: APP, signer: s.sign, appLogin: login, storage: null });
+    expect((await client.vote('nope', true)).status).toBe(404);
+    expect(s.asked()).toBe(1);
+    // And does not offer it again.
+    await client.vote('nope', true);
+    expect(s.asked()).toBe(1);
+  });
+
   it('answers network when there is no server', async () => {
     const client = createClient({ server: 'http://127.0.0.1:1', project: 'board1', origin: APP, storage: null });
     expect(await client.board()).toMatchObject({ ok: false, error: 'network' });

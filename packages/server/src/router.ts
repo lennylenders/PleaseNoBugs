@@ -19,6 +19,7 @@ import { checkProof } from './auth.js';
 import { publicProject, toVisible } from './board.js';
 import { rateLimit } from './limit.js';
 import {
+  cleanLoginMessages,
   cleanName,
   cleanOrigins,
   cleanOwners,
@@ -100,7 +101,13 @@ export function createRouter(options: RouterOptions): express.Router {
    * their own posts are not theirs.
    */
   async function reader(req: express.Request, p: Project): Promise<Reader> {
-    const check = await checkProof(req.header('authorization'), p.id, req.header('origin'), now());
+    const check = await checkProof(
+      req.header('authorization'),
+      p.id,
+      req.header('origin'),
+      now(),
+      p.loginMessages ?? [],
+    );
     if (!check.ok) {
       return check.reason === 'missing'
         ? { kind: 'stranger' }
@@ -430,6 +437,12 @@ export function createRouter(options: RouterOptions): express.Router {
         const rules = mergeRules(p.rules, body.rules);
         if (!rules) return fail(res, 400, 'bad_request');
         next.rules = rules;
+      }
+      if (body.loginMessages !== undefined) {
+        const messages = cleanLoginMessages(body.loginMessages);
+        if (!messages) return fail(res, 400, 'bad_request');
+        if (messages.length) next.loginMessages = messages;
+        else delete next.loginMessages;
       }
       await store.putProject(next);
       console.info(`[project] ${tag(owner)} changed ${p.id}`);

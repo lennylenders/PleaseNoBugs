@@ -80,6 +80,8 @@ const CACHE_MAX = 10_000;
  * @param header         the raw `Authorization` header
  * @param project        the project id from the URL, or `DASHBOARD_PROJECT`
  * @param requestOrigin  the request's `Origin` header, when it has one
+ * @param appLogins      the fixed login messages this project accepts (its
+ *                       `loginMessages`); empty for the dashboard, always
  *
  * Whether the origin is one the project *allows* is deliberately not decided
  * here: that failure deserves its own error (`origin_not_allowed`), and this
@@ -94,10 +96,17 @@ export async function checkProof(
   project: string,
   requestOrigin: string | undefined,
   now: number = Date.now(),
+  appLogins: readonly string[] = [],
 ): Promise<ProofCheck> {
   if (!header) return { ok: false, reason: 'missing' };
   const proof = decodeProof(header);
-  if (!proof || !isNimiqAddress(proof.address) || !proofIsFresh(proof.issued, now)) {
+  if (!proof || !isNimiqAddress(proof.address)) return { ok: false, reason: 'invalid' };
+
+  // An app login signs the app's own fixed message instead of ours. It is
+  // accepted only where the project listed that exact message, and it has no
+  // timestamp to expire on: the owner opted into that by listing it.
+  const appLogin = proof.message !== undefined;
+  if (appLogin ? !appLogins.includes(proof.message as string) : !proofIsFresh(proof.issued, now)) {
     return { ok: false, reason: 'invalid' };
   }
   const origin = normalizeOrigin(proof.origin);
@@ -112,7 +121,7 @@ export async function checkProof(
   const key = `${project}|${header}`;
   if (verified.get(key) === address) return { ok: true, address, origin };
 
-  const message = loginMessage({ project, origin, issued: proof.issued });
+  const message = appLogin ? (proof.message as string) : loginMessage({ project, origin, issued: proof.issued });
   if (!(await verifySignature(message, address, proof.publicKey, proof.signature))) {
     return { ok: false, reason: 'invalid' };
   }

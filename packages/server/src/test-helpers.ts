@@ -27,6 +27,15 @@ export function wallet(seed: string) {
       const sig = Nimiq.Signature.create(priv, pub, signedHash(loginMessage({ project, origin, issued })));
       return encodeProof({ address, publicKey: pub.toHex(), signature: sig.toHex(), origin, issued });
     },
+    /** The app's own login, signed over a fixed message. */
+    appLogin(message: string) {
+      const sig = Nimiq.Signature.create(priv, pub, signedHash(message));
+      return { address, publicKey: pub.toHex(), signature: sig.toHex(), message };
+    },
+    /** That app login as an `Authorization` header, from `origin`. */
+    appProof(message: string, origin: string) {
+      return encodeProof({ ...this.appLogin(message), origin, issued: 0 });
+    },
   };
 }
 

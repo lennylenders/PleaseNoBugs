@@ -88,6 +88,34 @@ export function cleanOwners(v: unknown): string[] | null {
   return out;
 }
 
+export const MAX_LOGIN_MESSAGES = 3;
+export const LOGIN_MESSAGE_MAX = 200;
+
+/**
+ * The app logins a project accepts, or null. An empty array is valid and
+ * turns the feature off.
+ *
+ * **Never trimmed or normalised**: the signature is over exact bytes, and a
+ * message that differs from what the app signs by one trailing space would be
+ * a setting that silently never works. Our own message format is refused, so
+ * a scoped, expiring proof can never be turned into a permanent one by listing
+ * it here.
+ *
+ * @example
+ * cleanLoginMessages(['Sign in to Shitti'])   // → ['Sign in to Shitti']
+ * cleanLoginMessages(['PleaseNoBugs login…']) // → null
+ */
+export function cleanLoginMessages(v: unknown): string[] | null {
+  if (!Array.isArray(v) || v.length > MAX_LOGIN_MESSAGES) return null;
+  const out: string[] = [];
+  for (const m of v) {
+    if (typeof m !== 'string' || !m.trim() || m.length > LOGIN_MESSAGE_MAX) return null;
+    if (m.startsWith('PleaseNoBugs login')) return null;
+    if (!out.includes(m)) out.push(m);
+  }
+  return out;
+}
+
 /**
  * A partial change to a project's rules, merged over what it has, or null if
  * any field is out of range. The ranges are generous: they exist to stop a
@@ -133,6 +161,7 @@ export function newProject(args: {
   owner: string;
   now?: number;
   id?: string;
+  loginMessages?: string[];
 }): Project {
   return {
     id: args.id ?? newProjectId(),
@@ -140,6 +169,7 @@ export function newProject(args: {
     owners: [normalizeAddress(args.owner)],
     origins: args.origins,
     rules: { ...DEFAULT_RULES, kinds: [...DEFAULT_RULES.kinds] },
+    ...(args.loginMessages?.length ? { loginMessages: args.loginMessages } : {}),
     createdAt: args.now ?? Date.now(),
   };
 }

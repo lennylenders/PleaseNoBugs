@@ -5,6 +5,7 @@ import {
   normalizeOrigin,
   proofIsFresh,
   type Answer,
+  type AppLogin,
   type BoardRead,
   type ErrorCode,
   type LoginProof,
@@ -29,6 +30,16 @@ export interface ClientOptions {
    * inside it; outside Nimiq Pay, without one, the board is read-only.
    */
   signer?: Signer;
+  /**
+   * Your app's own wallet login, reused so nobody signs twice. Only works on a
+   * project whose owner listed that exact message (`loginMessages`). A
+   * function is read on every request, so a login or logout in your app is
+   * picked up without recreating the client.
+   *
+   * Tried before the signer. If the server refuses it, the client stops using
+   * it for this session and falls back to the signer.
+   */
+  appLogin?: AppLogin | null | (() => AppLogin | null | undefined);
   /** The origin written into the signed message. Defaults to this page's. */
   origin?: string;
   /**
@@ -85,6 +96,15 @@ export function createClient(options: ClientOptions) {
   let proof: LoginProof | null = read();
   /** One signature at a time: two taps must not open two wallet prompts. */
   let signing: Promise<Result<string>> | null = null;
+  /** Set once the server turned the app login down; it is not offered again. */
+  let appLoginRefused = false;
+
+  /** The app's own login as a proof, if there is one worth offering. */
+  function fromApp(): LoginProof | null {
+    if (appLoginRefused || !options.appLogin) return null;
+    const a = typeof options.appLogin === 'function' ? options.appLogin() : options.appLogin;
+    return a ? { ...a, origin, issued: 0 } : null;
+  }
 
   function read(): LoginProof | null {
     try {
@@ -107,8 +127,10 @@ export function createClient(options: ClientOptions) {
     }
   }
 
-  /** The stored proof, if it is still good. Never asks the wallet. */
+  /** The app's login, else the stored proof if it is still good. Never asks the wallet. */
   function current(): LoginProof | null {
+    const app = fromApp();
+    if (app) return app;
     if (proof && !proofIsFresh(proof.issued)) remember(null);
     return proof;
   }
@@ -118,6 +140,8 @@ export function createClient(options: ClientOptions) {
    * Concurrent callers share one prompt.
    */
   function signIn(): Promise<Result<string>> {
+    const app = fromApp();
+    if (app) return Promise.resolve({ ok: true, data: normalizeAddress(app.address) });
     if (!signer) return Promise.resolve({ ok: false, status: 0, error: 'no_signer' });
     if (signing) return signing;
     signing = (async (): Promise<Result<string>> => {
@@ -176,7 +200,8 @@ export function createClient(options: ClientOptions) {
 
     // The proof we had stopped working. Forget it, then: a read goes on as a
     // stranger, a write asks the wallet once more.
-    remember(null);
+    if (p.message !== undefined) appLoginRefused = true;
+    else remember(null);
     if (opts.auth === 'optional') return attempt(null);
     const again = await signIn();
     if (!again.ok) return again;
@@ -189,8 +214,10 @@ export function createClient(options: ClientOptions) {
   return {
     /** The project this client talks to. */
     project,
-    /** Whether a wallet can be asked at all. False outside Nimiq Pay with no signer. */
-    canSign: !!signer,
+    /** Whether the user can be signed in at all: a signer, or an app login. */
+    get canSign() {
+      return !!signer || fromApp() !== null;
+    },
     /** The signed-in address, if a proof is stored. */
     address(): string | null {
       const p = current();

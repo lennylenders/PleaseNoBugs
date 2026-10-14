@@ -41,6 +41,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | Property | |
 |---|---|
 | `signer` | How to sign outside Nimiq Pay (below). |
+| `appLogin` | Your app's own login signature, so nobody signs twice (below). |
 | `context` | Sent with every bug report, to owners only: `{ version: '1.4.0' }`. |
 | `noise` | Words common in your app, so "said already?" ignores them: `['nim', 'wallet']`. |
 | `strings` | Override any text: `{ 'board.title': 'Ideas box' }`. Keys are in `src/i18n.ts`. |
@@ -72,6 +73,19 @@ please-no-bugs {
   --pnb-z: 2147483000;       /* overlay and floating button */
 }
 ```
+
+## Reusing your app's own login
+
+If your app already has users sign a fixed login message, hand that signature
+to the widget and nobody signs twice:
+
+```js
+board.appLogin = { address, publicKey, signature, message: 'Sign in to My app' };
+```
+
+The project has to list that exact message first (`loginMessages`, through the
+dashboard or `create-project --login-message`). Set `appLogin` to `null` when
+the user logs out of your app.
 
 ## Signing outside Nimiq Pay
 

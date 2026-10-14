@@ -142,6 +142,20 @@ their day before writing. Drawn only while signed out and only where a wallet
 can be asked. Chosen over leaving it to the dashboard and over an attribute
 telling the widget who the owner is.
 
+## 2026-10-14: App logins, per project, off by default
+
+Found while moving Shitti across: its browser-wallet users could not have
+posted at all, since a second signature in a browser means a Hub popup and
+Shitti already learned those strand people on phones. A project may now list
+its app's own fixed login message, and the widget reuses the signature the app
+already has. Nobody signs twice, in Nimiq Pay or a browser.
+
+Cost: such a proof never expires, and anything that gets a user to sign the
+app's message can post on that board as them. It can already use the app as
+them with it, so the board adds no new risk; it is still the owner's explicit
+choice, project by project. This walks back part of "proofs are scoped to a
+project and an origin" for the projects that ask, and only for them.
+
 ## Open
 
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.

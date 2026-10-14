@@ -68,6 +68,11 @@ describe('encodeProof / decodeProof', () => {
     expect(decodeProof(encodeProof(proof))).toEqual(proof);
   });
 
+  it('round-trips an app login, message included', () => {
+    const app = { ...proof, issued: 0, message: 'Sign in to Shitti' };
+    expect(decodeProof(encodeProof(app))).toEqual(app);
+  });
+
   it('survives non-ASCII, since base64 alone would not', () => {
     const odd = { ...proof, address: 'NQ€ ü' };
     expect(decodeProof(encodeProof(odd))).toEqual(odd);

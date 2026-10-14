@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { useState } from 'preact/hooks';
-import type { PostContext, PostKind } from '@pleasenobugs/core';
+import type { AppLogin, PostContext, PostKind } from '@pleasenobugs/core';
 import { createClient, type Client } from './client.js';
 import { pickLang, translator, type Strings } from './i18n.js';
 import type { Signer } from './signer.js';
@@ -25,8 +25,8 @@ export const TAG = 'please-no-bugs';
  * `theme` (`auto` | `light` | `dark` | `shitti`), `accent` (a colour),
  * `app-name`, `name` (a display name to suggest).
  *
- * Properties, for things an attribute cannot carry: `signer`, `context`,
- * `noise`, `strings`.
+ * Properties, for things an attribute cannot carry: `signer`, `appLogin`,
+ * `context`, `noise`, `strings`.
  *
  * Events: `pleasenobugs:posted` (`detail: { id, kind }`) and
  * `pleasenobugs:close`.
@@ -43,6 +43,7 @@ export class PleaseNoBugsElement extends HTMLElement {
   #client: Client | null = null;
   #clientKey = '';
   #signer?: Signer;
+  #appLogin?: AppLogin | null;
   #context?: PostContext;
   #noise?: string[];
   #strings?: Strings;
@@ -54,6 +55,21 @@ export class PleaseNoBugsElement extends HTMLElement {
   }
   set signer(v: Signer | undefined) {
     this.#signer = v;
+    this.#clientKey = '';
+    this.#render();
+  }
+
+  /**
+   * Your app's own wallet login, so nobody signs twice: `{ address, publicKey,
+   * signature, message }`. Needs the project to list that message. Set it to
+   * null on logout.
+   */
+  get appLogin() {
+    return this.#appLogin;
+  }
+  set appLogin(v: AppLogin | null | undefined) {
+    this.#appLogin = v;
+    // A new client, so the board re-reads as whoever is signed in now.
     this.#clientKey = '';
     this.#render();
   }
@@ -142,7 +158,7 @@ export class PleaseNoBugsElement extends HTMLElement {
     }
     const key = `${server}|${project}`;
     if (!this.#client || this.#clientKey !== key) {
-      this.#client = createClient({ server, project, signer: this.#signer });
+      this.#client = createClient({ server, project, signer: this.#signer, appLogin: this.#appLogin });
       this.#clientKey = key;
     }
 

@@ -83,17 +83,18 @@ export function decodeProof(header: string | undefined | null): LoginProof | nul
   if (!header || !header.startsWith('Nimiq ')) return null;
   try {
     const raw = JSON.parse(fromBase64Url(header.slice(6).trim())) as Record<string, unknown>;
-    const { address, publicKey, signature, origin, issued } = raw;
+    const { address, publicKey, signature, origin, issued, message } = raw;
     if (
       typeof address !== 'string' ||
       typeof publicKey !== 'string' ||
       typeof signature !== 'string' ||
       typeof origin !== 'string' ||
-      typeof issued !== 'number'
+      typeof issued !== 'number' ||
+      (message !== undefined && typeof message !== 'string')
     ) {
       return null;
     }
-    return { address, publicKey, signature, origin, issued };
+    return { address, publicKey, signature, origin, issued, ...(message !== undefined ? { message } : {}) };
   } catch {
     return null;
   }
