@@ -52,8 +52,15 @@ Authorization: Nimiq <base64url(JSON.stringify(proof))>
 where `proof` is a `LoginProof`:
 
 ```ts
-{ address: string; publicKey: string; signature: string; issued: number }
+{ address: string; publicKey: string; signature: string; origin: string; issued: number }
 ```
+
+`origin` and `issued` are in the proof because they are in the signed message
+and the server has to rebuild that message byte for byte. The project is not:
+it is the one in the URL, which is what makes the proof useless on any other
+board. A request that carries a header which is not a valid proof answers
+`401`, even on a route that would work without one, so the client knows to ask
+the wallet again rather than silently reading as a stranger.
 
 ### The message that is signed
 
@@ -80,19 +87,25 @@ project and the origin makes a proof useless anywhere but where it was given.
 
 1. The signature is valid for the rebuilt message and `publicKey`.
 2. `publicKey` derives to `address`.
-3. The message's origin is one of the project's `origins`, and matches the
-   request's `Origin` header when there is one.
+3. The proof's origin matches the request's `Origin` header when there is
+   one, and is one of the project's `origins`. The second failing answers
+   `403 origin_not_allowed` rather than `401`, because it is almost always a
+   developer who has not added their domain yet, and telling them so is kinder
+   than a login that mysteriously never works.
 4. `issued` is no more than 5 minutes in the future and no more than
    `LOGIN_TTL_MS` (30 days) in the past. After that the widget asks again.
 
-Any failure answers `401 unauthorized`, without saying which check failed.
+Any other failure answers `401 unauthorized`, without saying which check
+failed.
 
 ### Dashboard proofs
 
 The dashboard manages several projects at once, so it signs with
 `Project: dashboard`. Such a proof is accepted **only** on the project
-management routes (marked *dashboard* below) and only from the server's own
-dashboard origin. It can never post, vote or manage a post inside a widget.
+management routes (marked *dashboard* below) and only from an origin the
+server lists as a dashboard (`PNB_DASHBOARD_ORIGINS`). It can never post, vote
+or manage a post inside a widget. A server with no dashboard origins accepts no
+dashboard proofs at all; self-hosters create projects with the CLI instead.
 
 ## Routes
 
@@ -162,7 +175,7 @@ How long to keep showing an answer is the client's decision.
   id: string;                         // minted by the client, at most 128 chars
   kind: 'bug' | 'idea';               // must be in project.rules.kinds
   text: string;                       // trimmed, 1..rules.textMax chars
-  anon: boolean;                      // false shows the author's name, if they have one
+  anon?: boolean;                     // default true; false shows the author's name, if they have one
   context?: Record<string, string>;   // at most 10 keys, values at most 100 chars
 }
 ```
@@ -171,6 +184,12 @@ Answers `{ ok: true, left: number }`.
 
 - The id is the client's so a post can appear on the board in the same frame as
   the tap. A second write with the same id is `409 duplicate`.
+- **Anonymous unless asked otherwise.** Leaving `anon` out keeps the name off:
+  getting it wrong in that direction costs a name on a card, the other
+  direction puts somebody's name where they did not want it.
+- **Text over the limit is refused, not cut.** A server that trims quietly
+  loses the end of somebody's sentence; the widget holds the field to the
+  limit, so only a broken client ever sees this.
 - The author's own vote is counted from the start: the number means "how many
   people want this", and the author is one of them.
 - `context` is for whatever helps the owners reproduce a bug (an app version, a
@@ -264,7 +283,9 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 | 404 | `no_post` | No such post, or one hidden from you. |
 | 409 | `duplicate` | A post with this id exists. |
 | 429 | `too_many` | The day's posts are used up. Carries `perDay`. |
-| 429 | `rate_limited` | Too many requests. Try again later. |
+| 429 | `rate_limited` | Too many requests. Carries `retryAfter` in seconds. |
+| 404 | `not_found` | No such route. |
+| 500 | `internal` | Our fault. Logged on the server, never explained in the answer. |
 
 ## Limits
 

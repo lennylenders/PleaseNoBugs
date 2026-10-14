@@ -56,7 +56,13 @@ describe('proofIsFresh', () => {
 });
 
 describe('encodeProof / decodeProof', () => {
-  const proof = { address: 'NQ07 0000', publicKey: 'ab', signature: 'cd', issued: 42 };
+  const proof = {
+    address: 'NQ07 0000',
+    publicKey: 'ab',
+    signature: 'cd',
+    origin: 'https://x.app',
+    issued: 42,
+  };
 
   it('round-trips', () => {
     expect(decodeProof(encodeProof(proof))).toEqual(proof);

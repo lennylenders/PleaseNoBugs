@@ -68,6 +68,29 @@ PleaseNoBugs. Funny, unique, free on npm. It also covers ideas, which the
 tagline says. Not called "Nimiq ..." because it is not an official Nimiq
 product, and `@nimiq` is Nimiq's own npm scope.
 
+## 2026-10-14: SQLite through `node:sqlite`, Postgres later
+
+The self-hosted store is one SQLite file on Node's built-in `node:sqlite`
+rather than `better-sqlite3`, because a native module has to compile on
+install and that is where self-hosters on Windows or slim containers give up.
+Cost: Node 22.13+ only, and one "experimental" warning at start. Postgres comes
+with the hosted instance. Every store passes the same contract tests
+(`store.test.ts`), which is what "works" means for the next one.
+
+## 2026-10-14: Any origin may call the API
+
+CORS reflects every origin. Safe because nothing uses cookies: who you are is
+the proof in the `Authorization` header, which no other page can borrow. Which
+sites may post on which board is enforced on the proof itself, where a
+developer gets a clear `origin_not_allowed` instead of a CORS error in the
+console.
+
+## 2026-10-14: Anonymous by default on the wire
+
+A post with no `anon` field is anonymous. Shitti did the opposite (shown unless
+`anon: true`), which was fine with one client written by the same person. With
+many clients, a forgotten field should fail private.
+
 ## Open
 
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.

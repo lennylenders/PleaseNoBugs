@@ -1,4 +1,5 @@
 export * from './types.js';
+export * from './address.js';
 export * from './rules.js';
 export * from './login.js';
 export * from './similar.js';

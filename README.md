@@ -6,8 +6,8 @@ A feedback board you drop into your Nimiq mini app. Your users post what is
 broken and what is missing, second each other's wishes, and you answer them in
 one place, without asking anybody to send you an email.
 
-> **Status: under construction.** The API contract is written
-> ([docs/api-v1.md](docs/api-v1.md)); the server and the widget are next.
+> **Status: under construction.** The API contract
+> ([docs/api-v1.md](docs/api-v1.md)) and the server are done; the widget is next.
 > This is a community tool, not an official Nimiq product.
 
 ## What it does
@@ -31,7 +31,7 @@ one place, without asking anybody to send you an email.
 | Package | What it is |
 |---|---|
 | [`@pleasenobugs/core`](packages/core) | Types, rules, the login message and the lookalike matcher. No dependencies; used by everything else. |
-| `@pleasenobugs/server` | The API, with pluggable storage. *(coming)* |
+| [`@pleasenobugs/server`](packages/server) | The API, with pluggable storage (memory and SQLite now, Postgres next). |
 | `pleasenobugs` | The headless client and the `<please-no-bugs>` web component. *(coming)* |
 
 ## License

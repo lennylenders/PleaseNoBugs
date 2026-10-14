@@ -118,8 +118,10 @@ export interface Answer {
 /**
  * Who is asking, sent base64url-encoded in `Authorization: Nimiq <...>`.
  *
- * `issued` travels because the server has to rebuild the signed message
- * byte for byte, and the timestamp is part of it.
+ * `origin` and `issued` travel because the server has to rebuild the signed
+ * message byte for byte and both are part of it. The project is not here: it
+ * is the one in the URL, which is what makes a proof useless on any other
+ * board.
  */
 export interface LoginProof {
   address: string;
@@ -127,6 +129,8 @@ export interface LoginProof {
   publicKey: string;
   /** Hex. */
   signature: string;
+  /** The origin written into the signed message. */
+  origin: string;
   /** Milliseconds since the epoch, as written into the signed message. */
   issued: number;
 }
@@ -142,4 +146,6 @@ export type ErrorCode =
   | 'no_post'
   | 'duplicate'
   | 'too_many'
-  | 'rate_limited';
+  | 'rate_limited'
+  | 'not_found'
+  | 'internal';
