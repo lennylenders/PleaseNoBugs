@@ -1,7 +1,9 @@
 #!/usr/bin/env node
+import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { isNimiqAddress } from '@pleasenobugs/core';
 import { createApp } from './app.js';
+import { importBoard, ImportError } from './importer.js';
 import { cleanName, cleanOrigins, newProject } from './projects.js';
 import { SqliteStore } from './sqlite-store.js';
 
@@ -11,6 +13,7 @@ import { SqliteStore } from './sqlite-store.js';
  *
  *   pleasenobugs-server
  *   pleasenobugs-server create-project --name "My app" --origin https://my.app --owner "NQ07 ..."
+ *   pleasenobugs-server import --project <id> --file board.json
  *
  * Configured by environment, which is what every host (Railway, Fly, a
  * systemd unit) knows how to set:
@@ -52,6 +55,32 @@ if (command === 'create-project') {
   console.log(`Project id: ${project.id}`);
   console.log(`Origins:    ${project.origins.join(', ')}`);
   console.log(`Owner:      ${project.owners[0]}`);
+} else if (command === 'import') {
+  const { values } = parseArgs({
+    args: process.argv.slice(3),
+    options: { project: { type: 'string' }, file: { type: 'string' } },
+  });
+  if (!values.project || !values.file) {
+    console.error('Usage: pleasenobugs-server import --project <id> --file board.json');
+    process.exit(1);
+  }
+  const store = new SqliteStore(db);
+  const project = await store.getProject(values.project);
+  if (!project) {
+    console.error(`No project "${values.project}" in ${db}.`);
+    process.exit(1);
+  }
+  try {
+    const report = await importBoard(store, project, JSON.parse(readFileSync(values.file, 'utf8')));
+    console.log(
+      `Imported ${report.imported} posts (${report.skipped} already there), ${report.votes} votes, ${report.names} names.`,
+    );
+  } catch (e) {
+    console.error(e instanceof ImportError ? `Nothing imported. Problem at ${e.message}` : e);
+    process.exit(1);
+  } finally {
+    store.close();
+  }
 } else if (command === undefined || command === 'serve') {
   const port = Number(process.env.PORT) || 8787;
   const dashboardOrigins = (process.env.PNB_DASHBOARD_ORIGINS ?? '')
