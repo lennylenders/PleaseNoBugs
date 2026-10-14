@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "widget-demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["packages/widget/demo/serve.mjs"],
+      "port": 5180
+    }
+  ]
+}

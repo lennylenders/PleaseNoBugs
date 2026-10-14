@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>PleaseNoBugs demo</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        background: Canvas;
+        color: CanvasText;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid color-mix(in srgb, CanvasText 15%, transparent);
+        font-size: 14px;
+      }
+      .controls label { display: inline-flex; gap: 6px; align-items: center; }
+      .phone { height: calc(100vh - 110px); max-width: 430px; margin: 0 auto; }
+      please-no-bugs[mode='inline'] { height: 100%; }
+      .note { padding: 0 16px 8px; font-size: 12px; opacity: 0.7; }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <label>Wallet
+        <select id="who">
+          <option value="alice">Alice</option>
+          <option value="bob">Bob</option>
+          <option value="owner">Owner</option>
+          <option value="none">No wallet</option>
+        </select>
+      </label>
+      <label>Theme
+        <select id="theme">
+          <option value="auto">auto</option>
+          <option value="light">light</option>
+          <option value="dark">dark</option>
+          <option value="shitti">shitti</option>
+        </select>
+      </label>
+      <label>Lang
+        <select id="lang">
+          <option value="en">en</option>
+          <option value="nl">nl</option>
+          <option value="de">de</option>
+        </select>
+      </label>
+      <label>Mode
+        <select id="mode">
+          <option value="inline">inline</option>
+          <option value="floating">floating</option>
+        </select>
+      </label>
+      <button id="open" type="button">open()</button>
+    </div>
+    <p class="note">Demo only: the page signs as the chosen wallet through the demo server. Switching wallet signs you out.</p>
+    <div class="phone">
+      <please-no-bugs id="board" project="demo" mode="inline"></please-no-bugs>
+    </div>
+
+    <script type="module">
+      import { open } from '/dist/index.js';
+
+      const board = document.getElementById('board');
+      board.setAttribute('server', location.origin);
+      board.context = { version: '0.1.0-demo' };
+      board.noise = ['demo'];
+      const $ = (id) => document.getElementById(id);
+      const params = new URLSearchParams(location.search);
+      for (const k of ['who', 'theme', 'lang', 'mode']) if (params.get(k)) $(k).value = params.get(k);
+
+      const signerFor = (who) =>
+        who === 'none'
+          ? undefined
+          : async (message) => {
+              const res = await fetch('/demo/sign', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ who, message }),
+              });
+              return res.json();
+            };
+
+      function apply() {
+        // A different wallet is a different person: forget the stored proof.
+        for (const k of Object.keys(localStorage)) if (k.startsWith('pleasenobugs.proof.')) localStorage.removeItem(k);
+        board.signer = signerFor($('who').value);
+        board.setAttribute('theme', $('theme').value);
+        board.setAttribute('lang', $('lang').value);
+        board.setAttribute('mode', $('mode').value);
+        // Re-create the client so the forgotten proof is really forgotten.
+        board.setAttribute('project', 'demo');
+      }
+      for (const k of ['who', 'theme', 'lang', 'mode']) $(k).addEventListener('change', apply);
+      apply();
+
+      $('open').addEventListener('click', () =>
+        open({
+          project: 'demo',
+          server: location.origin,
+          theme: $('theme').value,
+          lang: $('lang').value,
+          signer: signerFor($('who').value),
+        }),
+      );
+      board.addEventListener('pleasenobugs:posted', (e) => console.log('[demo] posted', e.detail));
+    </script>
+  </body>
+</html>

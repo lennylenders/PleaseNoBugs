@@ -91,6 +91,57 @@ A post with no `anon` field is anonymous. Shitti did the opposite (shown unless
 `anon: true`), which was fine with one client written by the same person. With
 many clients, a forgotten field should fail private.
 
+## 2026-10-14: The widget is Preact in a shadow root
+
+Preact because Shitti's board is React and ports almost line for line, at 4 kB.
+A shadow root because the widget lives in other people's apps: their CSS must
+not break it and its CSS must not leak. Everything is bundled in, so a host on
+React 18, Vue or Svelte never reconciles a second copy of anything. 19 kB
+gzipped for the script-tag build, three languages included.
+
+## 2026-10-14: Neutral look, light and dark, themed by custom properties
+
+Follows the phone's light/dark setting, one `accent` attribute, and every
+colour is a `--pnb-*` property that is part of the public API. Shitti's look
+ships as `theme="shitti"`. The owner wants to revisit the look; the properties
+are what make that possible without touching the components.
+
+Museo Sans Rounded is not used: it is licensed to the owner and cannot be
+redistributed. The widget inherits the host app's font instead.
+
+## 2026-10-14: Three ways to show it
+
+`inline`, `floating` (a button in the corner, the "paste one line" route) and
+`overlay` (what `open()` uses).
+
+## 2026-10-14: Nimiq Pay built in, any other wallet through `signer`
+
+Inside Nimiq Pay the widget signs through the injected provider by itself.
+Elsewhere the app passes a signer, because it already has a wallet integration
+and the Hub's popups are exactly what broke on phones in Shitti. Without one the
+board is read-only, and says so only when somebody tries to write.
+
+## 2026-10-14: The composer is one scrolling column
+
+Shitti pinned a footer and then wrote a page about what phone keyboards do to
+pinned footers. A widget meets keyboards it has never been tested against, so
+it takes the arrangement with nothing to get wrong. Cost: the send button can
+scroll out of view on a short screen.
+
+## 2026-10-14: The bin is a button, not a swipe
+
+Shitti hid deleting behind a swipe. A widget cannot teach gestures in somebody
+else's app, so it is a visible button on your own posts.
+
+## 2026-10-14: A quiet "Sign in" at the foot of the board
+
+Reading never asks the wallet, so an owner opening the board saw no way to
+answer until their first vote. A link under the list signs in without doing
+anything else: owners get their controls, everybody else sees what is left of
+their day before writing. Drawn only while signed out and only where a wallet
+can be asked. Chosen over leaving it to the dashboard and over an attribute
+telling the widget who the owner is.
+
 ## Open
 
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.

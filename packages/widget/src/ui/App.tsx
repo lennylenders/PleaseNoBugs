@@ -1,0 +1,407 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import {
+  createMatcher,
+  sortPosts,
+  type BoardRead,
+  type BoardSort,
+  type Post,
+  type PostContext,
+  type PostKind,
+  type PostStatus,
+} from '@pleasenobugs/core';
+import type { Client } from '../client.js';
+import { insideNimiqPay } from '../signer.js';
+import type { CopyKey, Translate } from '../i18n.js';
+import { Compose } from './Compose.js';
+import { PostCard } from './PostCard.js';
+import { DeleteSheet, ManageSheet } from './Sheets.js';
+import * as Icon from './icons.js';
+
+const PER_PAGE = 15;
+/** How long "Feedback sent!" stays up. */
+const TOAST_MS = 2600;
+
+export interface AppProps {
+  client: Client;
+  t: Translate;
+  locale: string;
+  /** What the board calls the app ("{app} says"). Defaults to the project's name. */
+  appName?: string;
+  /** A display name the host app already knows, offered when the user shows theirs. */
+  suggestName?: string;
+  /** Sent with every bug, to owners only: a version, a screen. */
+  context?: PostContext;
+  /** Words common in this app, so the lookalike matcher ignores them. */
+  noise?: string[];
+  /** Present when the board is an overlay: draws the X. */
+  onClose?: () => void;
+  onPosted?: (post: { id: string; kind: PostKind }) => void;
+}
+
+/** Whatever is over the board, as one value so two can never be up at once. */
+type Over = { kind: 'delete'; post: Post } | { kind: 'manage'; post: Post } | null;
+
+/**
+ * The whole board: the list, writing one, and the two sheets.
+ *
+ * **It owns its data and fetches it when it opens**, then again after anything
+ * it did. A feedback board is a page people open now and then; polling it
+ * would be traffic for nobody.
+ *
+ * Voting is optimistic and corrected from what the server answers, because a
+ * tap that waits a round trip before the number moves reads as a tap that
+ * missed. Posting is the opposite and waits (see {@link Compose}).
+ */
+export function App({ client, t, locale, appName, suggestName, context, noise, onClose, onPosted }: AppProps) {
+  const [read, setRead] = useState<BoardRead | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [view, setView] = useState<'board' | 'compose'>('board');
+  const [sort, setSort] = useState<BoardSort>('top');
+  const [kind, setKind] = useState<'all' | PostKind>('all');
+  const [page, setPage] = useState(1);
+  const [over, setOver] = useState<Over>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [away, setAway] = useState(false);
+  const scroller = useRef<HTMLDivElement>(null);
+
+  // Keyed on the words rather than the array, which the element hands over as
+  // a fresh one on every render.
+  const noiseKey = (noise ?? []).join('|');
+  const likeThis = useMemo(() => createMatcher(noiseKey ? noiseKey.split('|') : []), [noiseKey]);
+
+  // Whether a board has ever arrived, as a ref so `pull` does not go stale.
+  // A refresh that fails after a good read keeps the board on screen; only a
+  // first read that fails says the board is unreachable.
+  const loaded = useRef(false);
+  const pull = useCallback(async () => {
+    const res = await client.board();
+    if (res.ok) {
+      loaded.current = true;
+      setRead(res.data);
+      setFailed(false);
+    } else if (!loaded.current) {
+      setFailed(true);
+    }
+  }, [client]);
+
+  useEffect(() => {
+    void pull();
+  }, [pull]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), TOAST_MS);
+    return () => clearTimeout(id);
+  }, [toast]);
+
+  /**
+   * The order pill steps aside going down and comes straight back going up.
+   * Wanting it back is deliberate, so it answers sooner (8px) than it leaves
+   * (24px), and it never hides near the top where there is nothing under it.
+   */
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    let last = el.scrollTop;
+    let travel = 0;
+    const onScroll = () => {
+      const y = el.scrollTop;
+      const d = y - last;
+      last = y;
+      if (y < 48) {
+        travel = 0;
+        setAway(false);
+        return;
+      }
+      travel = Math.sign(d) === Math.sign(travel) ? travel + d : d;
+      if (travel > 24) setAway(true);
+      else if (travel < -8) setAway(false);
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [view, read]);
+
+  const name = appName ?? read?.project.name ?? '';
+  const rules = read?.project.rules;
+  const owner = !!read?.me?.owner;
+  const posts = read?.posts ?? [];
+
+  const shown = useMemo(() => {
+    const here = posts.filter((p) => owner || !p.hidden);
+    return sortPosts(kind === 'all' ? here : here.filter((p) => p.kind === kind), sort);
+  }, [posts, kind, sort, owner]);
+  const pages = Math.max(1, Math.ceil(shown.length / PER_PAGE));
+  const at = Math.min(page, pages);
+  const slice = shown.slice((at - 1) * PER_PAGE, at * PER_PAGE);
+
+  const patch = (id: string, change: Partial<Post>) =>
+    setRead((r) => (r ? { ...r, posts: r.posts.map((p) => (p.id === id ? { ...p, ...change } : p)) } : r));
+
+  /** A refusal that is not about the post itself, said the same way everywhere. */
+  const sayRefusal = (error: string) => {
+    if (error === 'no_signer') setToast(t('board.needWallet', { app: name }));
+    else if (error !== 'declined') setToast(t('board.failed'));
+  };
+
+  const vote = async (id: string, up: boolean) => {
+    const before = posts.find((p) => p.id === id);
+    if (!before) return;
+    patch(id, { votes: Math.max(0, before.votes + (up ? 1 : -1)), voted: up });
+    const res = await client.vote(id, up);
+    if (res.ok) {
+      patch(id, { votes: res.data.votes, voted: res.data.voted });
+      // The first write is often the one that signed in: pick up `me` with it.
+      if (!read?.me) void pull();
+    } else {
+      patch(id, { votes: before.votes, voted: before.voted });
+      sayRefusal(res.error);
+    }
+  };
+
+  const send = async (draft: {
+    kind: PostKind;
+    text: string;
+    anon: boolean;
+    name: string;
+  }): Promise<{ key: CopyKey | null; vars?: Record<string, string | number> } | null> => {
+    const id = newId();
+    // What the owner needs to reproduce a bug, and only on a bug: an idea does
+    // not get better for knowing which build it was written on.
+    const sentWith: PostContext | undefined =
+      draft.kind === 'bug' ? { ...context, host: insideNimiqPay() ? 'nimiq-pay' : 'browser' } : undefined;
+
+    const res = await client.post({ id, kind: draft.kind, text: draft.text, anon: draft.anon, context: sentWith });
+    if (!res.ok) {
+      if (res.error === 'declined') return { key: null };
+      if (res.error === 'no_signer') return { key: 'board.needWallet', vars: { app: name } };
+      if (res.error === 'too_many') {
+        void pull();
+        return { key: 'board.failedFull', vars: { max: rules?.perDay ?? 5 } };
+      }
+      return { key: 'board.failed' };
+    }
+    // Only now: setting a name is a write, and the post was the one that
+    // signed in. A failure here costs a name on a card, never the post.
+    if (!draft.anon && draft.name && draft.name !== read?.me?.name) await client.setName(draft.name);
+
+    setView('board');
+    setSort('new');
+    setKind('all');
+    setPage(1);
+    setToast(t('board.sent'));
+    onPosted?.({ id, kind: draft.kind });
+    await pull();
+    return null;
+  };
+
+  /**
+   * Sign in without doing anything else. Reading never asks the wallet, so
+   * without this an owner would see no way to answer until their first vote,
+   * and nobody would see how many posts they have left before writing one.
+   */
+  const signIn = async () => {
+    const res = await client.signIn();
+    if (res.ok) await pull();
+    else sayRefusal(res.error);
+  };
+
+  const remove = async (post: Post) => {
+    setOver(null);
+    setRead((r) => (r ? { ...r, posts: r.posts.filter((p) => p.id !== post.id) } : r));
+    const res = await client.remove(post.id);
+    if (!res.ok) sayRefusal(res.error);
+    void pull();
+  };
+
+  const manage = async (post: Post, change: { status: PostStatus; reply: string; hidden: boolean }) => {
+    setOver(null);
+    patch(post.id, {
+      status: change.status,
+      hidden: change.hidden || undefined,
+      reply: change.reply ? { text: change.reply, at: Date.now() } : undefined,
+    });
+    const res = await client.manage(post.id, change);
+    if (!res.ok) sayRefusal(res.error);
+    void pull();
+  };
+
+  const kinds = rules?.kinds ?? ['bug', 'idea'];
+
+  if (view === 'compose' && rules) {
+    return (
+      <div class="app">
+        <header class="bar">
+          <button type="button" class="icon-btn" aria-label={t('board.back')} onClick={() => setView('board')}>
+            <Icon.Back />
+          </button>
+          <h2 class="bar__title">{t('board.composeTitle')}</h2>
+          <span />
+        </header>
+        <div class="scroll" ref={scroller} style={{ paddingBottom: '24px' }}>
+          <Compose
+            t={t}
+            kinds={kinds}
+            posts={posts}
+            likeThis={likeThis}
+            left={read?.me ? read.me.left : null}
+            perDay={rules.perDay}
+            textMax={rules.textMax}
+            name={read?.me?.name ?? suggestName ?? ''}
+            appName={name}
+            onVote={vote}
+            onSend={send}
+          />
+        </div>
+        {toast && <div class="toast" role="status">{toast}</div>}
+      </div>
+    );
+  }
+
+  return (
+    <div class="app">
+      <header class="bar">
+        {onClose ? (
+          <button type="button" class="icon-btn" aria-label={t('board.close')} onClick={onClose}>
+            <Icon.Close />
+          </button>
+        ) : (
+          <span />
+        )}
+        <h2 class="bar__title">{t('board.title')}</h2>
+        <button
+          type="button"
+          class="icon-btn"
+          aria-label={t('board.write')}
+          disabled={!rules}
+          onClick={() => setView('compose')}
+        >
+          <Icon.Plus />
+        </button>
+      </header>
+
+      {kinds.length > 1 && (
+        <div class="filters">
+          {(['all', ...kinds] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              class="chip-pick"
+              aria-pressed={kind === k}
+              onClick={() => {
+                setKind(k);
+                setPage(1);
+              }}
+            >
+              {t(k === 'all' ? 'board.all' : k === 'bug' ? 'board.bugs' : 'board.ideas')}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div class="scroll" ref={scroller}>
+        {failed ? (
+          <div class="empty">
+            <p>{t('board.loadFailed')}</p>
+            <button type="button" class="text-btn" onClick={() => void pull()}>
+              {t('board.retry')}
+            </button>
+          </div>
+        ) : !read ? (
+          <div class="empty" aria-busy="true">
+            <span class="spinner" style={{ display: 'inline-block' }} />
+          </div>
+        ) : slice.length === 0 ? (
+          <p class="empty">{t(posts.length === 0 ? 'board.emptyTitle' : 'board.emptyFiltered')}</p>
+        ) : (
+          <ul class="list">
+            {slice.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                appName={name}
+                t={t}
+                locale={locale}
+                onVote={(up) => void vote(post.id, up)}
+                onDelete={post.mine || owner ? () => setOver({ kind: 'delete', post }) : undefined}
+                onManage={owner ? () => setOver({ kind: 'manage', post }) : undefined}
+              />
+            ))}
+          </ul>
+        )}
+
+        {pages > 1 && (
+          <nav class="pager">
+            {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                type="button"
+                aria-current={n === at ? 'page' : undefined}
+                aria-label={t('board.page', { n })}
+                onClick={() => {
+                  setPage(n);
+                  scroller.current?.scrollTo({ top: 0 });
+                }}
+              >
+                {n}
+              </button>
+            ))}
+          </nav>
+        )}
+
+        {/* Quiet and last: the board is for reading, and this is only the way
+            to be recognised before doing anything. Gone once signed in, and
+            never drawn where there is no wallet to ask. */}
+        {read && !read.me && client.canSign && (
+          <div class="sign-in">
+            <button type="button" class="text-btn" onClick={() => void signIn()}>
+              {t('board.signIn')}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Floating over the foot of the list, because it is the control you
+          change while reading: the end of Top, wondering what is new. */}
+      <div class={`order${away ? ' order--away' : ''}`}>
+        <div class="order__pill" role="tablist" aria-label={t('board.order')}>
+          {(['top', 'new'] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              role="tab"
+              class="order__tab"
+              aria-selected={sort === s}
+              onClick={() => {
+                setSort(s);
+                setPage(1);
+              }}
+            >
+              {t(s === 'top' ? 'board.top' : 'board.new')}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {toast && <div class="toast" role="status">{toast}</div>}
+
+      {over?.kind === 'delete' && (
+        <DeleteSheet t={t} onConfirm={() => void remove(over.post)} onClose={() => setOver(null)} />
+      )}
+      {over?.kind === 'manage' && rules && (
+        <ManageSheet
+          t={t}
+          post={over.post}
+          replyMax={rules.replyMax}
+          onSave={(change) => void manage(over.post, change)}
+          onClose={() => setOver(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** A post id. Random enough that two phones never mint the same one. */
+function newId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
+  return `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}

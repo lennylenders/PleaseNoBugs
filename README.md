@@ -7,7 +7,8 @@ broken and what is missing, second each other's wishes, and you answer them in
 one place, without asking anybody to send you an email.
 
 > **Status: under construction.** The API contract
-> ([docs/api-v1.md](docs/api-v1.md)) and the server are done; the widget is next.
+> ([docs/api-v1.md](docs/api-v1.md)), the server and the widget work; not yet
+> published or hosted.
 > This is a community tool, not an official Nimiq product.
 
 ## What it does
@@ -32,7 +33,7 @@ one place, without asking anybody to send you an email.
 |---|---|
 | [`@pleasenobugs/core`](packages/core) | Types, rules, the login message and the lookalike matcher. No dependencies; used by everything else. |
 | [`@pleasenobugs/server`](packages/server) | The API, with pluggable storage (memory and SQLite now, Postgres next). |
-| `pleasenobugs` | The headless client and the `<please-no-bugs>` web component. *(coming)* |
+| [`pleasenobugs`](packages/widget) | The `<please-no-bugs>` web component and the headless client it is built on. |
 
 ## License
 
