@@ -28,8 +28,12 @@ export interface ClientOptions {
   /**
    * How to get a signature. Defaults to Nimiq Pay's own wallet when running
    * inside it; outside Nimiq Pay, without one, the board is read-only.
+   *
+   * `null` means never ask, even inside Nimiq Pay: for a background read (a
+   * badge, a bell) that must not put a wallet prompt in front of somebody who
+   * did not tap anything.
    */
-  signer?: Signer;
+  signer?: Signer | null;
   /**
    * Your app's own wallet login, reused so nobody signs twice. Only works on a
    * project whose owner listed that exact message (`loginMessages`). A
@@ -88,7 +92,8 @@ export function createClient(options: ClientOptions) {
   const base = options.server.replace(/\/+$/, '');
   const project = options.project;
   const origin = normalizeOrigin(options.origin ?? (typeof location !== 'undefined' ? location.origin : ''));
-  const signer = options.signer ?? (insideNimiqPay() ? nimiqPaySigner() : undefined);
+  const signer =
+    options.signer === null ? undefined : (options.signer ?? (insideNimiqPay() ? nimiqPaySigner() : undefined));
   const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
   const storage = options.storage === undefined ? safeLocalStorage() : options.storage;
   const key = `pleasenobugs.proof.${project}.${origin}`;

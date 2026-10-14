@@ -185,6 +185,29 @@ describe('createClient', () => {
     expect(s.asked()).toBe(1);
   });
 
+  it('never prompts with `signer: null`, even inside Nimiq Pay', async () => {
+    const { url } = await server();
+    const asked: string[] = [];
+    const g = globalThis as unknown as { window?: { nimiq?: unknown } };
+    g.window = {
+      nimiq: {
+        listAccounts: async () => ['NQ00'],
+        sign: async (m: string) => {
+          asked.push(m);
+          return { publicKey: 'aa', signature: 'bb' };
+        },
+      },
+    };
+    try {
+      const client = createClient({ server: url, project: 'board1', origin: APP, signer: null, storage: null });
+      expect(client.canSign).toBe(false);
+      expect(await client.answers()).toMatchObject({ ok: false, error: 'no_signer' });
+      expect(asked).toEqual([]);
+    } finally {
+      delete g.window;
+    }
+  });
+
   it('answers network when there is no server', async () => {
     const client = createClient({ server: 'http://127.0.0.1:1', project: 'board1', origin: APP, storage: null });
     expect(await client.board()).toMatchObject({ ok: false, error: 'network' });

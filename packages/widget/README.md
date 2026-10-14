@@ -71,8 +71,15 @@ please-no-bugs {
   --pnb-radius-sheet: 16px;
   --pnb-font: inherit;       /* your app's font */
   --pnb-z: 2147483000;       /* overlay and floating button */
+  --pnb-inset-top: env(safe-area-inset-top, 0px);       /* what covers the screen's top */
+  --pnb-inset-bottom: env(safe-area-inset-bottom, 0px); /* and its bottom */
 }
 ```
+
+**Inside Nimiq Pay, set the two insets yourself if you measure Pay's bar.**
+Pay draws its own bar over the page and `env()` cannot see it, so a full-screen
+board can end up underneath it. Only the overlay and the floating button use
+them; an inline board ignores both.
 
 ## Reusing your app's own login
 

@@ -26,9 +26,19 @@ const WALLETS = Object.fromEntries(
   }),
 );
 
+// Other apps on this machine that may use the demo board, e.g. an app's own
+// dev server trying the widget: DEMO_ORIGINS=http://localhost:5173
+const EXTRA = (process.env.DEMO_ORIGINS ?? 'http://localhost:5173').split(',').map((s) => s.trim()).filter(Boolean);
+
 const store = new MemoryStore();
 await store.putProject(
-  newProject({ id: 'demo', name: 'Demo app', origins: [ORIGIN], owner: WALLETS.owner.address }),
+  newProject({
+    id: 'demo',
+    name: 'Demo app',
+    origins: [ORIGIN, ...EXTRA],
+    owner: WALLETS.owner.address,
+    loginMessages: ['Sign in to Shitti'],
+  }),
 );
 
 // A board with something on it: both kinds, every status, a reply, a name,
