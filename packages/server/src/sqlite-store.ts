@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import type { DatabaseSync as Database, SQLInputValue } from 'node:sqlite';
 import type { Answer, PostContext, PostKind, PostStatus, Project } from '@pleasenobugs/core';
-import type { PostPatch, PostRow, PostWithVotes, Store } from './store.js';
+import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Store, TelemetryRow } from './store.js';
 
 /*
  * Loaded through `require` rather than an import, for one reason: Vite (which
@@ -78,6 +78,17 @@ export class SqliteStore implements Store {
         at         INTEGER NOT NULL,
         PRIMARY KEY (project_id, owner)
       );
+      CREATE TABLE IF NOT EXISTS telemetry (
+        instance    TEXT NOT NULL,
+        project     TEXT NOT NULL,
+        version     TEXT NOT NULL,
+        bugs        INTEGER NOT NULL,
+        ideas       INTEGER NOT NULL,
+        bugs_done   INTEGER NOT NULL,
+        ideas_done  INTEGER NOT NULL,
+        received_at INTEGER NOT NULL,
+        PRIMARY KEY (instance, project)
+      );
       INSERT OR IGNORE INTO meta (key, value) VALUES ('schema', '1');
     `);
   }
@@ -124,6 +135,76 @@ export class SqliteStore implements Store {
     return this.all('SELECT data FROM projects')
       .map((r) => JSON.parse(String(r.data)) as Project)
       .filter((p) => p.owners.includes(address));
+  }
+
+  async projects() {
+    return this.all('SELECT data FROM projects').map((r) => JSON.parse(String(r.data)) as Project);
+  }
+
+  async projectStats(projectId: string): Promise<ProjectStats> {
+    const row = this.get(
+      `SELECT
+         SUM(kind = 'bug') AS bugs,
+         SUM(kind = 'idea') AS ideas,
+         SUM(kind = 'bug' AND status = 'done') AS bugs_done,
+         SUM(kind = 'idea' AND status = 'done') AS ideas_done
+       FROM posts WHERE project_id = ? AND hidden = 0`,
+      projectId,
+    );
+    return {
+      bugs: Number(row?.bugs ?? 0),
+      ideas: Number(row?.ideas ?? 0),
+      bugsDone: Number(row?.bugs_done ?? 0),
+      ideasDone: Number(row?.ideas_done ?? 0),
+    };
+  }
+
+  // ---- This installation ----
+
+  async getMeta(key: string) {
+    const row = this.get('SELECT value FROM meta WHERE key = ?', key);
+    return row ? String(row.value) : null;
+  }
+
+  async setMeta(key: string, value: string) {
+    this.run(
+      'INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+      key,
+      value,
+    );
+  }
+
+  // ---- Telemetry received ----
+
+  async putTelemetry(r: TelemetryRow) {
+    this.run(
+      `INSERT INTO telemetry (instance, project, version, bugs, ideas, bugs_done, ideas_done, received_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(instance, project) DO UPDATE SET
+         version = excluded.version, bugs = excluded.bugs, ideas = excluded.ideas,
+         bugs_done = excluded.bugs_done, ideas_done = excluded.ideas_done, received_at = excluded.received_at`,
+      r.instance,
+      r.project,
+      r.version,
+      r.bugs,
+      r.ideas,
+      r.bugsDone,
+      r.ideasDone,
+      r.receivedAt,
+    );
+  }
+
+  async telemetry(): Promise<TelemetryRow[]> {
+    return this.all('SELECT * FROM telemetry').map((r) => ({
+      instance: String(r.instance),
+      project: String(r.project),
+      version: String(r.version),
+      bugs: Number(r.bugs),
+      ideas: Number(r.ideas),
+      bugsDone: Number(r.bugs_done),
+      ideasDone: Number(r.ideas_done),
+      receivedAt: Number(r.received_at),
+    }));
   }
 
   // ---- Posts ----

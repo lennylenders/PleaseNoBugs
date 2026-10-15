@@ -61,12 +61,43 @@ export interface PostPatch {
   answeredAt?: number;
 }
 
+/** How much one board has had, for telemetry. Hidden posts are not counted. */
+export interface ProjectStats {
+  bugs: number;
+  ideas: number;
+  /** Bugs an owner has marked done: fixed. */
+  bugsDone: number;
+  /** Ideas an owner has marked done: built. */
+  ideasDone: number;
+}
+
+/** The latest telemetry one installation sent about one of its projects. */
+export interface TelemetryRow extends ProjectStats {
+  instance: string;
+  project: string;
+  version: string;
+  receivedAt: number;
+}
+
 export interface Store {
   // ---- Projects ----
   getProject(id: string): Promise<Project | null>;
   /** Insert or replace. */
   putProject(project: Project): Promise<void>;
   projectsOwnedBy(address: string): Promise<Project[]>;
+  /** Every project on this server. */
+  projects(): Promise<Project[]>;
+  projectStats(projectId: string): Promise<ProjectStats>;
+
+  // ---- This installation ----
+  /** A small key-value table: the installation's own id lives here. */
+  getMeta(key: string): Promise<string | null>;
+  setMeta(key: string, value: string): Promise<void>;
+
+  // ---- Telemetry received (a collecting server only) ----
+  /** Keeps only the latest row per installation and project name. */
+  putTelemetry(row: TelemetryRow): Promise<void>;
+  telemetry(): Promise<TelemetryRow[]>;
 
   // ---- Posts ----
   /** Every post on a board, hidden ones included; the router filters. */

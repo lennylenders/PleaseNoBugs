@@ -1,5 +1,5 @@
 import type { Answer, Project } from '@pleasenobugs/core';
-import type { PostPatch, PostRow, PostWithVotes, Store } from './store.js';
+import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Store, TelemetryRow } from './store.js';
 
 /**
  * Everything in a few maps, gone when the process ends.
@@ -12,7 +12,7 @@ import type { PostPatch, PostRow, PostWithVotes, Store } from './store.js';
  * (implicit) await, so two requests can never interleave inside one.
  */
 export class MemoryStore implements Store {
-  private projects = new Map<string, Project>();
+  private projectMap = new Map<string, Project>();
   /** projectId → postId → row */
   private postRows = new Map<string, Map<string, PostRow>>();
   /** `${projectId}|${postId}` → voters */
@@ -21,18 +21,57 @@ export class MemoryStore implements Store {
   private nameRows = new Map<string, string>();
   /** `${projectId}|${owner}` → at */
   private seen = new Map<string, number>();
+  private meta = new Map<string, string>();
+  /** `${instance}|${project}` → latest row */
+  private telemetryRows = new Map<string, TelemetryRow>();
+
+  async projects() {
+    return [...this.projectMap.values()].map((p) => structuredClone(p));
+  }
+
+  async projectStats(projectId: string): Promise<ProjectStats> {
+    const out: ProjectStats = { bugs: 0, ideas: 0, bugsDone: 0, ideasDone: 0 };
+    for (const row of this.board(projectId).values()) {
+      if (row.hidden) continue;
+      const done = row.status === 'done';
+      if (row.kind === 'bug') {
+        out.bugs++;
+        if (done) out.bugsDone++;
+      } else {
+        out.ideas++;
+        if (done) out.ideasDone++;
+      }
+    }
+    return out;
+  }
+
+  async getMeta(key: string) {
+    return this.meta.get(key) ?? null;
+  }
+
+  async setMeta(key: string, value: string) {
+    this.meta.set(key, value);
+  }
+
+  async putTelemetry(row: TelemetryRow) {
+    this.telemetryRows.set(`${row.instance}|${row.project}`, { ...row });
+  }
+
+  async telemetry() {
+    return [...this.telemetryRows.values()].map((r) => ({ ...r }));
+  }
 
   async getProject(id: string) {
-    const p = this.projects.get(id);
+    const p = this.projectMap.get(id);
     return p ? structuredClone(p) : null;
   }
 
   async putProject(project: Project) {
-    this.projects.set(project.id, structuredClone(project));
+    this.projectMap.set(project.id, structuredClone(project));
   }
 
   async projectsOwnedBy(address: string) {
-    return [...this.projects.values()]
+    return [...this.projectMap.values()]
       .filter((p) => p.owners.includes(address))
       .map((p) => structuredClone(p));
   }

@@ -1,6 +1,7 @@
 import express from 'express';
 import { rateLimit } from './limit.js';
 import { createRouter, type RouterOptions } from './router.js';
+import { telemetryRouter } from './telemetry.js';
 
 export interface AppOptions extends RouterOptions {
   /**
@@ -9,6 +10,12 @@ export interface AppOptions extends RouterOptions {
    * the router's IP and the rate limiter throttles everybody at once.
    */
   trustProxy?: number | boolean;
+  /**
+   * Receive other installations' telemetry (`POST /telemetry`) and answer the
+   * totals (`GET /telemetry/summary`). Off everywhere but the one server the
+   * reports are sent to.
+   */
+  collect?: boolean;
 }
 
 /**
@@ -34,6 +41,7 @@ export function createApp(options: AppOptions): express.Express {
   });
 
   app.use(createRouter(options));
+  if (options.collect) app.use(telemetryRouter(options.store, options.now));
 
   app.use((_req, res) => {
     res.status(404).json({ error: 'not_found' });

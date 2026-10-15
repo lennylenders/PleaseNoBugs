@@ -156,8 +156,49 @@ them with it, so the board adds no new risk; it is still the owner's explicit
 choice, project by project. This walks back part of "proofs are scoped to a
 project and an origin" for the projects that ask, and only for them.
 
+## 2026-10-14: No hosted instance. Self-hosted only, and the maker keeps counts
+
+Reverses "Open source and hosted, both". A hosted instance meant holding other
+apps' feedback and their users' wallet addresses, which can count as personal
+data, with everything that comes with that: a privacy statement, deletion
+requests, and a breach that would be somebody else's users' problem. The owner
+wants none of it, only to know how much feedback the tool has carried and how
+much of it was acted on.
+
+So every developer runs their own server and owns their own data. What made
+hosting attractive, that many mini apps have no backend, is answered by a
+"Deploy on Railway" button and by the server making its first project from
+three environment variables (`PNB_PROJECT_*`), so there is no command line
+between clicking and pasting a project id. Cost to the developer: their own
+small Railway bill, about $1 to $1.50 a month at this size.
+
+Shitti runs its own server like anybody else, and that server is also where the
+counts arrive.
+
+## 2026-10-14: Telemetry: four numbers per project, once a day, opt-out
+
+Each server sends, once a day, every project's name with how many bugs and
+ideas it has and how many of each are marked done (done is fixed for a bug,
+built for an idea), plus a random installation id and the version. Never post
+text, wallet addresses, display names, votes or origins. Hidden posts are not
+counted.
+
+- **On unless switched off** (`PNB_TELEMETRY=off`), and printed at start in
+  full, so nobody learns what it sends by reading the source. Opt-in would have
+  produced almost no numbers; never-off would have read as hidden collection in
+  an open-source tool and been patched out.
+- **Project names travel**, the owner's call, so the tool's reach can be shown.
+  The public summary route answers totals only; the names of other people's
+  apps are read on the collecting server with `pleasenobugs-server telemetry`.
+- **Collected on Shitti's server** (`PNB_COLLECT=on`) rather than a service of
+  its own: a hundred tiny reports a day cost nothing on a server that is
+  running anyway.
+- Anybody can post a report, so the totals are vanity numbers that a liar can
+  inflate. Nothing odd is stored, and nothing depends on them.
+
 ## Open
 
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.
 - Ask the Nimiq team whether they want to point mini app developers at it.
-- Where the hosted instance runs.
+- The Railway template behind the Deploy button needs the repo public on GitHub.
+- `DEFAULT_TELEMETRY_URL` is empty until the collector is deployed.

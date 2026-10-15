@@ -22,10 +22,23 @@ one place, without asking anybody to send you an email.
   wallet address is never shown to anyone.
 - **Login is the Nimiq wallet your users already have.** No accounts, no email.
 
-## Two ways to use it
+## Your server, your data
 
-1. **Hosted**: create a project, paste one tag into your app, done.
-2. **Self-hosted**: run the server yourself. It is the same code.
+You run your own PleaseNoBugs server, so your users' feedback never leaves
+infrastructure you control. Nobody else, the makers included, holds it.
+
+- **One click on Railway** *(button coming)*: fill in your app's name, its
+  domain and your wallet address; the server makes your project and prints its
+  id. About $1 to $1.50 a month at the size of a mini app.
+- **Anywhere else**: `npx @pleasenobugs/server`, see [packages/server](packages/server).
+
+## Telemetry
+
+Once a day your server sends us each project's **name** and **four numbers**:
+how many bugs and ideas it has, and how many of each are done. That is how we
+know the tool is useful. Never post text, wallet addresses, names of people or
+votes. It says exactly this in its log when it starts, and
+`PNB_TELEMETRY=off` switches it off.
 
 ## Packages
 

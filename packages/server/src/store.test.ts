@@ -160,6 +160,44 @@ describe.each(STORES)('%s', (_name, make) => {
     expect((await s.names('p1', [])).size).toBe(0);
   });
 
+  it('lists every project', async () => {
+    const s = make();
+    await s.putProject(project('p1', ['NQA']));
+    await s.putProject(project('p2', ['NQB']));
+    expect((await s.projects()).map((p) => p.id).sort()).toEqual(['p1', 'p2']);
+  });
+
+  it('counts a board for telemetry: done is fixed or built, hidden is not counted', async () => {
+    const s = make();
+    expect(await s.projectStats('p1')).toEqual({ bugs: 0, ideas: 0, bugsDone: 0, ideasDone: 0 });
+    await s.createPost(row({ id: 'b1', kind: 'bug', status: 'done' }));
+    await s.createPost(row({ id: 'b2', kind: 'bug', status: 'planned' }));
+    await s.createPost(row({ id: 'b3', kind: 'bug', status: 'done', hidden: true }));
+    await s.createPost(row({ id: 'i1', kind: 'idea', status: 'done' }));
+    await s.createPost(row({ id: 'i2', kind: 'idea', status: 'declined' }));
+    await s.createPost(row({ id: 'other', projectId: 'p2', kind: 'bug' }));
+    expect(await s.projectStats('p1')).toEqual({ bugs: 2, ideas: 2, bugsDone: 1, ideasDone: 1 });
+  });
+
+  it('keeps a little metadata', async () => {
+    const s = make();
+    expect(await s.getMeta('instance')).toBeNull();
+    await s.setMeta('instance', 'abc');
+    await s.setMeta('instance', 'def');
+    expect(await s.getMeta('instance')).toBe('def');
+  });
+
+  it('keeps the latest telemetry per installation and project', async () => {
+    const s = make();
+    const t = { instance: 'i1', project: 'Shitti', version: '0.1.0', bugs: 1, ideas: 2, bugsDone: 0, ideasDone: 1, receivedAt: 10 };
+    await s.putTelemetry(t);
+    await s.putTelemetry({ ...t, bugs: 5, receivedAt: 20 });
+    await s.putTelemetry({ ...t, project: 'Other' });
+    const rows = await s.telemetry();
+    expect(rows).toHaveLength(2);
+    expect(rows.find((r) => r.project === 'Shitti')).toMatchObject({ bugs: 5, receivedAt: 20 });
+  });
+
   it('remembers what each owner has seen', async () => {
     const s = make();
     expect(await s.getSeen('p1', 'NQA')).toBe(0);
