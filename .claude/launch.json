@@ -6,6 +6,12 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["packages/widget/demo/serve.mjs"],
       "port": 5180
+    },
+    {
+      "name": "shitti-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "preview", "--prefix", "../shitty-tasks", "--", "--port", "4173"],
+      "port": 4173
     }
   ]
 }
