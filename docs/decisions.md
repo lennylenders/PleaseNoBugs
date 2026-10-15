@@ -196,9 +196,34 @@ counted.
 - Anybody can post a report, so the totals are vanity numbers that a liar can
   inflate. Nothing odd is stored, and nothing depends on them.
 
+## Where it stands
+
+Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
+board is project `vxgxf5j6xz` on https://pleasenobugs-production.up.railway.app
+(Railway service `pleasenobugs` in project `shitty-tasks`, volume on `/data`),
+the old posts were imported, and Shitti's own copy of them is gone. Shitti's
+branch `feature/pleasenobugs` was fast-forwarded into
+`feature/task-input-redesign`, which is what Shitti's production runs.
+
+Next: docs, demo and the Deploy-on-Railway button; then publish (GitHub public,
+npm, Railway template); then announce in the mini app competition community.
+
+- The owner wants to be asked before every step that touches production.
+- The Railway CLI exists only in the agent's Bash, not in the Desktop app's
+  Terminal panel. Git Bash rewrites `/data` style arguments: prefix with
+  `MSYS_NO_PATHCONV=1`. `railway ssh` needs a registered key; the owner wants a
+  temporary one each time, removed from Railway and `~/.ssh` afterwards.
+- Shitti depends on the widget as `file:../PleaseNoBugs/packages/widget` until
+  it is on npm. Rebuild the widget (`npm run build -w pleasenobugs`) before
+  building Shitti.
+- Commits here end with `Co-Authored-By: Claude Opus 5.5`; Shitti's CLAUDE.md
+  asks for `Claude Opus 4.8`.
+
 ## Open
 
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.
 - Ask the Nimiq team whether they want to point mini app developers at it.
 - The Railway template behind the Deploy button needs the repo public on GitHub.
-- `DEFAULT_TELEMETRY_URL` is empty until the collector is deployed.
+- `DEFAULT_TELEMETRY_URL` is still empty, though the collector now runs on
+  https://pleasenobugs-production.up.railway.app. Set it before publishing, or
+  other people's servers send nothing.
