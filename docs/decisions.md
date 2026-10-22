@@ -231,6 +231,11 @@ Next: docs, demo and the Deploy-on-Railway button; then publish (GitHub public,
 npm, Railway template); then announce in the mini app competition community.
 
 - The owner wants to be asked before every step that touches production.
+- `DEFAULT_TELEMETRY_URL` is
+  https://pleasenobugs-production.up.railway.app/telemetry, chosen over a
+  domain of our own (2026-10-22) because it works today. Every published
+  version sends there for as long as it runs: never rename, move or delete
+  that Railway service, and keep `PNB_COLLECT=on` on it.
 - The Railway CLI exists only in the agent's Bash, not in the Desktop app's
   Terminal panel. Git Bash rewrites `/data` style arguments: prefix with
   `MSYS_NO_PATHCONV=1`. `railway ssh` needs a registered key; the owner wants a
@@ -251,6 +256,3 @@ npm, Railway template); then announce in the mini app competition community.
   repo goes public under another account or an organisation, change
   `docker-compose.yml`, the README and the entry above. After the first publish
   the package on GitHub is private: set it to public once.
-- `DEFAULT_TELEMETRY_URL` is still empty, though the collector now runs on
-  https://pleasenobugs-production.up.railway.app. Set it before publishing, or
-  other people's servers send nothing.

@@ -21,10 +21,12 @@ import type { ProjectStats, Store, TelemetryRow } from './store.js';
  */
 
 /**
- * Where reports go unless `PNB_TELEMETRY_URL` says otherwise. Empty means
- * nowhere: telemetry stays off until there is a collector to send to.
+ * Where reports go unless `PNB_TELEMETRY_URL` says otherwise: the makers'
+ * server, which collects with `PNB_COLLECT=on`. Every published version keeps
+ * sending here for as long as it runs, so this Railway service must keep its
+ * name and its domain.
  */
-export const DEFAULT_TELEMETRY_URL = '';
+export const DEFAULT_TELEMETRY_URL = 'https://pleasenobugs-production.up.railway.app/telemetry';
 
 export const TELEMETRY_EVERY_MS = 24 * 60 * 60 * 1000;
 /** The first report waits a minute, so a crash loop does not send one per restart. */
