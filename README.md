@@ -53,23 +53,23 @@ Click the button and fill in three fields:
 | `PNB_PROJECT_OWNER` | The `NQ..` address you will answer with. Whoever signs in with this wallet is the owner. |
 
 Railway builds the server, gives it a disk for the posts and a web address.
-When it is up, open **Deploy Logs** and copy two things:
+When it is up, open **Deploy Logs**. The server has written out what to paste,
+with your project id and its address already filled in:
 
 ```
 [pleasenobugs] created project "My app". Project id: k3v9q2xw7m
+[pleasenobugs] paste into your app:
+  <script src="https://unpkg.com/pleasenobugs"></script>
+  <please-no-bugs project="k3v9q2xw7m" server="https://pleasenobugs-production-1234.up.railway.app" mode="floating"></please-no-bugs>
 ```
 
-the **project id** from that line, and the **web address** of the service
-(Settings → Networking, something like `https://pleasenobugs-production-1234.up.railway.app`).
+It says this again every time the server starts, so you can always find it
+back. If instead it says `no project created`, the line tells you which field
+to fix under **Variables**. Fix it, deploy again, and it tries again.
 
-### 2. Paste one line into your app
+### 2. Paste it into your app
 
-```html
-<script src="https://unpkg.com/pleasenobugs"></script>
-<please-no-bugs project="k3v9q2xw7m" server="https://pleasenobugs-production-1234.up.railway.app" mode="floating"></please-no-bugs>
-```
-
-That puts a small button in the corner that opens the board. Inside Nimiq Pay
+Put those two lines in your app's HTML. That puts a small button in the corner that opens the board. Inside Nimiq Pay
 it signs with your user's wallet by itself. To place it in your own page, open
 it from your own menu, give it your colours or let people sign from a browser
 wallet, see [the widget's README](packages/widget).

@@ -246,6 +246,7 @@ npm, Railway template); then announce in the mini app competition community.
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.
 - Ask the Nimiq team whether they want to point mini app developers at it.
 - The Railway template behind the Deploy button needs the repo public on GitHub.
+  What goes in it is in [railway-template.md](railway-template.md).
 - The container image is named after `lennylenders`, the git user here. If the
   repo goes public under another account or an organisation, change
   `docker-compose.yml`, the README and the entry above. After the first publish

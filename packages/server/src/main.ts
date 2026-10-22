@@ -39,6 +39,14 @@ const VERSION = (createRequire(import.meta.url)('../package.json') as { version:
  */
 
 const db = process.env.PNB_DB || './pleasenobugs.db';
+
+/** What each bootstrap variable should look like, for the log line that says it does not. */
+const BOOTSTRAP_HINTS: Record<string, string> = {
+  PNB_PROJECT_NAME: 'Give your app a name.',
+  PNB_PROJECT_ORIGINS: 'Expected where your app runs, like https://my.app, several separated by commas.',
+  PNB_PROJECT_OWNER: 'Expected a Nimiq address, like NQ07 1234 ...',
+  PNB_PROJECT_LOGIN_MESSAGE: "Expected your app's own login sentence, or leave it empty.",
+};
 const command = process.argv[2];
 
 if (command === 'create-project') {
@@ -128,16 +136,34 @@ if (command === 'create-project') {
   const store = new SqliteStore(db);
 
   const boot = await bootstrapProject(store, process.env);
-  if ('created' in boot) {
-    console.info(`[pleasenobugs] created project "${boot.created.name}". Project id: ${boot.created.id}`);
-  } else if ('invalid' in boot) {
-    console.error(`[pleasenobugs] no project created: ${boot.invalid} does not hold up`);
+  if ('invalid' in boot) {
+    console.error(`[pleasenobugs] no project created: ${boot.invalid} does not hold up. ${BOOTSTRAP_HINTS[boot.invalid] ?? ''}`);
+  }
+  // Every start, not only the first: the log is where somebody who deployed
+  // with a button looks for the id, and the first start has scrolled away by
+  // the time they need it again.
+  const projects = await store.projects();
+  for (const p of projects) {
+    const made = 'created' in boot && boot.created.id === p.id ? 'created' : 'serving';
+    console.info(`[pleasenobugs] ${made} project "${p.name}". Project id: ${p.id}`);
+  }
+  // On Railway the server knows its own address, so the whole line to paste
+  // can be printed and nobody has to put an id and a URL together.
+  const domain = process.env.RAILWAY_PUBLIC_DOMAIN;
+  if (domain && projects.length === 1) {
+    console.info(
+      `[pleasenobugs] paste into your app:\n` +
+        `  <script src="https://unpkg.com/pleasenobugs"></script>\n` +
+        `  <please-no-bugs project="${projects[0].id}" server="https://${domain}" mode="floating"></please-no-bugs>`,
+    );
   }
 
   const app = createApp({ store, dashboardOrigins, trustProxy, collect });
   app.listen(port, () => {
     console.info(`[pleasenobugs] listening on :${port}, data in ${db}${collect ? ', collecting telemetry' : ''}`);
-    if (!dashboardOrigins.length) {
+    // Only for somebody with no project and no other way to make one: after a
+    // bad PNB_PROJECT_* the line above says what to fix, and this would not.
+    if (!dashboardOrigins.length && !projects.length && !('invalid' in boot)) {
       console.info('[pleasenobugs] no dashboard origins: create projects with `create-project`');
     }
   });
