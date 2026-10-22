@@ -205,6 +205,14 @@ runs it behind Caddy, which fetches its own certificate: a VPS, Coolify or a
 box at home is one `.env` and `docker compose up -d`. HTTPS is not optional,
 because a mini app on `https://` may not call an `http://` server.
 
+The image is published only for a version tag (`v0.1.0`), not on every push
+to `main`: `:latest` is what self-hosters get when they update, so it has to be
+a release the owner chose, and nothing goes public without a deliberate step.
+The arm64 build installs a compiler in the build stage, because two of
+`@nimiq/core`'s dependencies have no ready-made arm64 build. Neither has been
+tried yet: there is no Docker on the owner's machine, so the first real build
+is the first tag on GitHub.
+
 Not done: a server without any company in between (Nostr relays, IPFS, the
 chain). Deleting and moderating get close to impossible, one vote per wallet is
 harder to hold, and wallet addresses would stay public forever, which is

@@ -8,6 +8,14 @@
 # deploy starts from an empty board.
 
 FROM node:24-slim AS build
+# @nimiq/core pulls in bufferutil and utf-8-validate, which ship ready-made
+# builds for x64 but not for arm64. There npm compiles them, which needs a
+# compiler. Only in this stage: the result is copied, the tools are not.
+ARG TARGETARCH
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+      && rm -rf /var/lib/apt/lists/*; \
+    fi
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY packages/core/package.json packages/core/

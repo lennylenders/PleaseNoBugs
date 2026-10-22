@@ -1,8 +1,10 @@
 # Publishes the server as a container image on the GitHub Container Registry,
 # for anybody who runs it with docker-compose.yml instead of Railway.
 #
-#   push to main      → :latest
-#   tag v1.2.3        → :1.2.3 and :1.2
+#   tag v1.2.3        → :1.2.3, :1.2 and :latest
+#
+# Only on a version tag, never on a push to main: `docker compose pull` on
+# somebody's server should bring a release, not whatever was merged last.
 #
 # For Intel/AMD servers and for ARM ones (a Raspberry Pi, Hetzner's ARM
 # machines). The first publish makes a private package: set it to public once,
@@ -12,9 +14,7 @@ name: Container image
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -40,7 +40,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/pleasenobugs
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
 
