@@ -36,7 +36,8 @@
   ],
   "scripts": {
     "build": "vite build && vite build --config vite.iife.config.ts && tsc -p tsconfig.json",
-    "demo": "node demo/serve.mjs"
+    "demo": "node demo/serve.mjs",
+    "screenshots": "node demo/screenshots.mjs"
   },
   "dependencies": {
     "@pleasenobugs/core": "0.1.0"
@@ -46,6 +47,7 @@
     "@pleasenobugs/server": "0.1.0",
     "express": "^4.21.2",
     "preact": "^10.24.3",
+    "puppeteer-core": "^23.11.1",
     "vite": "^5.4.10"
   }
 }

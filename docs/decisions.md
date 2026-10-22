@@ -218,6 +218,21 @@ chain). Deleting and moderating get close to impossible, one vote per wallet is
 harder to hold, and wallet addresses would stay public forever, which is
 exactly what "No hosted instance" was avoiding.
 
+## 2026-10-22: The demo is pictures, not a site
+
+The README shows the board in light and dark, an owner answering, and an
+animation of a lookalike appearing while typing, all taken from the local
+demo (`npm run demo -w pleasenobugs`). A demo site people can click through
+was the alternative: more convincing, but another Railway service to pay for
+and watch, and the demo signs on the visitor's behalf with test keys, so it
+could never be anything but a toy. It can still come later.
+
+The pictures use the current neutral look. When the look changes they need
+taking again: with the demo running, `npm run screenshots -w pleasenobugs`
+drives it with `puppeteer-core` and the local Chrome or Edge and rewrites
+`docs/images` (the animation also needs ffmpeg). A dev dependency of the
+widget only; nothing published carries it.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
@@ -227,8 +242,26 @@ the old posts were imported, and Shitti's own copy of them is gone. Shitti's
 branch `feature/pleasenobugs` was fast-forwarded into
 `feature/task-input-redesign`, which is what Shitti's production runs.
 
-Next: docs, demo and the Deploy-on-Railway button; then publish (GitHub public,
-npm, Railway template); then announce in the mini app competition community.
+Docs, demo and the preparation of the Deploy-on-Railway button were finished
+on 2026-10-22: the README goes from nothing to a working board in three steps,
+the server prints the lines to paste at every start, and the telemetry address
+is set.
+
+Next: publish. In order:
+
+1. Make the GitHub repository public (under which account decides the image
+   name, see Open).
+2. Publish `@pleasenobugs/core`, `@pleasenobugs/server` and `pleasenobugs` to
+   npm. The README's snippet loads `https://unpkg.com/pleasenobugs`, so nothing
+   in it works before this.
+3. Tag `v0.1.0`: that builds the container image. Set the package on GitHub to
+   public once, and check that the arm64 build passed.
+4. Make the Railway template from [railway-template.md](railway-template.md),
+   deploy it once with test values, then put the button in the README and
+   change its status line.
+5. Point Shitti at the npm package instead of `file:../PleaseNoBugs`.
+
+Then announce in the mini app competition community.
 
 - The owner wants to be asked before every step that touches production.
 - `DEFAULT_TELEMETRY_URL` is
