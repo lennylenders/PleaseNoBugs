@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "description": "A feedback board for Nimiq mini apps: bugs and ideas, straight from your users. One tag, or a headless client.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lennylenders/PleaseNoBugs.git",
+    "directory": "packages/widget"
+  },
+  "homepage": "https://github.com/lennylenders/PleaseNoBugs#readme",
+  "bugs": {
+    "url": "https://github.com/lennylenders/PleaseNoBugs/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
