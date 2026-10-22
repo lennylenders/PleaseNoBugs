@@ -249,8 +249,10 @@ is set.
 
 Next: publish. In order:
 
-1. Make the GitHub repository public (under which account decides the image
-   name, see Open).
+1. Make the GitHub repository public under the owner's own account,
+   `lennylenders` (decided 2026-10-22, over an organisation). The image name
+   `ghcr.io/lennylenders/pleasenobugs` in `docker-compose.yml` and the README
+   already matches.
 2. Publish `@pleasenobugs/core`, `@pleasenobugs/server` and `pleasenobugs` to
    npm. The README's snippet loads `https://unpkg.com/pleasenobugs`, so nothing
    in it works before this.
@@ -285,7 +287,3 @@ Then announce in the mini app competition community.
 - Ask the Nimiq team whether they want to point mini app developers at it.
 - The Railway template behind the Deploy button needs the repo public on GitHub.
   What goes in it is in [railway-template.md](railway-template.md).
-- The container image is named after `lennylenders`, the git user here. If the
-  repo goes public under another account or an organisation, change
-  `docker-compose.yml`, the README and the entry above. After the first publish
-  the package on GitHub is private: set it to public once.
