@@ -27,10 +27,48 @@ one place, without asking anybody to send you an email.
 You run your own PleaseNoBugs server, so your users' feedback never leaves
 infrastructure you control. Nobody else, the makers included, holds it.
 
-- **One click on Railway** *(button coming)*: fill in your app's name, its
-  domain and your wallet address; the server makes your project and prints its
-  id. About $1 to $1.50 a month at the size of a mini app.
-- **Anywhere else**: `npx @pleasenobugs/server`, see [packages/server](packages/server).
+Railway is the quickest start, not a requirement. The server is one container
+and every post is in one file, `pleasenobugs.db`, so you can run it wherever
+you like and move by copying that file.
+
+| Where | What you depend on | Good for |
+|---|---|---|
+| **Railway** *(button coming)* | Railway | No command line. About $1 to $1.50 a month. |
+| **A backend you already have** | Nothing new | Apps with a Node server: `npx @pleasenobugs/server`, or mount it into Express. See [packages/server](packages/server). |
+| **Your own server** with Docker (a VPS, or Coolify on one) | Whoever rents you the machine, and you can switch | A few euros a month for a small VPS, with room for other things. |
+| **Your own hardware** (a Raspberry Pi, a NAS) | Your internet connection and a domain name | Depending on as little as possible, if you can keep it switched on. |
+
+### With Docker
+
+The image is `ghcr.io/lennylenders/pleasenobugs`, for Intel/AMD and ARM.
+[`docker-compose.yml`](docker-compose.yml) runs it with
+[Caddy](https://caddyserver.com) in front, which gets the HTTPS certificate
+by itself. You need a domain name pointing at the machine and ports 80 and 443
+open.
+
+Put the compose file in an empty folder with a `.env` file next to it:
+
+```
+PNB_DOMAIN=feedback.my.app
+PNB_PROJECT_NAME=My app
+PNB_PROJECT_ORIGINS=https://my.app
+PNB_PROJECT_OWNER=NQ07 ...
+```
+
+The `PNB_PROJECT_*` fields are your app's name, where it runs and the wallet
+you answer with. Then:
+
+```bash
+docker compose up -d
+docker compose logs pleasenobugs
+```
+
+The log has the project id; the server is `https://` plus your `PNB_DOMAIN`.
+Update with `docker compose pull && docker compose up -d`.
+
+If your platform already gives you HTTPS (Coolify, a Cloudflare Tunnel to a Pi
+at home), remove the `caddy` service and point the platform at `pleasenobugs`
+on port 8787.
 
 ## Telemetry
 

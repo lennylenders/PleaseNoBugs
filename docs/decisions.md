@@ -196,6 +196,20 @@ counted.
 - Anybody can post a report, so the totals are vanity numbers that a liar can
   inflate. Nothing odd is stored, and nothing depends on them.
 
+## 2026-10-22: Railway is the quick start, Docker is the way out
+
+"Self-hosted" should not quietly mean "on Railway". The same Dockerfile is
+published as `ghcr.io/lennylenders/pleasenobugs` (amd64 and arm64, so a
+Raspberry Pi works) by `.github/workflows/image.yml`, and `docker-compose.yml`
+runs it behind Caddy, which fetches its own certificate: a VPS, Coolify or a
+box at home is one `.env` and `docker compose up -d`. HTTPS is not optional,
+because a mini app on `https://` may not call an `http://` server.
+
+Not done: a server without any company in between (Nostr relays, IPFS, the
+chain). Deleting and moderating get close to impossible, one vote per wallet is
+harder to hold, and wallet addresses would stay public forever, which is
+exactly what "No hosted instance" was avoiding.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
@@ -224,6 +238,10 @@ npm, Railway template); then announce in the mini app competition community.
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.
 - Ask the Nimiq team whether they want to point mini app developers at it.
 - The Railway template behind the Deploy button needs the repo public on GitHub.
+- The container image is named after `lennylenders`, the git user here. If the
+  repo goes public under another account or an organisation, change
+  `docker-compose.yml`, the README and the entry above. After the first publish
+  the package on GitHub is private: set it to public once.
 - `DEFAULT_TELEMETRY_URL` is still empty, though the collector now runs on
   https://pleasenobugs-production.up.railway.app. Set it before publishing, or
   other people's servers send nothing.

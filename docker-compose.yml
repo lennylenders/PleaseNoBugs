@@ -1,0 +1,46 @@
+# PleaseNoBugs on any machine with Docker: a VPS, a Raspberry Pi, a NAS.
+#
+# Put a .env file next to this one (see the main README), point your domain's
+# DNS at the machine, then:
+#
+#   docker compose up -d
+#   docker compose logs pleasenobugs     # the project id is in here
+#
+# Caddy fetches the HTTPS certificate by itself. On a platform that already
+# gives you HTTPS (Coolify, a Cloudflare Tunnel), remove the caddy service and
+# point the platform at pleasenobugs on port 8787.
+
+services:
+  pleasenobugs:
+    image: ghcr.io/lennylenders/pleasenobugs:latest
+    restart: unless-stopped
+    init: true
+    environment:
+      PNB_PROJECT_NAME: ${PNB_PROJECT_NAME:?set PNB_PROJECT_NAME in .env}
+      PNB_PROJECT_ORIGINS: ${PNB_PROJECT_ORIGINS:?set PNB_PROJECT_ORIGINS in .env}
+      PNB_PROJECT_OWNER: ${PNB_PROJECT_OWNER:?set PNB_PROJECT_OWNER in .env}
+      PNB_TELEMETRY: ${PNB_TELEMETRY:-on}
+    volumes:
+      - data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8787/health').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    command: caddy reverse-proxy --from ${PNB_DOMAIN:?set PNB_DOMAIN in .env} --to pleasenobugs:8787
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy:/data
+    depends_on:
+      - pleasenobugs
+
+volumes:
+  # Every post lives here, in one file: pleasenobugs.db. Back it up by copying it.
+  data:
+  caddy:
