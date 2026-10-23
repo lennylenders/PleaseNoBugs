@@ -29,7 +29,7 @@
     }
   },
   "bin": {
-    "pleasenobugs-server": "./dist/main.js"
+    "pleasenobugs-server": "dist/main.js"
   },
   "files": [
     "dist"
