@@ -12,9 +12,7 @@ one place, without asking anybody to send you an email.
   <img src="docs/images/owner-answer.png" width="250" alt="The owner answering a bug: status, a reply, and the app version it came from">
 </p>
 
-> **Status: not yet published.** The server and the widget work and run
-> [Shitti](https://shitti.me)'s board; npm packages and the Railway button
-> follow.
+> **Status: 0.1.0, early.** It runs [Shitti](https://shitti.me)'s board.
 > This is a community tool, not an official Nimiq product.
 
 ## What it does
@@ -42,9 +40,9 @@ Three steps, about ten minutes, no command line.
 
 ### 1. Start your server
 
-*(The Deploy on Railway button arrives when this repository is public.)*
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/PdvdtB?referralCode=xm-X6O)
 
-Click the button and fill in three fields:
+Click the button, sign in to Railway, and fill in three fields:
 
 | Field | What to put there |
 |---|---|

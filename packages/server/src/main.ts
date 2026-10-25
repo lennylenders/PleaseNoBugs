@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
 import { isNimiqAddress } from '@pleasenobugs/core';
 import { createApp } from './app.js';
-import { bootstrapProject } from './bootstrap.js';
+import { bootstrapProject, describeBootstrapProblem } from './bootstrap.js';
 import { importBoard, ImportError } from './importer.js';
 import { cleanLoginMessages, cleanName, cleanOrigins, newProject } from './projects.js';
 import { SqliteStore } from './sqlite-store.js';
@@ -39,14 +39,6 @@ const VERSION = (createRequire(import.meta.url)('../package.json') as { version:
  */
 
 const db = process.env.PNB_DB || './pleasenobugs.db';
-
-/** What each bootstrap variable should look like, for the log line that says it does not. */
-const BOOTSTRAP_HINTS: Record<string, string> = {
-  PNB_PROJECT_NAME: 'Give your app a name.',
-  PNB_PROJECT_ORIGINS: 'Expected where your app runs, like https://my.app, several separated by commas.',
-  PNB_PROJECT_OWNER: 'Expected a Nimiq address, like NQ07 1234 ...',
-  PNB_PROJECT_LOGIN_MESSAGE: "Expected your app's own login sentence, or leave it empty.",
-};
 const command = process.argv[2];
 
 if (command === 'create-project') {
@@ -137,7 +129,7 @@ if (command === 'create-project') {
 
   const boot = await bootstrapProject(store, process.env);
   if ('invalid' in boot) {
-    console.error(`[pleasenobugs] no project created: ${boot.invalid} does not hold up. ${BOOTSTRAP_HINTS[boot.invalid] ?? ''}`);
+    console.error(`[pleasenobugs] ${describeBootstrapProblem(boot)}`);
   }
   // Every start, not only the first: the log is where somebody who deployed
   // with a button looks for the id, and the first start has scrolled away by

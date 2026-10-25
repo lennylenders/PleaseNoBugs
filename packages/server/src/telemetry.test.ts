@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { AddressInfo } from 'node:net';
 import { createApp } from './app.js';
-import { bootstrapProject } from './bootstrap.js';
+import { bootstrapProject, describeBootstrapProblem, type BootstrapProblem } from './bootstrap.js';
 import { MemoryStore } from './memory-store.js';
 import { newProject } from './projects.js';
 import { buildReport, readReport, sendReport, summarize, telemetryNotice } from './telemetry.js';
@@ -146,8 +146,34 @@ describe('bootstrapProject', () => {
   it('does nothing when not configured, and names the variable that is wrong', async () => {
     const store = new MemoryStore();
     expect(await bootstrapProject(store, {})).toEqual({ skipped: 'not_configured' });
-    expect(await bootstrapProject(store, { ...env, PNB_PROJECT_OWNER: 'nope' })).toEqual({ invalid: 'PNB_PROJECT_OWNER' });
+    expect(await bootstrapProject(store, { ...env, PNB_PROJECT_OWNER: 'nope' })).toEqual({
+      invalid: 'PNB_PROJECT_OWNER',
+      got: 'nope',
+    });
     expect(await store.projects()).toHaveLength(0);
+  });
+
+  it('says what it got, and points at a name with a stray space', async () => {
+    const store = new MemoryStore();
+    const { PNB_PROJECT_ORIGINS: origins, ...rest } = env;
+    const spaced = await bootstrapProject(store, { ...rest, 'PNB_PROJECT_ORIGINS ': origins });
+    expect(spaced).toEqual({ invalid: 'PNB_PROJECT_ORIGINS', lookalike: 'PNB_PROJECT_ORIGINS ' });
+    expect(describeBootstrapProblem(spaced as BootstrapProblem)).toContain(
+      'PNB_PROJECT_ORIGINS is not set, but "PNB_PROJECT_ORIGINS " is',
+    );
+
+    const missing = await bootstrapProject(store, rest);
+    expect(describeBootstrapProblem(missing as BootstrapProblem)).toMatch(/^no project created: PNB_PROJECT_ORIGINS is not set\. Expected/);
+
+    const bad = await bootstrapProject(store, { ...env, PNB_PROJECT_ORIGINS: 'my.app' });
+    expect(describeBootstrapProblem(bad as BootstrapProblem)).toContain('PNB_PROJECT_ORIGINS does not hold up: got "my.app".');
+    expect(await store.projects()).toHaveLength(0);
+  });
+
+  it('does not mistake three misspelled names for a server nobody configured', async () => {
+    const store = new MemoryStore();
+    const spaced = Object.fromEntries(Object.entries(env).map(([k, v]) => [`${k} `, v]));
+    expect(await bootstrapProject(store, spaced)).toEqual({ invalid: 'PNB_PROJECT_NAME', lookalike: 'PNB_PROJECT_NAME ' });
   });
 
   it('takes an app login', async () => {
