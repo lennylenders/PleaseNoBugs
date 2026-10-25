@@ -247,23 +247,42 @@ on 2026-10-22: the README goes from nothing to a working board in three steps,
 the server prints the lines to paste at every start, and the telemetry address
 is set.
 
-Next: publish. In order:
+Published 0.1.0 on 2026-10-23 to 2026-10-25:
 
-1. Make the GitHub repository public under the owner's own account,
-   `lennylenders` (decided 2026-10-22, over an organisation). The image name
-   `ghcr.io/lennylenders/pleasenobugs` in `docker-compose.yml` and the README
-   already matches.
-2. Publish `@pleasenobugs/core`, `@pleasenobugs/server` and `pleasenobugs` to
-   npm. The README's snippet loads `https://unpkg.com/pleasenobugs`, so nothing
-   in it works before this.
-3. Tag `v0.1.0`: that builds the container image. Set the package on GitHub to
-   public once, and check that the arm64 build passed.
-4. Make the Railway template from [railway-template.md](railway-template.md),
-   deploy it once with test values, then put the button in the README and
-   change its status line.
-5. Point Shitti at the npm package instead of `file:../PleaseNoBugs`.
+- **GitHub**: https://github.com/lennylenders/PleaseNoBugs, public. Before
+  that, `docs/handoff.md` was cut out of the whole history, because it named
+  the owner's wallet address. The history before the rewrite is in
+  `PleaseNoBugs-backup-2026-10-22.bundle` next to the project folder, address
+  and all: never publish it.
+- **npm**: `@pleasenobugs/core`, `@pleasenobugs/server` and `pleasenobugs`
+  0.1.0, owned by the npm user `lennylenders` in the org `pleasenobugs`.
+  unpkg and jsDelivr serve the widget.
+- **Container image**: `ghcr.io/lennylenders/pleasenobugs` `0.1.0`, `0.1` and
+  `latest`, amd64 and arm64, public. The arm64 build passed on the first tag.
+- **Railway template**: https://railway.com/deploy/PdvdtB, linked from the
+  README's button. Tested end to end with a throwaway project, since deleted;
+  see [railway-template.md](railway-template.md) for what that turned up.
+- **Shitti** takes `pleasenobugs@^0.1.0` from npm: commit `8a74708` on
+  `feature/task-input-redesign`, pushed, not deployed on purpose. The build is
+  byte for byte what shitti.me already serves, so it ships with Shitti's next
+  ordinary deploy.
 
-Then announce in the mini app competition community.
+Next: announce in the mini app competition community.
+
+### Releasing a new version
+
+1. Raise `version` in the three `package.json`s together, and the
+   `@pleasenobugs/core` dependency of the other two with it.
+2. `npm run build` and `npm test`.
+3. From the Terminal panel: `npm.cmd publish -w @pleasenobugs/core`, then
+   `-w @pleasenobugs/server`, then `-w pleasenobugs`. Each asks for a
+   confirmation in the browser (two-factor, required by npm), and each shows
+   as `0.0.0-stage` for a few minutes while npm checks it; unpkg follows a few
+   minutes later.
+4. Tag `vX.Y.Z` on the same commit and push the tag: that builds the image.
+   Pushing `main` alone builds nothing.
+
+### Working notes
 
 - The owner wants to be asked before every step that touches production.
 - `DEFAULT_TELEMETRY_URL` is
@@ -275,9 +294,15 @@ Then announce in the mini app competition community.
   Terminal panel. Git Bash rewrites `/data` style arguments: prefix with
   `MSYS_NO_PATHCONV=1`. `railway ssh` needs a registered key; the owner wants a
   temporary one each time, removed from Railway and `~/.ssh` afterwards.
-- Shitti depends on the widget as `file:../PleaseNoBugs/packages/widget` until
-  it is on npm. Rebuild the widget (`npm run build -w pleasenobugs`) before
-  building Shitti.
+- In the Terminal panel `npm` is blocked by PowerShell's execution policy:
+  type `npm.cmd`. The panel's Run buttons open a new tab each time, so an
+  answer typed afterwards lands in the wrong one.
+- The project folder is in OneDrive, which keeps Git from deleting emptied
+  object folders: `git gc --prune=now` stalls on "Deletion of directory
+  failed". Harmless; unreachable objects are never pushed.
+- npm shows the publishing account's email address on every package.
+- The template's test deploy left one extra installation, with no posts, on
+  the collector's totals.
 - Commits here end with `Co-Authored-By: Claude Opus 5.5`; Shitti's CLAUDE.md
   asks for `Claude Opus 4.8`.
 
@@ -285,5 +310,9 @@ Then announce in the mini app competition community.
 
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.
 - Ask the Nimiq team whether they want to point mini app developers at it.
-- The Railway template behind the Deploy button needs the repo public on GitHub.
-  What goes in it is in [railway-template.md](railway-template.md).
+- PleaseNoBugs' own server could move out of the `shitty-tasks` Railway
+  project into one of its own (asked 2026-10-24). Not done: its generated
+  domain is the telemetry address in every published version and the address
+  Shitti's board uses, so it would mean moving the data and claiming the same
+  `pleasenobugs-production` subdomain for the new service. A job of its own,
+  at a quiet moment for Shitti.
