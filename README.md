@@ -12,7 +12,7 @@ one place, without asking anybody to send you an email.
   <img src="docs/images/owner-answer.png" width="250" alt="The owner answering a bug: status, a reply, and the app version it came from">
 </p>
 
-> **Status: 0.1.0, early.** It runs [Shitti](https://shitti.me)'s board.
+> **Status: 0.1.1, early.** It runs [Shitti](https://shitti.me)'s board.
 > This is a community tool, not an official Nimiq product.
 
 ## What it does

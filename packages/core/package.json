@@ -1,6 +1,6 @@
 {
   "name": "@pleasenobugs/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Types, rules, the login message and the lookalike matcher shared by every PleaseNoBugs package.",
   "license": "MIT",
   "repository": {

@@ -1,6 +1,6 @@
 {
   "name": "@pleasenobugs/server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The PleaseNoBugs API: a feedback board for Nimiq mini apps, with pluggable storage.",
   "license": "MIT",
   "repository": {
@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@nimiq/core": "^2.7.1",
-    "@pleasenobugs/core": "0.1.0",
+    "@pleasenobugs/core": "0.1.1",
     "cors": "^2.8.5",
     "express": "^4.21.2"
   },
