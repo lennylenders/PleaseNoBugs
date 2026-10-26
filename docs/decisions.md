@@ -247,25 +247,34 @@ on 2026-10-22: the README goes from nothing to a working board in three steps,
 the server prints the lines to paste at every start, and the telemetry address
 is set.
 
-Published 0.1.0 on 2026-10-23 to 2026-10-25:
+Published 0.1.0 on 2026-10-23 to 2026-10-25, and 0.1.1 on 2026-10-26:
 
 - **GitHub**: https://github.com/lennylenders/PleaseNoBugs, public. Before
   that, `docs/handoff.md` was cut out of the whole history, because it named
   the owner's wallet address. The history before the rewrite is in
   `PleaseNoBugs-backup-2026-10-22.bundle` next to the project folder, address
   and all: never publish it.
-- **npm**: `@pleasenobugs/core`, `@pleasenobugs/server` and `pleasenobugs`
-  0.1.0, owned by the npm user `lennylenders` in the org `pleasenobugs`.
-  unpkg and jsDelivr serve the widget.
+- **npm**: `@pleasenobugs/core`, `@pleasenobugs/server` and `pleasenobugs`,
+  owned by the npm user `lennylenders` in the org `pleasenobugs`. unpkg and
+  jsDelivr serve the widget. 0.1.0 went out under the owner's personal email,
+  which npm prints in every version's metadata; on 2026-10-26 the account got
+  a separate address and 0.1.1 was published from it. `pleasenobugs@0.1.0`
+  and its `0.0.0-stage` placeholder were unpublished. The same for `core` and
+  `server` was refused ("has dependent packages in the registry": after 72
+  hours npm judges the package as a whole), so their 0.1.0 and 0.0.0-stage
+  still show the old address. The owner chose to leave it at that rather than
+  ask npm Support.
 - **Container image**: `ghcr.io/lennylenders/pleasenobugs` `0.1.0`, `0.1` and
   `latest`, amd64 and arm64, public. The arm64 build passed on the first tag.
 - **Railway template**: https://railway.com/deploy/PdvdtB, linked from the
   README's button. Tested end to end with a throwaway project, since deleted;
   see [railway-template.md](railway-template.md) for what that turned up.
-- **Shitti** takes `pleasenobugs@^0.1.0` from npm: commit `8a74708` on
-  `feature/task-input-redesign`, pushed, not deployed on purpose. The build is
-  byte for byte what shitti.me already serves, so it ships with Shitti's next
-  ordinary deploy.
+- **Shitti** takes `pleasenobugs@^0.1.1` from npm: commits `8a74708` and
+  `6afaed5` on `feature/task-input-redesign`, pushed, not deployed on purpose.
+  The build is byte for byte what shitti.me already serves, so it ships with
+  Shitti's next ordinary deploy.
+- The container image is still `0.1.0` (it never carried the email). The next
+  tag brings it level with npm.
 
 Next: announce in the mini app competition community.
 
@@ -300,7 +309,11 @@ Next: announce in the mini app competition community.
 - The project folder is in OneDrive, which keeps Git from deleting emptied
   object folders: `git gc --prune=now` stalls on "Deletion of directory
   failed". Harmless; unreachable objects are never pushed.
-- npm shows the publishing account's email address on every package.
+- npm prints the publishing account's email in every version's metadata,
+  readable by anyone at registry.npmjs.org. Check the account's address before
+  publishing anything new. A publish whose browser confirmation times out can
+  still have gone through: npm then answers the retry with "Cannot publish
+  over previously staged version".
 - The template's test deploy left one extra installation, with no posts, on
   the collector's totals.
 - Commits here end with `Co-Authored-By: Claude Opus 5.5`; Shitti's CLAUDE.md
