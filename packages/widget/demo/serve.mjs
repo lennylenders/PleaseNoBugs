@@ -9,6 +9,7 @@
  * exists in this file and nowhere in any package, and it must stay that way.
  */
 import express from 'express';
+import { deflateSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { createApp, MemoryStore, newProject, signedHash } from '@pleasenobugs/server';
 
@@ -41,8 +42,8 @@ await store.putProject(
   }),
 );
 
-// A board with something on it: both kinds, every status, a reply, a name,
-// votes, and one post hidden by the owner.
+// A board with something on it: every kind, every status, a reply, a name,
+// votes, reviews, a bug with a screenshot, and one post hidden by the owner.
 const key = (w) => w.address.replace(/\s+/g, '').toUpperCase();
 const ago = (h) => Date.now() - h * 3_600_000;
 const seed = [
@@ -52,6 +53,9 @@ const seed = [
   { id: 's4', author: 'alice', kind: 'bug', text: 'Dutch translation cuts off the send button on small phones.', at: ago(0.2), votes: ['bob'], status: 'open', context: { version: '1.4.0', host: 'nimiq-pay' } },
   { id: 's5', author: 'bob', kind: 'idea', text: 'Push notifications when somebody answers my post.', at: ago(30), votes: [], status: 'declined', reply: 'Not possible inside Nimiq Pay yet, sorry.' },
   { id: 's6', author: 'bob', kind: 'idea', text: 'Buy cheap followers here!!!', at: ago(3), votes: [], status: 'open', hidden: true },
+  { id: 's7', author: 'alice', kind: 'review', rating: 5, text: 'Paying at the market with a QR code is so quick. Love it.', at: ago(20), votes: ['bob'], status: 'open', anon: false },
+  { id: 's8', author: 'bob', kind: 'review', rating: 4, text: 'Great app, but the first load is slow on my old phone.', at: ago(70), votes: [], status: 'open', reply: 'Thank you! Working on the load time.' },
+  { id: 's9', author: 'owner', kind: 'bug', text: 'My balance shows 0 after switching accounts.', at: ago(1), votes: [], status: 'open', shot: true, context: { version: '1.4.0', host: 'browser' } },
 ];
 await store.setName('demo', key(WALLETS.alice), 'Alice');
 for (const p of seed) {
@@ -67,8 +71,56 @@ for (const p of seed) {
     ...(p.reply ? { reply: { text: p.reply, at: p.at + 3_600_000 }, answeredAt: p.at + 3_600_000 } : {}),
     ...(p.hidden ? { hidden: true } : {}),
     ...(p.context ? { context: p.context } : {}),
-  });
+    ...(p.rating ? { rating: p.rating } : {}),
+  }, p.shot ? { type: 'image/png', data: fakeScreenshot() } : undefined);
   for (const v of p.votes) await store.vote('demo', p.id, key(WALLETS[v]), true);
+}
+
+/**
+ * A made-up phone screenshot for the seeded bug: a header, a big "balance"
+ * block and some rows, as a real PNG, so the owner's sheet has a picture to
+ * show without the repository carrying one.
+ */
+function fakeScreenshot(w = 270, h = 480) {
+  const px = Buffer.alloc((w * 3 + 1) * h);
+  const paint = (x0, y0, x1, y1, [r, g, b]) => {
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) px.set([r, g, b], y * (w * 3 + 1) + 1 + x * 3);
+  };
+  paint(0, 0, w, h, [246, 246, 248]);
+  paint(0, 0, w, 56, [31, 35, 72]);
+  paint(20, 84, w - 20, 184, [255, 255, 255]);
+  paint(80, 112, w - 80, 156, [217, 68, 50]);
+  for (let i = 0; i < 5; i++) paint(20, 212 + i * 52, w - 20, 252 + i * 52, [232, 232, 239]);
+  const crcTable = Array.from({ length: 256 }, (_, n) => {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    return c >>> 0;
+  });
+  const crc = (buf) => {
+    let c = 0xffffffff;
+    for (const b of buf) c = crcTable[(c ^ b) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  };
+  const chunk = (type, data) => {
+    const body = Buffer.concat([Buffer.from(type), data]);
+    const out = Buffer.alloc(body.length + 8);
+    out.writeUInt32BE(data.length, 0);
+    body.copy(out, 4);
+    out.writeUInt32BE(crc(body), body.length + 4);
+    return out;
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
+  ihdr.set([8, 2, 0, 0, 0], 8);
+  return new Uint8Array(
+    Buffer.concat([
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      chunk('IHDR', ihdr),
+      chunk('IDAT', deflateSync(px)),
+      chunk('IEND', Buffer.alloc(0)),
+    ]),
+  );
 }
 
 const app = express();

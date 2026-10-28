@@ -22,19 +22,36 @@
   /* Ink. Quiet text measures 6.4:1 on the page and 5.9:1 on a card. */
   --pnb-text: #1b1b24;
   --pnb-text-quiet: #5a5a6b;
-  /* The one accent, and what is written on it. */
+  /* The one accent, and what is written on it. The fill is what a button is
+     painted with: the accent, unless a theme wants a gradient there. */
   --pnb-accent: #2563eb;
+  --pnb-accent-fill: var(--pnb-accent);
   --pnb-on-accent: #ffffff;
   --pnb-danger: #d23b2f;
-  /* The five chips. */
+  /* The chips. */
   --pnb-bug: #e5484d;
   --pnb-idea: #e9a00b;
+  --pnb-review: #8b5cf6;
   --pnb-planned: #3e7bfa;
   --pnb-done: #2f9e66;
   --pnb-declined: #8b8d98;
-  /* Shape. */
+  /* A filled star. */
+  --pnb-star: #f5a524;
+  /* The tiles you pick a kind on, and what is written on them. Quiet cards by
+     default; a theme can paint them (see `vivid`). */
+  --pnb-tile-bug: var(--pnb-surface);
+  --pnb-tile-idea: var(--pnb-surface);
+  --pnb-tile-review: var(--pnb-surface);
+  --pnb-tile-ink: var(--pnb-text);
+  /* Behind the tick on "Feedback sent!". */
+  --pnb-sent: var(--pnb-bg);
+  /* The round floating button, and its glyph. */
+  --pnb-fab: var(--pnb-accent-fill);
+  --pnb-on-fab: var(--pnb-on-accent);
+  /* Shape. The panel is the board in the corner of a wide screen. */
   --pnb-radius: 8px;
   --pnb-radius-sheet: 16px;
+  --pnb-radius-panel: 16px;
   --pnb-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
   --pnb-scrim: rgba(10, 10, 20, 0.5);
   /* Type. Inherits the app's own font: the widget should look like it belongs. */
@@ -91,6 +108,40 @@
   --pnb-danger: #ff6b5e;
   --pnb-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
   --pnb-scrim: rgba(0, 0, 0, 0.6);
+}
+
+/* Bright and light: the colours of the feedback design this widget's tiles
+   came from. Painted tiles, a gradient on the buttons, and a green "sent". */
+:host([theme='vivid']) {
+  --pnb-bg: #ffffff;
+  --pnb-surface: #f5f5f8;
+  --pnb-surface-2: #e9e9f0;
+  --pnb-sunken: #e9e9f0;
+  --pnb-line: #dedee7;
+  --pnb-text: #1f2348;
+  --pnb-text-quiet: #5c5f7a;
+  --pnb-accent: #0582ca;
+  --pnb-accent-fill: linear-gradient(274deg, #265dd7 0%, #0582ca 100%);
+  --pnb-on-accent: #ffffff;
+  --pnb-danger: #d94432;
+  --pnb-bug: #d94432;
+  --pnb-idea: #21bca5;
+  --pnb-review: #e9a113;
+  --pnb-planned: #0582ca;
+  --pnb-done: #21bca5;
+  --pnb-star: #e9a113;
+  --pnb-tile-bug: linear-gradient(274deg, #cc3047 0%, #e9564a 100%);
+  --pnb-tile-idea: linear-gradient(274deg, #41a38e 0%, #21bca5 100%);
+  --pnb-tile-review: linear-gradient(274deg, #ec991c 0%, #e9b213 100%);
+  --pnb-tile-ink: #ffffff;
+  --pnb-sent: linear-gradient(274deg, #41a38e 0%, #21bca5 100%);
+  --pnb-fab: #1f2348;
+  --pnb-on-fab: #ffffff;
+  --pnb-radius: 10px;
+  --pnb-radius-sheet: 20px;
+  --pnb-radius-panel: 10px;
+  --pnb-shadow: 0 8px 24px rgba(31, 35, 72, 0.16);
+  --pnb-scrim: rgba(31, 35, 72, 0.5);
 }
 
 /* Shitti's own colours, where this board started. Also the worked example of
@@ -286,9 +337,58 @@ button {
 
 .badge__dot--bug { background: var(--pnb-bug); }
 .badge__dot--idea { background: var(--pnb-idea); }
+.badge__dot--review { background: var(--pnb-review); }
 .badge__dot--planned { background: var(--pnb-planned); }
 .badge__dot--done { background: var(--pnb-done); }
 .badge__dot--declined { background: var(--pnb-declined); }
+
+.card__shot {
+  display: grid;
+  place-items: center;
+  color: var(--pnb-text-quiet);
+}
+
+.stars {
+  display: inline-flex;
+  gap: 1px;
+  line-height: 0;
+}
+
+/* An empty star with a filled one laid over it, cut to how full it is. */
+.stars__one {
+  position: relative;
+  color: var(--pnb-line);
+}
+
+.stars__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  color: var(--pnb-star);
+}
+
+/* The average, over the list. */
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-surface);
+  border: 1px solid var(--pnb-line);
+}
+
+.rating__avg {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.rating__n {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--pnb-text-quiet);
+}
 
 .card__off {
   font-size: 12px;
@@ -459,7 +559,7 @@ button {
   height: 48px;
   padding: 0 24px;
   border-radius: 999px;
-  background: var(--pnb-accent);
+  background: var(--pnb-accent-fill);
   color: var(--pnb-on-accent);
   font-size: 16px;
   font-weight: 700;
@@ -510,14 +610,230 @@ button {
   font-weight: 700;
 }
 
-.kinds {
-  display: flex;
+.compose__kind {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.chip-pick .badge__dot {
-  width: 20px;
-  height: 20px;
+.rate {
+  display: flex;
+  gap: 4px;
+}
+
+.rate__star {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: var(--pnb-line);
+  transition: transform 120ms ease;
+}
+
+.rate__star--on {
+  color: var(--pnb-star);
+}
+
+.rate__star:active {
+  transform: scale(0.9);
+}
+
+.shot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.shot__add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 88px;
+  border-radius: var(--pnb-radius);
+  border: 1.5px dashed var(--pnb-line);
+  color: var(--pnb-text-quiet);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.shot__preview {
+  position: relative;
+  align-self: flex-start;
+}
+
+.shot__preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--pnb-radius);
+  border: 1px solid var(--pnb-line);
+}
+
+.shot__remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 36px;
+  height: 36px;
+  background: var(--pnb-bg);
+  box-shadow: var(--pnb-shadow);
+}
+
+/* ---- Choosing what to write --------------------------------------------- */
+
+.choose__title {
+  margin: 8px 0 16px;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tiles--odd .tile:first-child {
+  grid-column: 1 / -1;
+  min-height: 132px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 132px;
+  padding: 16px 12px;
+  border-radius: var(--pnb-radius);
+  border: 1px solid var(--pnb-line);
+  color: var(--pnb-tile-ink);
+  text-align: center;
+  transition: transform 120ms ease;
+}
+
+.tile:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.tile:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.tile--bug { background: var(--pnb-tile-bug); }
+.tile--idea { background: var(--pnb-tile-idea); }
+.tile--review { background: var(--pnb-tile-review); }
+
+.tile__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+}
+
+.tile--bug .tile__icon { background: var(--pnb-bug); }
+.tile--idea .tile__icon { background: var(--pnb-idea); }
+.tile--review .tile__icon { background: var(--pnb-review); }
+
+/* On a painted tile the disc would vanish into its own colour. */
+:host([theme='vivid']) .tile {
+  border-color: transparent;
+}
+
+:host([theme='vivid']) .tile__icon {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.tile__label {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.tile__note {
+  font-size: 13px;
+  line-height: 1.35;
+  opacity: 0.85;
+}
+
+.choose__board {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.choose__board .text-btn {
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---- Sent ---------------------------------------------------------------- */
+
+.sent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 24px calc(32px + var(--_bottom));
+  background: var(--pnb-sent);
+  text-align: center;
+  animation: fade-in 200ms ease;
+}
+
+.sent__check {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--pnb-done);
+  color: #fff;
+  animation: pop 320ms cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+
+.sent__title {
+  margin: 12px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.sent__note {
+  margin: 0;
+  color: var(--pnb-text-quiet);
+}
+
+/* On a painted "sent" the words go white and the tick needs no disc. */
+:host([theme='vivid']) .sent {
+  color: #fff;
+}
+
+:host([theme='vivid']) .sent__check {
+  background: transparent;
+}
+
+:host([theme='vivid']) .sent__note,
+:host([theme='vivid']) .sent__back {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+@keyframes pop {
+  from { transform: scale(0.4); opacity: 0; }
 }
 
 .public {
@@ -741,6 +1057,27 @@ button {
   color: var(--pnb-text-quiet);
 }
 
+.sheet__shot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 0;
+}
+
+/* A thumbnail, so the answer under it stays in view; a tap opens it whole. */
+.sheet__shot img {
+  display: block;
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--pnb-radius);
+  border: 1px solid var(--pnb-line);
+}
+
+.sheet__shot figcaption {
+  font-size: 12px;
+  color: var(--pnb-text-quiet);
+}
+
 .hide-btn {
   margin-top: 16px;
   font-weight: 700;
@@ -783,26 +1120,105 @@ button {
   animation: slide-down 220ms cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
+/* What dims the page behind the panel. On a phone the board covers it all,
+   so there is nothing to dim. */
+.backdrop {
+  display: none;
+}
+
+/* A wider screen: the board as a panel in the bottom-right corner, where the
+   button was, 375 wide and as tall as it needs up to 640. */
+@media (min-width: 640px) {
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--pnb-z) - 1);
+    background: var(--pnb-scrim);
+    animation: fade-in 200ms ease;
+  }
+
+  .backdrop--leaving {
+    animation: fade-out 200ms ease forwards;
+  }
+
+  .overlay {
+    inset: auto 24px 24px auto;
+    width: 375px;
+    max-height: min(640px, calc(100vh - 48px));
+    border-radius: var(--pnb-radius-panel);
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.24);
+    animation: panel-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .overlay--leaving {
+    animation: panel-out 180ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  /* Grows with what is in it, and scrolls inside once it reaches the top. */
+  .overlay .app {
+    --_top: 0px;
+    --_bottom: 0px;
+    height: auto;
+    max-height: inherit;
+  }
+
+  .overlay .scroll {
+    min-height: 0;
+  }
+
+  .overlay .sent {
+    min-height: 420px;
+  }
+}
+
+/* The round button from the design: a 40px disc with the glyph in it. */
 .fab {
   position: fixed;
   right: calc(16px + env(safe-area-inset-right, 0px));
   bottom: calc(16px + var(--pnb-inset-bottom));
   z-index: calc(var(--pnb-z) - 1);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 44px;
-  padding: 0 16px 0 12px;
-  border-radius: 999px;
-  background: var(--pnb-accent);
-  color: var(--pnb-on-accent);
-  font-weight: 700;
-  font-size: 15px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--pnb-fab);
+  color: var(--pnb-on-fab);
   box-shadow: var(--pnb-shadow);
+  transition: transform 120ms ease;
+}
+
+.fab:hover {
+  transform: scale(1.06);
+}
+
+.fab:active {
+  transform: scale(0.94);
+}
+
+@media (min-width: 640px) {
+  .fab {
+    right: 24px;
+    bottom: 24px;
+  }
 }
 
 @keyframes fade-in {
   from { opacity: 0; }
+}
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes panel-in {
+  from { transform: translateY(16px); opacity: 0; }
+}
+
+@keyframes panel-out {
+  to { transform: translateY(16px); opacity: 0; }
 }
 
 @keyframes rise {
@@ -822,8 +1238,16 @@ button {
   .overlay--leaving,
   .scrim,
   .sheet,
-  .toast {
+  .toast,
+  .sent,
+  .sent__check,
+  .backdrop {
     animation: none;
+  }
+  .tile,
+  .rate__star,
+  .fab {
+    transition: none;
   }
   .order {
     transition: opacity 160ms ease;

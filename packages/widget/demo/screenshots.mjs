@@ -4,8 +4,8 @@
  *   npm run demo -w pleasenobugs           (in one terminal, keep it running)
  *   npm run screenshots -w pleasenobugs    (in another)
  *
- * Writes docs/images/board-light.png, board-dark.png, owner-answer.png and
- * writing.gif. Needs Chrome or Edge (or CHROME=path/to/browser) and, for the
+ * Writes docs/images/board-light.png, board-dark.png, owner-answer.png,
+ * tiles-vivid.png and writing.gif. Needs Chrome or Edge (or CHROME=path/to/browser) and, for the
  * animation, ffmpeg on the PATH. Take them again whenever the look changes.
  */
 import puppeteer from 'puppeteer-core';
@@ -82,6 +82,16 @@ for (const scheme of ['light', 'dark']) {
   await page.close();
 }
 
+// The three tiles behind the "+", in the bright theme.
+{
+  const page = await open({ who: 'alice', theme: 'vivid' });
+  await click(page, '.bar .icon-btn:last-child');
+  await waitIn(page, '.tile');
+  await sleep(300);
+  await shot(page, path.join(OUT, 'tiles-vivid.png'));
+  await page.close();
+}
+
 // Writing a wish while a lookalike appears: one frame per keystroke, then
 // ffmpeg turns the frames into a GIF with the durations listed here.
 {
@@ -97,10 +107,11 @@ for (const scheme of ['light', 'dark']) {
 
   await frame(2.0);
   await click(page, '.bar .icon-btn:last-child');
-  await waitIn(page, 'textarea.field');
+  await waitIn(page, '.tile');
   await sleep(200);
-  await frame(0.8);
-  await click(page, '.chip-pick', 1);
+  await frame(1.2);
+  await click(page, '.tile--idea');
+  await waitIn(page, 'textarea.field');
   await sleep(150);
   await frame(0.6);
   // No red squiggles in the picture.

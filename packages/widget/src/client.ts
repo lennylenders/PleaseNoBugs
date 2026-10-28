@@ -13,6 +13,7 @@ import {
   type PostContext,
   type PostKind,
   type PostStatus,
+  type ShotType,
 } from '@pleasenobugs/core';
 import { insideNimiqPay, nimiqPaySigner, SignerError, type Signer } from './signer.js';
 
@@ -170,7 +171,7 @@ export function createClient(options: ClientOptions) {
   async function request<T>(
     method: string,
     path: string,
-    opts: { body?: unknown; auth: 'none' | 'optional' | 'required' },
+    opts: { body?: unknown; auth: 'none' | 'optional' | 'required'; blob?: boolean },
   ): Promise<Result<T>> {
     const attempt = async (p: LoginProof | null): Promise<Result<T>> => {
       const headers: Record<string, string> = {};
@@ -185,6 +186,10 @@ export function createClient(options: ClientOptions) {
         });
       } catch {
         return { ok: false, status: 0, error: 'network' };
+      }
+      if (res.ok && opts.blob) {
+        const blob = await res.blob().catch(() => null);
+        return blob ? { ok: true, data: blob as T } : { ok: false, status: 0, error: 'network' };
       }
       const body = await res.json().catch(() => null);
       if (res.ok) return { ok: true, data: body as T };
@@ -239,8 +244,21 @@ export function createClient(options: ClientOptions) {
     me: () => request<Me>('GET', at('/me'), { auth: 'required' }),
     answers: () => request<{ answers: Answer[] }>('GET', at('/answers'), { auth: 'required' }),
 
-    post: (p: { id: string; kind: PostKind; text: string; anon?: boolean; context?: PostContext }) =>
-      request<{ ok: true; left: number }>('POST', at('/posts'), { body: p, auth: 'required' }),
+    /**
+     * Write one. A review needs `rating` (1 to 5); a bug or an idea may carry
+     * `shot`, a screenshot as base64, which only the project's owners can see.
+     */
+    post: (p: {
+      id: string;
+      kind: PostKind;
+      text: string;
+      anon?: boolean;
+      context?: PostContext;
+      rating?: number;
+      shot?: { type: ShotType; data: string };
+    }) => request<{ ok: true; left: number }>('POST', at('/posts'), { body: p, auth: 'required' }),
+    /** A post's screenshot. Owners only. */
+    shot: (id: string) => request<Blob>('GET', `${post(id)}/shot`, { auth: 'required', blob: true }),
     vote: (id: string, up: boolean) =>
       request<{ ok: true; votes: number; voted: boolean }>('POST', `${post(id)}/vote`, {
         body: { up },

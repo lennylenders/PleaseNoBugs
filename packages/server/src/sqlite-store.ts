@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import type { DatabaseSync as Database, SQLInputValue } from 'node:sqlite';
-import type { Answer, PostContext, PostKind, PostStatus, Project } from '@pleasenobugs/core';
-import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Store, TelemetryRow } from './store.js';
+import type { Answer, PostContext, PostKind, PostStatus, Project, ShotType } from '@pleasenobugs/core';
+import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Shot, Store, TelemetryRow } from './store.js';
 
 /*
  * Loaded through `require` rather than an import, for one reason: Vite (which
@@ -89,8 +89,42 @@ export class SqliteStore implements Store {
         received_at INTEGER NOT NULL,
         PRIMARY KEY (instance, project)
       );
-      INSERT OR IGNORE INTO meta (key, value) VALUES ('schema', '1');
+      CREATE TABLE IF NOT EXISTS shots (
+        project_id TEXT NOT NULL,
+        post_id    TEXT NOT NULL,
+        type       TEXT NOT NULL,
+        data       BLOB NOT NULL,
+        PRIMARY KEY (project_id, post_id)
+      );
     `);
+    this.migrate();
+  }
+
+  /**
+   * Bring a file written by an older version up to this one, a step at a
+   * time, each recorded in `meta.schema` so it runs once. A fresh file starts
+   * at 1 like any other and walks the same steps.
+   */
+  private migrate() {
+    this.run("INSERT OR IGNORE INTO meta (key, value) VALUES ('schema', '1')");
+    const schema = () => Number(this.get("SELECT value FROM meta WHERE key = 'schema'")?.value ?? 1);
+
+    // 2: reviews. A star column on posts, and every project still on the old
+    // default kinds (`bug`, `idea`) gets reviews too. Nobody could change the
+    // kinds without the dashboard, so the old default is what they had, not
+    // what they chose. The widget's `kinds` attribute leaves reviews out.
+    if (schema() < 2) {
+      const cols = this.all('PRAGMA table_info(posts)').map((c) => String(c.name));
+      if (!cols.includes('rating')) this.db.exec('ALTER TABLE posts ADD COLUMN rating INTEGER');
+      for (const row of this.all('SELECT data FROM projects')) {
+        const p = JSON.parse(String(row.data)) as Project;
+        if (p.rules.kinds.join(',') === 'bug,idea') {
+          p.rules.kinds = ['bug', 'idea', 'review'];
+          this.run('UPDATE projects SET data = ? WHERE id = ?', JSON.stringify(p), p.id);
+        }
+      }
+      this.run("UPDATE meta SET value = '2' WHERE key = 'schema'");
+    }
   }
 
   /** Close the file. Tests use it; a server normally runs until it is killed. */
@@ -214,11 +248,17 @@ export class SqliteStore implements Store {
       `SELECT p.*,
          (SELECT COUNT(*) FROM votes v WHERE v.project_id = p.project_id AND v.post_id = p.id) AS votes,
          EXISTS (SELECT 1 FROM votes v
-                 WHERE v.project_id = p.project_id AND v.post_id = p.id AND v.voter = ?) AS voted
+                 WHERE v.project_id = p.project_id AND v.post_id = p.id AND v.voter = ?) AS voted,
+         EXISTS (SELECT 1 FROM shots s WHERE s.project_id = p.project_id AND s.post_id = p.id) AS shot
        FROM posts p WHERE p.project_id = ?`,
       reader ?? '',
       projectId,
-    ).map((r) => ({ ...toRow(r), votes: Number(r.votes), voted: Number(r.voted) === 1 }));
+    ).map((r) => ({
+      ...toRow(r),
+      votes: Number(r.votes),
+      voted: Number(r.voted) === 1,
+      shot: Number(r.shot) === 1,
+    }));
   }
 
   async getPost(projectId: string, id: string) {
@@ -226,11 +266,11 @@ export class SqliteStore implements Store {
     return row ? toRow(row) : null;
   }
 
-  async createPost(row: PostRow) {
+  async createPost(row: PostRow, shot?: Shot) {
     const inserted = this.run(
       `INSERT OR IGNORE INTO posts
-         (project_id, id, author, anon, kind, text, at, status, reply_text, reply_at, hidden, context, answered_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (project_id, id, author, anon, kind, text, at, status, reply_text, reply_at, hidden, context, answered_at, rating)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       row.projectId,
       row.id,
       row.author,
@@ -244,6 +284,7 @@ export class SqliteStore implements Store {
       row.hidden ? 1 : 0,
       row.context ? JSON.stringify(row.context) : null,
       row.answeredAt ?? null,
+      row.rating ?? null,
     );
     if (Number(inserted.changes) === 0) return false;
     this.run(
@@ -252,6 +293,15 @@ export class SqliteStore implements Store {
       row.id,
       row.author,
     );
+    if (shot) {
+      this.run(
+        'INSERT OR REPLACE INTO shots (project_id, post_id, type, data) VALUES (?, ?, ?, ?)',
+        row.projectId,
+        row.id,
+        shot.type,
+        shot.data,
+      );
+    }
     return true;
   }
 
@@ -280,7 +330,26 @@ export class SqliteStore implements Store {
 
   async deletePost(projectId: string, id: string) {
     this.run('DELETE FROM votes WHERE project_id = ? AND post_id = ?', projectId, id);
+    this.run('DELETE FROM shots WHERE project_id = ? AND post_id = ?', projectId, id);
     this.run('DELETE FROM posts WHERE project_id = ? AND id = ?', projectId, id);
+  }
+
+  async getShot(projectId: string, postId: string): Promise<Shot | null> {
+    const row = this.get('SELECT type, data FROM shots WHERE project_id = ? AND post_id = ?', projectId, postId);
+    return row ? { type: String(row.type) as ShotType, data: new Uint8Array(row.data as Uint8Array) } : null;
+  }
+
+  async deleteShot(projectId: string, postId: string) {
+    this.run('DELETE FROM shots WHERE project_id = ? AND post_id = ?', projectId, postId);
+  }
+
+  async hasPostOfKind(projectId: string, author: string, kind: PostKind) {
+    return !!this.get(
+      'SELECT 1 FROM posts WHERE project_id = ? AND author = ? AND kind = ? LIMIT 1',
+      projectId,
+      author,
+      kind,
+    );
   }
 
   async vote(projectId: string, id: string, voter: string, up: boolean) {
@@ -403,5 +472,6 @@ function toRow(r: Record<string, unknown>): PostRow {
   if (Number(r.hidden) === 1) row.hidden = true;
   if (typeof r.context === 'string') row.context = JSON.parse(r.context) as PostContext;
   if (r.answered_at !== null && r.answered_at !== undefined) row.answeredAt = Number(r.answered_at);
+  if (r.rating !== null && r.rating !== undefined) row.rating = Number(r.rating);
   return row;
 }

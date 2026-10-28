@@ -25,8 +25,10 @@ const COPY = {
   'board.all': { en: 'All', nl: 'Alles', de: 'Alles' },
   'board.bugs': { en: 'Bugs', nl: 'Bugs', de: 'Bugs' },
   'board.ideas': { en: 'Ideas', nl: 'Ideeën', de: 'Ideen' },
+  'board.reviews': { en: 'Reviews', nl: 'Reviews', de: 'Bewertungen' },
   'board.kindBug': { en: 'Bug', nl: 'Bug', de: 'Bug' },
   'board.kindIdea': { en: 'Idea', nl: 'Idee', de: 'Idee' },
+  'board.kindReview': { en: 'Review', nl: 'Review', de: 'Bewertung' },
   'board.statusOpen': { en: 'Open', nl: 'Open', de: 'Offen' },
   'board.statusPlanned': { en: 'Planned', nl: 'Gepland', de: 'Geplant' },
   'board.statusDone': { en: 'Done', nl: 'Klaar', de: 'Fertig' },
@@ -37,6 +39,11 @@ const COPY = {
   // reads like a support desk.
   'board.reply': { en: '{app} says', nl: '{app} zegt', de: '{app} sagt' },
   'board.upvote': { en: 'I want this too', nl: 'Dit wil ik ook', de: 'Will ich auch' },
+  // On a review there is nothing to want: you agree with it, or it helped.
+  'board.helpful': { en: 'Helpful', nl: 'Nuttig', de: 'Hilfreich' },
+  'board.stars': { en: '{n} of 5 stars', nl: '{n} van 5 sterren', de: '{n} von 5 Sternen' },
+  'board.ratingOne': { en: '1 review', nl: '1 review', de: '1 Bewertung' },
+  'board.ratingMany': { en: '{n} reviews', nl: '{n} reviews', de: '{n} Bewertungen' },
   'board.emptyTitle': {
     en: 'Nothing here yet. Tell us what is broken or what you miss.',
     nl: 'Hier staat nog niets. Vertel wat er stuk is of wat je mist.',
@@ -68,6 +75,29 @@ const COPY = {
     de: 'Öffne {app} in Nimiq Pay, um zu posten und abzustimmen.',
   },
 
+  // ---- Choosing what to write ----
+  'board.chooseTitle': {
+    en: 'What do you want to share?',
+    nl: 'Wat wil je delen?',
+    de: 'Was möchtest du teilen?',
+  },
+  'board.tileBug': { en: 'Report a bug', nl: 'Bug melden', de: 'Fehler melden' },
+  'board.tileBugNote': { en: 'Something does not work', nl: 'Iets werkt niet', de: 'Etwas funktioniert nicht' },
+  'board.tileIdea': { en: 'Share an idea', nl: 'Idee delen', de: 'Idee teilen' },
+  'board.tileIdeaNote': { en: 'Something you miss', nl: 'Iets wat je mist', de: 'Etwas, das dir fehlt' },
+  'board.tileReview': { en: 'Write a review', nl: 'Review schrijven', de: 'Bewertung schreiben' },
+  'board.tileReviewNote': {
+    en: 'What you think of {app}',
+    nl: 'Wat je van {app} vindt',
+    de: 'Was du von {app} hältst',
+  },
+  'board.seeBoard': { en: 'See the board', nl: 'Bekijk het bord', de: 'Zum Board' },
+  'board.tileReviewDone': {
+    en: 'You reviewed {app} already',
+    nl: 'Je hebt {app} al beoordeeld',
+    de: 'Du hast {app} schon bewertet',
+  },
+
   // ---- Writing one ----
   'board.composeTitle': { en: 'Your feedback', nl: 'Jouw feedback', de: 'Dein Feedback' },
   'board.whatKind': { en: 'What is it?', nl: 'Wat is het?', de: 'Was ist es?' },
@@ -76,6 +106,12 @@ const COPY = {
     nl: 'Wat is er stuk, of wat mis je?',
     de: 'Was ist kaputt, oder was fehlt dir?',
   },
+  'board.placeholderReview': {
+    en: 'What do you like or dislike about {app}?',
+    nl: 'Wat vind je goed of minder goed aan {app}?',
+    de: 'Was gefällt dir an {app}, was nicht?',
+  },
+  'board.yourRating': { en: 'Your rating', nl: 'Jouw beoordeling', de: 'Deine Bewertung' },
   'board.public': {
     en: 'Everybody using {app} can read this.',
     nl: 'Iedereen die {app} gebruikt kan dit lezen.',
@@ -91,6 +127,33 @@ const COPY = {
     nl: 'Niemand op het bord ziet wie het schreef, en je wallet-adres wordt nooit getoond. De server kent je wallet wel: stemmen en de daglimiet tellen per wallet.',
     de: 'Niemand auf dem Board sieht, wer es geschrieben hat, und deine Wallet-Adresse wird nie gezeigt. Der Server kennt deine Wallet schon: Stimmen und das Tageslimit zählen pro Wallet.',
   },
+  // ---- A screenshot, for the owners' eyes ----
+  'board.shotAdd': { en: 'Add a screenshot', nl: 'Screenshot toevoegen', de: 'Screenshot hinzufügen' },
+  'board.shotRemove': { en: 'Remove screenshot', nl: 'Screenshot weghalen', de: 'Screenshot entfernen' },
+  // Said before somebody picks one, because a screenshot of a wallet app is
+  // the easiest way to give away a balance without noticing.
+  'board.shotNote': {
+    en: 'Only {app} sees it, not the board. Check it shows nothing private, like a balance or an address.',
+    nl: 'Alleen {app} ziet hem, het bord niet. Kijk of er niets privés op staat, zoals een saldo of adres.',
+    de: 'Nur {app} sieht ihn, nicht das Board. Prüf, dass nichts Privates drauf ist, etwa ein Kontostand oder eine Adresse.',
+  },
+  'board.shotFailed': {
+    en: 'That image could not be read. Try another one.',
+    nl: 'Die afbeelding kon niet gelezen worden. Probeer een andere.',
+    de: 'Das Bild ließ sich nicht lesen. Versuch ein anderes.',
+  },
+  'board.shot': { en: 'Screenshot', nl: 'Screenshot', de: 'Screenshot' },
+  'board.shotGoes': {
+    en: 'Deleted by itself when you mark this Done or Not doing.',
+    nl: 'Wordt vanzelf verwijderd als je dit op Klaar of Doen we niet zet.',
+    de: 'Wird von selbst gelöscht, wenn du es auf Fertig oder Machen wir nicht setzt.',
+  },
+  'board.shotGone': {
+    en: 'The screenshot could not be loaded.',
+    nl: 'De screenshot kon niet geladen worden.',
+    de: 'Der Screenshot ließ sich nicht laden.',
+  },
+
   'board.send': { en: 'Put it on the board', nl: 'Op het bord zetten', de: 'Aufs Board setzen' },
   'board.left': {
     en: '{n} of {max} left today',
@@ -124,7 +187,18 @@ const COPY = {
     nl: 'Niet geplaatst: dat waren de {max} van vandaag. Morgen weer.',
     de: 'Nicht gepostet: das waren die {max} für heute. Morgen wieder.',
   },
+  'board.reviewed': {
+    en: 'You reviewed {app} already. Throw yours away to write a new one.',
+    nl: 'Je hebt {app} al beoordeeld. Gooi de jouwe weg om een nieuwe te schrijven.',
+    de: 'Du hast {app} schon bewertet. Wirf deine weg, um eine neue zu schreiben.',
+  },
   'board.sent': { en: 'Feedback sent!', nl: 'Feedback verstuurd!', de: 'Feedback gesendet!' },
+  'board.sentNote': {
+    en: 'Thank you. It is on the board now.',
+    nl: 'Bedankt. Het staat nu op het bord.',
+    de: 'Danke. Es steht jetzt auf dem Board.',
+  },
+  'board.sentBack': { en: 'Back to the board', nl: 'Terug naar het bord', de: 'Zurück zum Board' },
 
   // ---- Throwing your own away ----
   'board.delete': { en: 'Throw away', nl: 'Weggooien', de: 'Wegwerfen' },

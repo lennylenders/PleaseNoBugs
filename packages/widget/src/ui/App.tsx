@@ -12,13 +12,14 @@ import {
 import type { Client } from '../client.js';
 import { insideNimiqPay } from '../signer.js';
 import type { CopyKey, Translate } from '../i18n.js';
-import { Compose } from './Compose.js';
-import { PostCard } from './PostCard.js';
+import { Choose, Sent } from './Choose.js';
+import { Compose, type Draft } from './Compose.js';
+import { KIND, PostCard, Stars } from './PostCard.js';
 import { DeleteSheet, ManageSheet } from './Sheets.js';
 import * as Icon from './icons.js';
 
 const PER_PAGE = 15;
-/** How long "Feedback sent!" stays up. */
+/** How long a toast stays up, and the "Feedback sent!" screen. */
 const TOAST_MS = 2600;
 
 export interface AppProps {
@@ -33,8 +34,17 @@ export interface AppProps {
   context?: PostContext;
   /** Words common in this app, so the lookalike matcher ignores them. */
   noise?: string[];
+  /** Offer only these kinds, of the ones the project accepts. All of them when absent. */
+  kinds?: PostKind[];
+  /** Whether bugs and ideas may carry a screenshot. On unless switched off. */
+  screenshots?: boolean;
   /** Present when the board is an overlay: draws the X. */
   onClose?: () => void;
+  /**
+   * What opens first: the board, or the tiles that ask what to write. The
+   * floating button starts on the tiles; the board is one tap under them.
+   */
+  start?: 'board' | 'choose';
   onPosted?: (post: { id: string; kind: PostKind }) => void;
 }
 
@@ -52,10 +62,27 @@ type Over = { kind: 'delete'; post: Post } | { kind: 'manage'; post: Post } | nu
  * tap that waits a round trip before the number moves reads as a tap that
  * missed. Posting is the opposite and waits (see {@link Compose}).
  */
-export function App({ client, t, locale, appName, suggestName, context, noise, onClose, onPosted }: AppProps) {
+export function App({
+  client,
+  t,
+  locale,
+  appName,
+  suggestName,
+  context,
+  noise,
+  kinds: offered,
+  screenshots = true,
+  onClose,
+  onPosted,
+  start = 'board',
+}: AppProps) {
   const [read, setRead] = useState<BoardRead | null>(null);
   const [failed, setFailed] = useState(false);
-  const [view, setView] = useState<'board' | 'compose'>('board');
+  const [view, setView] = useState<'board' | 'choose' | 'compose' | 'sent'>(start);
+  // The tiles as the first screen, until the board has been visited: then
+  // they are a step on the way to writing, with a way back.
+  const [first, setFirst] = useState(start === 'choose');
+  const [writing, setWriting] = useState<PostKind>('bug');
   const [sort, setSort] = useState<BoardSort>('top');
   const [kind, setKind] = useState<'all' | PostKind>('all');
   const [page, setPage] = useState(1);
@@ -94,6 +121,15 @@ export function App({ client, t, locale, appName, suggestName, context, noise, o
     return () => clearTimeout(id);
   }, [toast]);
 
+  useEffect(() => {
+    if (view !== 'sent') return;
+    const id = setTimeout(() => {
+      setFirst(false);
+      setView('board');
+    }, TOAST_MS);
+    return () => clearTimeout(id);
+  }, [view]);
+
   /**
    * The order pill steps aside going down and comes straight back going up.
    * Wanting it back is deliberate, so it answers sooner (8px) than it leaves
@@ -126,10 +162,21 @@ export function App({ client, t, locale, appName, suggestName, context, noise, o
   const owner = !!read?.me?.owner;
   const posts = read?.posts ?? [];
 
+  // What the project accepts, narrowed to what this page offers. A kind left
+  // out is left out of the list as well, not only off the tiles.
+  const kinds = (rules?.kinds ?? ['bug', 'idea']).filter((k) => !offered || offered.includes(k));
+  const kindsKey = kinds.join(',');
+
   const shown = useMemo(() => {
-    const here = posts.filter((p) => owner || !p.hidden);
+    const here = posts.filter((p) => (owner || !p.hidden) && kindsKey.split(',').includes(p.kind));
     return sortPosts(kind === 'all' ? here : here.filter((p) => p.kind === kind), sort);
-  }, [posts, kind, sort, owner]);
+  }, [posts, kind, sort, owner, kindsKey]);
+
+  /** The average over the reviews on the board, hidden ones left out for owners too. */
+  const rating = useMemo(() => {
+    const stars = posts.filter((p) => p.kind === 'review' && !p.hidden && p.rating).map((p) => p.rating as number);
+    return stars.length ? { avg: stars.reduce((a, b) => a + b, 0) / stars.length, n: stars.length } : null;
+  }, [posts]);
   const pages = Math.max(1, Math.ceil(shown.length / PER_PAGE));
   const at = Math.min(page, pages);
   const slice = shown.slice((at - 1) * PER_PAGE, at * PER_PAGE);
@@ -158,22 +205,29 @@ export function App({ client, t, locale, appName, suggestName, context, noise, o
     }
   };
 
-  const send = async (draft: {
-    kind: PostKind;
-    text: string;
-    anon: boolean;
-    name: string;
-  }): Promise<{ key: CopyKey | null; vars?: Record<string, string | number> } | null> => {
+  const send = async (draft: Draft): Promise<{ key: CopyKey | null; vars?: Record<string, string | number> } | null> => {
     const id = newId();
     // What the owner needs to reproduce a bug, and only on a bug: an idea does
     // not get better for knowing which build it was written on.
     const sentWith: PostContext | undefined =
       draft.kind === 'bug' ? { ...context, host: insideNimiqPay() ? 'nimiq-pay' : 'browser' } : undefined;
 
-    const res = await client.post({ id, kind: draft.kind, text: draft.text, anon: draft.anon, context: sentWith });
+    const res = await client.post({
+      id,
+      kind: draft.kind,
+      text: draft.text,
+      anon: draft.anon,
+      context: sentWith,
+      rating: draft.rating,
+      shot: draft.shot ? { type: draft.shot.type, data: draft.shot.data } : undefined,
+    });
     if (!res.ok) {
       if (res.error === 'declined') return { key: null };
       if (res.error === 'no_signer') return { key: 'board.needWallet', vars: { app: name } };
+      if (res.error === 'reviewed') {
+        void pull();
+        return { key: 'board.reviewed', vars: { app: name } };
+      }
       if (res.error === 'too_many') {
         void pull();
         return { key: 'board.failedFull', vars: { max: rules?.perDay ?? 5 } };
@@ -184,11 +238,10 @@ export function App({ client, t, locale, appName, suggestName, context, noise, o
     // signed in. A failure here costs a name on a card, never the post.
     if (!draft.anon && draft.name && draft.name !== read?.me?.name) await client.setName(draft.name);
 
-    setView('board');
+    setView('sent');
     setSort('new');
     setKind('all');
     setPage(1);
-    setToast(t('board.sent'));
     onPosted?.({ id, kind: draft.kind });
     await pull();
     return null;
@@ -225,13 +278,96 @@ export function App({ client, t, locale, appName, suggestName, context, noise, o
     void pull();
   };
 
-  const kinds = rules?.kinds ?? ['bug', 'idea'];
+  const reviewed = posts.some((p) => p.mine && p.kind === 'review');
+
+  /** The "+": straight to writing when there is only one kind to write. */
+  const write = () => {
+    if (kinds.length === 1) {
+      setWriting(kinds[0]);
+      setView('compose');
+    } else {
+      setView('choose');
+    }
+  };
+
+  const toBoard = () => {
+    setFirst(false);
+    setView('board');
+  };
+
+  if (view === 'sent') {
+    return (
+      <div class="app">
+        <Sent t={t} onBack={toBoard} />
+      </div>
+    );
+  }
+
+  if (view === 'choose' && (rules || first)) {
+    return (
+      <div class="app">
+        {first ? (
+          // The first screen: nothing to go back to, only out.
+          <header class="bar">
+            <span />
+            <span />
+            {onClose ? (
+              <button type="button" class="icon-btn" aria-label={t('board.close')} onClick={onClose}>
+                <Icon.Close />
+              </button>
+            ) : (
+              <span />
+            )}
+          </header>
+        ) : (
+          <header class="bar">
+            <button type="button" class="icon-btn" aria-label={t('board.back')} onClick={toBoard}>
+              <Icon.Back />
+            </button>
+            <h2 class="bar__title">{t('board.composeTitle')}</h2>
+            <span />
+          </header>
+        )}
+        <div class="scroll" style={{ paddingBottom: '24px' }}>
+          {rules ? (
+            <Choose
+              t={t}
+              kinds={kinds}
+              appName={name}
+              reviewed={reviewed}
+              onPick={(k) => {
+                setWriting(k);
+                setView('compose');
+              }}
+              onBoard={first ? toBoard : undefined}
+            />
+          ) : failed ? (
+            <div class="empty">
+              <p>{t('board.loadFailed')}</p>
+              <button type="button" class="text-btn" onClick={() => void pull()}>
+                {t('board.retry')}
+              </button>
+            </div>
+          ) : (
+            <div class="empty" aria-busy="true">
+              <span class="spinner" style={{ display: 'inline-block' }} />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (view === 'compose' && rules) {
     return (
       <div class="app">
         <header class="bar">
-          <button type="button" class="icon-btn" aria-label={t('board.back')} onClick={() => setView('board')}>
+          <button
+            type="button"
+            class="icon-btn"
+            aria-label={t('board.back')}
+            onClick={() => setView(kinds.length > 1 ? 'choose' : 'board')}
+          >
             <Icon.Back />
           </button>
           <h2 class="bar__title">{t('board.composeTitle')}</h2>
@@ -240,7 +376,7 @@ export function App({ client, t, locale, appName, suggestName, context, noise, o
         <div class="scroll" ref={scroller} style={{ paddingBottom: '24px' }}>
           <Compose
             t={t}
-            kinds={kinds}
+            kind={writing}
             posts={posts}
             likeThis={likeThis}
             left={read?.me ? read.me.left : null}
@@ -248,6 +384,7 @@ export function App({ client, t, locale, appName, suggestName, context, noise, o
             textMax={rules.textMax}
             name={read?.me?.name ?? suggestName ?? ''}
             appName={name}
+            screenshots={screenshots}
             onVote={vote}
             onSend={send}
           />
@@ -272,8 +409,8 @@ export function App({ client, t, locale, appName, suggestName, context, noise, o
           type="button"
           class="icon-btn"
           aria-label={t('board.write')}
-          disabled={!rules}
-          onClick={() => setView('compose')}
+          disabled={!rules || !kinds.length}
+          onClick={write}
         >
           <Icon.Plus />
         </button>
@@ -292,13 +429,24 @@ export function App({ client, t, locale, appName, suggestName, context, noise, o
                 setPage(1);
               }}
             >
-              {t(k === 'all' ? 'board.all' : k === 'bug' ? 'board.bugs' : 'board.ideas')}
+              {t(k === 'all' ? 'board.all' : KIND[k].plural)}
             </button>
           ))}
         </div>
       )}
 
       <div class="scroll" ref={scroller}>
+        {/* What people think of the app, on top of the list it is drawn from.
+            Only where reviews are in view, and only once there is one. */}
+        {rating && kinds.includes('review') && (kind === 'all' || kind === 'review') && (
+          <div class="rating">
+            <span class="rating__avg">{rating.avg.toFixed(1)}</span>
+            <Stars n={rating.avg} t={t} size={18} />
+            <span class="rating__n">
+              {rating.n === 1 ? t('board.ratingOne') : t('board.ratingMany', { n: rating.n })}
+            </span>
+          </div>
+        )}
         {failed ? (
           <div class="empty">
             <p>{t('board.loadFailed')}</p>
@@ -392,6 +540,10 @@ export function App({ client, t, locale, appName, suggestName, context, noise, o
           t={t}
           post={over.post}
           replyMax={rules.replyMax}
+          loadShot={async () => {
+            const res = await client.shot(over.post.id);
+            return res.ok ? res.data : null;
+          }}
           onSave={(change) => void manage(over.post, change)}
           onClose={() => setOver(null)}
         />

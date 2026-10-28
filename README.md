@@ -10,6 +10,7 @@ one place, without asking anybody to send you an email.
   <img src="docs/images/board-light.png" width="250" alt="The board in light mode: ideas and bugs with votes and the app's answers">
   <img src="docs/images/board-dark.png" width="250" alt="The same board in dark mode">
   <img src="docs/images/owner-answer.png" width="250" alt="The owner answering a bug: status, a reply, and the app version it came from">
+  <img src="docs/images/tiles-vivid.png" width="250" alt="The three tiles behind the plus, in the vivid theme: report a bug, share an idea, write a review">
 </p>
 
 > **Status: 0.1.1, early.** It runs [Shitti](https://shitti.me)'s board.
@@ -19,18 +20,22 @@ one place, without asking anybody to send you an email.
 
 <img src="docs/images/writing.gif" width="250" align="right" alt="Typing a wish: a post that says the same thing appears under the field">
 
-- **Bugs and ideas**, picked before typing, because the two want different words.
+- **Bugs, ideas and reviews**, picked on big tiles before typing, because the
+  three want different words.
+- **Reviews with stars**, one per wallet, and the average on top of the board,
+  so new users see what people like about your app.
 - **One vote per wallet**, so the most wanted thing rises to the top.
 - **Lookalikes while typing**: posts that resemble yours appear under the field,
   so people second the existing wish instead of writing it a fifth time.
 - **Your answer under every post**: Planned, Done, Not doing, plus one reply.
-- **Bug reports carry context** you choose, like your app's version, shown to
-  you and nobody else.
+- **Bug reports carry context** you choose, like your app's version, and
+  optionally **a screenshot**, shown to you and nobody else. A screenshot is
+  deleted by itself once you mark the post Done or Not doing.
 - **Anonymous by default.** A name shows only if the author turns it on, and a
   wallet address is never shown to anyone.
 - **Login is the Nimiq wallet your users already have.** No accounts, no email.
 - **Follows the phone**: light or dark, English, Dutch or German, and your
-  accent colour.
+  accent colour. Or the bright `vivid` theme.
 
 <br clear="right">
 
@@ -67,7 +72,7 @@ to fix under **Variables**. Fix it, deploy again, and it tries again.
 
 ### 2. Paste it into your app
 
-Put those two lines in your app's HTML. That puts a small button in the corner that opens the board. Inside Nimiq Pay
+Put those two lines in your app's HTML. That puts a round button in the corner that opens the board. Inside Nimiq Pay
 it signs with your user's wallet by itself. To place it in your own page, open
 it from your own menu, give it your colours or let people sign from a browser
 wallet, see [the widget's README](packages/widget).

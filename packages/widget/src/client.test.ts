@@ -208,6 +208,31 @@ describe('createClient', () => {
     }
   });
 
+  it('sends a review’s stars and a screenshot, which comes back to owners as an image', async () => {
+    const { url } = await server();
+    const author = createClient({ server: url, project: 'board1', origin: APP, signer: signerFor('a1').sign, storage: null });
+    const owner = createClient({ server: url, project: 'board1', origin: APP, signer: signerFor('c3').sign, storage: null });
+    const png = new Uint8Array(32);
+    png.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const data = Buffer.from(png).toString('base64');
+
+    expect((await author.post({ id: 'r1', kind: 'review', text: 'Love it', rating: 5 })).ok).toBe(true);
+    expect((await author.post({ id: 'b1', kind: 'bug', text: 'Broken', shot: { type: 'image/png', data } })).ok).toBe(true);
+    const again = await author.post({ id: 'r2', kind: 'review', text: 'Still', rating: 1 });
+    expect(again).toMatchObject({ ok: false, status: 409, error: 'reviewed' });
+
+    // Reading never asks the wallet, so the owner signs in first to be one.
+    await owner.signIn();
+    const board = await owner.board();
+    expect(board.ok && board.data.posts.find((p) => p.id === 'r1')?.rating).toBe(5);
+    expect(board.ok && board.data.posts.find((p) => p.id === 'b1')?.shot).toBe(true);
+
+    const shot = await owner.shot('b1');
+    expect(shot.ok && shot.data.type).toBe('image/png');
+    expect(shot.ok && shot.data.size).toBe(32);
+    expect(await author.shot('b1')).toMatchObject({ ok: false, status: 403, error: 'not_owner' });
+  });
+
   it('answers network when there is no server', async () => {
     const client = createClient({ server: 'http://127.0.0.1:1', project: 'board1', origin: APP, storage: null });
     expect(await client.board()).toMatchObject({ ok: false, error: 'network' });

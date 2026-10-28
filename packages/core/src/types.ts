@@ -7,8 +7,12 @@
  * server add one without breaking an app nobody has updated.
  */
 
-/** Something is broken, or something is missing. */
-export type PostKind = 'bug' | 'idea';
+/**
+ * Something is broken, something is missing, or what somebody thinks of the
+ * app as it is. A review carries a `rating` and is the one kind that is not a
+ * request: nothing gets planned or fixed, so it never gets a status.
+ */
+export type PostKind = 'bug' | 'idea' | 'review';
 
 /**
  * Where a post stands, set by a project's owners and nobody else.
@@ -57,8 +61,13 @@ export interface Post {
    *  chose one. Never an address: a name is a label, an address an identity. */
   who?: string;
   reply?: PostReply;
+  /** Reviews only: 1 to 5 stars. */
+  rating?: number;
   /** Owners only. */
   context?: PostContext;
+  /** Owners only: the author attached a screenshot, read through the post's
+   *  `/shot` route. Never sent to anybody else, not even the author. */
+  shot?: boolean;
   /** Owners only: a post they took off the board, kept so it can come back. */
   hidden?: boolean;
 }
@@ -169,6 +178,7 @@ export type ErrorCode =
   | 'no_project'
   | 'no_post'
   | 'duplicate'
+  | 'reviewed'
   | 'too_many'
   | 'rate_limited'
   | 'not_found'

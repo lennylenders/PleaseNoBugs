@@ -4,12 +4,59 @@ import { whenLabel } from '../when.js';
 import * as Icon from './icons.js';
 
 /** The glyph and the words for each kind. Exported because the compose screen
- *  draws the same two, and a kind that looked one way while you chose it and
- *  another once it landed would be two kinds. */
-export const KIND: Record<PostKind, { icon: () => preact.JSX.Element; label: CopyKey }> = {
-  bug: { icon: () => <Icon.Bug />, label: 'board.kindBug' },
-  idea: { icon: () => <Icon.Idea />, label: 'board.kindIdea' },
+ *  and the tiles draw the same ones, and a kind that looked one way while you
+ *  chose it and another once it landed would be two kinds. */
+export const KIND: Record<
+  PostKind,
+  { icon: (size?: number) => preact.JSX.Element; label: CopyKey; plural: CopyKey; tile: CopyKey; note: CopyKey }
+> = {
+  bug: {
+    icon: (size) => <Icon.Bug size={size} />,
+    label: 'board.kindBug',
+    plural: 'board.bugs',
+    tile: 'board.tileBug',
+    note: 'board.tileBugNote',
+  },
+  idea: {
+    icon: (size) => <Icon.Idea size={size} />,
+    label: 'board.kindIdea',
+    plural: 'board.ideas',
+    tile: 'board.tileIdea',
+    note: 'board.tileIdeaNote',
+  },
+  review: {
+    icon: (size) => <Icon.Review size={size} />,
+    label: 'board.kindReview',
+    plural: 'board.reviews',
+    tile: 'board.tileReview',
+    note: 'board.tileReviewNote',
+  },
 };
+
+/**
+ * A row of five stars, `n` of them filled, to the nearest half: an average of
+ * 4.5 is four and a half stars, not five. Read out as one number.
+ */
+export function Stars({ n, t, size = 16 }: { n: number; t: Translate; size?: number }) {
+  const halves = Math.round(n * 2) / 2;
+  return (
+    <span class="stars" role="img" aria-label={t('board.stars', { n: halves })}>
+      {[1, 2, 3, 4, 5].map((i) => {
+        const fill = Math.max(0, Math.min(1, halves - (i - 1)));
+        return (
+          <span key={i} class="stars__one">
+            <Icon.Star size={size} filled />
+            {fill > 0 && (
+              <span class="stars__fill" style={{ width: `${fill * 100}%` }}>
+                <Icon.Star size={size} filled />
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
 
 /**
  * The same for status, and `open` is deliberately absent: a post nobody has
@@ -42,17 +89,20 @@ export function VoteButton({
   voted,
   onVote,
   t,
+  label = 'board.upvote',
 }: {
   votes: number;
   voted: boolean;
   onVote: (up: boolean) => void;
   t: Translate;
+  /** What seconding means here: wanting it too, or finding a review helpful. */
+  label?: CopyKey;
 }) {
   return (
     <button
       type="button"
       class="vote"
-      aria-label={t('board.upvote')}
+      aria-label={t(label)}
       aria-pressed={voted}
       onClick={(e) => {
         // Not a request to open the card, which for an owner is a button.
@@ -126,6 +176,12 @@ export function PostCard({
       <div class="card__head">
         <Badge tone={post.kind} icon={kind.icon} label={t(kind.label)} />
         {status && <Badge tone={post.status} icon={status.icon} label={t(status.label)} />}
+        {post.rating !== undefined && <Stars n={post.rating} t={t} />}
+        {post.shot && (
+          <span class="card__shot" title={t('board.shot')} aria-label={t('board.shot')}>
+            <Icon.Image size={16} />
+          </span>
+        )}
         {post.hidden && <span class="card__off">{t('board.hidden')}</span>}
         <span class="card__when">{'date' in when ? when.date : t(when.key, when.vars)}</span>
       </div>
@@ -154,7 +210,13 @@ export function PostCard({
             <Icon.Trash />
           </button>
         )}
-        <VoteButton votes={post.votes} voted={post.voted} onVote={onVote} t={t} />
+        <VoteButton
+          votes={post.votes}
+          voted={post.voted}
+          onVote={onVote}
+          t={t}
+          label={post.kind === 'review' ? 'board.helpful' : 'board.upvote'}
+        />
       </div>
     </li>
   );

@@ -72,7 +72,7 @@ describe('reading', () => {
     expect(res.data.project).toEqual({
       id: 'board1',
       name: 'Board one',
-      rules: { perDay: 5, textMax: 200, replyMax: 300, kinds: ['bug', 'idea'] },
+      rules: { perDay: 5, textMax: 200, replyMax: 300, kinds: ['bug', 'idea', 'review'] },
     });
     expect(res.data.posts[0]).toMatchObject({ votes: 1, voted: false, mine: false });
   });
@@ -304,6 +304,106 @@ describe('posting', () => {
       body: { id: 'x', kind: 'idea', text: 'hi' },
     });
     expect(res.status).toBe(401);
+  });
+});
+
+describe('reviews', () => {
+  const review = (over: Record<string, unknown> = {}) => ({ kind: 'review', text: 'Love the QR scanner', rating: 5, ...over });
+
+  it('carry their stars to everybody, and need them', async () => {
+    const { call, post } = await setup();
+    expect((await post(A, review())).status).toBe(200);
+    const [p] = (await call('GET', '/v1/projects/board1/posts')).data.posts;
+    expect(p).toMatchObject({ kind: 'review', rating: 5, status: 'open' });
+
+    expect((await post(B, review({ rating: undefined }))).status).toBe(400);
+    expect((await post(B, review({ rating: 0 }))).status).toBe(400);
+    expect((await post(B, review({ rating: 6 }))).status).toBe(400);
+    expect((await post(B, review({ rating: 3.5 }))).status).toBe(400);
+    // Stars belong to reviews only.
+    expect((await post(B, { kind: 'idea', rating: 4 })).status).toBe(400);
+  });
+
+  it('one per wallet: a second is refused until the first is thrown away', async () => {
+    const { as, post } = await setup();
+    expect((await post(A, review({ id: 'r1' }))).status).toBe(200);
+    const again = await post(A, review({ id: 'r2', rating: 2 }));
+    expect(again.status).toBe(409);
+    expect(again.data.error).toBe('reviewed');
+    expect((await post(B, review({ id: 'r3' }))).status).toBe(200);
+    await as(A, 'DELETE', '/posts/r1');
+    expect((await post(A, review({ id: 'r4', rating: 2 }))).status).toBe(200);
+  });
+
+  it('never get a status, but can be answered and hidden', async () => {
+    const { as, post } = await setup();
+    await post(A, review({ id: 'r1' }));
+    expect((await as(OWNER, 'POST', '/posts/r1/manage', { status: 'done' })).status).toBe(400);
+    expect((await as(OWNER, 'POST', '/posts/r1/manage', { status: 'open', reply: 'Thank you!' })).status).toBe(200);
+    expect((await as(OWNER, 'POST', '/posts/r1/manage', { hidden: true })).status).toBe(200);
+    expect((await as(B, 'GET', '/posts')).data.posts).toEqual([]);
+  });
+});
+
+describe('screenshots', () => {
+  const png = (size = 64) => {
+    const bytes = new Uint8Array(size);
+    bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    return Buffer.from(bytes).toString('base64');
+  };
+  const shot = (data = png(), type = 'image/png') => ({ type, data });
+
+  it('reach owners and nobody else, the author included', async () => {
+    const { as, call, post } = await setup();
+    expect((await post(A, { id: 'b1', kind: 'bug', shot: shot() })).status).toBe(200);
+
+    const stranger = (await call('GET', '/v1/projects/board1/posts')).data.posts[0];
+    const author = (await as(A, 'GET', '/posts')).data.posts[0];
+    const owner = (await as(OWNER, 'GET', '/posts')).data.posts[0];
+    expect(stranger.shot).toBeUndefined();
+    expect(author.shot).toBeUndefined();
+    expect(owner.shot).toBe(true);
+
+    expect((await call('GET', '/v1/projects/board1/posts/b1/shot')).status).toBe(401);
+    expect((await as(A, 'GET', '/posts/b1/shot')).data.error).toBe('not_owner');
+    const got = await as(OWNER, 'GET', '/posts/b1/shot');
+    expect(got.status).toBe(200);
+    expect(got.type).toBe('image/png');
+    expect(got.bytes).toBe(64);
+    expect((await as(OWNER, 'GET', '/posts/nope/shot')).status).toBe(404);
+  });
+
+  it('are images and nothing else, of a sane size, on bugs and ideas only', async () => {
+    const { post } = await setup();
+    const text = Buffer.from('<svg onload="alert(1)"></svg>').toString('base64');
+    expect((await post(A, { kind: 'bug', shot: shot(text, 'image/png') })).status).toBe(400);
+    expect((await post(A, { kind: 'bug', shot: shot(text, 'image/svg+xml') })).status).toBe(400);
+    expect((await post(A, { kind: 'bug', shot: shot(png(), 'image/jpeg') })).status).toBe(400);
+    expect((await post(A, { kind: 'bug', shot: shot('not base64!') })).status).toBe(400);
+    expect((await post(A, { kind: 'bug', shot: 'a string' })).status).toBe(400);
+    expect((await post(A, { kind: 'bug', shot: shot(png(1_000_001)) })).status).toBe(400);
+    expect((await post(A, { kind: 'review', rating: 4, shot: shot() })).status).toBe(400);
+    // The biggest one allowed still fits through the parser.
+    expect((await post(A, { kind: 'idea', shot: shot(png(1_000_000)) })).status).toBe(200);
+  });
+
+  it('go when the post is settled or thrown away', async () => {
+    const { as, post } = await setup();
+    await post(A, { id: 'b1', kind: 'bug', shot: shot() });
+    await post(A, { id: 'b2', kind: 'bug', shot: shot() });
+    await as(OWNER, 'POST', '/posts/b1/manage', { status: 'planned' });
+    expect((await as(OWNER, 'GET', '/posts/b1/shot')).status).toBe(200);
+    await as(OWNER, 'POST', '/posts/b1/manage', { status: 'done' });
+    expect((await as(OWNER, 'GET', '/posts/b1/shot')).status).toBe(404);
+    await as(A, 'DELETE', '/posts/b2');
+    expect((await as(OWNER, 'GET', '/posts/b2/shot')).status).toBe(404);
+  });
+
+  it('leave every other route at its small body limit', async () => {
+    const { as, post } = await setup();
+    await post(A);
+    const big = await as(OWNER, 'POST', '/posts/p1/manage', { reply: 'x', pad: 'y'.repeat(40_000) });
+    expect(big.status).toBe(400);
   });
 });
 

@@ -5,10 +5,13 @@ import {
   DAY_MS,
   NAME_MAX,
   POST_ID_MAX,
+  SHOT_MAX_BYTES,
   cleanContext,
   decodeProof,
   isPostKind,
   isPostStatus,
+  isRating,
+  takesShot,
   normalizeAddress,
   normalizeOrigin,
   type ErrorCode,
@@ -27,7 +30,7 @@ import {
   newProject,
   newProjectId,
 } from './projects.js';
-import type { PostPatch, Store } from './store.js';
+import type { PostPatch, Shot, Store } from './store.js';
 
 export interface RouterOptions {
   store: Store;
@@ -68,6 +71,10 @@ export function createRouter(options: RouterOptions): express.Router {
   // cannot borrow somebody else's. The origin rules that *do* matter (which
   // sites may post on which board) are enforced on the proof itself.
   router.use(cors({ origin: true, allowedHeaders: ['content-type', 'authorization'], maxAge: 600 }));
+  // A new post may carry a screenshot, base64 inside the JSON, so that one
+  // route reads more. Everything else stays small; the parser below skips a
+  // body that is already read.
+  router.post('/v1/projects/:pid/posts', express.json({ limit: SHOT_B64_MAX + 32_768 }));
   router.use(express.json({ limit: '32kb' }));
 
   /** Express 4 does not catch a rejected promise; this hands it to the error handler. */
@@ -212,6 +219,29 @@ export function createRouter(options: RouterOptions): express.Router {
     }),
   );
 
+  router.get(
+    '/v1/projects/:pid/posts/:id/shot',
+    h(async (req, res) => {
+      const p = await project(req, res);
+      if (!p) return;
+      const w = await wallet(req, res, p);
+      if (!w) return;
+      // Owners only, and the author is not one: a screenshot of a wallet app
+      // can show a balance or an address, and the only reason it was sent is
+      // so the people fixing the bug can see it.
+      if (!w.owner) return fail(res, 403, 'not_owner');
+      const shot = await store.getShot(p.id, String(req.params.id));
+      if (!shot) return fail(res, 404, 'no_post');
+      res.set({
+        'content-type': shot.type,
+        'cache-control': 'private, no-store',
+        'x-content-type-options': 'nosniff',
+        'content-security-policy': "default-src 'none'",
+      });
+      res.send(Buffer.from(shot.data));
+    }),
+  );
+
   // ---- Writing ----
 
   router.put(
@@ -248,6 +278,7 @@ export function createRouter(options: RouterOptions): express.Router {
       const body = (req.body ?? {}) as Record<string, unknown>;
       const text = typeof body.text === 'string' ? body.text.trim() : '';
       const context = body.context === undefined ? {} : cleanContext(body.context);
+      const shot = body.shot === undefined ? undefined : readShot(body.shot);
       if (
         typeof body.id !== 'string' ||
         !body.id ||
@@ -256,9 +287,19 @@ export function createRouter(options: RouterOptions): express.Router {
         !p.rules.kinds.includes(body.kind) ||
         !text ||
         text.length > p.rules.textMax ||
-        context === null
+        context === null ||
+        // Stars on a review and on nothing else.
+        (body.kind === 'review' ? !isRating(body.rating) : body.rating !== undefined) ||
+        shot === null ||
+        (shot && !takesShot(body.kind))
       ) {
         return fail(res, 400, 'bad_request');
+      }
+
+      // One review per wallet, so the average counts people, not keystrokes.
+      // Changing your mind is throwing yours away and writing a new one.
+      if (body.kind === 'review' && (await store.hasPostOfKind(p.id, w.address, 'review'))) {
+        return fail(res, 409, 'reviewed');
       }
 
       const at = now();
@@ -268,8 +309,9 @@ export function createRouter(options: RouterOptions): express.Router {
         return fail(res, 429, 'too_many', { perDay: p.rules.perDay });
       }
 
-      const created = await store.createPost({
-        projectId: p.id,
+      const created = await store.createPost(
+        {
+          projectId: p.id,
         id: body.id,
         author: w.address,
         // Anonymous unless the author explicitly asked to be named. Getting
@@ -279,11 +321,15 @@ export function createRouter(options: RouterOptions): express.Router {
         kind: body.kind,
         text,
         at,
-        status: 'open',
-        ...(Object.keys(context).length ? { context } : {}),
-      });
+          status: 'open',
+          ...(Object.keys(context).length ? { context } : {}),
+          ...(body.kind === 'review' ? { rating: body.rating as number } : {}),
+        },
+        shot,
+      );
       if (!created) return fail(res, 409, 'duplicate');
-      console.info(`[post] ${p.id} ${tag(w.address)} posted ${body.kind} ${body.id}`);
+      const with_ = shot ? ` with a ${shot.data.length} byte screenshot` : '';
+      console.info(`[post] ${p.id} ${tag(w.address)} posted ${body.kind} ${body.id}${with_}`);
       res.json({ ok: true, left: Math.max(0, p.rules.perDay - used - 1) });
     }),
   );
@@ -342,7 +388,10 @@ export function createRouter(options: RouterOptions): express.Router {
       let answered = false;
 
       if (status !== undefined) {
-        if (!isPostStatus(status)) return fail(res, 400, 'bad_request');
+        // A review is not a request, so it never stands anywhere but open.
+        if (!isPostStatus(status) || (post.kind === 'review' && status !== 'open')) {
+          return fail(res, 400, 'bad_request');
+        }
         if (status !== post.status) answered = true;
         patch.status = status;
       }
@@ -362,6 +411,9 @@ export function createRouter(options: RouterOptions): express.Router {
       if (answered) patch.answeredAt = now();
 
       await store.updatePost(p.id, post.id, patch);
+      // A screenshot is there to get something fixed. Once it is, or will not
+      // be, nobody needs a picture of somebody's screen any more.
+      if (patch.status === 'done' || patch.status === 'declined') await store.deleteShot(p.id, post.id);
       console.info(`[post] ${p.id} owner managed ${post.id}`);
       res.json({ ok: true });
     }),
@@ -464,6 +516,29 @@ export function createRouter(options: RouterOptions): express.Router {
   );
 
   return router;
+}
+
+/** The longest base64 a screenshot of `SHOT_MAX_BYTES` can be. */
+const SHOT_B64_MAX = Math.ceil(SHOT_MAX_BYTES / 3) * 4;
+
+/**
+ * A screenshot from a request body, `{ type, data }` with `data` in base64, or
+ * null when it is not one. The bytes have to start the way the type says, so
+ * nothing but an image is ever stored or served back.
+ */
+function readShot(v: unknown): Shot | null {
+  if (!v || typeof v !== 'object') return null;
+  const { type, data } = v as Record<string, unknown>;
+  if (typeof data !== 'string' || !data || data.length > SHOT_B64_MAX) return null;
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(data)) return null;
+  const bytes = new Uint8Array(Buffer.from(data, 'base64'));
+  if (!bytes.length || bytes.length > SHOT_MAX_BYTES) return null;
+  const starts = (...sig: number[]) => sig.every((b, i) => bytes[i] === b);
+  const ascii = (at: number, s: string) => [...s].every((c, i) => bytes[at + i] === c.charCodeAt(0));
+  if (type === 'image/jpeg' && starts(0xff, 0xd8, 0xff)) return { type, data: bytes };
+  if (type === 'image/png' && starts(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return { type, data: bytes };
+  if (type === 'image/webp' && ascii(0, 'RIFF') && ascii(8, 'WEBP')) return { type, data: bytes };
+  return null;
 }
 
 /** A wallet, short enough for a log line and not enough to identify anyone at a glance. */

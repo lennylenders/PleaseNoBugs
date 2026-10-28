@@ -233,6 +233,94 @@ drives it with `puppeteer-core` and the local Chrome or Edge and rewrites
 `docs/images` (the animation also needs ffmpeg). A dev dependency of the
 widget only; nothing published carries it.
 
+## 2026-10-28: Reviews, with stars, in public
+
+A third kind next to bugs and ideas: one to five stars and a few words. The
+owner wants reviews **on the board**, so other users can see what people like
+about an app, not only what is broken. That is why it is a kind of post and not
+a private form: it gets the same anonymity, the same daily allowance, the same
+owner reply and hiding.
+
+- **One per wallet per project** (`409 reviewed`), so the average counts
+  people. Changing your mind is throwing yours away and writing a new one;
+  editing would have been one more route for little gain.
+- **No status.** Nothing about an opinion gets planned or done, so a review
+  stays `open` and the owner's sheet leaves the status out.
+- **Seconding a review reads "Helpful"**, not "I want this too". Same vote,
+  same count.
+- **Telemetry does not count them.** It promises four numbers about bugs and
+  ideas, and a fifth would be a change to what every server says it sends.
+- **Existing projects get reviews on update.** Projects whose kinds are still
+  the old default (`bug`, `idea`) get `review` added when an older SQLite file
+  is opened (schema 2). Nobody could change kinds without the dashboard, so the
+  old default was what they had, not what they chose. An app that does not
+  want them sets `kinds="bug,idea"` on the widget, which also keeps reviews out
+  of its list. Cost: an old widget meets a kind it does not know; `kind` is now
+  documented as growing.
+
+## 2026-10-28: Screenshots, for owners only, and not kept
+
+Bugs and ideas may carry one screenshot. In a wallet app a screenshot easily
+shows a balance or an address, so:
+
+- **Owners only**, not even the author gets it back. It is read through its own
+  route, never inside the board.
+- **The widget says so before the picker opens**, and asks the user to check
+  for anything private.
+- **Redrawn on the phone** as a JPEG of at most 1600 pixels a side: small
+  enough to send, one format whatever the phone used, and the photo's metadata
+  (location, camera) stays behind.
+- **Deleted when it has done its job**: the post marked Done or Not doing, or
+  thrown away. A picture of somebody's screen should live no longer than the
+  bug.
+- **Checked to be an image**: the first bytes must match the type, and SVG is
+  refused. Served with `nosniff` and a CSP that allows nothing.
+- Stored in the SQLite file next to the posts, in their own table. 1 MB at
+  most each; a busy board grows by a few megabytes, and settles back down as
+  posts are answered. Cost: a self-hoster's disk now holds images their users
+  sent, which is theirs to keep or not; `screenshots="off"` hides the button.
+
+## 2026-10-28: Tiles first, and a moment that says it was sent
+
+From the owner's old Figma design for a feedback widget. **+** now opens three
+big tiles (bug, idea, review) instead of a compose screen with chips on top,
+so the kind is the whole first question and nobody types a bug under "Idea"
+because that chip happened to be selected. After posting, a full screen says
+"Feedback sent!" for a moment and returns to the board; the toast it replaces
+was easy to miss.
+
+The design's colours are a theme, `vivid`, rather than the new default: Shitti
+and anybody else already using the widget keep the look they chose. Two tokens
+made it possible without touching components: `--pnb-accent-fill` (a button
+may be a gradient while the accent stays a colour for outlines) and the
+`--pnb-tile-*` set.
+
+Left out of the design on purpose: an **email field**, because "anonymous, no
+email" is the point of the board and the owner's reply already reaches the
+author; and **bounties**, which were a mistake in the design.
+
+## 2026-10-28: A panel in the corner on a wide screen, and a round button
+
+From the owner's Figma design. On a phone the board still covers the screen,
+since anything smaller is something to aim at with a thumb. From 640 pixels
+wide, `floating` and `overlay` open a **panel in the bottom-right corner**
+instead, where the button was: 375 wide like the design, growing with what is
+in it up to 640 tall (the design's 509 fits the tiles but leaves the board two
+posts), 24 pixels from the edges, over a dimmed page that closes it when
+clicked, as Escape does. Decided in the stylesheet alone, so a window dragged
+narrower changes over without anything re-rendering.
+
+**The floating button is the design's round one**: a 40 pixel disc with two
+speech marks, no words (the label is its accessible name and tooltip). Its
+colour follows the theme through `--pnb-fab`: the design's dark blue in
+`vivid`, the accent elsewhere, so it does not vanish on a dark app.
+
+**It opens on the tiles**, as the design does, with "See the board" under
+them. Somebody who taps a feedback button has come to say something; the board
+is one tap further. `overlay` (what `open()` uses) still opens on the board,
+since it is reached from the app's own "feedback" entry, which may well mean
+"show me what others said".
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

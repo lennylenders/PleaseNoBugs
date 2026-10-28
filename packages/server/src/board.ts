@@ -11,7 +11,7 @@ import type { PostWithVotes } from './store.js';
  * @param row     the stored post with its vote count
  * @param reader  the wallet asking, normalised, or null for a stranger
  * @param name    the author's display name, if they have one
- * @param owner   whether the reader owns the project, which adds the two
+ * @param owner   whether the reader owns the project, which adds the
  *                owner-only fields
  *
  * @example
@@ -36,9 +36,11 @@ export function toVisible(
   };
   if (!row.anon && name) out.who = name;
   if (row.reply) out.reply = row.reply;
+  if (row.rating !== undefined) out.rating = row.rating;
   if (owner) {
     if (row.context && Object.keys(row.context).length) out.context = row.context;
     if (row.hidden) out.hidden = true;
+    if (row.shot) out.shot = true;
   }
   return out;
 }

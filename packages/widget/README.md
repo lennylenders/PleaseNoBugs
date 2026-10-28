@@ -16,8 +16,12 @@ wallet by itself; everywhere else it reads, and your app can hand it a signer.
 | `mode` | What it does |
 |---|---|
 | `inline` (default) | Fills the element. Give it a height, or it grows with its posts. |
-| `floating` | A small button in the corner that opens the board over the whole screen. |
-| `overlay` | The board over the whole screen, right now. |
+| `floating` | A round button in the corner. It opens on the tiles (bug, idea, review), with the board one tap under them. |
+| `overlay` | The board, right now. |
+
+`floating` and `overlay` cover the whole screen on a phone. From 640 pixels
+wide they are a panel in the bottom-right corner instead, 375 wide and up to
+640 tall, over a dimmed page; a click beside it or Escape closes it.
 
 From a button of your own:
 
@@ -33,10 +37,12 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `project`, `server` | Required. |
 | `mode` | `inline`, `floating` or `overlay`. |
 | `lang` | `en`, `nl`, `de`, or any code you supply `strings` for. Defaults to Nimiq Pay's language, then the page's. |
-| `theme` | `auto` (follows the phone), `light`, `dark`, `shitti`. |
+| `theme` | `auto` (follows the phone), `light`, `dark`, `vivid` (painted tiles and a gradient button, light only), `shitti`. |
 | `accent` | One colour, e.g. `#e84a5f`. The text on it picks black or white by itself. |
 | `app-name` | What answers are signed with ("Shitti says"). Defaults to the project's name. |
 | `name` | A display name you already know, offered when the user chooses to show theirs. |
+| `kinds` | Which kinds to offer, of the ones your project takes: `bug,idea,review` by default. `kinds="bug,idea"` leaves reviews off the tiles and out of the list. |
+| `screenshots` | `off` leaves out the "Add a screenshot" button on bugs and ideas. |
 
 | Property | |
 |---|---|
@@ -47,6 +53,19 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `strings` | Override any text: `{ 'board.title': 'Ideas box' }`. Keys are in `src/i18n.ts`. |
 
 Events: `pleasenobugs:posted` (`detail: { id, kind }`) and `pleasenobugs:close`.
+
+## What your users see
+
+Tapping **+** opens three tiles: **Report a bug**, **Share an idea** and
+**Write a review**. A review is one to five stars and a few words, shown on the
+board with the average on top, so people can see what others like about your
+app. One review per wallet.
+
+A bug or an idea can carry **a screenshot that only you see**: never the board,
+not even its author. The widget shrinks it to a JPEG before sending and tells
+the user, before they pick one, to check it shows nothing private. It is
+deleted by itself when you mark the post Done or Not doing, or when the post is
+thrown away.
 
 ## Theming
 
@@ -63,10 +82,20 @@ please-no-bugs {
   --pnb-text: #1b1b24;
   --pnb-text-quiet: #5a5a6b;
   --pnb-accent: #2563eb;
+  --pnb-accent-fill: var(--pnb-accent);  /* what buttons are painted with; may be a gradient */
   --pnb-on-accent: #fff;
   --pnb-danger: #d23b2f;
-  --pnb-bug: #e5484d;  --pnb-idea: #e9a00b;
+  --pnb-bug: #e5484d;  --pnb-idea: #e9a00b;  --pnb-review: #8b5cf6;
   --pnb-planned: #3e7bfa;  --pnb-done: #2f9e66;  --pnb-declined: #8b8d98;
+  --pnb-star: #f5a524;
+  --pnb-tile-bug: var(--pnb-surface);    /* the three tiles; may be gradients */
+  --pnb-tile-idea: var(--pnb-surface);
+  --pnb-tile-review: var(--pnb-surface);
+  --pnb-tile-ink: var(--pnb-text);       /* the words on them */
+  --pnb-sent: var(--pnb-bg);             /* behind "Feedback sent!" */
+  --pnb-fab: var(--pnb-accent-fill);     /* the round floating button */
+  --pnb-on-fab: var(--pnb-on-accent);    /* its glyph */
+  --pnb-radius-panel: 16px;              /* the panel on a wide screen */
   --pnb-radius: 8px;
   --pnb-radius-sheet: 16px;
   --pnb-font: inherit;       /* your app's font */
@@ -125,6 +154,8 @@ const client = createClient({ server: 'https://YOUR_SERVER', project: 'YOUR_PROJ
 const board = await client.board();          // never asks the wallet
 if (board.ok) render(sortPosts(board.data.posts, 'top'));
 await client.post({ id: crypto.randomUUID(), kind: 'idea', text: 'Dark mode' });   // asks once, then remembers
+await client.post({ id: crypto.randomUUID(), kind: 'review', text: 'Love it', rating: 5 });
+const shot = await client.shot(postId);      // owners only: the screenshot as a Blob
 ```
 
 Every call answers `{ ok: true, data }` or `{ ok: false, status, error }`, and

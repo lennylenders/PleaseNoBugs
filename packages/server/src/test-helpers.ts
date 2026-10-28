@@ -51,7 +51,7 @@ export async function serve(options: AppOptions) {
     method: string,
     path: string,
     opts: { auth?: string; origin?: string; body?: unknown } = {},
-  ): Promise<{ status: number; data: any; raw: string }> {
+  ): Promise<{ status: number; data: any; raw: string; type: string | null; bytes: number }> {
     const headers: Record<string, string> = { 'content-type': 'application/json' };
     if (opts.auth) headers.authorization = opts.auth;
     if (opts.origin) headers.origin = opts.origin;
@@ -60,14 +60,15 @@ export async function serve(options: AppOptions) {
       headers,
       ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
     });
-    const raw = await res.text();
+    const buf = new Uint8Array(await res.arrayBuffer());
+    const raw = new TextDecoder().decode(buf);
     let data: any = null;
     try {
       data = JSON.parse(raw);
     } catch {
       // Left null: a test that expected JSON fails on its own assertion.
     }
-    return { status: res.status, data, raw };
+    return { status: res.status, data, raw, type: res.headers.get('content-type'), bytes: buf.length };
   }
 
   return { call, close: () => new Promise<void>((r) => server.close(() => r())) };

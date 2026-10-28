@@ -1,5 +1,5 @@
-import type { Answer, Project } from '@pleasenobugs/core';
-import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Store, TelemetryRow } from './store.js';
+import type { Answer, PostKind, Project } from '@pleasenobugs/core';
+import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Shot, Store, TelemetryRow } from './store.js';
 
 /**
  * Everything in a few maps, gone when the process ends.
@@ -17,6 +17,8 @@ export class MemoryStore implements Store {
   private postRows = new Map<string, Map<string, PostRow>>();
   /** `${projectId}|${postId}` → voters */
   private votes = new Map<string, Set<string>>();
+  /** `${projectId}|${postId}` → screenshot */
+  private shots = new Map<string, Shot>();
   /** `${projectId}|${address}` → name */
   private nameRows = new Map<string, string>();
   /** `${projectId}|${owner}` → at */
@@ -37,7 +39,7 @@ export class MemoryStore implements Store {
       if (row.kind === 'bug') {
         out.bugs++;
         if (done) out.bugsDone++;
-      } else {
+      } else if (row.kind === 'idea') {
         out.ideas++;
         if (done) out.ideasDone++;
       }
@@ -89,6 +91,7 @@ export class MemoryStore implements Store {
         ...structuredClone(row),
         votes: voters.size,
         voted: reader !== null && voters.has(reader),
+        shot: this.shots.has(`${projectId}|${row.id}`),
       };
     });
   }
@@ -98,11 +101,12 @@ export class MemoryStore implements Store {
     return row ? structuredClone(row) : null;
   }
 
-  async createPost(row: PostRow) {
+  async createPost(row: PostRow, shot?: Shot) {
     const b = this.board(row.projectId);
     if (b.has(row.id)) return false;
     b.set(row.id, structuredClone(row));
     this.votes.set(`${row.projectId}|${row.id}`, new Set([row.author]));
+    if (shot) this.shots.set(`${row.projectId}|${row.id}`, { type: shot.type, data: shot.data.slice() });
     return true;
   }
 
@@ -122,6 +126,23 @@ export class MemoryStore implements Store {
   async deletePost(projectId: string, id: string) {
     this.board(projectId).delete(id);
     this.votes.delete(`${projectId}|${id}`);
+    this.shots.delete(`${projectId}|${id}`);
+  }
+
+  async getShot(projectId: string, postId: string) {
+    const shot = this.shots.get(`${projectId}|${postId}`);
+    return shot ? { type: shot.type, data: shot.data.slice() } : null;
+  }
+
+  async deleteShot(projectId: string, postId: string) {
+    this.shots.delete(`${projectId}|${postId}`);
+  }
+
+  async hasPostOfKind(projectId: string, author: string, kind: PostKind) {
+    for (const row of this.board(projectId).values()) {
+      if (row.author === author && row.kind === kind) return true;
+    }
+    return false;
   }
 
   async vote(projectId: string, id: string, voter: string, up: boolean) {

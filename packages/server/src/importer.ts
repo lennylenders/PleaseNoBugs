@@ -5,6 +5,7 @@ import {
   isNimiqAddress,
   isPostKind,
   isPostStatus,
+  isRating,
   normalizeAddress,
   type Project,
 } from '@pleasenobugs/core';
@@ -26,6 +27,9 @@ import type { PostRow, Store } from './store.js';
  *     "reply": { "text": "Soon", "at": 1760000100000 },
  *     "answeredAt": 1760000100000, "hidden": false,
  *     "context": { "host": "nimiq-pay" }
+ *   }, {
+ *     "id": "post-2", "author": "NQ12 ...", "kind": "review", "rating": 5,
+ *     "text": "Love it", "at": 1760000200000
  *   }],
  *   "names": { "NQ07 ...": "Fons" }
  * }
@@ -76,7 +80,12 @@ export async function importBoard(store: Store, project: Project, file: unknown)
     if (typeof p.text !== 'string' || !p.text.trim()) throw new ImportError(`${where}.text (${id})`);
     if (typeof p.at !== 'number' || !Number.isFinite(p.at)) throw new ImportError(`${where}.at (${id})`);
     const status = p.status ?? 'open';
-    if (!isPostStatus(status)) throw new ImportError(`${where}.status (${id})`);
+    if (!isPostStatus(status) || (p.kind === 'review' && status !== 'open')) {
+      throw new ImportError(`${where}.status (${id})`);
+    }
+    if (p.kind === 'review' ? !isRating(p.rating) : p.rating !== undefined) {
+      throw new ImportError(`${where}.rating (${id})`);
+    }
     const votes = p.votes ?? [];
     if (!Array.isArray(votes) || !votes.every(isNimiqAddress)) throw new ImportError(`${where}.votes (${id})`);
     let reply: PostRow['reply'];
@@ -101,6 +110,7 @@ export async function importBoard(store: Store, project: Project, file: unknown)
       ...(p.hidden === true ? { hidden: true } : {}),
       ...(context && Object.keys(context).length ? { context } : {}),
       ...(typeof p.answeredAt === 'number' ? { answeredAt: p.answeredAt } : {}),
+      ...(p.kind === 'review' ? { rating: p.rating as number } : {}),
     };
     return { row, votes: votes.map((v) => normalizeAddress(v as string)) };
   });

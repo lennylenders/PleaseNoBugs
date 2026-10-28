@@ -5,6 +5,7 @@ import type {
   PostReply,
   PostStatus,
   Project,
+  ShotType,
 } from '@pleasenobugs/core';
 
 /**
@@ -39,6 +40,8 @@ export interface PostRow {
   reply?: PostReply;
   hidden?: boolean;
   context?: PostContext;
+  /** Reviews only. */
+  rating?: number;
   /**
    * When an owner last set a status on it or wrote under it. Its own field
    * rather than `reply.at`, because a status moved with nothing written is an
@@ -51,6 +54,17 @@ export interface PostRow {
 export interface PostWithVotes extends PostRow {
   votes: number;
   voted: boolean;
+  /** Whether a screenshot is stored with it. */
+  shot: boolean;
+}
+
+/**
+ * A screenshot, kept apart from its post so reading a board never loads one.
+ * Owners' eyes only, and gone with the post (see `deletePost`).
+ */
+export interface Shot {
+  type: ShotType;
+  data: Uint8Array;
 }
 
 /** What `updatePost` may change. `null` removes a field. */
@@ -105,13 +119,19 @@ export interface Store {
   getPost(projectId: string, id: string): Promise<PostRow | null>;
   /**
    * Write a new post **and the author's own vote** in one step, since the
-   * number means "how many want this" and the author is one of them.
-   * Answers false, writing nothing, when the id is taken.
+   * number means "how many want this" and the author is one of them, plus its
+   * screenshot if it has one. Answers false, writing nothing, when the id is
+   * taken.
    */
-  createPost(row: PostRow): Promise<boolean>;
+  createPost(row: PostRow, shot?: Shot): Promise<boolean>;
   updatePost(projectId: string, id: string, patch: PostPatch): Promise<void>;
-  /** Removes the post and its votes. */
+  /** Removes the post, its votes and its screenshot. */
   deletePost(projectId: string, id: string): Promise<void>;
+  getShot(projectId: string, postId: string): Promise<Shot | null>;
+  /** Removes a post's screenshot and nothing else. */
+  deleteShot(projectId: string, postId: string): Promise<void>;
+  /** Whether this wallet has a post of this kind on this board, hidden ones included. */
+  hasPostOfKind(projectId: string, author: string, kind: PostKind): Promise<boolean>;
   /** Add or remove one wallet's vote, atomically. Answers the new count. */
   vote(projectId: string, id: string, voter: string, up: boolean): Promise<number>;
   /** How many posts this wallet wrote on this board after `since`. */

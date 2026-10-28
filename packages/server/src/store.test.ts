@@ -1,3 +1,7 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_RULES, type Project } from '@pleasenobugs/core';
 import { MemoryStore } from './memory-store.js';
@@ -167,6 +171,40 @@ describe.each(STORES)('%s', (_name, make) => {
     expect((await s.projects()).map((p) => p.id).sort()).toEqual(['p1', 'p2']);
   });
 
+  it('keeps a review’s stars, and knows who already wrote one', async () => {
+    const s = make();
+    await s.createPost(row({ id: 'r1', kind: 'review', rating: 4 }));
+    await s.createPost(row({ id: 'i1' }));
+    const posts = await s.posts('p1', null);
+    expect(posts.find((p) => p.id === 'r1')?.rating).toBe(4);
+    expect(posts.find((p) => p.id === 'i1')?.rating).toBeUndefined();
+    expect(await s.hasPostOfKind('p1', 'NQA', 'review')).toBe(true);
+    expect(await s.hasPostOfKind('p1', 'NQB', 'review')).toBe(false);
+    expect(await s.hasPostOfKind('p2', 'NQA', 'review')).toBe(false);
+  });
+
+  it('keeps a screenshot apart, says it is there, and loses it with the post', async () => {
+    const s = make();
+    const data = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 1, 2, 3]);
+    await s.createPost(row({ id: 'b1', kind: 'bug' }), { type: 'image/png', data });
+    await s.createPost(row({ id: 'b2', kind: 'bug' }));
+    const posts = await s.posts('p1', null);
+    expect(posts.find((p) => p.id === 'b1')?.shot).toBe(true);
+    expect(posts.find((p) => p.id === 'b2')?.shot).toBe(false);
+    const shot = await s.getShot('p1', 'b1');
+    expect(shot?.type).toBe('image/png');
+    expect([...(shot?.data ?? [])]).toEqual([...data]);
+    expect(await s.getShot('p2', 'b1')).toBeNull();
+
+    await s.deleteShot('p1', 'b1');
+    expect(await s.getShot('p1', 'b1')).toBeNull();
+    expect(await s.getPost('p1', 'b1')).not.toBeNull();
+
+    await s.createPost(row({ id: 'b3', kind: 'bug' }), { type: 'image/png', data });
+    await s.deletePost('p1', 'b3');
+    expect(await s.getShot('p1', 'b3')).toBeNull();
+  });
+
   it('counts a board for telemetry: done is fixed or built, hidden is not counted', async () => {
     const s = make();
     expect(await s.projectStats('p1')).toEqual({ bugs: 0, ideas: 0, bugsDone: 0, ideasDone: 0 });
@@ -176,6 +214,8 @@ describe.each(STORES)('%s', (_name, make) => {
     await s.createPost(row({ id: 'i1', kind: 'idea', status: 'done' }));
     await s.createPost(row({ id: 'i2', kind: 'idea', status: 'declined' }));
     await s.createPost(row({ id: 'other', projectId: 'p2', kind: 'bug' }));
+    // Reviews are neither, and the telemetry promises four numbers.
+    await s.createPost(row({ id: 'r1', kind: 'review', rating: 5 }));
     expect(await s.projectStats('p1')).toEqual({ bugs: 2, ideas: 2, bugsDone: 1, ideasDone: 1 });
   });
 
@@ -205,5 +245,51 @@ describe.each(STORES)('%s', (_name, make) => {
     await s.setSeen('p1', 'NQA', 700);
     expect(await s.getSeen('p1', 'NQA')).toBe(700);
     expect(await s.getSeen('p1', 'NQB')).toBe(0);
+  });
+});
+
+describe('SqliteStore, opening a file an older version wrote', () => {
+  it('adds reviews to projects on the old default, and leaves a project that chose otherwise', async () => {
+    const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as typeof import('node:sqlite');
+    const dir = mkdtempSync(join(tmpdir(), 'pnb-'));
+    const file = join(dir, 'old.db');
+    // What 0.1.1 left behind: schema 1, no rating column, no shots table.
+    const old = new DatabaseSync(file);
+    old.exec(`
+      CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+      CREATE TABLE projects (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+      CREATE TABLE posts (
+        project_id TEXT NOT NULL, id TEXT NOT NULL, author TEXT NOT NULL, anon INTEGER NOT NULL,
+        kind TEXT NOT NULL, text TEXT NOT NULL, at INTEGER NOT NULL, status TEXT NOT NULL,
+        reply_text TEXT, reply_at INTEGER, hidden INTEGER NOT NULL DEFAULT 0, context TEXT,
+        answered_at INTEGER, PRIMARY KEY (project_id, id)
+      );
+      INSERT INTO meta (key, value) VALUES ('schema', '1');
+      INSERT INTO posts (project_id, id, author, anon, kind, text, at, status)
+        VALUES ('p1', 'old', 'NQA', 1, 'idea', 'from before', 1, 'open');
+    `);
+    const insert = old.prepare('INSERT INTO projects (id, data) VALUES (?, ?)');
+    insert.run('p1', JSON.stringify({ ...project('p1', ['NQA']), rules: { ...DEFAULT_RULES, kinds: ['bug', 'idea'] } }));
+    insert.run('p2', JSON.stringify({ ...project('p2', ['NQA']), rules: { ...DEFAULT_RULES, kinds: ['bug'] } }));
+    old.close();
+
+    const s = new SqliteStore(file);
+    try {
+      expect((await s.getProject('p1'))?.rules.kinds).toEqual(['bug', 'idea', 'review']);
+      expect((await s.getProject('p2'))?.rules.kinds).toEqual(['bug']);
+      expect(await s.getMeta('schema')).toBe('2');
+      expect((await s.posts('p1', null))[0]).toMatchObject({ id: 'old', shot: false });
+      expect(await s.createPost(row({ id: 'r1', kind: 'review', rating: 3 }))).toBe(true);
+    } finally {
+      s.close();
+    }
+    // A second open changes nothing: a project the owner later narrowed stays narrowed.
+    const again = new SqliteStore(file);
+    await again.putProject({ ...project('p1', ['NQA']), rules: { ...DEFAULT_RULES, kinds: ['bug', 'idea'] } });
+    again.close();
+    const third = new SqliteStore(file);
+    expect((await third.getProject('p1'))?.rules.kinds).toEqual(['bug', 'idea']);
+    third.close();
+    rmSync(dir, { recursive: true, force: true });
   });
 });

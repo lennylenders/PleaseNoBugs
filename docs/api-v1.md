@@ -24,9 +24,15 @@ shipped months ago and never touched again.
 widget's markup. It has a name, one or more **owners** (wallet addresses), the
 **origins** the widget may run on, and its **rules**.
 
-**Post.** A `bug` or an `idea`, with a status the owners set and at most one
-reply from them. One reply, never a thread: a conversation between two people
-belongs in a conversation, and this is a noticeboard.
+**Post.** A `bug`, an `idea` or a `review`, with at most one reply from the
+owners. One reply, never a thread: a conversation between two people belongs
+in a conversation, and this is a noticeboard. Bugs and ideas also have a status
+the owners set; a review has 1 to 5 stars instead (`rating`) and stays `open`,
+since nothing about an opinion gets planned or fixed.
+
+**`kind` grows.** `review` came after 0.1.1, and a client must expect kinds it
+does not know: skip the post rather than fail on it. A project only receives
+kinds listed in its `rules.kinds`.
 
 **Proof.** A Nimiq wallet signature that says who is asking. See below.
 
@@ -36,6 +42,9 @@ belongs in a conversation, and this is a noticeboard.
   true` on their own posts and nothing about anybody else's.
 - **Who voted.** A post carries a count and whether *you* voted, never the list.
 - **The context of a post** (version, platform), except to its project's owners.
+- **A screenshot**, except to its project's owners. Not even the author gets it
+  back: on a wallet app a screenshot can show a balance or an address, and it
+  was sent for the people fixing the bug.
 
 Anonymous means "not shown", never "not known": the daily limit and one vote
 per wallet are both questions about who, so the address is stored.
@@ -160,6 +169,8 @@ The whole board: a `BoardRead`.
   `hidden: true` so hiding can be undone.
 - Without a proof every post reads `voted: false, mine: false` and `me` is
   absent.
+- A review carries `rating`. Owners also get `shot: true` on a post that has a
+  screenshot, which they read from its `/shot` route.
 - Paging may be added later as an optional `cursor` parameter, which is an
   addition rather than a change.
 
@@ -176,6 +187,12 @@ the client will say one number while the server refuses at another.
 #### `GET /v1/projects/:pid/me` *(proof)*
 
 The same `Me` on its own, for a widget that wants it without the board.
+
+#### `GET /v1/projects/:pid/posts/:id/shot` *(proof, owner)*
+
+The post's screenshot, as the image itself (`image/jpeg`, `image/png` or
+`image/webp`), sent with `cache-control: private, no-store`. `403 not_owner`
+for anybody else, the author included, and `404 no_post` when there is none.
 
 #### `GET /v1/projects/:pid/answers` *(proof)*
 
@@ -197,10 +214,12 @@ How long to keep showing an answer is the client's decision.
 ```ts
 {
   id: string;                         // minted by the client, at most 128 chars
-  kind: 'bug' | 'idea';               // must be in project.rules.kinds
+  kind: 'bug' | 'idea' | 'review';    // must be in project.rules.kinds
   text: string;                       // trimmed, 1..rules.textMax chars
   anon?: boolean;                     // default true; false shows the author's name, if they have one
   context?: Record<string, string>;   // at most 10 keys, values at most 100 chars
+  rating?: number;                    // reviews only, and required on one: a whole 1..5
+  shot?: { type: 'image/jpeg' | 'image/png' | 'image/webp'; data: string };  // bugs and ideas only; base64, at most 1 MB decoded
 }
 ```
 
@@ -220,6 +239,13 @@ Answers `{ ok: true, left: number }`.
   screen). The widget adds `host` (`nimiq-pay` or `browser`) by itself. It is
   shown to owners only.
 - Over the daily allowance: `429 too_many`, with `perDay` in the body.
+- **One review per wallet per project**, so the average counts people. A second
+  is `409 reviewed`; changing your mind is deleting yours and writing another.
+- **A screenshot has to be the image it says it is**: its first bytes are
+  checked against `type`, and SVG is not accepted, since it can carry script.
+  The widget redraws a picked image as a JPEG of at most 1600 pixels a side
+  before sending it, which also drops the photo's metadata. This is the one
+  route that reads more than 32 kB.
 
 #### `POST /v1/projects/:pid/posts/:id/vote` *(proof)*
 
@@ -256,6 +282,11 @@ always change it.
 
 Every field is optional and only those present are written. An empty `reply`
 takes the reply back. `{ ok: true }`, or `403 not_owner`.
+
+- A review takes no `status` other than `open` (`400 bad_request`).
+- Setting `done` or `declined` deletes the post's screenshot: it was there to
+  get something fixed, and once that is settled nobody needs a picture of
+  somebody's screen.
 
 ### Projects *(dashboard)*
 
@@ -309,6 +340,7 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 | 404 | `no_project` | No such project. |
 | 404 | `no_post` | No such post, or one hidden from you. |
 | 409 | `duplicate` | A post with this id exists. |
+| 409 | `reviewed` | This wallet has a review on this board already. |
 | 429 | `too_many` | The day's posts are used up. Carries `perDay`. |
 | 429 | `rate_limited` | Too many requests. Carries `retryAfter` in seconds. |
 | 404 | `not_found` | No such route. |
@@ -323,5 +355,7 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 | Owner reply | 300 chars | `rules.replyMax` |
 | Display name | 24 chars | `NAME_MAX` |
 | Context | 10 keys, 100 chars per value | `CONTEXT_MAX_KEYS`, `CONTEXT_VALUE_MAX` |
+| Review | 1 per wallet, 1 to 5 stars | `RATING_MIN`, `RATING_MAX` |
+| Screenshot | 1 per bug or idea, 1 MB, JPEG, PNG or WebP | `SHOT_MAX_BYTES`, `SHOT_TYPES` |
 | Proof lifetime | 30 days | `LOGIN_TTL_MS` |
 | Writing posts | 10 per 15 minutes per wallet | server |

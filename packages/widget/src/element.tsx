@@ -1,6 +1,6 @@
 import { render } from 'preact';
-import { useState } from 'preact/hooks';
-import type { AppLogin, PostContext, PostKind } from '@pleasenobugs/core';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { POST_KINDS, type AppLogin, type PostContext, type PostKind } from '@pleasenobugs/core';
 import { createClient, type Client } from './client.js';
 import { pickLang, translator, type Strings } from './i18n.js';
 import type { Signer } from './signer.js';
@@ -22,8 +22,9 @@ export const TAG = 'please-no-bugs';
  * - `overlay`: the board over the whole screen, now. What {@link open} uses.
  *
  * Attributes: `project` and `server` (both required), `mode`, `lang`,
- * `theme` (`auto` | `light` | `dark` | `shitti`), `accent` (a colour),
- * `app-name`, `name` (a display name to suggest).
+ * `theme` (`auto` | `light` | `dark` | `vivid` | `shitti`), `accent` (a
+ * colour), `app-name`, `name` (a display name to suggest), `kinds` (which of
+ * `bug,idea,review` to offer) and `screenshots` (`off` to leave them out).
  *
  * Properties, for things an attribute cannot carry: `signer`, `appLogin`,
  * `context`, `noise`, `strings`.
@@ -36,7 +37,18 @@ export const TAG = 'please-no-bugs';
  * custom properties, which do cross that boundary on purpose.
  */
 export class PleaseNoBugsElement extends HTMLElement {
-  static observedAttributes = ['project', 'server', 'mode', 'lang', 'theme', 'accent', 'app-name', 'name'];
+  static observedAttributes = [
+    'project',
+    'server',
+    'mode',
+    'lang',
+    'theme',
+    'accent',
+    'app-name',
+    'name',
+    'kinds',
+    'screenshots',
+  ];
 
   #root: ShadowRoot | null = null;
   #mount: HTMLDivElement | null = null;
@@ -130,11 +142,14 @@ export class PleaseNoBugsElement extends HTMLElement {
 
   #paintAccent() {
     const accent = this.getAttribute('accent');
+    // The fill too, so one colour beats a theme's gradient on the buttons.
     if (accent) {
       this.style.setProperty('--pnb-accent', accent);
+      this.style.setProperty('--pnb-accent-fill', accent);
       this.style.setProperty('--pnb-on-accent', readableOn(accent));
     } else {
       this.style.removeProperty('--pnb-accent');
+      this.style.removeProperty('--pnb-accent-fill');
       this.style.removeProperty('--pnb-on-accent');
     }
   }
@@ -172,6 +187,8 @@ export class PleaseNoBugsElement extends HTMLElement {
       suggestName: this.getAttribute('name') ?? undefined,
       context: this.#context,
       noise: this.#noise,
+      kinds: readKinds(this.getAttribute('kinds')),
+      screenshots: this.getAttribute('screenshots') !== 'off',
       onPosted: (p: { id: string; kind: PostKind }) =>
         this.dispatchEvent(new CustomEvent('pleasenobugs:posted', { detail: p, bubbles: true, composed: true })),
     };
@@ -188,36 +205,78 @@ export class PleaseNoBugsElement extends HTMLElement {
 
 type AppBase = Omit<Parameters<typeof App>[0], 'onClose'>;
 
-/** The board over the whole screen, which slides away before it says it is gone. */
-function Overlay({ app, onGone }: { app: AppBase; onGone: () => void }) {
+/**
+ * The board over the page, which slides away before it says it is gone.
+ *
+ * **On a phone it is the whole screen**; anything smaller is a board you have
+ * to aim at. **On a wider screen it is a panel in the bottom-right corner**,
+ * where the button was, over a dimmed page: the app stays in view, and a click
+ * beside the panel or Escape closes it. Which of the two is decided by the
+ * stylesheet alone (`.overlay` at 640px), so a window dragged narrower changes
+ * over without a re-render.
+ */
+function Overlay({ app, onGone, start }: { app: AppBase; onGone: () => void; start?: 'board' | 'choose' }) {
   const [leaving, setLeaving] = useState(false);
+  const panel = useRef<HTMLDivElement>(null);
   const leave = () => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return onGone();
     setLeaving(true);
   };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // A sheet inside closes first, on its own Escape.
+      if (e.key === 'Escape' && !panel.current?.querySelector('.scrim')) leave();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   return (
-    <div
-      class={`overlay${leaving ? ' overlay--leaving' : ''}`}
-      onAnimationEnd={(e) => {
-        if (leaving && e.target === e.currentTarget) onGone();
-      }}
-    >
-      <App {...app} onClose={leave} />
-    </div>
+    <>
+      <div class={`backdrop${leaving ? ' backdrop--leaving' : ''}`} onClick={leave} />
+      <div
+        ref={panel}
+        class={`overlay${leaving ? ' overlay--leaving' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={app.t('board.title')}
+        onAnimationEnd={(e) => {
+          if (leaving && e.target === e.currentTarget) onGone();
+        }}
+      >
+        <App {...app} onClose={leave} start={start} />
+      </div>
+    </>
   );
 }
 
-/** A button in the corner, and the overlay it opens. */
+/** A round button in the corner, and the panel it opens on the tiles. */
 function Floating({ app, label }: { app: AppBase; label: string }) {
   const [open, setOpen] = useState(false);
   return open ? (
-    <Overlay app={app} onGone={() => setOpen(false)} />
+    <Overlay app={app} start="choose" onGone={() => setOpen(false)} />
   ) : (
-    <button type="button" class="fab" onClick={() => setOpen(true)}>
-      <Icon.Bubble />
-      {label}
+    <button type="button" class="fab" aria-label={label} title={label} onClick={() => setOpen(true)}>
+      <Icon.Feedback />
     </button>
   );
+}
+
+/**
+ * The `kinds` attribute as a list, or undefined for "all the project takes".
+ * Unknown words are dropped rather than refused: a typo should cost a tile,
+ * not the whole board.
+ *
+ * @example
+ * readKinds('bug, review')   // → ['bug', 'review']
+ */
+export function readKinds(v: string | null): PostKind[] | undefined {
+  if (v === null || !v.trim()) return undefined;
+  return v
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter((s): s is PostKind => (POST_KINDS as readonly string[]).includes(s));
 }
 
 /**

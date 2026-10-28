@@ -1,4 +1,4 @@
-import type { AppLogin, PostContext } from '@pleasenobugs/core';
+import type { AppLogin, PostContext, PostKind } from '@pleasenobugs/core';
 import { define, TAG, type PleaseNoBugsElement } from './element.js';
 import type { Strings } from './i18n.js';
 import type { Signer } from './signer.js';
@@ -14,7 +14,7 @@ export interface OpenOptions {
   project: string;
   server: string;
   lang?: string;
-  theme?: 'auto' | 'light' | 'dark' | 'shitti';
+  theme?: 'auto' | 'light' | 'dark' | 'vivid' | 'shitti';
   accent?: string;
   appName?: string;
   /** A display name to suggest when the user chooses to show theirs. */
@@ -25,6 +25,10 @@ export interface OpenOptions {
   context?: PostContext;
   noise?: string[];
   strings?: Strings;
+  /** Offer only these kinds, of the ones the project takes. */
+  kinds?: PostKind[];
+  /** `false` leaves the screenshot button out. */
+  screenshots?: boolean;
 }
 
 /**
@@ -45,6 +49,8 @@ export function open(options: OpenOptions): () => void {
   if (options.accent) el.setAttribute('accent', options.accent);
   if (options.appName) el.setAttribute('app-name', options.appName);
   if (options.name) el.setAttribute('name', options.name);
+  if (options.kinds) el.setAttribute('kinds', options.kinds.join(','));
+  if (options.screenshots === false) el.setAttribute('screenshots', 'off');
   el.signer = options.signer;
   el.appLogin = options.appLogin;
   el.context = options.context;
