@@ -28,9 +28,11 @@ one place, without asking anybody to send you an email.
 - **Lookalikes while typing**: posts that resemble yours appear under the field,
   so people second the existing wish instead of writing it a fifth time.
 - **Your answer under every post**: Planned, Done, Not doing, plus one reply.
-- **Bug reports carry context** you choose, like your app's version, and
-  optionally **a screenshot**, shown to you and nobody else. A screenshot is
-  deleted by itself once you mark the post Done or Not doing.
+- **Bug reports carry context** you choose, like your app's version, shown to
+  you and nobody else, and optionally **a screenshot on the board**, after the
+  user ticks that everyone may see it. You can take one off again, or keep them
+  all to yourself with `screenshots="owners"`. A screenshot is deleted by
+  itself once you mark the post Done or Not doing.
 - **Anonymous by default.** A name shows only if the author turns it on, and a
   wallet address is never shown to anyone.
 - **Login is the Nimiq wallet your users already have.** No accounts, no email.

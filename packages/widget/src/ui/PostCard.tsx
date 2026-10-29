@@ -1,3 +1,4 @@
+import { useState } from 'preact/hooks';
 import type { Post, PostKind, PostStatus } from '@pleasenobugs/core';
 import type { CopyKey, Translate } from '../i18n.js';
 import { whenLabel } from '../when.js';
@@ -131,6 +132,12 @@ export function VoteButton({
  * answers it. Shitti hid the bin behind a swipe; here it is a visible button,
  * because a gesture nobody can discover is a feature nobody has, and a widget
  * in somebody else's app cannot teach its own gestures.
+ *
+ * **A screenshot on the board shows under the text**, small, so what the post
+ * means is plain at a glance; a tap opens it whole. It loads only once the
+ * card scrolls near, so a long board does not fetch every picture on it. An
+ * owner sees a screenshot that is not on the board as a small mark instead,
+ * and opens it from the manage sheet.
  */
 export function PostCard({
   post,
@@ -140,6 +147,8 @@ export function PostCard({
   onVote,
   onDelete,
   onManage,
+  shotUrl,
+  onShot,
 }: {
   post: Post;
   appName: string;
@@ -150,7 +159,13 @@ export function PostCard({
   onDelete?: () => void;
   /** Owners only. Absent → the card is not a target. */
   onManage?: () => void;
+  /** Where its screenshot is, when that is on the board. */
+  shotUrl?: string;
+  /** Opens the screenshot whole. */
+  onShot?: () => void;
 }) {
+  // A screenshot taken off between loading the board and scrolling to it.
+  const [broken, setBroken] = useState(false);
   const kind = KIND[post.kind];
   const status = STATUS[post.status];
   const when = whenLabel(post.at, locale);
@@ -177,7 +192,7 @@ export function PostCard({
         <Badge tone={post.kind} icon={kind.icon} label={t(kind.label)} />
         {status && <Badge tone={post.status} icon={status.icon} label={t(status.label)} />}
         {post.rating !== undefined && <Stars n={post.rating} t={t} />}
-        {post.shot && (
+        {post.shot && !shotUrl && (
           <span class="card__shot" title={t('board.shot')} aria-label={t('board.shot')}>
             <Icon.Image size={16} />
           </span>
@@ -187,6 +202,20 @@ export function PostCard({
       </div>
 
       <p class="card__text">{post.text}</p>
+
+      {shotUrl && !broken && (
+        <button
+          type="button"
+          class="card__pic"
+          aria-label={t('board.shotOpen')}
+          onClick={(e) => {
+            e.stopPropagation();
+            onShot?.();
+          }}
+        >
+          <img src={shotUrl} alt={t('board.shot')} loading="lazy" onError={() => setBroken(true)} />
+        </button>
+      )}
 
       {post.reply && (
         <div class="card__reply">

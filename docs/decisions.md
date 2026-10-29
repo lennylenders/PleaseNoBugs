@@ -260,6 +260,8 @@ owner reply and hiding.
 
 ## 2026-10-28: Screenshots, for owners only, and not kept
 
+*"Owners only" is no longer the default: see 2026-10-29. The rest stands.*
+
 Bugs and ideas may carry one screenshot. In a wallet app a screenshot easily
 shows a balance or an address, so:
 
@@ -385,7 +387,7 @@ neither needs a choice there.
 **2026-10-29: the configurator in steps.** All of it on one page was too much
 at once. It is now one narrow column, after a small widget editor the owner
 pointed at in Figma (node 68:11710): the widget on top, one card under it for
-one part, and Back / Preview / Next. Eight steps in a fixed order: Settings,
+one part, and Back / Preview / Next. Eight steps (later seven, see below) in a fixed order: Settings,
 Look, Round button (only when it is one), Board, Tiles, Write and send,
 Feedback sent!, Code. Each step's part has a line around it, and tapping a
 part of the widget jumps to its step instead of using it; Preview hands the
@@ -403,10 +405,129 @@ few lines and cannot touch a real board. The site also shortens the corner
 panel to its box from outside, in the shadow root, since in an app the panel
 is sized to the window and that is right there.
 
+After trying it, the owner changed four things the same day. On a wide
+screen the steps are on the left and the widget on the right, where it stays
+while the left scrolls; on a phone it is still one column. While choosing,
+the widget does not scroll, and tapping a part of the step on screen opens
+that part's colour picker (or its words: the board's title, the question
+above the tiles, "Feedback sent!") instead of only showing where it is. The
+app name is gone from the steps: it showed up in the notes under the tiles,
+which the design does not have. And the accent is no longer a colour of its
+own in Look: it is the round button's colour in step 3, and the send button's
+in step 6, the same value in both (step 6 alone when there is no round
+button). Nimiq's round button is dark blue whatever the accent, so there the
+configurator also writes `--pnb-fab`.
+
+The `pleasenobugs` theme's tiles are now the design's: each painted in its
+kind's colour, a white glyph without a disc, and no note under the name
+unless there is something to say (a review already written). `shitti`, its
+old name, gets the same.
+
+The three kind glyphs are the design's too, path for path: a mark of alarm
+for a bug, a sprout for an idea, a star for a review. They replace the old
+line drawings everywhere a kind shows (tiles, badges, the compose screen),
+in every theme, so a kind looks the same where you pick it and where it
+lands. Subtext on the site (leads, hints, card text, the footer) is white at
+70%, one token, `--sub`.
+
+A second round, also the same day. **A tap in the widget never changes the
+step any more**: only a part of the step you are on does something, so the
+order the steps were given in is the order you go through them. Look is gone.
+The steps are now Settings, Feedback button (the round one, only when it is one), Tiles, Board,
+Write and send, Feedback sent!, Code: seven, or six without the button.
+
+**The configurator offers no themes for the first version.** A theme picker
+(circles of each theme's tile colours, with "Customize" last) was built and
+dropped the same hour: the owner wants PleaseNoBugs' own colours side by
+side, each one changeable, and nothing to choose between first. The code it
+hands out still says `theme="pleasenobugs"`, so an app gets those colours and
+not the widget's light default. The widget keeps its other themes for anyone
+who sets one by hand. Tiles shows the three tile colours and the widget's
+background, which is set there because most of it shows there, and no longer
+in Board, which instead lets you change the words above your answers
+("{app} says").
+
+**Every part of the widget can be tapped, and opens its colour family.** A
+family is one custom property and everything painted with it: tapping the
+answer box opens Background, which is the panel too; the chosen Top/New tab
+opens Cards; the toggle opens Accent, which is also the send button. The
+owner chose families over a colour of its own for each part (which would have
+meant new widget properties and many more dots). So each step lists every
+family its screen shows, two to four up front and the rest behind "More
+colours", and a family can be in more than one step: Background is in Tiles,
+Board and Write. Each has a name and a line saying where it shows, under the
+dots when you tap or point at one, and next to it in the longer list. A
+kind's colour is one family for its tile and its badge (`--pnb-bug` and so
+on, which the tiles follow), so changing a tile changes the dot next to "Write
+a review" too. A tap on the dim page around the panel opens nothing: that is
+the app's. Checked by tapping every part on every screen, changing the colour
+it opened, and seeing that part change.
+
+While choosing, the writing field is a little lower in the box, so the whole
+writing screen, field to send button, fits at once with a line around it.
+
+**Every theme now has the `pleasenobugs` shapes**: painted tiles with a white
+glyph and no note, the same badges, the same kind colours (a bug red, an idea
+purple, a review orange, Done teal, the rest grey). Light and Dark had an
+idea in orange and a review in purple, the other way round, which made the
+same kind look like two. Nimiq keeps its own colours and gradients. The
+status glyphs (Planned, Done, Not doing) are the design's as well, and badge
+words are extra bold, as there.
+
 Hosted on GitHub Pages from this repo (https://lennylenders.github.io/PleaseNoBugs/),
 no domain of our own for now. Published by `.github/workflows/site.yml` on a
 version tag or by hand, never on a push to `main`: the code it hands out
 loads that version from npm, so the site must not go out before the release.
+
+## 2026-10-29: Screenshots on the board, after a tick
+
+Reverses the default of 2026-10-28. The owner wants everybody who reads the
+board to see the screenshot under a post, so it is plain to all what is
+meant, not only to whoever fixes it. The risk that made it owners-only has not
+gone away, so it is answered on the phone, before sending:
+
+- **Warned before picking**: "Everyone who views the board sees it", what to
+  look for (a balance, an address, a name), and that an address on it shows
+  it was you even when you post anonymously. That last line is there because
+  a screenshot is the easiest way to undo the anonymity the board promises.
+- **A tick under the picture**, "I checked it: everyone may see this
+  screenshot", asked again for every picture. Sending stays off until it is
+  ticked or the picture removed, so nobody posts one by tapping past a note.
+  Chosen over the warning alone, which people read once and then stop seeing.
+- **The server only shows what the author agreed to.** A screenshot carries
+  `board: true` only when the widget asked; without it (an older widget, a
+  script, `screenshots="owners"`) it stays the owners', and **no owner can
+  put it on the board later**. Stored as two flags, what the author agreed and
+  whether an owner took it off, so the yes cannot be changed after the fact.
+  Every screenshot already stored was sent under "only the owners see it" and
+  keeps that (schema 3). None had been released: screenshots were still only
+  on this machine. The rule is there for the day somebody runs a build from
+  between the two.
+- **Owners can take one off the board** in the sheet where they answer, while
+  the post stays up, and put it back. Hiding the post takes its screenshot
+  with it. Served with `no-store` so that works for the next person who
+  looks, and `noindex`. Neither takes it back from anybody who already saved
+  it, which the widget's README says.
+- **On the card, small, loaded when scrolled near**; a tap opens it whole.
+  Chosen over only a mark that opens it, which would leave the point (seeing
+  what is meant) one tap away on every post. A board screenshot needs no
+  proof, so it is a plain `<img>`: an app with a Content Security Policy needs
+  its server in `img-src`.
+- **The app's version (`context`) stays owners only.** It helps reproduce a
+  bug and tells a reader nothing.
+- **Per app**: on the board is the default. `screenshots="owners"` keeps the
+  2026-10-28 behaviour and its warning; `off` still leaves the button out. An
+  unknown value counts as `owners`, so a typo fails private.
+- **Still deleted** when the post is marked Done or Not doing, or thrown away.
+
+What becomes public, then, is what is in the picture and nothing else: no
+author address, no context, and none of the photo's metadata, which the
+redraw on the phone leaves behind (the widget never falls back to sending the
+original). A picture can still show other people (names and addresses in a
+transaction list, a message in a notification), who never agreed to anything;
+the warning names a name for that reason. A self-hoster, and the owner for
+Shitti's board, now serves images their users chose to make public, which a
+privacy statement may need to mention.
 
 ## Where it stands
 

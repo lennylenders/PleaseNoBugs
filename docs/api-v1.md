@@ -42,9 +42,11 @@ kinds listed in its `rules.kinds`.
   true` on their own posts and nothing about anybody else's.
 - **Who voted.** A post carries a count and whether *you* voted, never the list.
 - **The context of a post** (version, platform), except to its project's owners.
-- **A screenshot**, except to its project's owners. Not even the author gets it
-  back: on a wallet app a screenshot can show a balance or an address, and it
-  was sent for the people fixing the bug.
+- **A screenshot its author did not put on the board**, except to its
+  project's owners. Not even the author gets it back: on a wallet app a
+  screenshot can show a balance or an address, and it was sent for the people
+  fixing the bug. One its author *did* put on the board is as public as the
+  post's text, until an owner takes it off.
 
 Anonymous means "not shown", never "not known": the daily limit and one vote
 per wallet are both questions about who, so the address is stored.
@@ -169,8 +171,11 @@ The whole board: a `BoardRead`.
   `hidden: true` so hiding can be undone.
 - Without a proof every post reads `voted: false, mine: false` and `me` is
   absent.
-- A review carries `rating`. Owners also get `shot: true` on a post that has a
-  screenshot, which they read from its `/shot` route.
+- A review carries `rating`. A post whose screenshot is on the board carries
+  `shot: true` for everybody, read from its `/shot` route. Owners get
+  `shot: true` on every post with a screenshot, plus `shotFor`: `board` (on
+  the board), `off` (an owner took it off) or `owners` (its author never put it
+  on the board, so it can never go there).
 - Paging may be added later as an optional `cursor` parameter, which is an
   addition rather than a change.
 
@@ -188,11 +193,18 @@ the client will say one number while the server refuses at another.
 
 The same `Me` on its own, for a widget that wants it without the board.
 
-#### `GET /v1/projects/:pid/posts/:id/shot` *(proof, owner)*
+#### `GET /v1/projects/:pid/posts/:id/shot` *(proof for any but a board screenshot)*
 
 The post's screenshot, as the image itself (`image/jpeg`, `image/png` or
-`image/webp`), sent with `cache-control: private, no-store`. `403 not_owner`
-for anybody else, the author included, and `404 no_post` when there is none.
+`image/webp`). One on the board (`shotFor: 'board'`, under a post that is not
+hidden) needs no proof, so a page can show it with a plain `<img>`. Any other
+is for owners only. Everybody else gets `404 no_post`, the author included,
+the same answer as when there is none: nothing says a screenshot is there that
+they may not see.
+
+Sent with `cache-control: no-store`, so taking one off the board takes it off
+for the next person who looks, `x-robots-tag: noindex`, `nosniff` and a CSP
+that allows nothing.
 
 #### `GET /v1/projects/:pid/answers` *(proof)*
 
@@ -219,7 +231,11 @@ How long to keep showing an answer is the client's decision.
   anon?: boolean;                     // default true; false shows the author's name, if they have one
   context?: Record<string, string>;   // at most 10 keys, values at most 100 chars
   rating?: number;                    // reviews only, and required on one: a whole 1..5
-  shot?: { type: 'image/jpeg' | 'image/png' | 'image/webp'; data: string };  // bugs and ideas only; base64, at most 1 MB decoded
+  shot?: {                            // bugs and ideas only
+    type: 'image/jpeg' | 'image/png' | 'image/webp';
+    data: string;                     // base64, at most 1 MB decoded
+    board?: boolean;                  // true: its author agreed to everyone seeing it
+  };
 }
 ```
 
@@ -246,6 +262,11 @@ Answers `{ ok: true, left: number }`.
   The widget redraws a picked image as a JPEG of at most 1600 pixels a side
   before sending it, which also drops the photo's metadata. This is the one
   route that reads more than 32 kB.
+- **A screenshot goes on the board only with `board: true`**, which a client
+  sends only after its user said yes to that picture. Leaving it out keeps it
+  for the owners, for good: no owner can put it on the board later. A client
+  that never asked its user, an older one or a script, sends nothing and so
+  fails private.
 
 #### `POST /v1/projects/:pid/posts/:id/vote` *(proof)*
 
@@ -277,11 +298,16 @@ always change it.
 #### `POST /v1/projects/:pid/posts/:id/manage` *(proof, owner)*
 
 ```ts
-{ status?: PostStatus; reply?: string; hidden?: boolean }
+{ status?: PostStatus; reply?: string; hidden?: boolean; shotOff?: boolean }
 ```
 
 Every field is optional and only those present are written. An empty `reply`
 takes the reply back. `{ ok: true }`, or `403 not_owner`.
+
+- `shotOff: true` takes the post's screenshot off the board and leaves the post
+  on it; `false` puts it back. Putting back does nothing to a screenshot whose
+  author kept it for the owners. Hiding the post takes its screenshot off the
+  board too.
 
 - A review takes no `status` other than `open` (`400 bad_request`).
 - Setting `done` or `declined` deletes the post's screenshot: it was there to

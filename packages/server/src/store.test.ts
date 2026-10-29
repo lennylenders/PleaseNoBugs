@@ -186,13 +186,14 @@ describe.each(STORES)('%s', (_name, make) => {
   it('keeps a screenshot apart, says it is there, and loses it with the post', async () => {
     const s = make();
     const data = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 1, 2, 3]);
-    await s.createPost(row({ id: 'b1', kind: 'bug' }), { type: 'image/png', data });
+    await s.createPost(row({ id: 'b1', kind: 'bug' }), { type: 'image/png', data, board: false });
     await s.createPost(row({ id: 'b2', kind: 'bug' }));
     const posts = await s.posts('p1', null);
-    expect(posts.find((p) => p.id === 'b1')?.shot).toBe(true);
-    expect(posts.find((p) => p.id === 'b2')?.shot).toBe(false);
+    expect(posts.find((p) => p.id === 'b1')?.shot).toBe('owners');
+    expect(posts.find((p) => p.id === 'b2')?.shot).toBeUndefined();
     const shot = await s.getShot('p1', 'b1');
     expect(shot?.type).toBe('image/png');
+    expect(shot?.for).toBe('owners');
     expect([...(shot?.data ?? [])]).toEqual([...data]);
     expect(await s.getShot('p2', 'b1')).toBeNull();
 
@@ -200,9 +201,29 @@ describe.each(STORES)('%s', (_name, make) => {
     expect(await s.getShot('p1', 'b1')).toBeNull();
     expect(await s.getPost('p1', 'b1')).not.toBeNull();
 
-    await s.createPost(row({ id: 'b3', kind: 'bug' }), { type: 'image/png', data });
+    await s.createPost(row({ id: 'b3', kind: 'bug' }), { type: 'image/png', data, board: true });
     await s.deletePost('p1', 'b3');
     expect(await s.getShot('p1', 'b3')).toBeNull();
+  });
+
+  it('shows a screenshot on the board only if its author agreed, and lets owners take it off', async () => {
+    const s = make();
+    const data = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+    await s.createPost(row({ id: 'b1', kind: 'bug' }), { type: 'image/png', data, board: true });
+    await s.createPost(row({ id: 'b2', kind: 'bug' }), { type: 'image/png', data, board: false });
+    const shotOf = async (id: string) => (await s.posts('p1', null)).find((p) => p.id === id)?.shot;
+    expect(await shotOf('b1')).toBe('board');
+
+    await s.setShotOff('p1', 'b1', true);
+    expect(await shotOf('b1')).toBe('off');
+    expect((await s.getShot('p1', 'b1'))?.for).toBe('off');
+    await s.setShotOff('p1', 'b1', false);
+    expect(await shotOf('b1')).toBe('board');
+
+    // Without the author's yes, nothing an owner does puts it on the board.
+    await s.setShotOff('p1', 'b2', false);
+    expect(await shotOf('b2')).toBe('owners');
+    await s.setShotOff('p1', 'nope', true);
   });
 
   it('counts a board for telemetry: done is fixed or built, hidden is not counted', async () => {
@@ -277,8 +298,9 @@ describe('SqliteStore, opening a file an older version wrote', () => {
     try {
       expect((await s.getProject('p1'))?.rules.kinds).toEqual(['bug', 'idea', 'review']);
       expect((await s.getProject('p2'))?.rules.kinds).toEqual(['bug']);
-      expect(await s.getMeta('schema')).toBe('2');
-      expect((await s.posts('p1', null))[0]).toMatchObject({ id: 'old', shot: false });
+      expect(await s.getMeta('schema')).toBe('3');
+      expect((await s.posts('p1', null))[0]).toMatchObject({ id: 'old' });
+      expect((await s.posts('p1', null))[0].shot).toBeUndefined();
       expect(await s.createPost(row({ id: 'r1', kind: 'review', rating: 3 }))).toBe(true);
     } finally {
       s.close();
@@ -290,6 +312,38 @@ describe('SqliteStore, opening a file an older version wrote', () => {
     const third = new SqliteStore(file);
     expect((await third.getProject('p1'))?.rules.kinds).toEqual(['bug', 'idea']);
     third.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('keeps a screenshot sent under "only the owners see it" for the owners', async () => {
+    const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as typeof import('node:sqlite');
+    const dir = mkdtempSync(join(tmpdir(), 'pnb-'));
+    const file = join(dir, 'shots.db');
+    // Schema 2: screenshots, but no way yet to say who sees them.
+    const fresh = new SqliteStore(file);
+    await fresh.createPost(row({ id: 'b1', kind: 'bug' }));
+    fresh.close();
+    const old = new DatabaseSync(file);
+    old.exec(`
+      DROP TABLE shots;
+      CREATE TABLE shots (
+        project_id TEXT NOT NULL, post_id TEXT NOT NULL, type TEXT NOT NULL, data BLOB NOT NULL,
+        PRIMARY KEY (project_id, post_id)
+      );
+      INSERT INTO shots (project_id, post_id, type, data) VALUES ('p1', 'b1', 'image/png', x'89504e47');
+      UPDATE meta SET value = '2' WHERE key = 'schema';
+    `);
+    old.close();
+
+    const s = new SqliteStore(file);
+    try {
+      expect(await s.getMeta('schema')).toBe('3');
+      expect((await s.posts('p1', null))[0].shot).toBe('owners');
+      await s.setShotOff('p1', 'b1', false);
+      expect((await s.getShot('p1', 'b1'))?.for).toBe('owners');
+    } finally {
+      s.close();
+    }
     rmSync(dir, { recursive: true, force: true });
   });
 });

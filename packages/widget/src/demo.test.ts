@@ -42,9 +42,18 @@ describe('createDemoClient', () => {
     expect(await c.post({ id: 'p5', kind: 'idea', text: 'More' })).toMatchObject({ ok: false, error: 'too_many' });
   });
 
-  it('never hands out a screenshot or owner tools', async () => {
+  it('shows the visitor their own screenshot on the board, and never hands out owner tools', async () => {
     const c = createDemoClient();
-    expect(await c.shot('demo-0')).toMatchObject({ ok: false, error: 'not_owner' });
+    const data = btoa('\x89PNG');
+    await c.post({ id: 'b1', kind: 'bug', text: 'Broken', shot: { type: 'image/png', data, board: true } });
+    await c.post({ id: 'b2', kind: 'bug', text: 'Also broken', shot: { type: 'image/png', data } });
+    const read = await c.board();
+    const posts = read.ok ? read.data.posts : [];
+    expect(posts.find((p) => p.id === 'b1')?.shot).toBe(true);
+    expect(posts.find((p) => p.id === 'b2')?.shot).toBeUndefined();
+    expect(c.shotUrl('b1')).toBe(`data:image/png;base64,${data}`);
+    expect(await c.shot('b2')).toMatchObject({ ok: false });
+    expect(await c.shot('demo-0')).toMatchObject({ ok: false });
     expect(await c.manage('demo-0', { status: 'done' })).toMatchObject({ ok: false, error: 'not_owner' });
   });
 });

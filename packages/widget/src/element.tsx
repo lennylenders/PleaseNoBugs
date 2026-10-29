@@ -5,6 +5,7 @@ import { createClient, type Client } from './client.js';
 import { pickLang, translator, type Strings } from './i18n.js';
 import type { Signer } from './signer.js';
 import { App, type View } from './ui/App.js';
+import type { Screenshots } from './ui/Compose.js';
 import * as Icon from './ui/icons.js';
 import css from './styles.css?inline';
 
@@ -24,7 +25,8 @@ export const TAG = 'please-no-bugs';
  * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
  * `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq`), `accent`
  * (a colour), `app-name`, `name` (a display name to suggest), `kinds` (which
- * of `bug,idea,review` to offer), `screenshots` (`off` to leave them out),
+ * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
+ * the board, for the app's owners only; `off` to leave them out),
  * `demo` (sample posts in the page's memory, no server: see `demo.ts`) and,
  * with `demo` only, `screen` (`button`, `tiles`, `board`, `write` or `sent`:
  * that screen, held, for the website's configurator).
@@ -218,7 +220,7 @@ export class PleaseNoBugsElement extends HTMLElement {
       context: this.#context,
       noise: this.#noise,
       kinds: readKinds(this.getAttribute('kinds')),
-      screenshots: this.getAttribute('screenshots') !== 'off',
+      screenshots: readScreenshots(this.getAttribute('screenshots')),
       onPosted: (p: { id: string; kind: PostKind }) =>
         this.dispatchEvent(new CustomEvent('pleasenobugs:posted', { detail: p, bubbles: true, composed: true })),
     };
@@ -328,6 +330,16 @@ function Floating({ app, label, screen }: { app: AppBase; label: string; screen?
       <Icon.Feedback />
     </button>
   );
+}
+
+/**
+ * Who sees screenshots, from the attribute: on the board when it is absent,
+ * empty or `board`. Anything else unknown, a typo of `owners` say, keeps them
+ * for the owners: a mistake here should fail private.
+ */
+function readScreenshots(v: string | null): Screenshots {
+  if (v === null || v === '' || v === 'board') return 'board';
+  return v === 'off' ? 'off' : 'owners';
 }
 
 /**

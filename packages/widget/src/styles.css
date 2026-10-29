@@ -28,21 +28,23 @@
   --pnb-accent-fill: var(--pnb-accent);
   --pnb-on-accent: #ffffff;
   --pnb-danger: #d23b2f;
-  /* The chips. */
+  /* The chips, the same in every theme but Nimiq's: a bug red, an idea
+     purple, a review orange like its star, Done in teal and the rest a
+     quiet grey. */
   --pnb-bug: #e5484d;
-  --pnb-idea: #e9a00b;
-  --pnb-review: #8b5cf6;
-  --pnb-planned: #3e7bfa;
-  --pnb-done: #2f9e66;
-  --pnb-declined: #8b8d98;
+  --pnb-idea: #8b5cf6;
+  --pnb-review: #e9a00b;
+  --pnb-planned: #8a8fb8;
+  --pnb-done: #21bca5;
+  --pnb-declined: #8a8fb8;
   /* A filled star. */
   --pnb-star: #f5a524;
-  /* The tiles you pick a kind on, and what is written on them. Quiet cards by
-     default; a theme can paint them (see `nimiq`). */
-  --pnb-tile-bug: var(--pnb-surface);
-  --pnb-tile-idea: var(--pnb-surface);
-  --pnb-tile-review: var(--pnb-surface);
-  --pnb-tile-ink: var(--pnb-text);
+  /* The tiles you pick a kind on, and what is written on them: each painted
+     in its kind's colour, as in the design. */
+  --pnb-tile-bug: var(--pnb-bug);
+  --pnb-tile-idea: var(--pnb-idea);
+  --pnb-tile-review: var(--pnb-review);
+  --pnb-tile-ink: #ffffff;
   /* Behind the tick on "Feedback sent!". */
   --pnb-sent: var(--pnb-bg);
   /* The round floating button, and its glyph. */
@@ -130,11 +132,11 @@
   --pnb-review: #e9a113;
   --pnb-planned: #0582ca;
   --pnb-done: #21bca5;
+  --pnb-declined: #8b8d98;
   --pnb-star: #e9a113;
   --pnb-tile-bug: linear-gradient(274deg, #cc3047 0%, #e9564a 100%);
   --pnb-tile-idea: linear-gradient(274deg, #41a38e 0%, #21bca5 100%);
   --pnb-tile-review: linear-gradient(274deg, #ec991c 0%, #e9b213 100%);
-  --pnb-tile-ink: #ffffff;
   --pnb-sent: linear-gradient(274deg, #41a38e 0%, #21bca5 100%);
   --pnb-fab: #1f2348;
   --pnb-on-fab: #ffffff;
@@ -147,7 +149,7 @@
 
 /* PleaseNoBugs' own colours, the same as its website. They started as
    Shitti's, and `shitti`, the name 0.1 shipped them under, still works. Also
-   the worked example of a whole theme in fourteen lines. */
+   the worked example of a whole theme in twelve lines. */
 :host([theme='pleasenobugs']),
 :host([theme='shitti']) {
   --pnb-bg: #292a56;
@@ -160,13 +162,6 @@
   --pnb-accent: #1fc7d4;
   --pnb-on-accent: #12132b;
   --pnb-danger: #ff7a6b;
-  /* Its own kinds and statuses: an idea purple, a review orange like
-     its star, Done in teal and the rest a quiet grey. */
-  --pnb-idea: #8b5cf6;
-  --pnb-review: #e9a00b;
-  --pnb-planned: #8a8fb8;
-  --pnb-done: #21bca5;
-  --pnb-declined: #8a8fb8;
   --pnb-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
   --pnb-scrim: rgba(10, 10, 30, 0.6);
 }
@@ -333,7 +328,7 @@ button {
   border-radius: 999px;
   background: var(--pnb-surface-2);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .badge__dot {
@@ -418,6 +413,24 @@ button {
   line-height: 1.4;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+/* A screenshot on the board: small enough to keep the card a card, a tap
+   opens it whole. A button, so it never opens an owner's manage sheet. */
+.card__pic {
+  display: block;
+  margin-top: 10px;
+  padding: 0;
+  border-radius: var(--pnb-radius);
+  line-height: 0;
+}
+
+.card__pic img {
+  display: block;
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: var(--pnb-radius);
+  border: 1px solid var(--pnb-line);
 }
 
 .card__reply {
@@ -688,6 +701,27 @@ button {
   border: 1px solid var(--pnb-line);
 }
 
+/* The yes under the picture. Big enough to hit with a thumb, and in the
+   text colour: it is the one thing on this screen that has to be read. */
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--pnb-text);
+  cursor: pointer;
+}
+
+.check input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--pnb-accent);
+}
+
 .shot__remove {
   position: absolute;
   top: 6px;
@@ -727,7 +761,6 @@ button {
   min-height: 132px;
   padding: 16px 12px;
   border-radius: var(--pnb-radius);
-  border: 1px solid var(--pnb-line);
   color: var(--pnb-tile-ink);
   text-align: center;
   transition: transform 120ms ease;
@@ -751,21 +784,14 @@ button {
   place-items: center;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  color: #fff;
+  /* The design's soft shadow under the glyph. */
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.05)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.07));
 }
 
-.tile--bug .tile__icon { background: var(--pnb-bug); }
-.tile--idea .tile__icon { background: var(--pnb-idea); }
-.tile--review .tile__icon { background: var(--pnb-review); }
-
-/* On a painted tile the disc would vanish into its own colour. */
-:host([theme='nimiq']) .tile {
-  border-color: transparent;
-}
-
-:host([theme='nimiq']) .tile__icon {
-  background: rgba(255, 255, 255, 0.22);
+/* The design's tiles: a white glyph and the kind's name, nothing more,
+   unless there is something to say (a review already written). */
+.tile:not(:disabled) .tile__note {
+  display: none;
 }
 
 .tile__label {
@@ -1089,6 +1115,17 @@ button {
   max-height: 200px;
   border-radius: var(--pnb-radius);
   border: 1px solid var(--pnb-line);
+}
+
+/* Opened from the board: the whole picture, as tall as the sheet allows. */
+.sheet__shot--whole img {
+  max-height: 70vh;
+  align-self: center;
+}
+
+.sheet__shot .hide-btn {
+  align-self: flex-start;
+  margin-top: 4px;
 }
 
 .sheet__shot figcaption {

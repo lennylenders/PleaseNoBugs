@@ -37,12 +37,12 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `project`, `server` | Required. |
 | `mode` | `inline`, `floating` or `overlay`. |
 | `lang` | `en`, `nl`, `de`, or any code you supply `strings` for. Defaults to Nimiq Pay's language, then the page's. |
-| `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (painted tiles and a gradient button, light only). `shitti` is the old name of `pleasenobugs` and still works. |
+| `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (gradient tiles and buttons, light only). Every theme has the same shapes: painted tiles with a white glyph, the same badges; only the colours differ. `shitti` is the old name of `pleasenobugs` and still works. |
 | `accent` | One colour, e.g. `#e84a5f`. The text on it picks black or white by itself. |
 | `app-name` | What answers are signed with ("Shitti says"). Defaults to the project's name. |
 | `name` | A display name you already know, offered when the user chooses to show theirs. |
 | `kinds` | Which kinds to offer, of the ones your project takes: `bug,idea,review` by default. `kinds="bug,idea"` leaves reviews off the tiles and out of the list. |
-| `screenshots` | `off` leaves out the "Add a screenshot" button on bugs and ideas. |
+| `screenshots` | Who sees screenshots on bugs and ideas. On the board for everyone by default, each one only after its author ticks that everyone may see it. `owners` keeps them for your eyes only; `off` leaves the "Add a screenshot" button out. An unknown value counts as `owners`. |
 | `demo` | A board of sample posts in the page's memory, with no server: `<please-no-bugs demo>`. Voting and writing work, nothing is sent or stored, and a reload starts over. For trying the widget, or showing it off. |
 | `screen` | With `demo` only: hold one screen in view, `button`, `tiles`, `board`, `write` or `sent`. What the website's configurator uses to show the part you are changing. |
 
@@ -63,11 +63,27 @@ Tapping **+** opens three tiles: **Report a bug**, **Share an idea** and
 board with the average on top, so people can see what others like about your
 app. One review per wallet.
 
-A bug or an idea can carry **a screenshot that only you see**: never the board,
-not even its author. The widget shrinks it to a JPEG before sending and tells
-the user, before they pick one, to check it shows nothing private. It is
-deleted by itself when you mark the post Done or Not doing, or when the post is
-thrown away.
+A bug or an idea can carry **a screenshot, shown on the board** under the
+post, so everybody can see what is meant. Before picking one the user reads
+that everyone will see it and should check it for a balance, an address or a
+name; after picking, **nothing is sent until they tick "I checked it: everyone
+may see this screenshot"** under the picture. The widget redraws it as a JPEG
+before sending, which leaves the photo's location and camera details behind.
+
+You see every screenshot in the sheet where you answer a post, and can **take
+one off the board** there while the post stays up, or hide the whole post. A
+screenshot is deleted by itself when you mark the post Done or Not doing, or
+when the post is thrown away. Taking one off stops it being shown; it cannot
+take it back from anybody who already saved it.
+
+With `screenshots="owners"` they stay yours alone, never the board and not
+even their author: the warning says so instead, and there is nothing to tick.
+Any screenshot sent without that tick keeps that promise, whatever you change
+later.
+
+If your page has a Content Security Policy, screenshots on the board load as
+plain images from your server, so `img-src` needs your server next to
+`connect-src`.
 
 ## Theming
 
@@ -87,13 +103,13 @@ please-no-bugs {
   --pnb-accent-fill: var(--pnb-accent);  /* what buttons are painted with; may be a gradient */
   --pnb-on-accent: #fff;
   --pnb-danger: #d23b2f;
-  --pnb-bug: #e5484d;  --pnb-idea: #e9a00b;  --pnb-review: #8b5cf6;
-  --pnb-planned: #3e7bfa;  --pnb-done: #2f9e66;  --pnb-declined: #8b8d98;
+  --pnb-bug: #e5484d;  --pnb-idea: #8b5cf6;  --pnb-review: #e9a00b;
+  --pnb-planned: #8a8fb8;  --pnb-done: #21bca5;  --pnb-declined: #8a8fb8;
   --pnb-star: #f5a524;
-  --pnb-tile-bug: var(--pnb-surface);    /* the three tiles; may be gradients */
-  --pnb-tile-idea: var(--pnb-surface);
-  --pnb-tile-review: var(--pnb-surface);
-  --pnb-tile-ink: var(--pnb-text);       /* the words on them */
+  --pnb-tile-bug: var(--pnb-bug);        /* the three tiles; may be gradients */
+  --pnb-tile-idea: var(--pnb-idea);
+  --pnb-tile-review: var(--pnb-review);
+  --pnb-tile-ink: #fff;                  /* the words on them */
   --pnb-sent: var(--pnb-bg);             /* behind "Feedback sent!" */
   --pnb-fab: var(--pnb-accent-fill);     /* the round floating button */
   --pnb-on-fab: var(--pnb-on-accent);    /* its glyph */
@@ -157,7 +173,8 @@ const board = await client.board();          // never asks the wallet
 if (board.ok) render(sortPosts(board.data.posts, 'top'));
 await client.post({ id: crypto.randomUUID(), kind: 'idea', text: 'Dark mode' });   // asks once, then remembers
 await client.post({ id: crypto.randomUUID(), kind: 'review', text: 'Love it', rating: 5 });
-const shot = await client.shot(postId);      // owners only: the screenshot as a Blob
+const shot = await client.shot(postId);      // the screenshot as a Blob: on the board, or yours as an owner
+const src = client.shotUrl(postId);          // a board screenshot's address, for an <img>
 ```
 
 Every call answers `{ ok: true, data }` or `{ ok: false, status, error }`, and

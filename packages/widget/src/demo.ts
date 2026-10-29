@@ -32,6 +32,8 @@ export function createDemoClient(lang = 'en'): Client {
   }));
   let name: string | undefined;
   let left = DEFAULT_RULES.perDay;
+  /** Screenshots the visitor put on the board, as data URLs: still nothing leaves the page. */
+  const shots = new Map<string, string>();
 
   const ok = <T>(data: T): Promise<Result<T>> => later({ ok: true, data });
   const no = (status: number, error: 'not_found' | 'reviewed' | 'too_many' | 'not_owner') =>
@@ -70,13 +72,20 @@ export function createDemoClient(lang = 'en'): Client {
           mine: true,
           ...(!p.anon && name ? { who: name } : {}),
           ...(p.kind === 'review' ? { rating: p.rating } : {}),
+          ...(p.shot?.board ? { shot: true } : {}),
         },
         ...posts,
       ];
+      // One kept for the owners only has nobody to show it to here.
+      if (p.shot?.board) shots.set(p.id, `data:${p.shot.type};base64,${p.shot.data}`);
       return ok({ ok: true as const, left });
     },
-    // Owners only, and the visitor is never one.
-    shot: () => no(403, 'not_owner'),
+    // The visitor's own screenshots on the board; nothing else exists here.
+    shot: async (id) => {
+      const url = shots.get(id);
+      return url ? ok(await (await fetch(url)).blob()) : no(404, 'not_found');
+    },
+    shotUrl: (id) => shots.get(id) ?? '',
     vote(id, up) {
       const p = find(id);
       if (!p) return no(404, 'not_found');
@@ -88,6 +97,7 @@ export function createDemoClient(lang = 'en'): Client {
       const p = find(id);
       if (!p) return no(404, 'not_found');
       posts = posts.filter((q) => q !== p);
+      shots.delete(id);
       return ok({ ok: true as const });
     },
     setName(n) {

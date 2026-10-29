@@ -127,11 +127,24 @@ const COPY = {
     nl: 'Niemand op het bord ziet wie het schreef, en je wallet-adres wordt nooit getoond. De server kent je wallet wel: stemmen en de daglimiet tellen per wallet.',
     de: 'Niemand auf dem Board sieht, wer es geschrieben hat, und deine Wallet-Adresse wird nie gezeigt. Der Server kennt deine Wallet schon: Stimmen und das Tageslimit zählen pro Wallet.',
   },
-  // ---- A screenshot, for the owners' eyes ----
+  // ---- A screenshot ----
   'board.shotAdd': { en: 'Add a screenshot', nl: 'Screenshot toevoegen', de: 'Screenshot hinzufügen' },
   'board.shotRemove': { en: 'Remove screenshot', nl: 'Screenshot weghalen', de: 'Screenshot entfernen' },
   // Said before somebody picks one, because a screenshot of a wallet app is
-  // the easiest way to give away a balance without noticing.
+  // the easiest way to give away a balance without noticing. On a board that
+  // shows screenshots, and the one for `screenshots="owners"`. The address
+  // line is there because posting anonymously is undone by a picture of it.
+  'board.shotNoteBoard': {
+    en: 'Everyone who views the board sees it. Check it shows nothing private, like a balance, an address or a name. An address on it shows it was you, even if you post anonymously.',
+    nl: 'Iedereen die het bord bekijkt ziet hem. Kijk of er niets privés op staat, zoals een saldo, een adres of een naam. Een adres erop laat zien dat jij het was, ook als je anoniem post.',
+    de: 'Jeder, der das Board ansieht, sieht ihn. Prüf, dass nichts Privates drauf ist, etwa ein Kontostand, eine Adresse oder ein Name. Eine Adresse darauf zeigt, dass du es warst, auch wenn du anonym postest.',
+  },
+  // Ticked under the picture itself, so the yes is about this one.
+  'board.shotAgree': {
+    en: 'I checked it: everyone may see this screenshot.',
+    nl: 'Ik heb gekeken: iedereen mag deze screenshot zien.',
+    de: 'Ich hab nachgesehen: Jeder darf diesen Screenshot sehen.',
+  },
   'board.shotNote': {
     en: 'Only {app} sees it, not the board. Check it shows nothing private, like a balance or an address.',
     nl: 'Alleen {app} ziet hem, het bord niet. Kijk of er niets privés op staat, zoals een saldo of adres.',
@@ -143,6 +156,33 @@ const COPY = {
     de: 'Das Bild ließ sich nicht lesen. Versuch ein anderes.',
   },
   'board.shot': { en: 'Screenshot', nl: 'Screenshot', de: 'Screenshot' },
+  'board.shotOpen': { en: 'Open the screenshot', nl: 'Screenshot openen', de: 'Screenshot öffnen' },
+  // In the owner's sheet: who sees it now, before what happens to it.
+  'board.shotForBoard': {
+    en: 'On the board for everyone.',
+    nl: 'Voor iedereen op het bord.',
+    de: 'Für alle auf dem Board.',
+  },
+  'board.shotForOff': {
+    en: 'Off the board: only you see it.',
+    nl: 'Van het bord: alleen jij ziet hem.',
+    de: 'Vom Board genommen: Nur du siehst ihn.',
+  },
+  'board.shotForOwners': {
+    en: 'Only you see it: it was sent for your eyes only.',
+    nl: 'Alleen jij ziet hem: hij is alleen voor jou gestuurd.',
+    de: 'Nur du siehst ihn: Er wurde nur für dich geschickt.',
+  },
+  'board.shotOff': {
+    en: 'Take the screenshot off the board',
+    nl: 'Screenshot van het bord halen',
+    de: 'Screenshot vom Board nehmen',
+  },
+  'board.shotOn': {
+    en: 'Put the screenshot back',
+    nl: 'Screenshot terugzetten',
+    de: 'Screenshot zurückstellen',
+  },
   'board.shotGoes': {
     en: 'Deleted by itself when you mark this Done or Not doing.',
     nl: 'Wordt vanzelf verwijderd als je dit op Klaar of Doen we niet zet.',

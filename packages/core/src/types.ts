@@ -39,6 +39,18 @@ export interface PostReply {
 export type PostContext = Record<string, string>;
 
 /**
+ * Who sees a post's screenshot.
+ *
+ * - `board`: everybody who reads the board. Only ever because its author
+ *   ticked that everyone may see it.
+ * - `off`: the author agreed, but an owner took it off the board. Owners can
+ *   put it back.
+ * - `owners`: the author never agreed, so owners only, for good. Nobody can
+ *   turn it into `board` later; that would be a promise broken after the fact.
+ */
+export type ShotFor = 'board' | 'off' | 'owners';
+
+/**
  * One post, as a reader receives it.
  *
  * What is *not* here is the point: the author's address and the list of who
@@ -65,9 +77,11 @@ export interface Post {
   rating?: number;
   /** Owners only. */
   context?: PostContext;
-  /** Owners only: the author attached a screenshot, read through the post's
-   *  `/shot` route. Never sent to anybody else, not even the author. */
+  /** A screenshot comes with it, read through the post's `/shot` route. Sent
+   *  to everybody for one on the board, and to owners for any. */
   shot?: boolean;
+  /** Owners only, with `shot`: who sees it. */
+  shotFor?: ShotFor;
   /** Owners only: a post they took off the board, kept so it can come back. */
   hidden?: boolean;
 }

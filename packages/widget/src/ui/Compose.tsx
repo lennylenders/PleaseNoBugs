@@ -10,7 +10,15 @@ export interface Attached {
   /** Base64, as the API takes it. */
   data: string;
   preview: string;
+  /** Whether the user ticked that everyone may see it. */
+  board: boolean;
 }
+
+/**
+ * Screenshots on this board: on it for everyone (with the author's yes), for
+ * the owners only, or not offered at all.
+ */
+export type Screenshots = 'board' | 'owners' | 'off';
 
 /** What `onSend` gets. */
 export interface Draft {
@@ -34,9 +42,12 @@ export interface Draft {
  *   the only thing on the board that reduces its own input; the alternative is
  *   five copies of the best idea with one vote each. Not on a review, which is
  *   an opinion and not a request anybody else could second.
- * - **A screenshot says who sees it before it is picked**: the owners, never
- *   the board. A screenshot of a wallet app is the easiest way to give away a
- *   balance without noticing.
+ * - **A screenshot says who sees it before it is picked**, and on a board that
+ *   shows them, **goes nowhere until the user ticks that everyone may see
+ *   it**. A screenshot of a wallet app is the easiest way to give away a
+ *   balance, or the address that undoes posting anonymously, without
+ *   noticing. Sending stays off until the box is ticked or the picture
+ *   removed, so nobody posts one by tapping past the warning.
  *
  * **One column that scrolls, with the button at the end of it.** Shitti pinned
  * a footer and then spent a page of notes on what a phone keyboard does to a
@@ -73,8 +84,8 @@ export function Compose({
   /** The name the server has for this wallet, or the app's suggestion. */
   name: string;
   appName: string;
-  /** Whether a bug or an idea may carry a screenshot. */
-  screenshots: boolean;
+  /** Whether a bug or an idea may carry a screenshot, and who sees it. */
+  screenshots: Screenshots;
   onVote: (id: string, up: boolean) => void;
   /**
    * Resolves null once it has landed, or what to say about a refusal. A
@@ -86,7 +97,10 @@ export function Compose({
   const review = kind === 'review';
   const [text, setText] = useState('');
   const [rating, setRating] = useState(0);
-  const [shot, setShot] = useState<Attached | null>(null);
+  const [shot, setShot] = useState<Omit<Attached, 'board'> | null>(null);
+  // Asked again for every picture: a yes was about the one it was said under.
+  const [agreed, setAgreed] = useState(false);
+  const onBoard = screenshots === 'board';
   const [reading, setReading] = useState(false);
   const [showName, setShowName] = useState(false);
   const [name, setName] = useState(knownName);
@@ -102,6 +116,7 @@ export function Compose({
   const said = text.trim();
   const none = left !== null && left <= 0;
   const nameMissing = showName && !name.trim();
+  const unchecked = !!shot && onBoard && !agreed;
 
   useEffect(() => () => void (shot && URL.revokeObjectURL(shot.preview)), [shot]);
 
@@ -111,8 +126,12 @@ export function Compose({
     setProblem(null);
     const got = await shrink(file);
     setReading(false);
-    if (got) setShot(got);
-    else setProblem({ key: 'board.shotFailed' });
+    if (got) {
+      setShot(got);
+      setAgreed(false);
+    } else {
+      setProblem({ key: 'board.shotFailed' });
+    }
   };
 
   const go = async () => {
@@ -124,7 +143,7 @@ export function Compose({
       anon: !showName,
       name: name.trim(),
       ...(review ? { rating } : {}),
-      ...(shot ? { shot } : {}),
+      ...(shot ? { shot: { ...shot, board: onBoard && agreed } } : {}),
     });
     // Landing closes this screen; only a refusal gets here.
     if (refused) {
@@ -194,7 +213,7 @@ export function Compose({
         </div>
       )}
 
-      {screenshots && takesShot(kind) && (
+      {screenshots !== 'off' && takesShot(kind) && (
         <div class="shot">
           {shot ? (
             <div class="shot__preview">
@@ -220,7 +239,17 @@ export function Compose({
               {t('board.shotAdd')}
             </button>
           )}
-          <p class="note">{t('board.shotNote', { app: appName })}</p>
+          <p class="note">{t(onBoard ? 'board.shotNoteBoard' : 'board.shotNote', { app: appName })}</p>
+          {shot && onBoard && (
+            <label class="check">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed((e.target as HTMLInputElement).checked)}
+              />
+              <span>{t('board.shotAgree')}</span>
+            </label>
+          )}
           <input
             ref={picker}
             type="file"
@@ -265,7 +294,7 @@ export function Compose({
         <button
           type="button"
           class="btn"
-          disabled={!said || none || sending || reading || nameMissing || (review && !rating)}
+          disabled={!said || none || sending || reading || nameMissing || unchecked || (review && !rating)}
           aria-busy={sending}
           onClick={() => void go()}
         >
@@ -300,7 +329,7 @@ const SHOT_SIDE = 1600;
  * only pixels, so the location and camera details a photo carries in its
  * metadata never leave the phone.
  */
-async function shrink(file: File): Promise<Attached | null> {
+async function shrink(file: File): Promise<Omit<Attached, 'board'> | null> {
   const url = URL.createObjectURL(file);
   try {
     const img = new Image();

@@ -1,7 +1,8 @@
 /**
  * The configurator, in steps: the real widget in `demo` mode on top, one card
  * under it for the part being changed, and Back / Preview / Next. Tapping a
- * part of the widget jumps to its step. The last step is the code.
+ * part of the widget opens its colour or its words, in the step you are on.
+ * The last step is the code.
  *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
  * `localStorage`: the copied code is the only place a choice ends up.
@@ -19,58 +20,149 @@ const VERSION = '%VERSION%';
  */
 const STEPS = [
   { id: 'settings', name: 'Settings', screen: 'tiles' },
-  { id: 'look', name: 'Look', screen: 'tiles', mark: (r) => [r.querySelector('.overlay') ?? r.querySelector('.app')] },
-  { id: 'button', name: 'Round button', screen: 'button', mark: (r) => [r.querySelector('.fab')], floatingOnly: true },
-  { id: 'board', name: 'Board', screen: 'board', mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')] },
+  { id: 'button', name: 'Feedback button', screen: 'button', mark: (r) => [r.querySelector('.fab')], floatingOnly: true },
   { id: 'tiles', name: 'Tiles', screen: 'tiles', mark: (r) => [...r.querySelectorAll('.tile')] },
-  { id: 'write', name: 'Write and send', screen: 'write', mark: (r) => [r.querySelector('.shot'), r.querySelector('.switch-row'), r.querySelector('.send')] },
+  { id: 'board', name: 'Board', screen: 'board', mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')] },
+  { id: 'write', name: 'Write and send', screen: 'write', mark: (r) => [r.querySelector('.field'), r.querySelector('.send')] },
   { id: 'sent', name: 'Feedback sent!', screen: 'sent', mark: (r) => [r.querySelector('.sent')] },
   { id: 'code', name: 'Code', screen: 'tiles' },
 ];
 
 /**
- * Which step a tap in the widget leads to. The first part the tap is inside
- * wins; anything else counts for the screen it is on, and the tiles screen
- * itself (its header, around the tiles) for the look.
+ * The colour families. Each is one custom property, and every part of the
+ * widget painted with it changes with it: the background is the panel and the
+ * answer box at once. The name says what it is, `what` where it shows, so a
+ * developer knows what a dot will change before they tap it. `accent` is the
+ * widget's `accent` attribute, which also picks black or white for what is
+ * written on it.
  */
-const TAPS = [
-  ['.fab', 'button'],
-  ['.tile', 'tiles'],
-  ['.choose__board', 'board'],
-];
-const SCREEN_STEP = { tiles: 'look', button: 'look', board: 'board', write: 'write', sent: 'sent' };
+const FAMILIES = {
+  accent: ['Accent', 'the round button, the send button, the toggle, a vote you gave'],
+  '--pnb-on-fab': ['Button glyph', 'the sign on the round button'],
+  '--pnb-bg': ['Background', 'the panel and the answer box under a post'],
+  '--pnb-surface': ['Cards', 'posts, filters, the field you type in, the chosen tab'],
+  '--pnb-surface-2': ['Pills', 'badges, the vote button, the toggle when off'],
+  '--pnb-sunken': ['Top / New switch', 'behind its two tabs'],
+  '--pnb-line': ['Lines', 'borders, empty stars, the screenshot box'],
+  '--pnb-text': ['Text', 'titles and what people wrote'],
+  '--pnb-text-quiet': ['Quiet text', 'dates, names, notes, counts, links'],
+  '--pnb-danger': ['Danger', 'too many words, things that went wrong'],
+  '--pnb-bug': ['Bug', 'its tile and its badge'],
+  '--pnb-idea': ['Idea', 'its tile and its badge'],
+  '--pnb-review': ['Review', 'its tile and its badge'],
+  '--pnb-tile-ink': ['On tiles', 'the words and icons on the tiles'],
+  '--pnb-star': ['Stars', 'the stars of a review'],
+  '--pnb-planned': ['Planned', 'its badge'],
+  '--pnb-done': ['Done', 'its badge and the tick on "Feedback sent!"'],
+  '--pnb-declined': ['Not doing', 'its badge'],
+  '--pnb-sent': ['Behind "sent"', 'the "Feedback sent!" screen'],
+};
 
-/** Two or three colours per step, and the rest of that part's behind "More colours". */
+/**
+ * Per step, the families you can see on its screen: two to four up front,
+ * the rest behind "More colours". A family can be in more than one step; it
+ * is the same colour in each.
+ */
 const COLOURS = {
-  look: { main: [['accent', 'Accent']] },
-  button: { main: [['--pnb-fab', 'Button'], ['--pnb-on-fab', 'Glyph']] },
+  button: { main: ['accent', '--pnb-on-fab'] },
+  tiles: {
+    main: ['--pnb-bug', '--pnb-idea', '--pnb-review', '--pnb-bg'],
+    more: ['--pnb-tile-ink', '--pnb-text', '--pnb-text-quiet'],
+  },
   board: {
-    main: [['--pnb-bg', 'Page'], ['--pnb-surface', 'Card'], ['--pnb-text', 'Text']],
+    main: ['--pnb-surface', '--pnb-text', '--pnb-bg'],
     more: [
-      ['--pnb-text-quiet', 'Quiet text'],
-      ['--pnb-sunken', 'Top / New switch'],
-      ['--pnb-danger', 'Danger'],
-      ['--pnb-bug', 'Bug badge'],
-      ['--pnb-idea', 'Idea badge'],
-      ['--pnb-review', 'Review badge'],
-      ['--pnb-star', 'Stars'],
-      ['--pnb-planned', 'Planned'],
-      ['--pnb-declined', 'Not doing'],
+      '--pnb-text-quiet',
+      '--pnb-surface-2',
+      '--pnb-sunken',
+      '--pnb-line',
+      'accent',
+      '--pnb-star',
+      '--pnb-bug',
+      '--pnb-idea',
+      '--pnb-review',
+      '--pnb-planned',
+      '--pnb-done',
+      '--pnb-declined',
     ],
   },
-  tiles: {
-    main: [['--pnb-tile-bug', 'Bug'], ['--pnb-tile-idea', 'Idea'], ['--pnb-tile-review', 'Review']],
-    more: [['--pnb-tile-ink', 'Words on tiles']],
+  write: {
+    main: ['--pnb-surface', '--pnb-line', 'accent'],
+    more: ['--pnb-bg', '--pnb-text', '--pnb-text-quiet', '--pnb-surface-2', '--pnb-danger', '--pnb-bug', '--pnb-idea', '--pnb-review'],
   },
-  write: { main: [['--pnb-surface-2', 'Field'], ['--pnb-line', 'Lines']] },
-  sent: { main: [['--pnb-sent', 'Behind'], ['--pnb-done', 'Tick and Done']] },
+  sent: { main: ['--pnb-sent', '--pnb-done'], more: ['--pnb-text', '--pnb-text-quiet'] },
+};
+
+/**
+ * What a tap in the widget opens, per screen: the family that paints the
+ * part, or the words in it. The first part the tap is inside wins, so the
+ * small ones come first; `*` is the background around them. Only the step
+ * you are on listens, and a tap never moves you to another step. The dim
+ * page around the panel is the app's, not the widget's: it opens nothing.
+ */
+const OUTSIDE = ['.backdrop', {}];
+const PARTS = {
+  button: [['.fab', 'accent']],
+  tiles: [
+    OUTSIDE,
+    ['.tile--bug', '--pnb-bug'],
+    ['.tile--idea', '--pnb-idea'],
+    ['.tile--review', '--pnb-review'],
+    ['.choose__title', { text: 'board.chooseTitle' }],
+    ['.text-btn', '--pnb-text-quiet'],
+    ['.icon-btn', '--pnb-text'],
+    ['*', '--pnb-bg'],
+  ],
+  board: [
+    OUTSIDE,
+    ['.bar__title', { text: 'board.title' }],
+    ['.icon-btn', '--pnb-text'],
+    ['.badge__dot--bug', '--pnb-bug'],
+    ['.badge__dot--idea', '--pnb-idea'],
+    ['.badge__dot--review', '--pnb-review'],
+    ['.badge__dot--planned', '--pnb-planned'],
+    ['.badge__dot--done', '--pnb-done'],
+    ['.badge__dot--declined', '--pnb-declined'],
+    ['.badge, .vote', '--pnb-surface-2'],
+    ['.stars__fill', '--pnb-star'],
+    ['.stars__one', '--pnb-line'],
+    ['.stars', '--pnb-star'],
+    ['.order__tab[aria-selected="true"]', '--pnb-surface'],
+    ['.order__pill', '--pnb-sunken'],
+    ['.chip-pick[aria-pressed="true"], .chip-pick[aria-checked="true"]', '--pnb-text'],
+    ['.card__reply-who', { text: 'board.reply' }],
+    ['.card__when, .card__who, .rating__n', '--pnb-text-quiet'],
+    ['.card__text, .card__reply-text, .rating__avg', '--pnb-text'],
+    ['.card__reply', '--pnb-bg'],
+    ['.card, .rating, .chip-pick', '--pnb-surface'],
+    ['*', '--pnb-bg'],
+  ],
+  write: [
+    OUTSIDE,
+    ['.badge__dot--bug', '--pnb-bug'],
+    ['.badge__dot--idea', '--pnb-idea'],
+    ['.badge__dot--review', '--pnb-review'],
+    ['.icon-btn, .bar__title, .compose__kind, .switch-row__label, .check', '--pnb-text'],
+    ['.send .btn', 'accent'],
+    ['.switch[aria-checked="true"]', 'accent'],
+    ['.switch', '--pnb-surface-2'],
+    ['.field', '--pnb-surface'],
+    ['.shot__add', '--pnb-line'],
+    ['.left--bad', '--pnb-danger'],
+    ['.public, .note, .count, .left', '--pnb-text-quiet'],
+    ['*', '--pnb-bg'],
+  ],
+  sent: [
+    OUTSIDE,
+    ['.sent__check', '--pnb-done'],
+    ['.sent__title', { text: 'board.sent' }],
+    ['.sent__note, .text-btn', '--pnb-text-quiet'],
+    ['*', '--pnb-sent'],
+  ],
 };
 
 /** Every custom property the steps offer, for putting them on the widget. */
-const PROPS = Object.values(COLOURS)
-  .flatMap(({ main, more = [] }) => [...main, ...more])
-  .map(([name]) => name)
-  .filter((name) => name !== 'accent');
+const PROPS = Object.keys(FAMILIES).filter((name) => name !== 'accent');
 
 /**
  * The texts worth changing, per step, with the widget's own English words as
@@ -78,14 +170,16 @@ const PROPS = Object.values(COLOURS)
  * if a word changes there, change it here.
  */
 const STRINGS = {
-  button: { label: 'Label for screen readers', keys: [['board.open', 'Feedback']] },
-  board: { label: 'Title', keys: [['board.title', 'Feedback']] },
-  tiles: {
-    label: 'Words on the tiles',
-    keys: [['board.tileBug', 'Report a bug'], ['board.tileIdea', 'Share an idea'], ['board.tileReview', 'Write a review']],
-  },
-  write: { label: 'Send button', keys: [['board.send', 'Put it on the board']] },
-  sent: { label: 'Title', keys: [['board.sent', 'Feedback sent!']] },
+  board: [
+    ['Title', [['board.title', 'Feedback']]],
+    ['Above your answers', [['board.reply', '<YOUR APP> says']]],
+  ],
+  tiles: [
+    ['Question above the tiles', [['board.chooseTitle', 'What do you want to share?']]],
+    ['Words on the tiles', [['board.tileBug', 'Report a bug'], ['board.tileIdea', 'Share an idea'], ['board.tileReview', 'Write a review']]],
+  ],
+  write: [['Send button', [['board.send', 'Put it on the board']]]],
+  sent: [['Title', [['board.sent', 'Feedback sent!']]]],
 };
 
 const form = document.getElementById('settings');
@@ -96,12 +190,18 @@ const nextBtn = document.getElementById('next');
 const previewBtn = document.getElementById('preview');
 const copyBtn = document.getElementById('copy');
 
+/**
+ * The widget has other themes, but the configurator offers one: PleaseNoBugs'
+ * own colours, each of which can be changed. The code still names it, so an
+ * app gets these colours and not the widget's light default.
+ */
+const THEME = 'pleasenobugs';
+
 const state = {
-  appName: '',
   mode: 'floating',
-  theme: 'pleasenobugs',
   kinds: ['bug', 'idea', 'review'],
-  screenshots: true,
+  /** `board` (everyone, after the user's tick), `owners` or `off`. */
+  screenshots: 'board',
   accent: '',
   colours: {},
   strings: {},
@@ -125,12 +225,11 @@ function apply(el) {
   const set = (name, value) => (value ? el.setAttribute(name, value) : el.removeAttribute(name));
   el.setAttribute('demo', '');
   el.setAttribute('mode', state.mode);
-  set('theme', state.theme);
+  set('theme', THEME);
   set('lang', 'en');
   set('accent', state.accent);
-  set('app-name', state.appName.trim());
   set('kinds', state.kinds.length === 3 ? '' : state.kinds.join(','));
-  set('screenshots', state.screenshots ? '' : 'off');
+  set('screenshots', state.screenshots === 'board' ? '' : state.screenshots);
   set('screen', previewing ? '' : step().screen);
   for (const name of PROPS) {
     if (state.colours[name]) el.style.setProperty(name, state.colours[name]);
@@ -179,10 +278,18 @@ function fitPanel() {
     root.append(style);
   }
   const h = screen.clientHeight - 48;
-  style.textContent = `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; } }`;
+  style.textContent =
+    `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; } }` +
+    // While choosing, the widget holds still: a part is picked, not scrolled past.
+    // The field is a little lower then, so the whole writing screen, field to
+    // send button, fits in the box at once.
+    // The send button waits for words, so it is dimmed; here it shows its
+    // real colour, since that is what is being chosen.
+    (previewing ? '' : ' .scroll { overflow: hidden !important; } .compose .field { height: 96px; min-height: 0; } .btn:disabled { opacity: 1; }');
 }
 
 function update() {
+  for (const input of form.querySelectorAll('[data-string]')) input.hidden = offKind(input.dataset.string);
   if (board) apply(board);
   paintSwatches();
   writeCode();
@@ -244,11 +351,34 @@ screen.addEventListener(
     if (!path.includes(board)) return;
     e.preventDefault();
     e.stopPropagation();
-    const hit = TAPS.find(([sel]) => path.some((n) => n instanceof Element && n.matches(sel)));
-    go(hit ? hit[1] : SCREEN_STEP[step().screen]);
+    const inside = path.filter((n) => n instanceof Element);
+    if (!COLOURS[at]) return;
+    const hit = (PARTS[step().screen] ?? []).find(([sel]) => sel === '*' || inside.some((n) => n.matches(sel)));
+    if (!hit) return;
+    const what = typeof hit[1] === 'string' ? { colour: hit[1] } : hit[1];
+    if (what.colour) pickColour(what.colour);
+    else if (what.text) form.querySelector(`[data-step="${at}"] [data-string="${what.text}"]`)?.focus();
   },
   true,
 );
+
+/** Open the colour picker of this step's `name`, behind "More colours" too. */
+function pickColour(name) {
+  const card = form.querySelector(`[data-step="${at}"]`);
+  const input = card.querySelector(`[data-colour="${name}"]`);
+  if (!input) return;
+  const more = input.closest('details');
+  if (more) more.open = true;
+  const row = input.closest('[data-row]');
+  row.classList.add('picked');
+  setTimeout(() => row.classList.remove('picked'), 1200);
+  about(row);
+  try {
+    input.showPicker();
+  } catch {
+    input.click();
+  }
+}
 
 // ---- The line around the part --------------------------------------------
 
@@ -347,7 +477,7 @@ function endPreview() {
   previewing = false;
   previewBtn.textContent = 'Preview';
   screen.classList.remove('screen--live');
-  document.getElementById('hint').textContent = 'Tap a part of the widget to jump to its step.';
+  document.getElementById('hint').textContent = 'Tap a part of the widget to change it.';
   mount();
 }
 
@@ -355,9 +485,7 @@ function endPreview() {
 
 form.addEventListener('input', (e) => {
   const t = e.target;
-  if (t.name === 'appName') state.appName = t.value;
-  else if (t.name === 'theme') state.theme = t.value;
-  else if (t.name === 'screenshots') state.screenshots = t.checked;
+  if (t.name === 'screenshots') state.screenshots = t.value;
   else if (t.name === 'kinds') {
     const on = [...form.querySelectorAll('input[name=kinds]:checked')].map((i) => i.value);
     // At least one kind: a board nobody can write on is no board.
@@ -368,6 +496,7 @@ form.addEventListener('input', (e) => {
     state.kinds = on;
   } else if (t.name === 'mode') {
     state.mode = t.value;
+    if (!route().some((s) => s.id === at)) at = 'settings';
     mount();
     paintSteps();
     paintSwatches();
@@ -396,21 +525,23 @@ form.addEventListener('click', (e) => {
 // ---- Colours -------------------------------------------------------------
 
 /** A round colour with its name under it, as in the design. */
-function dot(name, label) {
-  return `<div class="dot" data-row="${name}">
-    <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}" /></label>
+function dot(name) {
+  const [label, what] = FAMILIES[name];
+  return `<div class="dot" data-row="${name}" title="${label}: ${what}">
+    <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}: ${what}" /></label>
     <span class="dot__name">${label}</span>
-    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="Back to the theme's ${label.toLowerCase()}" title="Back to the theme's">×</button>
+    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to PleaseNoBugs' own" title="Back to PleaseNoBugs' own">×</button>
   </div>`;
 }
 
 /** The same colour as a row, for the longer list behind "More colours". */
-function swatchRow(name, label) {
+function swatchRow(name) {
+  const [label, what] = FAMILIES[name];
   return `<div class="swatch" data-row="${name}">
-    <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}" /></label>
-    <span class="swatch__name">${label}<small>${name}</small></span>
+    <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}: ${what}" /></label>
+    <span class="swatch__name">${label}<small>${what}</small></span>
     <span class="swatch__hex"></span>
-    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="Back to the theme's ${label.toLowerCase()}" title="Back to the theme's">×</button>
+    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to PleaseNoBugs' own" title="Back to PleaseNoBugs' own">×</button>
   </div>`;
 }
 
@@ -418,9 +549,40 @@ for (const box of form.querySelectorAll('[data-colours]')) {
   const { main, more } = COLOURS[box.dataset.colours];
   box.className = 'field';
   box.innerHTML = `<span>Colours</span>
-    <div class="dots">${main.map(([n, l]) => dot(n, l)).join('')}</div>
-    ${more ? `<details class="more-colours"><summary>More colours</summary><div class="swatches">${more.map(([n, l]) => swatchRow(n, l)).join('')}</div></details>` : ''}`;
+    <div class="dots">${main.map(dot).join('')}</div>
+    <p class="colour-about" aria-live="polite">Tap a colour, or a part of the widget, to change it.</p>
+    ${more ? `<details class="more-colours"><summary>More colours</summary><div class="swatches">${more.map(swatchRow).join('')}</div></details>` : ''}`;
 }
+
+/** Say under the dots what the colour being changed paints. */
+function about(row) {
+  const [label, what] = FAMILIES[row.dataset.row];
+  const line = row.closest('.field').querySelector('.colour-about');
+  line.innerHTML = `<b>${label}</b>: ${what}.`;
+}
+
+form.addEventListener('focusin', (e) => {
+  const row = e.target.closest('.dot');
+  if (row) about(row);
+});
+form.addEventListener('pointerover', (e) => {
+  const row = e.target.closest('.dot');
+  if (row) about(row);
+});
+
+/** The colours and words that belong to one kind: gone with it when it is unticked. */
+const KIND_OF = {
+  '--pnb-bug': 'bug',
+  '--pnb-idea': 'idea',
+  '--pnb-review': 'review',
+  '--pnb-star': 'review',
+  'board.tileBug': 'bug',
+  'board.tileIdea': 'idea',
+  'board.tileReview': 'review',
+};
+
+/** Whether a colour or a word is for a kind that is left off. */
+const offKind = (name) => !!KIND_OF[name] && !state.kinds.includes(KIND_OF[name]);
 
 /**
  * Show each colour as the widget has it now. A value is read from the widget
@@ -431,9 +593,9 @@ function paintSwatches() {
   if (!board?.shadowRoot) return void requestAnimationFrame(paintSwatches);
   for (const row of form.querySelectorAll('[data-row]')) {
     const name = row.dataset.row;
+    row.hidden = offKind(name);
     const own = name === 'accent' ? state.accent : state.colours[name];
-    const prop = name === 'accent' ? '--pnb-accent' : name;
-    const value = own || themeValue(prop);
+    const value = own || themeValue(name === 'accent' ? '--pnb-accent' : name);
     row.querySelector('.swatch__dot').style.background = value || 'transparent';
     row.querySelector('input').value = toHex(value) ?? '#000000';
     const hex = row.querySelector('.swatch__hex');
@@ -466,11 +628,14 @@ function toHex(v) {
 // ---- Texts ---------------------------------------------------------------
 
 for (const box of form.querySelectorAll('[data-strings]')) {
-  const { label, keys } = STRINGS[box.dataset.strings];
-  box.className = 'field';
-  box.innerHTML = `<span>${label}</span>${keys
-    .map(([key, words]) => `<input class="input" data-string="${key}" maxlength="80" placeholder="${words}" aria-label="${label}: ${words}" />`)
-    .join('')}`;
+  box.innerHTML = STRINGS[box.dataset.strings]
+    .map(
+      ([label, keys]) =>
+        `<div class="field"><span>${label}</span>${keys
+          .map(([key, words]) => `<input class="input" data-string="${key}" maxlength="80" placeholder="${words}" aria-label="${label}: ${words}" />`)
+          .join('')}</div>`,
+    )
+    .join('');
 }
 
 // ---- The code ------------------------------------------------------------
@@ -482,11 +647,10 @@ function html() {
     ['project', 'YOUR_PROJECT_ID'],
     ['server', 'https://YOUR_SERVER'],
     state.mode !== 'inline' && ['mode', state.mode],
-    ['theme', state.theme],
+    ['theme', THEME],
     state.accent && ['accent', state.accent],
-    state.appName.trim() && ['app-name', state.appName.trim()],
     state.kinds.length < 3 && ['kinds', state.kinds.join(',')],
-    !state.screenshots && ['screenshots', 'off'],
+    state.screenshots !== 'board' && ['screenshots', state.screenshots],
   ].filter(Boolean);
   const lines = [
     `<script src="https://unpkg.com/pleasenobugs@${VERSION}"></script>`,
@@ -494,18 +658,22 @@ function html() {
     ...attrs.map(([k, v]) => `  ${k}="${attr(v)}"`),
     `></please-no-bugs>`,
   ];
-  if (Object.keys(state.strings).length) {
+  // A kind left off takes its words out of the code too.
+  const strings = Object.fromEntries(Object.entries(state.strings).filter(([k]) => !offKind(k)));
+  if (Object.keys(strings).length) {
     // Safe inside a <script>: no "</script>" can come out of this.
-    const json = JSON.stringify(state.strings, null, 2).replace(/</g, '\\u003c').replace(/\n/g, '\n  ');
+    const json = JSON.stringify(strings, null, 2).replace(/</g, '\\u003c').replace(/\n/g, '\n  ');
     lines.push('<script>', `  document.querySelector('please-no-bugs').strings = ${json};`, '</script>');
   }
   return lines.join('\n');
 }
 
 function css() {
-  const rows = Object.entries(state.colours).map(([k, v]) => `  ${k}: ${v};`);
+  // A kind left off takes its colours out of the code, kept here for if it comes back.
+  const rows = Object.entries(state.colours)
+    .filter(([k]) => !offKind(k)).map(([k, v]) => `  ${k}: ${v};`);
   if (state.mode === 'inline') rows.unshift('  height: 600px; /* inline: give it a height, or it grows with its posts */');
-  if (!rows.length) return "/* No colours changed: the theme's own are used. */";
+  if (!rows.length) return "/* No colours changed: PleaseNoBugs' own are used. */";
   return ['please-no-bugs {', ...rows, '}'].join('\n');
 }
 

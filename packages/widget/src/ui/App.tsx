@@ -7,18 +7,25 @@ import {
   type Post,
   type PostContext,
   type PostKind,
-  type PostStatus,
 } from '@pleasenobugs/core';
 import type { Client } from '../client.js';
 import { insideNimiqPay } from '../signer.js';
 import type { CopyKey, Translate } from '../i18n.js';
 import { Choose, Sent } from './Choose.js';
-import { Compose, type Draft } from './Compose.js';
+import { Compose, type Draft, type Screenshots } from './Compose.js';
 import { KIND, PostCard, Stars } from './PostCard.js';
-import { DeleteSheet, ManageSheet } from './Sheets.js';
+import { DeleteSheet, ManageSheet, ShotSheet, type ManageChange } from './Sheets.js';
 import * as Icon from './icons.js';
 
 const PER_PAGE = 15;
+
+/**
+ * Whether a post's screenshot is on the board, so it can be shown as a plain
+ * image. An owner hears about every screenshot, but reads one that is not on
+ * the board through the manage sheet, with their proof; nor is one under a
+ * post they hid.
+ */
+const onBoard = (p: Post) => !!p.shot && (p.shotFor ?? 'board') === 'board' && !p.hidden;
 /** How long a toast stays up, and the "Feedback sent!" screen. */
 const TOAST_MS = 2600;
 
@@ -36,8 +43,8 @@ export interface AppProps {
   noise?: string[];
   /** Offer only these kinds, of the ones the project accepts. All of them when absent. */
   kinds?: PostKind[];
-  /** Whether bugs and ideas may carry a screenshot. On unless switched off. */
-  screenshots?: boolean;
+  /** Whether bugs and ideas may carry a screenshot, and who sees it. On the board unless set otherwise. */
+  screenshots?: Screenshots;
   /** Present when the board is an overlay: draws the X. */
   onClose?: () => void;
   /**
@@ -57,7 +64,11 @@ export interface AppProps {
 export type View = 'board' | 'choose' | 'compose' | 'sent';
 
 /** Whatever is over the board, as one value so two can never be up at once. */
-type Over = { kind: 'delete'; post: Post } | { kind: 'manage'; post: Post } | null;
+type Over =
+  | { kind: 'delete'; post: Post }
+  | { kind: 'manage'; post: Post }
+  | { kind: 'shot'; post: Post }
+  | null;
 
 /**
  * The whole board: the list, writing one, and the two sheets.
@@ -79,7 +90,7 @@ export function App({
   context,
   noise,
   kinds: offered,
-  screenshots = true,
+  screenshots = 'board',
   onClose,
   onPosted,
   start = 'board',
@@ -237,7 +248,9 @@ export function App({
       anon: draft.anon,
       context: sentWith,
       rating: draft.rating,
-      shot: draft.shot ? { type: draft.shot.type, data: draft.shot.data } : undefined,
+      shot: draft.shot
+        ? { type: draft.shot.type, data: draft.shot.data, ...(draft.shot.board ? { board: true } : {}) }
+        : undefined,
     });
     if (!res.ok) {
       if (res.error === 'declined') return { key: null };
@@ -284,12 +297,13 @@ export function App({
     void pull();
   };
 
-  const manage = async (post: Post, change: { status: PostStatus; reply: string; hidden: boolean }) => {
+  const manage = async (post: Post, change: ManageChange) => {
     setOver(null);
     patch(post.id, {
       status: change.status,
       hidden: change.hidden || undefined,
       reply: change.reply ? { text: change.reply, at: Date.now() } : undefined,
+      ...(change.shotOff !== undefined ? { shotFor: change.shotOff ? 'off' : 'board' } : {}),
     });
     const res = await client.manage(post.id, change);
     if (!res.ok) sayRefusal(res.error);
@@ -490,6 +504,8 @@ export function App({
                 onVote={(up) => void vote(post.id, up)}
                 onDelete={post.mine || owner ? () => setOver({ kind: 'delete', post }) : undefined}
                 onManage={owner ? () => setOver({ kind: 'manage', post }) : undefined}
+                shotUrl={onBoard(post) ? client.shotUrl(post.id) : undefined}
+                onShot={() => setOver({ kind: 'shot', post })}
               />
             ))}
           </ul>
@@ -552,6 +568,9 @@ export function App({
 
       {over?.kind === 'delete' && (
         <DeleteSheet t={t} onConfirm={() => void remove(over.post)} onClose={() => setOver(null)} />
+      )}
+      {over?.kind === 'shot' && (
+        <ShotSheet t={t} src={client.shotUrl(over.post.id)} onClose={() => setOver(null)} />
       )}
       {over?.kind === 'manage' && rules && (
         <ManageSheet

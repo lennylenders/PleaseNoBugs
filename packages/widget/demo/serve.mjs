@@ -43,7 +43,8 @@ await store.putProject(
 );
 
 // A board with something on it: every kind, every status, a reply, a name,
-// votes, reviews, a bug with a screenshot, and one post hidden by the owner.
+// votes, reviews, a bug with a screenshot on the board, an idea with one kept
+// for the owner, and one post hidden by the owner.
 const key = (w) => w.address.replace(/\s+/g, '').toUpperCase();
 const ago = (h) => Date.now() - h * 3_600_000;
 const seed = [
@@ -55,7 +56,8 @@ const seed = [
   { id: 's6', author: 'bob', kind: 'idea', text: 'Buy cheap followers here!!!', at: ago(3), votes: [], status: 'open', hidden: true },
   { id: 's7', author: 'alice', kind: 'review', rating: 5, text: 'Paying at the market with a QR code is so quick. Love it.', at: ago(20), votes: ['bob'], status: 'open', anon: false },
   { id: 's8', author: 'bob', kind: 'review', rating: 4, text: 'Great app, but the first load is slow on my old phone.', at: ago(70), votes: [], status: 'open', reply: 'Thank you! Working on the load time.' },
-  { id: 's9', author: 'owner', kind: 'bug', text: 'My balance shows 0 after switching accounts.', at: ago(1), votes: [], status: 'open', shot: true, context: { version: '1.4.0', host: 'browser' } },
+  { id: 's9', author: 'owner', kind: 'bug', text: 'My balance shows 0 after switching accounts.', at: ago(1), votes: [], status: 'open', shot: 'board', context: { version: '1.4.0', host: 'browser' } },
+  { id: 's10', author: 'alice', kind: 'idea', text: 'Show the fee before I confirm, like in this screenshot.', at: ago(8), votes: [], status: 'open', shot: 'owners' },
 ];
 await store.setName('demo', key(WALLETS.alice), 'Alice');
 for (const p of seed) {
@@ -72,7 +74,7 @@ for (const p of seed) {
     ...(p.hidden ? { hidden: true } : {}),
     ...(p.context ? { context: p.context } : {}),
     ...(p.rating ? { rating: p.rating } : {}),
-  }, p.shot ? { type: 'image/png', data: fakeScreenshot() } : undefined);
+  }, p.shot ? { type: 'image/png', data: fakeScreenshot(), board: p.shot === 'board' } : undefined);
   for (const v of p.votes) await store.vote('demo', p.id, key(WALLETS[v]), true);
 }
 

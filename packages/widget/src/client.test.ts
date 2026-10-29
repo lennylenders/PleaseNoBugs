@@ -230,7 +230,15 @@ describe('createClient', () => {
     const shot = await owner.shot('b1');
     expect(shot.ok && shot.data.type).toBe('image/png');
     expect(shot.ok && shot.data.size).toBe(32);
-    expect(await author.shot('b1')).toMatchObject({ ok: false, status: 403, error: 'not_owner' });
+    // Sent without the author's yes, so not even the author gets it back.
+    expect(await author.shot('b1')).toMatchObject({ ok: false, status: 404 });
+
+    // With it, it is on the board: a plain image anybody can load.
+    const yes = { type: 'image/png' as const, data, board: true };
+    expect((await author.post({ id: 'b2', kind: 'bug', text: 'Also broken', shot: yes })).ok).toBe(true);
+    const shown = await fetch(author.shotUrl('b2'));
+    expect(shown.status).toBe(200);
+    expect((await shown.arrayBuffer()).byteLength).toBe(32);
   });
 
   it('answers network when there is no server', async () => {

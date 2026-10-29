@@ -27,8 +27,8 @@ export interface OpenOptions {
   strings?: Strings;
   /** Offer only these kinds, of the ones the project takes. */
   kinds?: PostKind[];
-  /** `false` leaves the screenshot button out. */
-  screenshots?: boolean;
+  /** `'owners'` keeps screenshots off the board, for your eyes only; `false` leaves the button out. */
+  screenshots?: boolean | 'owners';
 }
 
 /**
@@ -51,6 +51,7 @@ export function open(options: OpenOptions): () => void {
   if (options.name) el.setAttribute('name', options.name);
   if (options.kinds) el.setAttribute('kinds', options.kinds.join(','));
   if (options.screenshots === false) el.setAttribute('screenshots', 'off');
+  if (options.screenshots === 'owners') el.setAttribute('screenshots', 'owners');
   el.signer = options.signer;
   el.appLogin = options.appLogin;
   el.context = options.context;

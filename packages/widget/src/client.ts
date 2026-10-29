@@ -246,7 +246,9 @@ export function createClient(options: ClientOptions) {
 
     /**
      * Write one. A review needs `rating` (1 to 5); a bug or an idea may carry
-     * `shot`, a screenshot as base64, which only the project's owners can see.
+     * `shot`, a screenshot as base64. It goes on the board for everyone only
+     * with `board: true`, which says the user agreed; without it only the
+     * project's owners see it.
      */
     post: (p: {
       id: string;
@@ -255,10 +257,15 @@ export function createClient(options: ClientOptions) {
       anon?: boolean;
       context?: PostContext;
       rating?: number;
-      shot?: { type: ShotType; data: string };
+      shot?: { type: ShotType; data: string; board?: boolean };
     }) => request<{ ok: true; left: number }>('POST', at('/posts'), { body: p, auth: 'required' }),
-    /** A post's screenshot. Owners only. */
-    shot: (id: string) => request<Blob>('GET', `${post(id)}/shot`, { auth: 'required', blob: true }),
+    /** A post's screenshot: anybody's for one on the board, owners' for any. */
+    shot: (id: string) => request<Blob>('GET', `${post(id)}/shot`, { auth: 'optional', blob: true }),
+    /**
+     * Where a screenshot on the board can be read without a proof, for an
+     * `<img>` to load by itself.
+     */
+    shotUrl: (id: string) => `${base}${post(id)}/shot`,
     vote: (id: string, up: boolean) =>
       request<{ ok: true; votes: number; voted: boolean }>('POST', `${post(id)}/vote`, {
         body: { up },
@@ -267,7 +274,7 @@ export function createClient(options: ClientOptions) {
     remove: (id: string) => request<{ ok: true }>('DELETE', post(id), { auth: 'required' }),
     setName: (name: string) =>
       request<{ ok: true; name?: string }>('PUT', at('/me'), { body: { name }, auth: 'required' }),
-    manage: (id: string, change: { status?: PostStatus; reply?: string; hidden?: boolean }) =>
+    manage: (id: string, change: { status?: PostStatus; reply?: string; hidden?: boolean; shotOff?: boolean }) =>
       request<{ ok: true }>('POST', `${post(id)}/manage`, { body: change, auth: 'required' }),
   };
 }

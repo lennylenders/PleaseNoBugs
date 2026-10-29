@@ -352,8 +352,10 @@ describe('screenshots', () => {
     return Buffer.from(bytes).toString('base64');
   };
   const shot = (data = png(), type = 'image/png') => ({ type, data });
+  /** A screenshot whose author ticked that everyone may see it. */
+  const shown = (data = png()) => ({ ...shot(data), board: true });
 
-  it('reach owners and nobody else, the author included', async () => {
+  it('without the author saying yes, reach owners and nobody else, the author included', async () => {
     const { as, call, post } = await setup();
     expect((await post(A, { id: 'b1', kind: 'bug', shot: shot() })).status).toBe(200);
 
@@ -362,15 +364,65 @@ describe('screenshots', () => {
     const owner = (await as(OWNER, 'GET', '/posts')).data.posts[0];
     expect(stranger.shot).toBeUndefined();
     expect(author.shot).toBeUndefined();
-    expect(owner.shot).toBe(true);
+    expect(owner).toMatchObject({ shot: true, shotFor: 'owners' });
 
-    expect((await call('GET', '/v1/projects/board1/posts/b1/shot')).status).toBe(401);
-    expect((await as(A, 'GET', '/posts/b1/shot')).data.error).toBe('not_owner');
+    expect((await call('GET', '/v1/projects/board1/posts/b1/shot')).status).toBe(404);
+    expect((await as(A, 'GET', '/posts/b1/shot')).status).toBe(404);
     const got = await as(OWNER, 'GET', '/posts/b1/shot');
     expect(got.status).toBe(200);
     expect(got.type).toBe('image/png');
     expect(got.bytes).toBe(64);
     expect((await as(OWNER, 'GET', '/posts/nope/shot')).status).toBe(404);
+
+    // An owner cannot put on the board what its author kept for them.
+    await as(OWNER, 'POST', '/posts/b1/manage', { shotOff: false });
+    expect((await as(OWNER, 'GET', '/posts')).data.posts[0].shotFor).toBe('owners');
+    expect((await call('GET', '/v1/projects/board1/posts/b1/shot')).status).toBe(404);
+  });
+
+  it('with the author saying yes, reach everybody, without a proof and without being kept', async () => {
+    const { as, call, post } = await setup();
+    expect((await post(A, { id: 'b1', kind: 'bug', shot: shown() })).status).toBe(200);
+
+    const stranger = (await call('GET', '/v1/projects/board1/posts')).data.posts[0];
+    expect(stranger.shot).toBe(true);
+    expect(stranger.shotFor).toBeUndefined();
+    expect((await as(OWNER, 'GET', '/posts')).data.posts[0]).toMatchObject({ shot: true, shotFor: 'board' });
+
+    const got = await call('GET', '/v1/projects/board1/posts/b1/shot');
+    expect(got.status).toBe(200);
+    expect(got.bytes).toBe(64);
+    expect(got.headers.get('cache-control')).toBe('no-store');
+    expect(got.headers.get('x-robots-tag')).toBe('noindex');
+    expect(got.headers.get('x-content-type-options')).toBe('nosniff');
+    expect((await as(B, 'GET', '/posts/b1/shot')).status).toBe(200);
+  });
+
+  it('can be taken off the board by an owner, and put back, without touching the post', async () => {
+    const { as, call, post } = await setup();
+    await post(A, { id: 'b1', kind: 'bug', shot: shown() });
+    expect((await as(A, 'POST', '/posts/b1/manage', { shotOff: true })).status).toBe(403);
+    expect((await as(OWNER, 'POST', '/posts/b1/manage', { shotOff: 'yes' })).status).toBe(400);
+    expect((await as(OWNER, 'POST', '/posts/b1/manage', { shotOff: true })).status).toBe(200);
+
+    const stranger = (await call('GET', '/v1/projects/board1/posts')).data.posts[0];
+    expect(stranger.id).toBe('b1');
+    expect(stranger.shot).toBeUndefined();
+    expect((await call('GET', '/v1/projects/board1/posts/b1/shot')).status).toBe(404);
+    expect((await as(OWNER, 'GET', '/posts')).data.posts[0].shotFor).toBe('off');
+    expect((await as(OWNER, 'GET', '/posts/b1/shot')).status).toBe(200);
+
+    await as(OWNER, 'POST', '/posts/b1/manage', { shotOff: false });
+    expect((await call('GET', '/v1/projects/board1/posts/b1/shot')).status).toBe(200);
+  });
+
+  it('go off the board with a hidden post', async () => {
+    const { as, call, post } = await setup();
+    await post(A, { id: 'b1', kind: 'bug', shot: shown() });
+    await as(OWNER, 'POST', '/posts/b1/manage', { hidden: true });
+    expect((await call('GET', '/v1/projects/board1/posts/b1/shot')).status).toBe(404);
+    expect((await as(A, 'GET', '/posts/b1/shot')).status).toBe(404);
+    expect((await as(OWNER, 'GET', '/posts/b1/shot')).status).toBe(200);
   });
 
   it('are images and nothing else, of a sane size, on bugs and ideas only', async () => {
@@ -381,6 +433,7 @@ describe('screenshots', () => {
     expect((await post(A, { kind: 'bug', shot: shot(png(), 'image/jpeg') })).status).toBe(400);
     expect((await post(A, { kind: 'bug', shot: shot('not base64!') })).status).toBe(400);
     expect((await post(A, { kind: 'bug', shot: 'a string' })).status).toBe(400);
+    expect((await post(A, { kind: 'bug', shot: { ...shot(), board: 'yes' } })).status).toBe(400);
     expect((await post(A, { kind: 'bug', shot: shot(png(1_000_001)) })).status).toBe(400);
     expect((await post(A, { kind: 'review', rating: 4, shot: shot() })).status).toBe(400);
     // The biggest one allowed still fits through the parser.
@@ -389,8 +442,8 @@ describe('screenshots', () => {
 
   it('go when the post is settled or thrown away', async () => {
     const { as, post } = await setup();
-    await post(A, { id: 'b1', kind: 'bug', shot: shot() });
-    await post(A, { id: 'b2', kind: 'bug', shot: shot() });
+    await post(A, { id: 'b1', kind: 'bug', shot: shown() });
+    await post(A, { id: 'b2', kind: 'bug', shot: shown() });
     await as(OWNER, 'POST', '/posts/b1/manage', { status: 'planned' });
     expect((await as(OWNER, 'GET', '/posts/b1/shot')).status).toBe(200);
     await as(OWNER, 'POST', '/posts/b1/manage', { status: 'done' });

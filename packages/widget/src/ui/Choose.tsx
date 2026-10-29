@@ -40,7 +40,7 @@ export function Choose({
           const done = k === 'review' && reviewed;
           return (
             <button key={k} type="button" class={`tile tile--${k}`} disabled={done} onClick={() => onPick(k)}>
-              <span class="tile__icon">{KIND[k].icon(24)}</span>
+              <span class="tile__icon">{KIND[k].icon(28)}</span>
               <span class="tile__label">{t(KIND[k].tile)}</span>
               <span class="tile__note">
                 {done ? t('board.tileReviewDone', { app: appName }) : t(KIND[k].note, { app: appName })}

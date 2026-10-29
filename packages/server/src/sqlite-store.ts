@@ -1,7 +1,8 @@
 import { createRequire } from 'node:module';
 import type { DatabaseSync as Database, SQLInputValue } from 'node:sqlite';
 import type { Answer, PostContext, PostKind, PostStatus, Project, ShotType } from '@pleasenobugs/core';
-import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Shot, Store, TelemetryRow } from './store.js';
+import { shotFor } from './store.js';
+import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Shot, Store, StoredShot, TelemetryRow } from './store.js';
 
 /*
  * Loaded through `require` rather than an import, for one reason: Vite (which
@@ -94,6 +95,8 @@ export class SqliteStore implements Store {
         post_id    TEXT NOT NULL,
         type       TEXT NOT NULL,
         data       BLOB NOT NULL,
+        board      INTEGER NOT NULL DEFAULT 0,
+        off        INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (project_id, post_id)
       );
     `);
@@ -124,6 +127,16 @@ export class SqliteStore implements Store {
         }
       }
       this.run("UPDATE meta SET value = '2' WHERE key = 'schema'");
+    }
+
+    // 3: screenshots on the board. Whether the author agreed to everyone
+    // seeing it, and whether an owner took it off. Every screenshot already
+    // stored was sent under "only the owners see it", so it keeps that: 0.
+    if (schema() < 3) {
+      const cols = this.all('PRAGMA table_info(shots)').map((c) => String(c.name));
+      if (!cols.includes('board')) this.db.exec('ALTER TABLE shots ADD COLUMN board INTEGER NOT NULL DEFAULT 0');
+      if (!cols.includes('off')) this.db.exec('ALTER TABLE shots ADD COLUMN off INTEGER NOT NULL DEFAULT 0');
+      this.run("UPDATE meta SET value = '3' WHERE key = 'schema'");
     }
   }
 
@@ -249,15 +262,17 @@ export class SqliteStore implements Store {
          (SELECT COUNT(*) FROM votes v WHERE v.project_id = p.project_id AND v.post_id = p.id) AS votes,
          EXISTS (SELECT 1 FROM votes v
                  WHERE v.project_id = p.project_id AND v.post_id = p.id AND v.voter = ?) AS voted,
-         EXISTS (SELECT 1 FROM shots s WHERE s.project_id = p.project_id AND s.post_id = p.id) AS shot
-       FROM posts p WHERE p.project_id = ?`,
+         s.board AS shot_board, s.off AS shot_off
+       FROM posts p
+       LEFT JOIN shots s ON s.project_id = p.project_id AND s.post_id = p.id
+       WHERE p.project_id = ?`,
       reader ?? '',
       projectId,
     ).map((r) => ({
       ...toRow(r),
       votes: Number(r.votes),
       voted: Number(r.voted) === 1,
-      shot: Number(r.shot) === 1,
+      ...(r.shot_board === null || r.shot_board === undefined ? {} : { shot: shotFor(Number(r.shot_board) === 1, Number(r.shot_off) === 1) }),
     }));
   }
 
@@ -295,11 +310,12 @@ export class SqliteStore implements Store {
     );
     if (shot) {
       this.run(
-        'INSERT OR REPLACE INTO shots (project_id, post_id, type, data) VALUES (?, ?, ?, ?)',
+        'INSERT OR REPLACE INTO shots (project_id, post_id, type, data, board) VALUES (?, ?, ?, ?, ?)',
         row.projectId,
         row.id,
         shot.type,
         shot.data,
+        shot.board ? 1 : 0,
       );
     }
     return true;
@@ -334,9 +350,20 @@ export class SqliteStore implements Store {
     this.run('DELETE FROM posts WHERE project_id = ? AND id = ?', projectId, id);
   }
 
-  async getShot(projectId: string, postId: string): Promise<Shot | null> {
-    const row = this.get('SELECT type, data FROM shots WHERE project_id = ? AND post_id = ?', projectId, postId);
-    return row ? { type: String(row.type) as ShotType, data: new Uint8Array(row.data as Uint8Array) } : null;
+  async getShot(projectId: string, postId: string): Promise<StoredShot | null> {
+    const row = this.get('SELECT * FROM shots WHERE project_id = ? AND post_id = ?', projectId, postId);
+    if (!row) return null;
+    const board = Number(row.board) === 1;
+    return {
+      type: String(row.type) as ShotType,
+      data: new Uint8Array(row.data as Uint8Array),
+      board,
+      for: shotFor(board, Number(row.off) === 1),
+    };
+  }
+
+  async setShotOff(projectId: string, postId: string, off: boolean) {
+    this.run('UPDATE shots SET off = ? WHERE project_id = ? AND post_id = ?', off ? 1 : 0, projectId, postId);
   }
 
   async deleteShot(projectId: string, postId: string) {

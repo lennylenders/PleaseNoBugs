@@ -5,6 +5,7 @@ import type {
   PostReply,
   PostStatus,
   Project,
+  ShotFor,
   ShotType,
 } from '@pleasenobugs/core';
 
@@ -54,17 +55,33 @@ export interface PostRow {
 export interface PostWithVotes extends PostRow {
   votes: number;
   voted: boolean;
-  /** Whether a screenshot is stored with it. */
-  shot: boolean;
+  /** Who sees its screenshot, when it has one. */
+  shot?: ShotFor;
 }
 
 /**
  * A screenshot, kept apart from its post so reading a board never loads one.
- * Owners' eyes only, and gone with the post (see `deletePost`).
+ * Gone with the post (see `deletePost`).
  */
 export interface Shot {
   type: ShotType;
   data: Uint8Array;
+  /**
+   * Whether its author agreed to everyone seeing it. Stored once and never
+   * changed: without it the screenshot is the owners' alone, whatever happens
+   * later. An owner taking it off the board is a separate flag.
+   */
+  board: boolean;
+}
+
+/** A stored screenshot, with who sees it now. */
+export interface StoredShot extends Shot {
+  for: ShotFor;
+}
+
+/** Who sees a screenshot, from what its author agreed to and what an owner did. */
+export function shotFor(board: boolean, off: boolean): ShotFor {
+  return !board ? 'owners' : off ? 'off' : 'board';
 }
 
 /** What `updatePost` may change. `null` removes a field. */
@@ -127,7 +144,12 @@ export interface Store {
   updatePost(projectId: string, id: string, patch: PostPatch): Promise<void>;
   /** Removes the post, its votes and its screenshot. */
   deletePost(projectId: string, id: string): Promise<void>;
-  getShot(projectId: string, postId: string): Promise<Shot | null>;
+  getShot(projectId: string, postId: string): Promise<StoredShot | null>;
+  /**
+   * An owner takes a screenshot off the board, or puts it back. Putting back
+   * does nothing to one its author never agreed to show: that stays `owners`.
+   */
+  setShotOff(projectId: string, postId: string, off: boolean): Promise<void>;
   /** Removes a post's screenshot and nothing else. */
   deleteShot(projectId: string, postId: string): Promise<void>;
   /** Whether this wallet has a post of this kind on this board, hidden ones included. */

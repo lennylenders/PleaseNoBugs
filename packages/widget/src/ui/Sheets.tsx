@@ -60,6 +60,30 @@ function Sheet({
   );
 }
 
+/**
+ * A screenshot on the board, whole. Read straight from the server, the same
+ * image the card shows, so there is nothing to fetch or let go of here.
+ */
+export function ShotSheet({ t, src, onClose }: { t: Translate; src: string; onClose: () => void }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <Sheet label={t('board.shot')} onClose={onClose}>
+      <figure class="sheet__shot sheet__shot--whole">
+        {failed ? (
+          <figcaption>{t('board.shotGone')}</figcaption>
+        ) : (
+          <img src={src} alt={t('board.shot')} onError={() => setFailed(true)} />
+        )}
+      </figure>
+      <div class="sheet__actions">
+        <button type="button" class="text-btn" onClick={onClose}>
+          {t('board.close')}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
 export function DeleteSheet({ t, onConfirm, onClose }: { t: Translate; onConfirm: () => void; onClose: () => void }) {
   return (
     <Sheet label={t('board.deleteTitle')} onClose={onClose}>
@@ -85,15 +109,26 @@ const STATUSES: { status: PostStatus; label: CopyKey }[] = [
   { status: 'declined', label: 'board.statusDeclined' },
 ];
 
+/** What an owner's save sends. `shotOff` only for a screenshot its author put on the board. */
+export interface ManageChange {
+  status: PostStatus;
+  reply: string;
+  hidden: boolean;
+  shotOff?: boolean;
+}
+
 /**
  * An owner answering a post: where it stands, what to say, and whether it
- * stays on the board. **One save for all three**, because three separate
- * confirmations are three chances to leave halfway. A review has no "where it
- * stands", so it gets the other two.
+ * stays on the board. **One save for all of it**, because separate
+ * confirmations are chances to leave halfway. A review has no "where it
+ * stands", so it gets the rest.
  *
  * On a post that carries context it also shows what the app sent along (a
- * version, the host), and the screenshot if there is one, which nobody but
- * owners ever sees.
+ * version, the host), which only owners see, and the screenshot if there is
+ * one, saying who sees it. One its author put on the board can be **taken
+ * off it on its own**, for when it shows something private after all, while
+ * the post stays up. One the author kept for the owners has no such switch:
+ * nobody may put it on the board for them.
  */
 export function ManageSheet({
   t,
@@ -108,12 +143,17 @@ export function ManageSheet({
   replyMax: number;
   /** Fetches the screenshot, for a post that has one. */
   loadShot: () => Promise<Blob | null>;
-  onSave: (change: { status: PostStatus; reply: string; hidden: boolean }) => void;
+  onSave: (change: ManageChange) => void;
   onClose: () => void;
 }) {
   const [status, setStatus] = useState<PostStatus>(post.status);
   const [reply, setReply] = useState(post.reply?.text ?? '');
   const [hidden, setHidden] = useState(!!post.hidden);
+  const [shotOff, setShotOff] = useState(post.shotFor === 'off');
+  // Whether the author agreed to the board, so an owner may switch it.
+  const switchable = post.shot && (post.shotFor === 'board' || post.shotFor === 'off');
+  const shotWho: CopyKey =
+    post.shotFor === 'owners' ? 'board.shotForOwners' : shotOff ? 'board.shotForOff' : 'board.shotForBoard';
   const context = post.context ? Object.entries(post.context) : [];
   const shot = useShot(post.shot ? loadShot : null);
 
@@ -140,7 +180,16 @@ export function ManageSheet({
               </a>
             )
           )}
-          {shot !== 'failed' && <figcaption>{t('board.shotGoes')}</figcaption>}
+          {shot !== 'failed' && (
+            <figcaption>
+              {t(shotWho)} {t('board.shotGoes')}
+            </figcaption>
+          )}
+          {switchable && (
+            <button type="button" class="hide-btn" aria-pressed={shotOff} onClick={() => setShotOff(!shotOff)}>
+              {t(shotOff ? 'board.shotOn' : 'board.shotOff')}
+            </button>
+          )}
         </figure>
       )}
 
@@ -195,7 +244,11 @@ export function ManageSheet({
       </button>
 
       <div class="sheet__actions">
-        <button type="button" class="btn" onClick={() => onSave({ status, reply: reply.trim(), hidden })}>
+        <button
+          type="button"
+          class="btn"
+          onClick={() => onSave({ status, reply: reply.trim(), hidden, ...(switchable ? { shotOff } : {}) })}
+        >
           {t('board.save')}
         </button>
       </div>

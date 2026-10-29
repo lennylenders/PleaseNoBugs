@@ -37,10 +37,16 @@ export function toVisible(
   if (!row.anon && name) out.who = name;
   if (row.reply) out.reply = row.reply;
   if (row.rating !== undefined) out.rating = row.rating;
+  // A screenshot on the board is the board's, like the text under it. Any
+  // other one, and who sees it, is for owners only.
+  if (row.shot === 'board') out.shot = true;
   if (owner) {
     if (row.context && Object.keys(row.context).length) out.context = row.context;
     if (row.hidden) out.hidden = true;
-    if (row.shot) out.shot = true;
+    if (row.shot) {
+      out.shot = true;
+      out.shotFor = row.shot;
+    }
   }
   return out;
 }

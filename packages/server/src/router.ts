@@ -224,18 +224,25 @@ export function createRouter(options: RouterOptions): express.Router {
     h(async (req, res) => {
       const p = await project(req, res);
       if (!p) return;
-      const w = await wallet(req, res, p);
-      if (!w) return;
-      // Owners only, and the author is not one: a screenshot of a wallet app
-      // can show a balance or an address, and the only reason it was sent is
-      // so the people fixing the bug can see it.
-      if (!w.owner) return fail(res, 403, 'not_owner');
-      const shot = await store.getShot(p.id, String(req.params.id));
-      if (!shot) return fail(res, 404, 'no_post');
+      const r = await reader(req, p);
+      if (r.kind === 'refused') return fail(res, r.status, r.error);
+      const id = String(req.params.id);
+      const [post, shot] = await Promise.all([store.getPost(p.id, id), store.getShot(p.id, id)]);
+      // On the board it is anybody's, like the post it belongs to, and needs
+      // no proof, so the widget can show it as a plain image. Anything else,
+      // a screenshot its author kept for the owners, one an owner took off,
+      // or one under a hidden post, is the owners' alone. Everybody else hears
+      // there is nothing here, rather than that there is something they may
+      // not see.
+      const owner = r.kind === 'wallet' && r.owner;
+      if (!post || !shot || (!owner && (shot.for !== 'board' || post.hidden))) return fail(res, 404, 'no_post');
       res.set({
         'content-type': shot.type,
-        'cache-control': 'private, no-store',
+        // Never kept, by a browser or anything in between, so taking one off
+        // the board takes it off for the next person who looks.
+        'cache-control': 'no-store',
         'x-content-type-options': 'nosniff',
+        'x-robots-tag': 'noindex',
         'content-security-policy': "default-src 'none'",
       });
       res.send(Buffer.from(shot.data));
@@ -379,7 +386,7 @@ export function createRouter(options: RouterOptions): express.Router {
       const post = await store.getPost(p.id, String(req.params.id));
       if (!post) return fail(res, 404, 'no_post');
 
-      const { status, reply, hidden } = (req.body ?? {}) as Record<string, unknown>;
+      const { status, reply, hidden, shotOff } = (req.body ?? {}) as Record<string, unknown>;
       const patch: PostPatch = {};
       // Whether this call was an *answer*, which is what the author is told
       // about. Hiding is not: telling somebody their post was taken down is
@@ -408,9 +415,14 @@ export function createRouter(options: RouterOptions): express.Router {
         if (typeof hidden !== 'boolean') return fail(res, 400, 'bad_request');
         patch.hidden = hidden;
       }
+      // Taking a screenshot off the board leaves the post on it. Putting one
+      // back only works for a screenshot its author agreed to show; the store
+      // leaves any other with the owners.
+      if (shotOff !== undefined && typeof shotOff !== 'boolean') return fail(res, 400, 'bad_request');
       if (answered) patch.answeredAt = now();
 
       await store.updatePost(p.id, post.id, patch);
+      if (typeof shotOff === 'boolean') await store.setShotOff(p.id, post.id, shotOff);
       // A screenshot is there to get something fixed. Once it is, or will not
       // be, nobody needs a picture of somebody's screen any more.
       if (patch.status === 'done' || patch.status === 'declined') await store.deleteShot(p.id, post.id);
@@ -522,22 +534,28 @@ export function createRouter(options: RouterOptions): express.Router {
 const SHOT_B64_MAX = Math.ceil(SHOT_MAX_BYTES / 3) * 4;
 
 /**
- * A screenshot from a request body, `{ type, data }` with `data` in base64, or
+ * A screenshot from a request body, `{ type, data, board? }` with `data` in base64, or
  * null when it is not one. The bytes have to start the way the type says, so
  * nothing but an image is ever stored or served back.
  */
 function readShot(v: unknown): Shot | null {
   if (!v || typeof v !== 'object') return null;
-  const { type, data } = v as Record<string, unknown>;
+  const { type, data, board } = v as Record<string, unknown>;
+  // Only an explicit yes puts it on the board. A widget that never asked its
+  // user, an older one or a script, sends nothing and gets owners only.
+  if (board !== undefined && typeof board !== 'boolean') return null;
+  const agreed = board === true;
   if (typeof data !== 'string' || !data || data.length > SHOT_B64_MAX) return null;
   if (!/^[A-Za-z0-9+/]+={0,2}$/.test(data)) return null;
   const bytes = new Uint8Array(Buffer.from(data, 'base64'));
   if (!bytes.length || bytes.length > SHOT_MAX_BYTES) return null;
   const starts = (...sig: number[]) => sig.every((b, i) => bytes[i] === b);
   const ascii = (at: number, s: string) => [...s].every((c, i) => bytes[at + i] === c.charCodeAt(0));
-  if (type === 'image/jpeg' && starts(0xff, 0xd8, 0xff)) return { type, data: bytes };
-  if (type === 'image/png' && starts(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return { type, data: bytes };
-  if (type === 'image/webp' && ascii(0, 'RIFF') && ascii(8, 'WEBP')) return { type, data: bytes };
+  if (type === 'image/jpeg' && starts(0xff, 0xd8, 0xff)) return { type, data: bytes, board: agreed };
+  if (type === 'image/png' && starts(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) {
+    return { type, data: bytes, board: agreed };
+  }
+  if (type === 'image/webp' && ascii(0, 'RIFF') && ascii(8, 'WEBP')) return { type, data: bytes, board: agreed };
   return null;
 }
 

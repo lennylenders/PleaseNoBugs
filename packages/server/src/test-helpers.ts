@@ -51,7 +51,7 @@ export async function serve(options: AppOptions) {
     method: string,
     path: string,
     opts: { auth?: string; origin?: string; body?: unknown } = {},
-  ): Promise<{ status: number; data: any; raw: string; type: string | null; bytes: number }> {
+  ): Promise<{ status: number; data: any; raw: string; type: string | null; bytes: number; headers: Headers }> {
     const headers: Record<string, string> = { 'content-type': 'application/json' };
     if (opts.auth) headers.authorization = opts.auth;
     if (opts.origin) headers.origin = opts.origin;
@@ -68,7 +68,7 @@ export async function serve(options: AppOptions) {
     } catch {
       // Left null: a test that expected JSON fails on its own assertion.
     }
-    return { status: res.status, data, raw, type: res.headers.get('content-type'), bytes: buf.length };
+    return { status: res.status, data, raw, type: res.headers.get('content-type'), bytes: buf.length, headers: res.headers };
   }
 
   return { call, close: () => new Promise<void>((r) => server.close(() => r())) };
