@@ -1,0 +1,687 @@
+/*
+ * The PleaseNoBugs website. Colours and type from the owner's Figma file
+ * (iXsmXB5U88GOh86ljQB9L9), in the style of shitti.me: a dark purple page,
+ * lighter purple cards and bands, turquoise buttons, white words.
+ *
+ * Fonts are served from this site, not Google's or Adobe's, so a visit tells
+ * nobody. Museo Sans Rounded is the design's font. Its files are licensed and
+ * kept out of git (assets/fonts/), so where they are missing Mulish stands in.
+ */
+@font-face {
+  font-family: 'Museo Sans Rounded';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url('fonts/museo-sans-rounded-500.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Museo Sans Rounded';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url('fonts/museo-sans-rounded-700.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Museo Sans Rounded';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 900;
+  src: url('fonts/museo-sans-rounded-900.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Mulish';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 1000;
+  src: url('../fonts/mulish-latin-wght-normal.woff2') format('woff2-variations');
+}
+
+:root {
+  color-scheme: dark;
+  --page: #292a56;
+  --card: #5656ac;
+  --card-2: #454689;
+  --row: #33346c;
+  --line: #6d6dc5;
+  --ink: #ffffff;
+  --ink-2: #e8e8f2;
+  --quiet: #d0d0da;
+  --faint: #a7a8d0;
+  --button: #1fc7d4;
+  --button-hover: #19b4c0;
+  --band: #5656ac;
+  --device: #1a1a32;
+  --scrim: #0a0a1e;
+  --shadow: 0 12px 32px rgba(10, 10, 30, 0.28);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --gutter: 16px;
+  --font: 'Museo Sans Rounded', 'Mulish', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+/* So a `display` below never un-hides what the page hid. */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--ink);
+  font: 500 16px/1.4 var(--font);
+}
+
+body > main { flex: 1 0 auto; }
+
+/* The one pager: the hero sits in the middle of what the bars leave. */
+main.one { display: flex; align-items: center; }
+main.one .hero { flex: 1; }
+
+a { color: inherit; }
+
+img, svg { display: block; }
+
+code, pre, kbd { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; }
+
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--button) 70%, transparent); outline-offset: 2px; }
+
+.wrap {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* ---- Top bar: the logo, then the tabs ---------------------------------- */
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--page) 90%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.top__inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 72px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.nav { display: flex; gap: 4px; align-items: center; }
+
+.nav a {
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--quiet);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.nav a:hover { color: var(--ink); background: var(--row); }
+.nav a[aria-current='page'] { color: var(--ink); background: var(--card); }
+
+@media (max-width: 560px) {
+  .top__inner { gap: 8px; }
+  .brand span { display: none; }
+  .nav a { padding: 8px 10px; font-size: 14px; }
+}
+
+/* ---- Buttons ----------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  background: var(--button);
+  color: #fff;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.btn:hover { background: var(--button-hover); }
+.btn:active { transform: scale(0.97); }
+
+.btn--quiet { background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line); }
+.btn--quiet:hover { background: #6060b8; }
+
+.btn--small { min-height: 32px; padding: 0 14px; font-size: 14px; }
+.btn--grey { background: var(--card-2); color: var(--ink); }
+.btn--grey:hover { background: #50519a; }
+
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+/* ---- Headings and text ------------------------------------------------- */
+
+h1, h2, h3 { margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(34px, 5vw, 52px); font-weight: 900; letter-spacing: -0.01em; }
+h2 { font-size: clamp(26px, 3.4vw, 34px); font-weight: 900; }
+h3 { font-size: 18px; font-weight: 700; }
+
+.lead { color: var(--ink); font-size: 18px; line-height: 1.55; max-width: 34em; margin: 16px 0 0; }
+.quiet { color: var(--quiet); }
+
+section { padding: 56px 0; }
+section + section { padding-top: 0; }
+
+.section-head { max-width: 640px; margin-bottom: 28px; }
+.section-head p { color: var(--quiet); margin: 10px 0 0; line-height: 1.55; }
+
+/* ---- The one pager: what it is, and the widget to try ----------------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  gap: 48px;
+  align-items: center;
+  padding-top: 40px;
+  padding-bottom: 56px;
+}
+
+.hero h1 { max-width: 587px; letter-spacing: -0.52px; }
+.hero .lead { font-size: 20px; line-height: 30px; max-width: 660px; }
+.hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+
+.try { display: grid; gap: 24px; justify-items: center; }
+.try p { margin: 0; font-size: 14px; text-align: center; }
+
+.device {
+  width: 100%;
+  height: 620px;
+  border-radius: 28px;
+  padding: 10px;
+  background: var(--device);
+  box-shadow: 0 30px 60px rgba(31, 35, 72, 0.22);
+}
+
+.device please-no-bugs {
+  display: block;
+  height: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+@media (max-width: 880px) {
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .try { max-width: 420px; width: 100%; margin: 0 auto; }
+  .device { height: 560px; }
+}
+
+/* ---- The table, after the design's list of posts ---------------------- */
+
+.table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 15px; }
+.table th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--faint);
+  padding: 0 16px 12px;
+  border-bottom: 1.5px solid var(--line);
+}
+.table td { padding: 16px; vertical-align: top; }
+.table tbody tr:nth-child(odd) td { background: var(--row); }
+.table td:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.table td:last-child { border-radius: 0 var(--radius) var(--radius) 0; text-align: right; }
+.table th:last-child { text-align: right; }
+.table .what { color: var(--quiet); }
+.table .what b { color: var(--ink); font-weight: 700; }
+
+.kind { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; white-space: nowrap; }
+.kind i {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: #fff;
+  font-style: normal;
+  font-size: 14px;
+}
+/* One colour per kind, the same as the widget's pleasenobugs theme and Figma's
+   widget/bug, widget/idea and widget/review. */
+.kind--bug i { background: #e5484d; }
+.kind--idea i { background: #8b5cf6; }
+.kind--review i { background: #e9a00b; }
+.kind--answer i { background: var(--device); }
+
+.pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+/* Named by what they say, as Figma's pill/* variables. Done and Not doing
+   are the colours of those statuses on the board. */
+.pill--everyone { background: var(--device); color: #1fc7d4; }
+.pill--only-you { background: var(--device); color: #ffc21f; }
+.pill--done { background: var(--device); color: #21bca5; }
+.pill--not-doing { background: var(--device); color: #8a8fb8; }
+
+@media (max-width: 720px) {
+  .table thead { display: none; }
+  .table, .table tbody, .table tr, .table td { display: block; }
+  .table tr { padding: 12px 16px; border-radius: var(--radius); }
+  .table tbody tr:nth-child(odd) { background: var(--row); }
+  .table tbody tr:nth-child(odd) td { background: none; }
+  .table td { padding: 4px 0; text-align: left !important; }
+}
+
+/* ---- Cards -------------------------------------------------------------- */
+
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+
+.card {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.card p { color: var(--quiet); margin: 8px 0 0; line-height: 1.55; font-size: 15px; }
+.card code { font-size: 14px; color: var(--ink); background: var(--row); padding: 1px 6px; border-radius: 4px; }
+
+@media (max-width: 880px) { .cards { grid-template-columns: 1fr; } }
+
+/* Little drawings of the three modes. */
+.mini {
+  position: relative;
+  height: 132px;
+  border-radius: var(--radius);
+  background: var(--row);
+  border: 1.5px solid var(--line);
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.mini::before {
+  content: '';
+  position: absolute;
+  left: 14px; right: 40%; top: 16px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--card-2);
+  box-shadow: 0 16px 0 var(--card-2), 0 32px 0 var(--card-2);
+}
+.mini__board {
+  position: absolute;
+  background: var(--page);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.mini__board::before {
+  content: '';
+  position: absolute;
+  left: 10px; right: 10px; top: 12px;
+  height: 18px;
+  border-radius: 5px;
+  background: #e5484d;
+  box-shadow: 0 24px 0 #8b5cf6, 0 48px 0 #e9a00b;
+}
+.mini--inline .mini__board { left: 50%; right: 14px; top: 12px; bottom: 12px; }
+.mini--floating .mini__fab {
+  position: absolute;
+  right: 14px; bottom: 14px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--button);
+}
+.mini--overlay { background: color-mix(in srgb, var(--scrim) 50%, var(--row)); }
+.mini--overlay .mini__board { right: 14px; bottom: 12px; width: 42%; top: 12px; }
+
+/* ---- Code -------------------------------------------------------------- */
+
+.code {
+  position: relative;
+  background: var(--device);
+  color: #e8e9f5;
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.6;
+  font-variant-ligatures: none;
+  margin: 0;
+}
+.code .t { color: #7fe3ea; }
+.code .a { color: #f3c969; }
+.code .s { color: #f4a3a0; }
+.code .c { color: #8a8fb8; }
+
+/* ---- Footer, a band of its own ---------------------------------------- */
+
+.foot {
+  background: var(--band);
+  border-top: 1.5px solid var(--line);
+  padding: 28px 0 40px;
+  color: var(--quiet);
+  font-size: 14px;
+}
+.foot .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+.foot a { color: var(--ink); }
+
+/* ---- The configurator, in steps ---------------------------------------- */
+
+/* One narrow column, after the design: the widget, the card for the part
+   being changed under it, and Back / Preview / Next. */
+.steps {
+  max-width: calc(560px + 2 * var(--gutter));
+  padding-top: 24px;
+  padding-bottom: 56px;
+}
+.steps .lead { margin-top: 12px; }
+
+.progress { margin: 24px 0 16px; }
+.progress__step { display: flex; align-items: baseline; gap: 8px; margin: 0 0 10px; font-size: 15px; }
+.progress__count {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.progress__bars { display: flex; gap: 6px; }
+.progress__bars i { flex: 1; height: 4px; border-radius: 2px; background: var(--card-2); }
+.progress__bars i.done { background: color-mix(in srgb, var(--button) 55%, var(--card-2)); }
+.progress__bars i.now { background: var(--button); }
+.progress__hint { margin: 10px 0 0; font-size: 14px; color: var(--quiet); }
+
+.editor {
+  display: grid;
+  gap: 14px;
+  background: var(--row);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.viewport { position: relative; }
+
+/* The line around the part this step changes, drawn over the widget. */
+.mark {
+  position: absolute;
+  z-index: 1;
+  border: 2px solid var(--button);
+  border-radius: 16px;
+  pointer-events: none;
+}
+.mark__tag {
+  position: absolute;
+  left: 10px;
+  bottom: -12px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--button);
+  color: #12132b;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.mark--right .mark__tag { left: auto; right: 10px; }
+
+.edit { background: var(--card); border-radius: 12px; padding: 20px; }
+.edit__step h2 { font-size: 18px; font-weight: 700; }
+.edit__hint { margin: 4px 0 18px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.edit__hint code { font-size: 13px; }
+.edit .field { margin-bottom: 18px; }
+.edit .field:last-child { margin-bottom: 0; }
+.edit .field .input + .input { margin-top: 2px; }
+.edit .tabs { margin: 0 0 10px; }
+.edit .tabs button[aria-selected='true'] { background: var(--row); }
+
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.actions .spacer { flex: 1; }
+
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field > span, .field legend { font-size: 13px; color: var(--quiet); padding: 0; }
+fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
+
+.input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: var(--row);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+}
+.input:focus { border-color: var(--button); outline: none; }
+.input::placeholder { color: var(--faint); }
+
+/* A row of choices, one picked. */
+.seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--row);
+  border: 1.5px solid var(--line);
+}
+.seg label { flex: 1 1 auto; position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span {
+  display: block;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 7px;
+  font-size: 14px;
+  color: var(--quiet);
+  white-space: nowrap;
+}
+.seg input:checked + span { background: var(--card); color: var(--ink); box-shadow: 0 1px 4px rgba(10, 10, 30, 0.3); }
+.seg input:focus-visible + span { outline: 3px solid color-mix(in srgb, var(--button) 70%, transparent); }
+
+.checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  font-size: 14px;
+  cursor: pointer;
+}
+.check input { width: 16px; height: 16px; margin: 0; accent-color: var(--button); }
+
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; cursor: pointer; }
+.switch input { width: 40px; height: 22px; margin: 0; accent-color: var(--button); }
+
+/* Colour swatches, after the design's round pickers. */
+.swatches { display: grid; gap: 2px; }
+.swatch {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto 28px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 14px;
+}
+.swatch__dot {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  overflow: hidden;
+}
+.swatch__dot input { position: absolute; inset: -6px; width: 40px; height: 40px; opacity: 0; cursor: pointer; }
+.swatch__name { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.swatch__name small { display: block; color: var(--faint); font-size: 12px; font-family: ui-monospace, Consolas, monospace; }
+.swatch__hex { font-family: ui-monospace, Consolas, monospace; font-size: 13px; color: var(--quiet); }
+.swatch--set .swatch__hex { color: var(--ink); font-weight: 700; }
+.swatch__reset {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--faint);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  visibility: hidden;
+}
+.swatch--set .swatch__reset { visibility: visible; }
+.swatch__reset:hover { background: var(--row); color: var(--ink); }
+
+/* The main colours of a step: round, with their names under them. */
+.dots { display: flex; flex-wrap: wrap; gap: 14px 22px; }
+.dot { position: relative; display: grid; justify-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.dot .swatch__dot { width: 32px; height: 32px; box-shadow: inset 0 0 0 2px #fff; }
+.dot .swatch__reset {
+  position: absolute;
+  top: -8px;
+  right: -12px;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  background: var(--row);
+  color: var(--ink);
+}
+.swatch--set .dot__name { font-weight: 700; color: var(--ink); }
+
+.more-colours > summary {
+  display: inline-block;
+  margin-top: 12px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--button);
+}
+.more-colours > summary::-webkit-details-marker { display: none; }
+.more-colours[open] > summary { margin-bottom: 6px; }
+
+/*
+ * A pretend app page the widget sits on. The transform makes it the box the
+ * widget's fixed-position button and panel are placed in, so they land in
+ * its corner rather than the site's.
+ */
+.screen {
+  position: relative;
+  height: 520px;
+  cursor: pointer;
+  border-radius: 12px;
+  background: var(--page);
+  overflow: hidden;
+  transform: translateZ(0);
+  box-shadow: 0 1px 3px rgba(10, 10, 30, 0.3);
+}
+
+.screen__app { padding: 24px; display: grid; gap: 12px; align-content: start; }
+.screen__app b { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
+.screen__app i {
+  display: block;
+  height: 16px;
+  border-radius: 6px;
+  background: var(--card-2);
+}
+.screen__app i:nth-of-type(1) { width: 62%; }
+.screen__app i:nth-of-type(2) { width: 48%; }
+.screen__app i:nth-of-type(3) { width: 70%; height: 120px; margin-top: 8px; border-radius: 10px; background: var(--row); }
+.screen__app i:nth-of-type(4) { width: 40%; }
+
+.screen--inline .screen__app { display: none; }
+.screen--inline { background: var(--device); }
+.screen--inline please-no-bugs {
+  display: block;
+  width: min(375px, 100%);
+  height: 100%;
+  margin: 0 auto;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.screen__again {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+}
+
+/* While previewing the widget is itself again: its own pointer, its own taps. */
+.screen--live { cursor: auto; }
+
+@media (max-width: 639px) {
+  .editor { padding: 10px; }
+  .edit { padding: 16px; }
+  .screen { height: 560px; }
+}
+
+.tabs { display: flex; gap: 4px; margin: 24px 0 10px; }
+.tabs button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--quiet);
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.tabs button[aria-selected='true'] { background: var(--card); color: var(--ink); }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 20px);
+  background: var(--device);
+  color: #fff;
+  border: 1px solid var(--line);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+  z-index: 20;
+}
+.toast--on { opacity: 1; transform: translate(-50%, 0); }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .toast { transition: none; }
+}

@@ -38,7 +38,7 @@
   /* A filled star. */
   --pnb-star: #f5a524;
   /* The tiles you pick a kind on, and what is written on them. Quiet cards by
-     default; a theme can paint them (see `vivid`). */
+     default; a theme can paint them (see `nimiq`). */
   --pnb-tile-bug: var(--pnb-surface);
   --pnb-tile-idea: var(--pnb-surface);
   --pnb-tile-review: var(--pnb-surface);
@@ -110,9 +110,10 @@
   --pnb-scrim: rgba(0, 0, 0, 0.6);
 }
 
-/* Bright and light: the colours of the feedback design this widget's tiles
-   came from. Painted tiles, a gradient on the buttons, and a green "sent". */
-:host([theme='vivid']) {
+/* Nimiq: bright and light, the colours of the feedback design this widget's
+   tiles came from. Painted tiles, a gradient on the buttons, and a green
+   "sent". */
+:host([theme='nimiq']) {
   --pnb-bg: #ffffff;
   --pnb-surface: #f5f5f8;
   --pnb-surface-2: #e9e9f0;
@@ -144,8 +145,10 @@
   --pnb-scrim: rgba(31, 35, 72, 0.5);
 }
 
-/* Shitti's own colours, where this board started. Also the worked example of
-   a whole theme in fourteen lines. */
+/* PleaseNoBugs' own colours, the same as its website. They started as
+   Shitti's, and `shitti`, the name 0.1 shipped them under, still works. Also
+   the worked example of a whole theme in fourteen lines. */
+:host([theme='pleasenobugs']),
 :host([theme='shitti']) {
   --pnb-bg: #292a56;
   --pnb-surface: #5656ac;
@@ -157,6 +160,13 @@
   --pnb-accent: #1fc7d4;
   --pnb-on-accent: #12132b;
   --pnb-danger: #ff7a6b;
+  /* Its own kinds and statuses: an idea purple, a review orange like
+     its star, Done in teal and the rest a quiet grey. */
+  --pnb-idea: #8b5cf6;
+  --pnb-review: #e9a00b;
+  --pnb-planned: #8a8fb8;
+  --pnb-done: #21bca5;
+  --pnb-declined: #8a8fb8;
   --pnb-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
   --pnb-scrim: rgba(10, 10, 30, 0.6);
 }
@@ -750,11 +760,11 @@ button {
 .tile--review .tile__icon { background: var(--pnb-review); }
 
 /* On a painted tile the disc would vanish into its own colour. */
-:host([theme='vivid']) .tile {
+:host([theme='nimiq']) .tile {
   border-color: transparent;
 }
 
-:host([theme='vivid']) .tile__icon {
+:host([theme='nimiq']) .tile__icon {
   background: rgba(255, 255, 255, 0.22);
 }
 
@@ -819,16 +829,16 @@ button {
 }
 
 /* On a painted "sent" the words go white and the tick needs no disc. */
-:host([theme='vivid']) .sent {
+:host([theme='nimiq']) .sent {
   color: #fff;
 }
 
-:host([theme='vivid']) .sent__check {
+:host([theme='nimiq']) .sent__check {
   background: transparent;
 }
 
-:host([theme='vivid']) .sent__note,
-:host([theme='vivid']) .sent__back {
+:host([theme='nimiq']) .sent__note,
+:host([theme='nimiq']) .sent__back {
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -857,6 +867,14 @@ button {
 .field:focus {
   outline: none;
   border-color: var(--pnb-accent);
+}
+
+/* The browser's own grey is too faint on a coloured card; the quiet text
+   colour is made to be read on it. Firefox also dims it by itself. */
+.field::placeholder,
+.input::placeholder {
+  color: var(--pnb-text-quiet);
+  opacity: 1;
 }
 
 .input {

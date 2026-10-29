@@ -4,7 +4,7 @@ import { POST_KINDS, type AppLogin, type PostContext, type PostKind } from '@ple
 import { createClient, type Client } from './client.js';
 import { pickLang, translator, type Strings } from './i18n.js';
 import type { Signer } from './signer.js';
-import { App } from './ui/App.js';
+import { App, type View } from './ui/App.js';
 import * as Icon from './ui/icons.js';
 import css from './styles.css?inline';
 
@@ -21,10 +21,13 @@ export const TAG = 'please-no-bugs';
  *   whole screen. The "paste one line and done" route.
  * - `overlay`: the board over the whole screen, now. What {@link open} uses.
  *
- * Attributes: `project` and `server` (both required), `mode`, `lang`,
- * `theme` (`auto` | `light` | `dark` | `vivid` | `shitti`), `accent` (a
- * colour), `app-name`, `name` (a display name to suggest), `kinds` (which of
- * `bug,idea,review` to offer) and `screenshots` (`off` to leave them out).
+ * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
+ * `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq`), `accent`
+ * (a colour), `app-name`, `name` (a display name to suggest), `kinds` (which
+ * of `bug,idea,review` to offer), `screenshots` (`off` to leave them out),
+ * `demo` (sample posts in the page's memory, no server: see `demo.ts`) and,
+ * with `demo` only, `screen` (`button`, `tiles`, `board`, `write` or `sent`:
+ * that screen, held, for the website's configurator).
  *
  * Properties, for things an attribute cannot carry: `signer`, `appLogin`,
  * `context`, `noise`, `strings`.
@@ -48,6 +51,8 @@ export class PleaseNoBugsElement extends HTMLElement {
     'name',
     'kinds',
     'screenshots',
+    'demo',
+    'screen',
   ];
 
   #root: ShadowRoot | null = null;
@@ -60,6 +65,8 @@ export class PleaseNoBugsElement extends HTMLElement {
   #noise?: string[];
   #strings?: Strings;
   #warnLater?: ReturnType<typeof setTimeout>;
+  /** The demo board's code, fetched the first time `demo` is set. */
+  #demo?: typeof import('./demo.js');
 
   /** How to sign outside Nimiq Pay. Inside it the widget signs by itself. */
   get signer() {
@@ -130,7 +137,7 @@ export class PleaseNoBugsElement extends HTMLElement {
   }
 
   attributeChangedCallback(name: string) {
-    if (name === 'project' || name === 'server') this.#clientKey = '';
+    if (name === 'project' || name === 'server' || name === 'demo') this.#clientKey = '';
     if (name === 'accent') this.#paintAccent();
     this.#render();
   }
@@ -156,6 +163,26 @@ export class PleaseNoBugsElement extends HTMLElement {
 
   #render() {
     if (!this.#mount || !this.isConnected) return;
+    const lang = pickLang(this.getAttribute('lang'));
+    if (this.hasAttribute('demo')) {
+      // Its own chunk in the module build, so an app that never sets `demo`
+      // never downloads the sample posts.
+      if (!this.#demo) {
+        void import('./demo.js').then((m) => {
+          this.#demo = m;
+          this.#render();
+        });
+        return;
+      }
+      // Keyed on the language too: the sample posts speak the board's.
+      const key = `demo|${lang}`;
+      if (!this.#client || this.#clientKey !== key) {
+        this.#client = this.#demo.createDemoClient(lang);
+        this.#clientKey = key;
+      }
+      this.#show(this.#client, lang);
+      return;
+    }
     const project = this.getAttribute('project');
     const server = this.getAttribute('server');
     if (!project || !server) {
@@ -176,11 +203,14 @@ export class PleaseNoBugsElement extends HTMLElement {
       this.#client = createClient({ server, project, signer: this.#signer, appLogin: this.#appLogin });
       this.#clientKey = key;
     }
+    this.#show(this.#client, lang);
+  }
 
-    const lang = pickLang(this.getAttribute('lang'));
+  #show(client: Client, lang: string) {
+    if (!this.#mount) return;
     const mode = this.getAttribute('mode') ?? 'inline';
     const app = {
-      client: this.#client,
+      client,
       t: translator(lang, this.#strings),
       locale: lang,
       appName: this.getAttribute('app-name') ?? undefined,
@@ -193,17 +223,36 @@ export class PleaseNoBugsElement extends HTMLElement {
         this.dispatchEvent(new CustomEvent('pleasenobugs:posted', { detail: p, bubbles: true, composed: true })),
     };
 
+    // Never outside the demo: a real board always opens as it should.
+    const screen = this.hasAttribute('demo') ? readScreen(this.getAttribute('screen')) : undefined;
+    const held = screen === 'button' ? undefined : screen;
+
     if (mode === 'floating') {
-      render(<Floating app={app} label={app.t('board.open')} />, this.#mount);
+      render(<Floating app={app} label={app.t('board.open')} screen={screen} />, this.#mount);
     } else if (mode === 'overlay') {
-      render(<Overlay app={app} onGone={() => this.close()} />, this.#mount);
+      render(<Overlay app={app} screen={held} onGone={() => this.close()} />, this.#mount);
     } else {
-      render(<App {...app} />, this.#mount);
+      render(<App {...app} screen={held} />, this.#mount);
     }
   }
 }
 
-type AppBase = Omit<Parameters<typeof App>[0], 'onClose'>;
+type AppBase = Omit<Parameters<typeof App>[0], 'onClose' | 'screen'>;
+
+/** What the `screen` attribute says: the round button, or a screen of the board. */
+type Screen = 'button' | View;
+
+/**
+ * The `screen` attribute in the board's own words, or undefined for none.
+ *
+ * @example
+ * readScreen('write')   // → 'compose'
+ * readScreen('nope')    // → undefined
+ */
+export function readScreen(v: string | null): Screen | undefined {
+  const views: Record<string, Screen> = { button: 'button', tiles: 'choose', board: 'board', write: 'compose', sent: 'sent' };
+  return v ? views[v.trim().toLowerCase()] : undefined;
+}
 
 /**
  * The board over the page, which slides away before it says it is gone.
@@ -215,7 +264,17 @@ type AppBase = Omit<Parameters<typeof App>[0], 'onClose'>;
  * stylesheet alone (`.overlay` at 640px), so a window dragged narrower changes
  * over without a re-render.
  */
-function Overlay({ app, onGone, start }: { app: AppBase; onGone: () => void; start?: 'board' | 'choose' }) {
+function Overlay({
+  app,
+  onGone,
+  start,
+  screen,
+}: {
+  app: AppBase;
+  onGone: () => void;
+  start?: 'board' | 'choose';
+  screen?: View;
+}) {
   const [leaving, setLeaving] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const leave = () => {
@@ -245,17 +304,25 @@ function Overlay({ app, onGone, start }: { app: AppBase; onGone: () => void; sta
           if (leaving && e.target === e.currentTarget) onGone();
         }}
       >
-        <App {...app} onClose={leave} start={start} />
+        <App {...app} onClose={leave} start={start} screen={screen} />
       </div>
     </>
   );
 }
 
 /** A round button in the corner, and the panel it opens on the tiles. */
-function Floating({ app, label }: { app: AppBase; label: string }) {
-  const [open, setOpen] = useState(false);
+function Floating({ app, label, screen }: { app: AppBase; label: string; screen?: Screen }) {
+  const [open, setOpen] = useState(!!screen && screen !== 'button');
+  useEffect(() => {
+    if (screen) setOpen(screen !== 'button');
+  }, [screen]);
   return open ? (
-    <Overlay app={app} start="choose" onGone={() => setOpen(false)} />
+    <Overlay
+      app={app}
+      start="choose"
+      screen={screen === 'button' ? undefined : screen}
+      onGone={() => setOpen(false)}
+    />
   ) : (
     <button type="button" class="fab" aria-label={label} title={label} onClick={() => setOpen(true)}>
       <Icon.Feedback />

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>How PleaseNoBugs works</title>
+    <meta name="description" content="What your users can write on the PleaseNoBugs board, who sees what, and the three ways to show it in your app." />
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/site.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap top__inner">
+        <a class="brand" href="./">
+          <img src="assets/logo.svg" alt="" width="32" height="36" />
+          <span>PleaseNoBugs</span>
+        </a>
+        <nav class="nav" aria-label="Main">
+          <a href="how-it-works.html" aria-current="page">How it works</a>
+          <a href="customize.html">Customize</a>
+          <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          <div class="section-head">
+            <h1>How it works</h1>
+            <p class="lead">Tapping the button opens three tiles. One question first: what is it? Then a few words, and it is on the board.</p>
+          </div>
+          <table class="table">
+            <thead>
+              <tr><th>Kind</th><th>What it does</th><th>Who sees it</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="kind kind--bug"><i>!</i>Report a bug</span></td>
+                <td class="what"><b>Something does not work.</b> With your app's version if you pass it along, and a screenshot if they want to add one.</td>
+                <td><span class="pill pill--everyone">Everyone</span> <span class="pill pill--only-you">Screenshot: only you</span></td>
+              </tr>
+              <tr>
+                <td><span class="kind kind--idea"><i>+</i>Share an idea</span></td>
+                <td class="what"><b>Something they miss.</b> Others vote it up, and "said already?" shows lookalikes before a second copy is written.</td>
+                <td><span class="pill pill--everyone">Everyone</span></td>
+              </tr>
+              <tr>
+                <td><span class="kind kind--review"><i>★</i>Write a review</span></td>
+                <td class="what"><b>One to five stars and a few words.</b> The average sits on top of the board, so people see what others like. One per wallet.</td>
+                <td><span class="pill pill--everyone">Everyone</span></td>
+              </tr>
+              <tr>
+                <td><span class="kind kind--answer"><i>✓</i>Your answer</span></td>
+                <td class="what"><b>Planned, Done or Not doing,</b> with a line of your own under the post. It is on the board, so nobody needs an inbox.</td>
+                <td><span class="pill pill--done">Done</span> <span class="pill pill--not-doing">Not doing</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Three ways to show it</h2>
+            <p>Pick one with <code>mode</code>. On a phone the board covers the screen; on a wider screen it opens as a panel in the corner.</p>
+          </div>
+          <div class="cards">
+            <article class="card">
+              <div class="mini mini--floating" aria-hidden="true"><div class="mini__fab"></div></div>
+              <h3>A button in the corner</h3>
+              <p><code>mode="floating"</code>. A small round button that opens on the tiles. The "paste one line and done" route.</p>
+            </article>
+            <article class="card">
+              <div class="mini mini--inline" aria-hidden="true"><div class="mini__board"></div></div>
+              <h3>Part of your page</h3>
+              <p><code>mode="inline"</code>. The board fills the element you put it in, for a feedback screen of your own.</p>
+            </article>
+            <article class="card">
+              <div class="mini mini--overlay" aria-hidden="true"><div class="mini__board"></div></div>
+              <h3>From your own menu</h3>
+              <p><code>mode="overlay"</code>, or <code>open()</code> from a menu item you already have. The board, straight away.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <span>PleaseNoBugs is open source, MIT licensed.</span>
+        <span>This site stores nothing and has no tracking. <a href="https://github.com/lennylenders/PleaseNoBugs">Source on GitHub</a></span>
+      </div>
+    </footer>
+  </body>
+</html>

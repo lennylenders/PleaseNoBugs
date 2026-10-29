@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>PleaseNoBugs: a feedback board for Nimiq mini apps</title>
+    <meta name="description" content="Bugs, ideas and reviews, straight from your users, in one tag. No email, no tracking." />
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/site.css" />
+    <script src="widget/pleasenobugs.iife.js" defer></script>
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap top__inner">
+        <a class="brand" href="./">
+          <img src="assets/logo.svg" alt="" width="32" height="36" />
+          <span>PleaseNoBugs</span>
+        </a>
+        <nav class="nav" aria-label="Main">
+          <a href="how-it-works.html">How it works</a>
+          <a href="customize.html">Customize</a>
+          <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="one">
+      <div class="wrap hero">
+        <div>
+          <h1>Stop guessing what your users want.</h1>
+          <p class="lead">Customize your feedback board with one tag and let your users drive your roadmap.</p>
+          <div class="hero__actions">
+            <a class="btn" href="customize.html">Make it yours</a>
+          </div>
+        </div>
+        <div class="try">
+          <div class="device">
+            <please-no-bugs demo theme="pleasenobugs" lang="en" app-name="Demo app"></please-no-bugs>
+          </div>
+          <p>This is a demo widget, try it</p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <span>PleaseNoBugs is open source, MIT licensed.</span>
+        <span>This site stores nothing and has no tracking. <a href="https://github.com/lennylenders/PleaseNoBugs">Source on GitHub</a></span>
+      </div>
+    </footer>
+
+    <please-no-bugs demo mode="floating" theme="pleasenobugs" lang="en" app-name="Demo app"></please-no-bugs>
+  </body>
+</html>

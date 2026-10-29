@@ -5,7 +5,7 @@
  *   npm run screenshots -w pleasenobugs    (in another)
  *
  * Writes docs/images/board-light.png, board-dark.png, owner-answer.png,
- * tiles-vivid.png and writing.gif. Needs Chrome or Edge (or CHROME=path/to/browser) and, for the
+ * tiles-nimiq.png and writing.gif. Needs Chrome or Edge (or CHROME=path/to/browser) and, for the
  * animation, ffmpeg on the PATH. Take them again whenever the look changes.
  */
 import puppeteer from 'puppeteer-core';
@@ -84,11 +84,11 @@ for (const scheme of ['light', 'dark']) {
 
 // The three tiles behind the "+", in the bright theme.
 {
-  const page = await open({ who: 'alice', theme: 'vivid' });
+  const page = await open({ who: 'alice', theme: 'nimiq' });
   await click(page, '.bar .icon-btn:last-child');
   await waitIn(page, '.tile');
   await sleep(300);
-  await shot(page, path.join(OUT, 'tiles-vivid.png'));
+  await shot(page, path.join(OUT, 'tiles-nimiq.png'));
   await page.close();
 }
 

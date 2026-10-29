@@ -9,9 +9,12 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "site": "node site/serve.mjs",
+    "site:build": "node site/build.mjs"
   },
   "devDependencies": {
+    "@fontsource-variable/mulish": "^5.3.0",
     "typescript": "^5.7.2",
     "vitest": "^2.1.9"
   }

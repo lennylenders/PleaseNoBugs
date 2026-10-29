@@ -321,6 +321,93 @@ is one tap further. `overlay` (what `open()` uses) still opens on the board,
 since it is reached from the app's own "feedback" entry, which may well mean
 "show me what others said".
 
+## 2026-10-28: A website after all, with a board that lives in the page
+
+The 2026-10-22 entry chose pictures over a demo site because a live demo
+needed a server that signs for its visitors. A **`demo` attribute** removes
+that: `<please-no-bugs demo>` talks to a board of sample posts in the page's
+memory (`src/demo.ts`), in the language the board speaks. Voting, writing and
+"Feedback sent!" all work, nothing is sent or stored, and a reload starts over.
+The visitor is an ordinary signed-in user, never an owner. It is typed as the
+real `Client`, so a change to the client it does not follow fails the build.
+In the module build it is a chunk of its own that an app without `demo` never
+downloads; the one-file script carries it (about 2 kB gzipped).
+
+Options weighed: a pretend server inside the site (the widget unchanged, but
+the site would have to mimic the API and could drift from it unnoticed), or
+the existing demo server online (a server to pay for and watch, holding what
+visitors type). Both lost to the attribute.
+
+The site is `site/`: a landing page and a configurator, plain HTML, CSS and a
+script, no framework and no dependency but the Mulish font, which it serves
+itself so a visit tells Google nothing. Its style is the owner's Figma file
+(nodes 6:5848 and 6:10595), not its dashboard: no bounties, no numbers that
+would need a server. The configurator keeps every choice in the page and
+nowhere else; the copied code is the only place a choice ends up. It hands
+out `pleasenobugs@<version>` from unpkg, pinned, so a later release never
+changes somebody's app unasked. The version is the widget's package.json,
+filled in by `site/files.mjs`, so it cannot drift from the release.
+
+The preview box gives the widget's fixed-position button and panel a box of
+their own (`transform` on `.screen`), so they open in its corner as they
+would in an app. "Preview full size" puts the same widget on the real page.
+
+**Later the same week: one page, and the shitti look.** The owner found the
+long landing page too much. The home page is now one screen (Figma node
+48:9261): one line on what it is, one button to the configurator, and the
+widget to try. The tabs lead on: How it works (the kinds of feedback and the
+three modes), Customize, and GitHub. The code to paste lives only on
+Customize, where developers make it. The whole site, configurator included,
+is in the style of shitti.me, dark purple with turquoise buttons, and the
+widget on it uses `theme="shitti"`. The design's font is Museo Sans Rounded,
+served from the site like Mulish, not from Adobe Fonts, which would tell
+Adobe of every visit. Its files are "all rights reserved", so they live in
+`site/src/assets/fonts/`, which git ignores: a public repo would hand them
+out to anyone. Where they are missing, as in the GitHub Pages build for now,
+Mulish stands in. Putting them online needs a web licence, and a way to get
+them into the build that does not go through the repo.
+
+In the shitti theme an idea is purple and a review orange, like its star,
+the owner's choice in Figma; Done is teal, Planned and Not doing a quiet grey.
+One kind has one colour everywhere: the badge's dot, the tile, the icon in
+the site's table, and the pill that names it.
+
+**2026-10-29: the themes are named after what they look like.** That dark
+purple is the website's own look now, so `shitti` became `pleasenobugs`, and
+`vivid`, whose colours come from a Nimiq feedback design, became `nimiq`.
+`vivid` was never released and is simply gone. `shitti` is in 0.1.0 and
+0.1.1, so it stays as a second name for `pleasenobugs`: an app that has it
+keeps its look on 0.2.0. The configurator offers PleaseNoBugs, Nimiq, Light
+and Dark, and no longer Auto or a language: leaving `theme` out already
+follows the phone, and `lang` already follows Nimiq Pay and the page, so
+neither needs a choice there.
+
+**2026-10-29: the configurator in steps.** All of it on one page was too much
+at once. It is now one narrow column, after a small widget editor the owner
+pointed at in Figma (node 68:11710): the widget on top, one card under it for
+one part, and Back / Preview / Next. Eight steps in a fixed order: Settings,
+Look, Round button (only when it is one), Board, Tiles, Write and send,
+Feedback sent!, Code. Each step's part has a line around it, and tapping a
+part of the widget jumps to its step instead of using it; Preview hands the
+widget its taps back. Two or three colours per step, the rest of that part's
+behind "More colours", so nothing the old page offered is gone. The Figma
+screens are "Site · Customize · Step 1–8" on Page 3.
+
+To put a part in view the widget gained `screen`, honoured only with `demo`:
+it holds the round button, the tiles, the board, writing or "Feedback sent!",
+which otherwise leaves by itself after 2.6 seconds. Options weighed: driving
+the widget by tapping through it from the site (no change to the widget, but
+"sent" would need a real post and still go away), or drawings of the screens
+(no change either, but they would drift from the widget). The attribute is a
+few lines and cannot touch a real board. The site also shortens the corner
+panel to its box from outside, in the shadow root, since in an app the panel
+is sized to the window and that is right there.
+
+Hosted on GitHub Pages from this repo (https://lennylenders.github.io/PleaseNoBugs/),
+no domain of our own for now. Published by `.github/workflows/site.yml` on a
+version tag or by hand, never on a push to `main`: the code it hands out
+loads that version from npm, so the site must not go out before the release.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
@@ -376,8 +463,14 @@ Next: announce in the mini app competition community.
    confirmation in the browser (two-factor, required by npm), and each shows
    as `0.0.0-stage` for a few minutes while npm checks it; unpkg follows a few
    minutes later.
-4. Tag `vX.Y.Z` on the same commit and push the tag: that builds the image.
-   Pushing `main` alone builds nothing.
+4. Tag `vX.Y.Z` on the same commit and push the tag: that builds the image
+   and publishes the website, which then hands out the new version. Pushing
+   `main` alone builds nothing.
+
+The website on this machine: `npm run build`, then `npm run site`
+(http://localhost:5190). It shows this checkout's widget, not npm's. Before
+the first publish, GitHub Pages has to be switched on once: Settings → Pages →
+Source: "GitHub Actions".
 
 ### Working notes
 

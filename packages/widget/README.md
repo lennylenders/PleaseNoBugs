@@ -37,12 +37,14 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `project`, `server` | Required. |
 | `mode` | `inline`, `floating` or `overlay`. |
 | `lang` | `en`, `nl`, `de`, or any code you supply `strings` for. Defaults to Nimiq Pay's language, then the page's. |
-| `theme` | `auto` (follows the phone), `light`, `dark`, `vivid` (painted tiles and a gradient button, light only), `shitti`. |
+| `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (painted tiles and a gradient button, light only). `shitti` is the old name of `pleasenobugs` and still works. |
 | `accent` | One colour, e.g. `#e84a5f`. The text on it picks black or white by itself. |
 | `app-name` | What answers are signed with ("Shitti says"). Defaults to the project's name. |
 | `name` | A display name you already know, offered when the user chooses to show theirs. |
 | `kinds` | Which kinds to offer, of the ones your project takes: `bug,idea,review` by default. `kinds="bug,idea"` leaves reviews off the tiles and out of the list. |
 | `screenshots` | `off` leaves out the "Add a screenshot" button on bugs and ideas. |
+| `demo` | A board of sample posts in the page's memory, with no server: `<please-no-bugs demo>`. Voting and writing work, nothing is sent or stored, and a reload starts over. For trying the widget, or showing it off. |
+| `screen` | With `demo` only: hold one screen in view, `button`, `tiles`, `board`, `write` or `sent`. What the website's configurator uses to show the part you are changing. |
 
 | Property | |
 |---|---|

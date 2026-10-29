@@ -10,7 +10,7 @@ one place, without asking anybody to send you an email.
   <img src="docs/images/board-light.png" width="250" alt="The board in light mode: ideas and bugs with votes and the app's answers">
   <img src="docs/images/board-dark.png" width="250" alt="The same board in dark mode">
   <img src="docs/images/owner-answer.png" width="250" alt="The owner answering a bug: status, a reply, and the app version it came from">
-  <img src="docs/images/tiles-vivid.png" width="250" alt="The three tiles behind the plus, in the vivid theme: report a bug, share an idea, write a review">
+  <img src="docs/images/tiles-nimiq.png" width="250" alt="The three tiles behind the plus, in the nimiq theme: report a bug, share an idea, write a review">
 </p>
 
 > **Status: 0.1.1, early.** It runs [Shitti](https://shitti.me)'s board.
@@ -35,7 +35,7 @@ one place, without asking anybody to send you an email.
   wallet address is never shown to anyone.
 - **Login is the Nimiq wallet your users already have.** No accounts, no email.
 - **Follows the phone**: light or dark, English, Dutch or German, and your
-  accent colour. Or the bright `vivid` theme.
+  accent colour. Or the bright `nimiq` theme.
 
 <br clear="right">
 

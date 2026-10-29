@@ -45,8 +45,16 @@ export interface AppProps {
    * floating button starts on the tiles; the board is one tap under them.
    */
   start?: 'board' | 'choose';
+  /**
+   * A screen to show and keep showing, for the demo only: the website's
+   * configurator puts each part it is changing in view. "Feedback sent!" then
+   * stays up instead of going back to the board.
+   */
+  screen?: View;
   onPosted?: (post: { id: string; kind: PostKind }) => void;
 }
+
+export type View = 'board' | 'choose' | 'compose' | 'sent';
 
 /** Whatever is over the board, as one value so two can never be up at once. */
 type Over = { kind: 'delete'; post: Post } | { kind: 'manage'; post: Post } | null;
@@ -75,10 +83,11 @@ export function App({
   onClose,
   onPosted,
   start = 'board',
+  screen,
 }: AppProps) {
   const [read, setRead] = useState<BoardRead | null>(null);
   const [failed, setFailed] = useState(false);
-  const [view, setView] = useState<'board' | 'choose' | 'compose' | 'sent'>(start);
+  const [view, setView] = useState<View>(screen ?? start);
   // The tiles as the first screen, until the board has been visited: then
   // they are a step on the way to writing, with a way back.
   const [first, setFirst] = useState(start === 'choose');
@@ -122,13 +131,17 @@ export function App({
   }, [toast]);
 
   useEffect(() => {
-    if (view !== 'sent') return;
+    if (screen) setView(screen);
+  }, [screen]);
+
+  useEffect(() => {
+    if (view !== 'sent' || screen === 'sent') return;
     const id = setTimeout(() => {
       setFirst(false);
       setView('board');
     }, TOAST_MS);
     return () => clearTimeout(id);
-  }, [view]);
+  }, [view, screen]);
 
   /**
    * The order pill steps aside going down and comes straight back going up.
@@ -166,6 +179,11 @@ export function App({
   // out is left out of the list as well, not only off the tiles.
   const kinds = (rules?.kinds ?? ['bug', 'idea']).filter((k) => !offered || offered.includes(k));
   const kindsKey = kinds.join(',');
+
+  // A held writing screen writes a kind that is on offer.
+  useEffect(() => {
+    if (screen && kinds.length && !kinds.includes(writing)) setWriting(kinds[0]);
+  }, [screen, kindsKey]);
 
   const shown = useMemo(() => {
     const here = posts.filter((p) => (owner || !p.hidden) && kindsKey.split(',').includes(p.kind));

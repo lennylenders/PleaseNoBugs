@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Customize PleaseNoBugs</title>
+    <meta name="description" content="Make the PleaseNoBugs widget yours in eight short steps, see it live, and copy the code into your app." />
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/site.css" />
+    <script src="widget/pleasenobugs.iife.js" defer></script>
+    <script src="assets/customize.js" defer></script>
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap top__inner">
+        <a class="brand" href="./">
+          <img src="assets/logo.svg" alt="" width="32" height="36" />
+          <span>PleaseNoBugs</span>
+        </a>
+        <nav class="nav" aria-label="Main">
+          <a href="how-it-works.html">How it works</a>
+          <a href="customize.html" aria-current="page">Customize</a>
+          <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap steps">
+      <h1>Make it yours</h1>
+      <p class="lead">Your choices end up in the code at the end, and nowhere else.</p>
+
+      <div class="progress">
+        <p class="progress__step" aria-live="polite">
+          <span class="progress__count" id="count">Step 1 of 8</span>
+          <b id="step-name">Settings</b>
+        </p>
+        <div class="progress__bars" id="bars" aria-hidden="true"></div>
+        <p class="progress__hint" id="hint">Tap a part of the widget to jump to its step.</p>
+      </div>
+
+      <div class="editor">
+        <div class="viewport">
+          <div class="screen" id="screen">
+            <div class="screen__app" aria-hidden="true">
+              <b>Your app</b>
+              <i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+          <div class="mark" id="mark" hidden><span class="mark__tag" id="mark-tag"></span></div>
+        </div>
+
+        <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
+          <div class="edit__step" data-step="settings">
+            <h2>Settings</h2>
+            <p class="edit__hint">How the widget shows up in your app.</p>
+            <label class="field">
+              <span>App name, as answers are signed ("Shitti says")</span>
+              <input class="input" name="appName" placeholder="Your project's name" maxlength="60" />
+            </label>
+            <fieldset class="field">
+              <legend>Shown as</legend>
+              <div class="seg">
+                <label><input type="radio" name="mode" value="floating" checked /><span>Button</span></label>
+                <label><input type="radio" name="mode" value="inline" /><span>Inline</span></label>
+                <label><input type="radio" name="mode" value="overlay" /><span>Overlay</span></label>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="edit__step" data-step="look" hidden>
+            <h2>Look</h2>
+            <p class="edit__hint">The theme sets every colour at once. The accent paints the buttons; the text on them turns black or white by itself.</p>
+            <fieldset class="field">
+              <legend>Theme</legend>
+              <div class="seg">
+                <label><input type="radio" name="theme" value="pleasenobugs" checked /><span>PleaseNoBugs</span></label>
+                <label><input type="radio" name="theme" value="nimiq" /><span>Nimiq</span></label>
+                <label><input type="radio" name="theme" value="light" /><span>Light</span></label>
+                <label><input type="radio" name="theme" value="dark" /><span>Dark</span></label>
+              </div>
+            </fieldset>
+            <div data-colours="look"></div>
+          </div>
+
+          <div class="edit__step" data-step="button" hidden>
+            <h2>Round button</h2>
+            <p class="edit__hint">The button in the corner that opens the board.</p>
+            <div data-colours="button"></div>
+            <div data-strings="button"></div>
+          </div>
+
+          <div class="edit__step" data-step="board" hidden>
+            <h2>Board</h2>
+            <p class="edit__hint">The list of posts people read and vote on.</p>
+            <div data-strings="board"></div>
+            <div data-colours="board"></div>
+          </div>
+
+          <div class="edit__step" data-step="tiles" hidden>
+            <h2>Tiles</h2>
+            <p class="edit__hint">The buttons people pick from when they tap Feedback.</p>
+            <fieldset class="field">
+              <legend>Which ones</legend>
+              <div class="checks">
+                <label class="check"><input type="checkbox" name="kinds" value="bug" checked />Bugs</label>
+                <label class="check"><input type="checkbox" name="kinds" value="idea" checked />Ideas</label>
+                <label class="check"><input type="checkbox" name="kinds" value="review" checked />Reviews</label>
+              </div>
+            </fieldset>
+            <div data-colours="tiles"></div>
+            <div data-strings="tiles"></div>
+          </div>
+
+          <div class="edit__step" data-step="write" hidden>
+            <h2>Write and send</h2>
+            <p class="edit__hint">The screen where people write, and the button that puts it on the board.</p>
+            <div data-strings="write"></div>
+            <label class="switch field">
+              <span>Screenshots on bugs and ideas <span class="quiet">(only you see them)</span></span>
+              <input type="checkbox" name="screenshots" role="switch" checked />
+            </label>
+            <div data-colours="write"></div>
+          </div>
+
+          <div class="edit__step" data-step="sent" hidden>
+            <h2>Feedback sent!</h2>
+            <p class="edit__hint">What people see right after they send.</p>
+            <div data-strings="sent"></div>
+            <div data-colours="sent"></div>
+          </div>
+
+          <div class="edit__step" data-step="code" hidden>
+            <h2>Your code</h2>
+            <p class="edit__hint">
+              Paste this into your app. Swap <code>YOUR_PROJECT_ID</code> and <code>YOUR_SERVER</code> for what your
+              server printed when it started. <a href="https://github.com/lennylenders/PleaseNoBugs#readme">No server yet?</a>
+            </p>
+            <div class="tabs" role="tablist" aria-label="Code">
+              <button type="button" role="tab" aria-selected="true" aria-controls="code-html" id="tab-html">HTML</button>
+              <button type="button" role="tab" aria-selected="false" aria-controls="code-css" id="tab-css">CSS</button>
+            </div>
+            <pre class="code" id="code-html" role="tabpanel" aria-labelledby="tab-html"><code></code></pre>
+            <pre class="code" id="code-css" role="tabpanel" aria-labelledby="tab-css" hidden><code></code></pre>
+          </div>
+        </form>
+
+        <div class="actions">
+          <button type="button" class="btn btn--small btn--grey" id="back">Back</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--small btn--grey" id="preview">Preview</button>
+          <button type="button" class="btn btn--small" id="next">Next</button>
+          <button type="button" class="btn btn--small" id="copy" hidden>Copy code</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <span>PleaseNoBugs is open source, MIT licensed.</span>
+        <span>This site stores nothing and has no tracking. <a href="https://github.com/lennylenders/PleaseNoBugs">Source on GitHub</a></span>
+      </div>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
