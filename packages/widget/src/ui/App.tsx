@@ -51,6 +51,8 @@ export interface AppProps {
    * every post anonymous and without its screenshot (see `forReaders`).
    */
   readonly?: boolean;
+  /** Whether a writer may show a name. Off for a board on a public page, where nobody should leave one. */
+  names?: boolean;
   /** Present when the board is an overlay: draws the X. */
   onClose?: () => void;
   /**
@@ -98,6 +100,7 @@ export function App({
   kinds: offered,
   screenshots = 'board',
   readonly = false,
+  names = true,
   onClose,
   onPosted,
   start: asked = 'board',
@@ -118,6 +121,8 @@ export function App({
   const [over, setOver] = useState<Over>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [away, setAway] = useState(false);
+  // Whether the last post landed on a board that approves first.
+  const [waiting, setWaiting] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
 
   // Keyed on the words rather than the array, which the element hands over as
@@ -192,6 +197,9 @@ export function App({
 
   const name = appName ?? read?.project.name ?? '';
   const rules = read?.project.rules;
+  // The stricter of what this page asks and what the board allows, so the
+  // button is never offered for something the server would refuse.
+  const shots = strictest(screenshots, rules?.screenshots ?? 'board');
   const owner = !!read?.me?.owner;
   const posts = read?.posts ?? [];
 
@@ -278,6 +286,7 @@ export function App({
     // signed in. A failure here costs a name on a card, never the post.
     if (!draft.anon && draft.name && draft.name !== read?.me?.name) await client.setName(draft.name);
 
+    setWaiting(!!res.data.pending);
     setView('sent');
     setSort('new');
     setKind('all');
@@ -313,6 +322,7 @@ export function App({
       hidden: change.hidden || undefined,
       reply: change.reply ? { text: change.reply, at: Date.now() } : undefined,
       ...(change.shotOff !== undefined ? { shotFor: change.shotOff ? 'off' : 'board' } : {}),
+      ...(change.approved ? { pending: undefined } : {}),
     });
     const res = await client.manage(post.id, change);
     if (!res.ok) sayRefusal(res.error);
@@ -339,7 +349,7 @@ export function App({
   if (view === 'sent') {
     return (
       <div class="app">
-        <Sent t={t} onBack={toBoard} />
+        <Sent t={t} onBack={toBoard} waiting={waiting || (screen === 'sent' && !!rules?.approve)} appName={name} />
       </div>
     );
   }
@@ -425,7 +435,8 @@ export function App({
             textMax={rules.textMax}
             name={read?.me?.name ?? suggestName ?? ''}
             appName={name}
-            screenshots={screenshots}
+            screenshots={shots}
+            names={names}
             onVote={vote}
             onSend={send}
           />
@@ -608,4 +619,10 @@ export function App({
 function newId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
   return `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** The stricter of two screenshot settings: off, then owners, then the board. */
+function strictest(a: Screenshots, b: Screenshots): Screenshots {
+  const order: Screenshots[] = ['off', 'owners', 'board'];
+  return order[Math.min(order.indexOf(a), order.indexOf(b))];
 }

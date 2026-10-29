@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from 'node:crypto';
 import type express from 'express';
 
 /**
@@ -10,12 +11,21 @@ import type express from 'express';
  * what it is: a brake on scripts. The rules that matter (one vote per wallet,
  * posts per day) are counted from stored rows and survive both.
  *
+ * **Nobody's address is kept or written down.** What is counted is a hash of
+ * the IP address (or wallet) with a secret that exists only in this process,
+ * so the map in memory holds no addresses, and the log line says which limit
+ * tripped but not for whom.
+ *
  * @example
  * app.use(rateLimit({ windowMs: 60_000, max: 300, name: 'all' }));
  * router.post('/posts', rateLimit({ windowMs: 900_000, max: 10, name: 'post', by: wallet }), handler);
  */
 
 type Window = { count: number; resetAt: number };
+
+/** Made at start and never stored, so a hash cannot be matched to an address later. */
+const SALT = randomBytes(16);
+const hashed = (key: string) => createHash('sha256').update(SALT).update(key).digest('base64url').slice(0, 22);
 
 const SWEEP_MS = 60_000;
 
@@ -46,7 +56,7 @@ export function rateLimit({
       for (const [key, w] of windows) if (w.resetAt <= now) windows.delete(key);
     }
 
-    const key = (by ? by(req) : undefined) ?? req.ip ?? 'unknown';
+    const key = hashed((by ? by(req) : undefined) ?? req.ip ?? 'unknown');
     const window = windows.get(key);
     if (!window || window.resetAt <= now) {
       windows.set(key, { count: 1, resetAt: now + windowMs });
@@ -58,7 +68,7 @@ export function rateLimit({
       const retryAfter = Math.ceil((window.resetAt - now) / 1000);
       // Once per window per key, or a flood would take the logs with it.
       if (window.count === max + 1) {
-        console.warn(`[limit] ${name} tripped by ${key} (${max} per ${windowMs}ms)`);
+        console.warn(`[limit] ${name} tripped (${max} per ${windowMs}ms)`);
       }
       res.setHeader('retry-after', String(retryAfter));
       return res.status(429).json({ error: 'rate_limited', retryAfter });

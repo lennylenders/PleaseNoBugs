@@ -29,11 +29,37 @@ export const ONLY = {
 export const VERSION = JSON.parse(readFileSync(here('../packages/widget/package.json'), 'utf8')).version;
 
 /**
- * `%VERSION%` in the site's own pages and scripts, filled in as they are
- * served or built. So the code on the site always names the version that is
- * released with it, never one somebody forgot to change.
+ * The board on the home page: PleaseNoBugs' own, where visitors say what they
+ * think of it.
+ *
+ * Published, it is the one in `board.json`, which is filled in once its
+ * server exists. On this machine it is the local board from `board.mjs`
+ * (`npm run site:board`), so trying the site never posts on the real one;
+ * `PNB_SITE_SERVER` and `PNB_SITE_PROJECT` point it elsewhere.
  */
-export function fill(path, body) {
+export function board(published) {
+  if (!published) {
+    return {
+      server: process.env.PNB_SITE_SERVER || 'http://localhost:8790',
+      project: process.env.PNB_SITE_PROJECT || 'site',
+    };
+  }
+  return JSON.parse(readFileSync(here('./board.json'), 'utf8'));
+}
+
+/**
+ * `%VERSION%`, `%BOARD_SERVER%` and `%BOARD_PROJECT%` in the site's own pages
+ * and scripts, filled in as they are served or built. So the code on the site
+ * always names the version that is released with it, never one somebody
+ * forgot to change.
+ */
+export function fill(path, body, where) {
   if (!['.html', '.js'].includes(extname(path)) || path.includes('pleasenobugs.iife')) return body;
-  return Buffer.from(body.toString('utf8').replaceAll('%VERSION%', VERSION));
+  return Buffer.from(
+    body
+      .toString('utf8')
+      .replaceAll('%VERSION%', VERSION)
+      .replaceAll('%BOARD_SERVER%', where.server)
+      .replaceAll('%BOARD_PROJECT%', where.project),
+  );
 }

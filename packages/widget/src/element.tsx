@@ -26,7 +26,8 @@ export const TAG = 'please-no-bugs';
  * `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq`), `accent`
  * (a colour), `app-name`, `name` (a display name to suggest), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
- * the board, for the app's owners only; `off` to leave them out),
+ * the board, for the app's owners only; `off` to leave them out), `names`
+ * (`off` leaves out "Show my name", so every post is anonymous),
  * `readonly` (the board to scroll through and nothing else: see
  * `readonly.ts`), `demo` (sample posts in the page's memory, no server: see
  * `demo.ts`) and, with `demo` only, `screen` (`button`, `tiles`, `board`,
@@ -55,6 +56,7 @@ export class PleaseNoBugsElement extends HTMLElement {
     'kinds',
     'screenshots',
     'readonly',
+    'names',
     'demo',
     'screen',
   ];
@@ -230,6 +232,7 @@ export class PleaseNoBugsElement extends HTMLElement {
       kinds: readKinds(this.getAttribute('kinds')),
       screenshots: readScreenshots(this.getAttribute('screenshots')),
       readonly: this.hasAttribute('readonly'),
+      names: this.getAttribute('names') !== 'off',
       onPosted: (p: { id: string; kind: PostKind }) =>
         this.dispatchEvent(new CustomEvent('pleasenobugs:posted', { detail: p, bubbles: true, composed: true })),
     };

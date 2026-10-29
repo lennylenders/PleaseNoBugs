@@ -35,7 +35,7 @@ export class MemoryStore implements Store {
   async projectStats(projectId: string): Promise<ProjectStats> {
     const out: ProjectStats = { bugs: 0, ideas: 0, bugsDone: 0, ideasDone: 0 };
     for (const row of this.board(projectId).values()) {
-      if (row.hidden) continue;
+      if (row.hidden || row.pending) continue;
       const done = row.status === 'done';
       if (row.kind === 'bug') {
         out.bugs++;
@@ -128,6 +128,10 @@ export class MemoryStore implements Store {
     if (patch.hidden !== undefined) {
       if (patch.hidden) row.hidden = true;
       else delete row.hidden;
+    }
+    if (patch.pending !== undefined) {
+      if (patch.pending) row.pending = true;
+      else delete row.pending;
     }
     if (patch.answeredAt !== undefined) row.answeredAt = patch.answeredAt;
   }

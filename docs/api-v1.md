@@ -34,6 +34,13 @@ since nothing about an opinion gets planned or fixed.
 does not know: skip the post rather than fail on it. A project only receives
 kinds listed in its `rules.kinds`.
 
+**Rules that came with 0.2.0**, both absent on older projects:
+`rules.screenshots` (`board`, `owners` or `off`: what the server lets a
+screenshot be on this board, whatever a client asks; absent means `board`) and
+`rules.approve` (new posts wait for an owner before anybody else sees them;
+absent means no). A client should read them, as the widget does, and not offer
+what the server will refuse.
+
 **Proof.** A Nimiq wallet signature that says who is asking. See below.
 
 ## What never leaves the server
@@ -169,6 +176,9 @@ The whole board: a `BoardRead`.
   the two orders (`top`, `new`) are a view of one list, not two lists.
 - Posts an owner has hidden are left out, except for owners, who get them with
   `hidden: true` so hiding can be undone.
+- On a board with `rules.approve`, a post waiting for approval reaches only
+  the owners and its own author, with `pending: true`. Everybody else gets the
+  board without it.
 - Without a proof every post reads `voted: false, mine: false` and `me` is
   absent.
 - A review carries `rating`. A post whose screenshot is on the board carries
@@ -197,7 +207,7 @@ The same `Me` on its own, for a widget that wants it without the board.
 
 The post's screenshot, as the image itself (`image/jpeg`, `image/png` or
 `image/webp`). One on the board (`shotFor: 'board'`, under a post that is not
-hidden) needs no proof, so a page can show it with a plain `<img>`. Any other
+hidden or waiting) needs no proof, so a page can show it with a plain `<img>`. Any other
 is for owners only. Everybody else gets `404 no_post`, the author included,
 the same answer as when there is none: nothing says a screenshot is there that
 they may not see.
@@ -239,7 +249,9 @@ How long to keep showing an answer is the client's decision.
 }
 ```
 
-Answers `{ ok: true, left: number }`.
+Answers `{ ok: true, left: number, pending?: true }`. `pending` says the post
+is waiting for an owner's approval (`rules.approve`); an owner's own post never
+waits.
 
 - The id is the client's so a post can appear on the board in the same frame as
   the tap. A second write with the same id is `409 duplicate`.
@@ -267,6 +279,11 @@ Answers `{ ok: true, left: number }`.
   for the owners, for good: no owner can put it on the board later. A client
   that never asked its user, an older one or a script, sends nothing and so
   fails private.
+- **The board's rule beats the client.** With `rules.screenshots` set to `off`
+  any screenshot is `400 bad_request`; with `owners`, one sent with
+  `board: true` is kept for the owners all the same.
+- A post waiting for approval counts against the daily allowance like any
+  other, so waiting is no way around it.
 
 #### `POST /v1/projects/:pid/posts/:id/vote` *(proof)*
 
@@ -298,7 +315,7 @@ always change it.
 #### `POST /v1/projects/:pid/posts/:id/manage` *(proof, owner)*
 
 ```ts
-{ status?: PostStatus; reply?: string; hidden?: boolean; shotOff?: boolean }
+{ status?: PostStatus; reply?: string; hidden?: boolean; shotOff?: boolean; approved?: boolean }
 ```
 
 Every field is optional and only those present are written. An empty `reply`
@@ -309,6 +326,8 @@ takes the reply back. `{ ok: true }`, or `403 not_owner`.
   author kept it for the owners. Hiding the post takes its screenshot off the
   board too.
 
+- `approved: true` lets a waiting post onto the board; `false` sends it back
+  to waiting. Like hiding, it is not an answer: the author sees it arrive.
 - A review takes no `status` other than `open` (`400 bad_request`).
 - Setting `done` or `declined` deletes the post's screenshot: it was there to
   get something fixed, and once that is settled nobody needs a picture of
@@ -364,7 +383,7 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 | 403 | `not_owner` | An owner route, called by a non-owner. |
 | 403 | `origin_not_allowed` | The request comes from an origin the project does not list. |
 | 404 | `no_project` | No such project. |
-| 404 | `no_post` | No such post, or one hidden from you. |
+| 404 | `no_post` | No such post, or one hidden from you or still waiting for approval. |
 | 409 | `duplicate` | A post with this id exists. |
 | 409 | `reviewed` | This wallet has a review on this board already. |
 | 429 | `too_many` | The day's posts are used up. Carries `perDay`. |
@@ -385,3 +404,4 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 | Screenshot | 1 per bug or idea, 1 MB, JPEG, PNG or WebP | `SHOT_MAX_BYTES`, `SHOT_TYPES` |
 | Proof lifetime | 30 days | `LOGIN_TTL_MS` |
 | Writing posts | 10 per 15 minutes per wallet | server |
+| Writing posts per IP address | none; a server may set one a day, over all its boards | `PNB_POSTS_PER_IP_DAY` |

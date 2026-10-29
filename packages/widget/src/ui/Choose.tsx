@@ -65,14 +65,25 @@ export function Choose({
  * with the new post on top. A toast was easy to miss on a phone held at arm's
  * length; this is the one screen nobody can miss, and it leaves by itself.
  */
-export function Sent({ t, onBack }: { t: Translate; onBack: () => void }) {
+export function Sent({
+  t,
+  onBack,
+  waiting,
+  appName,
+}: {
+  t: Translate;
+  onBack: () => void;
+  /** It arrived on a board that approves posts first, so it is not up yet. */
+  waiting?: boolean;
+  appName?: string;
+}) {
   return (
     <div class="sent" role="status">
       <span class="sent__check">
         <Icon.Done size={44} />
       </span>
       <h3 class="sent__title">{t('board.sent')}</h3>
-      <p class="sent__note">{t('board.sentNote')}</p>
+      <p class="sent__note">{waiting ? t('board.sentWaiting', { app: appName ?? '' }) : t('board.sentNote')}</p>
       <button type="button" class="text-btn sent__back" onClick={onBack}>
         {t('board.sentBack')}
       </button>

@@ -70,6 +70,7 @@ export function Compose({
   name: knownName,
   appName,
   screenshots,
+  names = true,
   onVote,
   onSend,
 }: {
@@ -86,6 +87,8 @@ export function Compose({
   appName: string;
   /** Whether a bug or an idea may carry a screenshot, and who sees it. */
   screenshots: Screenshots;
+  /** Whether the writer may show a name; without it every post is anonymous. */
+  names?: boolean;
   onVote: (id: string, up: boolean) => void;
   /**
    * Resolves null once it has landed, or what to say about a refusal. A
@@ -265,20 +268,22 @@ export function Compose({
         </div>
       )}
 
-      <div class="switch-row">
-        <span class="switch-row__label" id="pnb-show-name">
-          {t('board.showName')}
-        </span>
-        <button
-          type="button"
-          role="switch"
-          class="switch"
-          aria-checked={showName}
-          aria-labelledby="pnb-show-name"
-          onClick={() => setShowName(!showName)}
-        />
-      </div>
-      {showName && (
+      {names && (
+        <div class="switch-row">
+          <span class="switch-row__label" id="pnb-show-name">
+            {t('board.showName')}
+          </span>
+          <button
+            type="button"
+            role="switch"
+            class="switch"
+            aria-checked={showName}
+            aria-labelledby="pnb-show-name"
+            onClick={() => setShowName(!showName)}
+          />
+        </div>
+      )}
+      {names && showName && (
         <input
           class="input"
           value={name}

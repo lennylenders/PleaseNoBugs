@@ -31,6 +31,8 @@ export interface OpenOptions {
   screenshots?: boolean | 'owners';
   /** The board to read and nothing else: no writing or voting, every post anonymous, no screenshots. */
   readonly?: boolean;
+  /** `false` leaves out "Show my name", so every post is anonymous. */
+  names?: boolean;
 }
 
 /**
@@ -55,6 +57,7 @@ export function open(options: OpenOptions): () => void {
   if (options.screenshots === false) el.setAttribute('screenshots', 'off');
   if (options.screenshots === 'owners') el.setAttribute('screenshots', 'owners');
   if (options.readonly) el.setAttribute('readonly', '');
+  if (options.names === false) el.setAttribute('names', 'off');
   el.signer = options.signer;
   el.appLogin = options.appLogin;
   el.context = options.context;

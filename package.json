@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "site": "node site/serve.mjs",
+    "site:board": "node site/board.mjs",
     "site:build": "node site/build.mjs"
   },
   "devDependencies": {

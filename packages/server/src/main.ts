@@ -2,11 +2,11 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
-import { isNimiqAddress } from '@pleasenobugs/core';
+import { DEFAULT_RULES, isNimiqAddress, type Rules } from '@pleasenobugs/core';
 import { createApp } from './app.js';
 import { bootstrapProject, describeBootstrapProblem } from './bootstrap.js';
 import { importBoard, ImportError } from './importer.js';
-import { cleanLoginMessages, cleanName, cleanOrigins, newProject } from './projects.js';
+import { cleanLoginMessages, cleanName, cleanOrigins, mergeRules, newProject } from './projects.js';
 import { SqliteStore } from './sqlite-store.js';
 import { DEFAULT_TELEMETRY_URL, startTelemetry, summarize, telemetryNotice } from './telemetry.js';
 
@@ -30,6 +30,7 @@ const VERSION = (createRequire(import.meta.url)('../package.json') as { version:
  *   PNB_TELEMETRY           `off` stops the daily counts       (on)
  *   PNB_TELEMETRY_URL       where the daily counts go          (the PleaseNoBugs collector)
  *   PNB_COLLECT             `on` receives other servers' counts (off)
+ *   PNB_POSTS_PER_IP_DAY    posts one IP address may send a day, all boards (no limit)
  *   PNB_PROJECT_*           make the first project on an empty server (see bootstrap.ts)
  *
  *   pleasenobugs-server telemetry   what a collecting server has heard, per project
@@ -49,19 +50,25 @@ if (command === 'create-project') {
       origin: { type: 'string', multiple: true },
       owner: { type: 'string' },
       'login-message': { type: 'string', multiple: true },
+      screenshots: { type: 'string' },
+      approve: { type: 'boolean' },
     },
   });
   const name = cleanName(values.name);
   const origins = cleanOrigins(values.origin ?? []);
   const loginMessages = cleanLoginMessages(values['login-message'] ?? []);
-  if (!name || !origins || !loginMessages || !isNimiqAddress(values.owner)) {
+  const rules = mergeRules(DEFAULT_RULES, {
+    ...(values.screenshots !== undefined ? { screenshots: values.screenshots } : {}),
+    ...(values.approve ? { approve: true } : {}),
+  });
+  if (!name || !origins || !loginMessages || !rules || !isNimiqAddress(values.owner)) {
     console.error(
-      'Usage: pleasenobugs-server create-project --name "My app" --origin https://my.app [--origin ...] --owner "NQ.." [--login-message "Sign in to My app"]',
+      'Usage: pleasenobugs-server create-project --name "My app" --origin https://my.app [--origin ...] --owner "NQ.." [--login-message "Sign in to My app"] [--screenshots board|owners|off] [--approve]',
     );
     process.exit(1);
   }
   const store = new SqliteStore(db);
-  const project = newProject({ name, origins, owner: values.owner, loginMessages });
+  const project = newProject({ name, origins, owner: values.owner, loginMessages, rules });
   await store.putProject(project);
   store.close();
   console.log(`Created "${project.name}"`);
@@ -69,6 +76,7 @@ if (command === 'create-project') {
   console.log(`Origins:    ${project.origins.join(', ')}`);
   console.log(`Owner:      ${project.owners[0]}`);
   if (project.loginMessages) console.log(`App logins: ${project.loginMessages.map((m) => JSON.stringify(m)).join(', ')}`);
+  console.log(`Rules:      ${describeRules(project.rules)}`);
 } else if (command === 'import') {
   const { values } = parseArgs({
     args: process.argv.slice(3),
@@ -125,6 +133,7 @@ if (command === 'create-project') {
     .filter(Boolean);
   const trustProxy = Number(process.env.PNB_TRUST_PROXY) || 0;
   const collect = process.env.PNB_COLLECT === 'on';
+  const postsPerIpDay = Number(process.env.PNB_POSTS_PER_IP_DAY) || undefined;
   const store = new SqliteStore(db);
 
   const boot = await bootstrapProject(store, process.env);
@@ -137,7 +146,7 @@ if (command === 'create-project') {
   const projects = await store.projects();
   for (const p of projects) {
     const made = 'created' in boot && boot.created.id === p.id ? 'created' : 'serving';
-    console.info(`[pleasenobugs] ${made} project "${p.name}". Project id: ${p.id}`);
+    console.info(`[pleasenobugs] ${made} project "${p.name}". Project id: ${p.id}. ${describeRules(p.rules)}`);
   }
   // On Railway the server knows its own address, so the whole line to paste
   // can be printed and nobody has to put an id and a URL together.
@@ -150,7 +159,8 @@ if (command === 'create-project') {
     );
   }
 
-  const app = createApp({ store, dashboardOrigins, trustProxy, collect });
+  if (postsPerIpDay) console.info(`[pleasenobugs] at most ${postsPerIpDay} posts per IP address a day`);
+  const app = createApp({ store, dashboardOrigins, trustProxy, collect, postsPerIpDay });
   app.listen(port, () => {
     console.info(`[pleasenobugs] listening on :${port}, data in ${db}${collect ? ', collecting telemetry' : ''}`);
     // Only for somebody with no project and no other way to make one: after a
@@ -168,4 +178,10 @@ if (command === 'create-project') {
 } else {
   console.error(`Unknown command "${command}". Try: serve, create-project, import, telemetry`);
   process.exit(1);
+}
+
+/** A project's rules in one line, for the log: what is different about this board. */
+function describeRules(r: Rules): string {
+  const shots = { board: 'on the board', owners: 'for owners only', off: 'off' }[r.screenshots ?? 'board'];
+  return `Screenshots ${shots}; ${r.approve ? 'new posts wait for approval' : 'new posts show at once'}.`;
 }

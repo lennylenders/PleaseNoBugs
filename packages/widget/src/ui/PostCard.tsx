@@ -173,7 +173,7 @@ export function PostCard({
 
   return (
     <li
-      class={`card${onManage ? ' card--owner' : ''}${post.hidden ? ' card--hidden' : ''}`}
+      class={`card${onManage ? ' card--owner' : ''}${post.hidden || post.pending ? ' card--hidden' : ''}`}
       onClick={onManage}
       role={onManage ? 'button' : undefined}
       tabIndex={onManage ? 0 : undefined}
@@ -199,6 +199,7 @@ export function PostCard({
           </span>
         )}
         {post.hidden && <span class="card__off">{t('board.hidden')}</span>}
+        {post.pending && <span class="card__wait">{t('board.waiting')}</span>}
         <span class="card__when">{'date' in when ? when.date : t(when.key, when.vars)}</span>
       </div>
 

@@ -115,6 +115,15 @@ describe.each(STORES)('%s', (_name, make) => {
     expect((await s.getPost('p1', 'post1'))?.hidden).toBeUndefined();
   });
 
+  it('keeps a post waiting until it is approved', async () => {
+    const s = make();
+    await s.createPost(row({ pending: true }));
+    expect((await s.getPost('p1', 'post1'))?.pending).toBe(true);
+    expect((await s.posts('p1', null))[0].pending).toBe(true);
+    await s.updatePost('p1', 'post1', { pending: false });
+    expect((await s.getPost('p1', 'post1'))?.pending).toBeUndefined();
+  });
+
   it('deletes a post with its votes', async () => {
     const s = make();
     await s.createPost(row());
@@ -226,12 +235,13 @@ describe.each(STORES)('%s', (_name, make) => {
     await s.setShotOff('p1', 'nope', true);
   });
 
-  it('counts a board for telemetry: done is fixed or built, hidden is not counted', async () => {
+  it('counts a board for telemetry: done is fixed or built, hidden or waiting is not counted', async () => {
     const s = make();
     expect(await s.projectStats('p1')).toEqual({ bugs: 0, ideas: 0, bugsDone: 0, ideasDone: 0 });
     await s.createPost(row({ id: 'b1', kind: 'bug', status: 'done' }));
     await s.createPost(row({ id: 'b2', kind: 'bug', status: 'planned' }));
     await s.createPost(row({ id: 'b3', kind: 'bug', status: 'done', hidden: true }));
+    await s.createPost(row({ id: 'b4', kind: 'bug', pending: true }));
     await s.createPost(row({ id: 'i1', kind: 'idea', status: 'done' }));
     await s.createPost(row({ id: 'i2', kind: 'idea', status: 'declined' }));
     await s.createPost(row({ id: 'other', projectId: 'p2', kind: 'bug' }));
@@ -298,8 +308,10 @@ describe('SqliteStore, opening a file an older version wrote', () => {
     try {
       expect((await s.getProject('p1'))?.rules.kinds).toEqual(['bug', 'idea', 'review']);
       expect((await s.getProject('p2'))?.rules.kinds).toEqual(['bug']);
-      expect(await s.getMeta('schema')).toBe('3');
+      expect(await s.getMeta('schema')).toBe('4');
       expect((await s.posts('p1', null))[0]).toMatchObject({ id: 'old' });
+      // Shown before anybody could ask for approval, so it stays shown.
+      expect((await s.posts('p1', null))[0].pending).toBeUndefined();
       expect((await s.posts('p1', null))[0].shot).toBeUndefined();
       expect(await s.createPost(row({ id: 'r1', kind: 'review', rating: 3 }))).toBe(true);
     } finally {
@@ -337,7 +349,7 @@ describe('SqliteStore, opening a file an older version wrote', () => {
 
     const s = new SqliteStore(file);
     try {
-      expect(await s.getMeta('schema')).toBe('3');
+      expect(await s.getMeta('schema')).toBe('4');
       expect((await s.posts('p1', null))[0].shot).toBe('owners');
       await s.setShotOff('p1', 'b1', false);
       expect((await s.getShot('p1', 'b1'))?.for).toBe('owners');

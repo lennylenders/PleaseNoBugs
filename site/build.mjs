@@ -6,7 +6,14 @@
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fill, ONLY, ROUTES, VERSION } from './files.mjs';
+import { board, fill, ONLY, ROUTES, VERSION } from './files.mjs';
+
+// The home page's board is real, so a site without one must not go out.
+const where = board(true);
+if (!where.server || !where.project) {
+  console.error('site/board.json names no board yet: fill in its server and project id first.');
+  process.exit(1);
+}
 
 const out = fileURLToPath(new URL('./_site/', import.meta.url));
 await rm(out, { recursive: true, force: true });
@@ -18,7 +25,7 @@ for (const [prefix, dir] of ROUTES) {
   for (const f of files) {
     const to = join(out, prefix, f);
     await mkdir(dirname(to), { recursive: true });
-    await writeFile(to, fill(f, await readFile(join(dir, f))));
+    await writeFile(to, fill(f, await readFile(join(dir, f)), where));
   }
 }
-console.log(`Site written to ${out}, handing out pleasenobugs@${VERSION}`);
+console.log(`Site written to ${out}, handing out pleasenobugs@${VERSION}, board ${where.project} on ${where.server}`);

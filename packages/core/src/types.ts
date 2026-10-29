@@ -51,6 +51,13 @@ export type PostContext = Record<string, string>;
 export type ShotFor = 'board' | 'off' | 'owners';
 
 /**
+ * What a board allows screenshots to be, whatever the widget asks:
+ * `board` (the author may put one on the board), `owners` (only ever for the
+ * owners) or `off` (none at all).
+ */
+export type ShotRule = 'board' | 'owners' | 'off';
+
+/**
  * One post, as a reader receives it.
  *
  * What is *not* here is the point: the author's address and the list of who
@@ -84,6 +91,9 @@ export interface Post {
   shotFor?: ShotFor;
   /** Owners only: a post they took off the board, kept so it can come back. */
   hidden?: boolean;
+  /** Waiting for an owner to approve it, on a board with `rules.approve`.
+   *  Only its author and the owners see it until then. */
+  pending?: boolean;
 }
 
 /** A project's limits. Defaults in `DEFAULT_RULES`. */
@@ -95,6 +105,16 @@ export interface Rules {
   replyMax: number;
   /** Which kinds this board accepts, in the order the widget offers them. */
   kinds: PostKind[];
+  /**
+   * What screenshots may be on this board, enforced by the server whatever a
+   * widget sends. Absent on projects made before 0.2.0, which means `board`.
+   */
+  screenshots?: ShotRule;
+  /**
+   * Whether a new post waits for an owner's approval before anybody else sees
+   * it. For a board on a public page. Absent means no.
+   */
+  approve?: boolean;
 }
 
 /** What anybody may know about a project. */

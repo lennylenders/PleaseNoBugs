@@ -138,6 +138,14 @@ export class SqliteStore implements Store {
       if (!cols.includes('off')) this.db.exec('ALTER TABLE shots ADD COLUMN off INTEGER NOT NULL DEFAULT 0');
       this.run("UPDATE meta SET value = '3' WHERE key = 'schema'");
     }
+
+    // 4: posts waiting for an owner's approval, on boards that ask for it.
+    // Everything already stored was shown without asking, so it stays shown: 0.
+    if (schema() < 4) {
+      const cols = this.all('PRAGMA table_info(posts)').map((c) => String(c.name));
+      if (!cols.includes('pending')) this.db.exec('ALTER TABLE posts ADD COLUMN pending INTEGER NOT NULL DEFAULT 0');
+      this.run("UPDATE meta SET value = '4' WHERE key = 'schema'");
+    }
   }
 
   /** Close the file. Tests use it; a server normally runs until it is killed. */
@@ -195,7 +203,7 @@ export class SqliteStore implements Store {
          SUM(kind = 'idea') AS ideas,
          SUM(kind = 'bug' AND status = 'done') AS bugs_done,
          SUM(kind = 'idea' AND status = 'done') AS ideas_done
-       FROM posts WHERE project_id = ? AND hidden = 0`,
+       FROM posts WHERE project_id = ? AND hidden = 0 AND pending = 0`,
       projectId,
     );
     return {
@@ -284,8 +292,8 @@ export class SqliteStore implements Store {
   async createPost(row: PostRow, shot?: Shot) {
     const inserted = this.run(
       `INSERT OR IGNORE INTO posts
-         (project_id, id, author, anon, kind, text, at, status, reply_text, reply_at, hidden, context, answered_at, rating)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (project_id, id, author, anon, kind, text, at, status, reply_text, reply_at, hidden, context, answered_at, rating, pending)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       row.projectId,
       row.id,
       row.author,
@@ -300,6 +308,7 @@ export class SqliteStore implements Store {
       row.context ? JSON.stringify(row.context) : null,
       row.answeredAt ?? null,
       row.rating ?? null,
+      row.pending ? 1 : 0,
     );
     if (Number(inserted.changes) === 0) return false;
     this.run(
@@ -335,6 +344,10 @@ export class SqliteStore implements Store {
     if (patch.hidden !== undefined) {
       sets.push('hidden = ?');
       params.push(patch.hidden ? 1 : 0);
+    }
+    if (patch.pending !== undefined) {
+      sets.push('pending = ?');
+      params.push(patch.pending ? 1 : 0);
     }
     if (patch.answeredAt !== undefined) {
       sets.push('answered_at = ?');
@@ -497,6 +510,7 @@ function toRow(r: Record<string, unknown>): PostRow {
     row.reply = { text: String(r.reply_text), at: Number(r.reply_at) };
   }
   if (Number(r.hidden) === 1) row.hidden = true;
+  if (Number(r.pending) === 1) row.pending = true;
   if (typeof r.context === 'string') row.context = JSON.parse(r.context) as PostContext;
   if (r.answered_at !== null && r.answered_at !== undefined) row.answeredAt = Number(r.answered_at);
   if (r.rating !== null && r.rating !== undefined) row.rating = Number(r.rating);

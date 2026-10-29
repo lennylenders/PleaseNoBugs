@@ -4,6 +4,7 @@ import {
   POST_KINDS,
   isNimiqAddress,
   isPostKind,
+  isShotRule,
   normalizeAddress,
   type PostKind,
   type Project,
@@ -151,6 +152,14 @@ export function mergeRules(current: Rules, v: unknown): Rules | null {
     // In the order core lists them, so the widget's chips never shuffle.
     next.kinds = POST_KINDS.filter((k) => (change.kinds as PostKind[]).includes(k));
   }
+  if (change.screenshots !== undefined) {
+    if (!isShotRule(change.screenshots)) return null;
+    next.screenshots = change.screenshots;
+  }
+  if (change.approve !== undefined) {
+    if (typeof change.approve !== 'boolean') return null;
+    next.approve = change.approve;
+  }
   return next;
 }
 
@@ -162,13 +171,15 @@ export function newProject(args: {
   now?: number;
   id?: string;
   loginMessages?: string[];
+  /** Rules that differ from the defaults, already checked (see {@link mergeRules}). */
+  rules?: Partial<Rules>;
 }): Project {
   return {
     id: args.id ?? newProjectId(),
     name: args.name,
     owners: [normalizeAddress(args.owner)],
     origins: args.origins,
-    rules: { ...DEFAULT_RULES, kinds: [...DEFAULT_RULES.kinds] },
+    rules: { ...DEFAULT_RULES, kinds: [...DEFAULT_RULES.kinds], ...args.rules },
     ...(args.loginMessages?.length ? { loginMessages: args.loginMessages } : {}),
     createdAt: args.now ?? Date.now(),
   };

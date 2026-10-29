@@ -258,7 +258,7 @@ export function createClient(options: ClientOptions) {
       context?: PostContext;
       rating?: number;
       shot?: { type: ShotType; data: string; board?: boolean };
-    }) => request<{ ok: true; left: number }>('POST', at('/posts'), { body: p, auth: 'required' }),
+    }) => request<{ ok: true; left: number; pending?: boolean }>('POST', at('/posts'), { body: p, auth: 'required' }),
     /** A post's screenshot: anybody's for one on the board, owners' for any. */
     shot: (id: string) => request<Blob>('GET', `${post(id)}/shot`, { auth: 'optional', blob: true }),
     /**
@@ -274,7 +274,10 @@ export function createClient(options: ClientOptions) {
     remove: (id: string) => request<{ ok: true }>('DELETE', post(id), { auth: 'required' }),
     setName: (name: string) =>
       request<{ ok: true; name?: string }>('PUT', at('/me'), { body: { name }, auth: 'required' }),
-    manage: (id: string, change: { status?: PostStatus; reply?: string; hidden?: boolean; shotOff?: boolean }) =>
+    manage: (
+      id: string,
+      change: { status?: PostStatus; reply?: string; hidden?: boolean; shotOff?: boolean; approved?: boolean },
+    ) =>
       request<{ ok: true }>('POST', `${post(id)}/manage`, { body: change, auth: 'required' }),
   };
 }

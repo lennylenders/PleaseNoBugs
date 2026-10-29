@@ -245,6 +245,13 @@ const COPY = {
     nl: 'Bedankt. Het staat nu op het bord.',
     de: 'Danke. Es steht jetzt auf dem Board.',
   },
+  // On a board that approves posts first: it did arrive, it is just not up yet.
+  'board.sentWaiting': {
+    en: 'Thank you. It shows on the board once {app} approved it.',
+    nl: 'Bedankt. Het komt op het bord zodra {app} het heeft goedgekeurd.',
+    de: 'Danke. Es erscheint auf dem Board, sobald {app} es freigegeben hat.',
+  },
+  'board.waiting': { en: 'Waiting for approval', nl: 'Wacht op goedkeuring', de: 'Wartet auf Freigabe' },
   'board.sentBack': { en: 'Back to the board', nl: 'Terug naar het bord', de: 'Zurück zum Board' },
 
   // ---- Throwing your own away ----
@@ -265,6 +272,8 @@ const COPY = {
   'board.hide': { en: 'Take off the board', nl: 'Van het bord halen', de: 'Vom Board nehmen' },
   'board.unhide': { en: 'Put it back', nl: 'Terugzetten', de: 'Zurückstellen' },
   'board.hidden': { en: 'Off the board', nl: 'Van het bord', de: 'Vom Board' },
+  'board.approve': { en: 'Approve: put it on the board', nl: 'Goedkeuren: op het bord zetten', de: 'Freigeben: aufs Board stellen' },
+  'board.unapprove': { en: 'Keep it waiting', nl: 'Laten wachten', de: 'Warten lassen' },
   'board.save': { en: 'Save', nl: 'Opslaan', de: 'Speichern' },
   'board.context': { en: 'Sent with', nl: 'Meegestuurd', de: 'Mitgeschickt' },
 

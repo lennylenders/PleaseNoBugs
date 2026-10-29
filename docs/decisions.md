@@ -562,6 +562,60 @@ Before switching it on: whether search engines may index the boards
 feedback can be read on the PleaseNoBugs site too. Shitti is not on the list
 until then.
 
+## 2026-10-29: The home page's board is real
+
+The owner wants visitors to see that the widget works, by using it: the board
+on the home page is now PleaseNoBugs' own, where people say what they think
+of it. The configurator stays a demo, because it needs `screen`, and trying
+colours should not post anything. Reverses, for the home page only, "a board
+that lives in the page" of 2026-10-28.
+
+- **Its own server**, a Railway service in a project of its own, not
+  Shitti's. A public page draws spam, and Shitti's service is also the
+  telemetry address, which nothing may put at risk. About $1 to $1.50 a
+  month. The site reads it from `site/board.json`, filled in once the server
+  exists; `site/build.mjs` refuses to build without it, so the site cannot go
+  out with a board that is not there. On this machine the home page talks to
+  `site/board.mjs` instead (`npm run site:board`): the same rules, in memory.
+- **A guest key, for visitors without a wallet** (`site/src/assets/guest.js`).
+  The browser makes an Ed25519 key, keeps it in `localStorage` and signs the
+  way the Keyguard does; to the server it is an ordinary Nimiq address, so the
+  server did not change for it. Checked against Nimiq's own address
+  derivation and a real server (`site/guest.test.ts`). Only on this website,
+  never in the npm package: an app's board counts wallets, and a way around
+  that for every app would undo it. Cost: one vote and five posts a day per
+  *browser*, not per person; a private window is somebody new. Inside Nimiq
+  Pay the wallet signs as anywhere.
+  Options weighed: the Nimiq Hub for everybody (most visitors have no Nimiq
+  account, and its popups are what Shitti learned to avoid on phones), and a
+  new kind of guest login on the server (more code, nothing gained).
+- **Approved before anybody sees it** (`rules.approve`, new in the server).
+  The owner sees no notification, so without it rubbish would sit on the home
+  page until somebody looked. A waiting post is shown to its author, marked
+  "Waiting for approval", and to the owners, who approve it in the sheet where
+  they answer. Stored as its own flag (schema 4), not as `hidden`, since the
+  author must see one and not the other. It counts against the day's posts.
+- **No names, no screenshots.** `names="off"` leaves "Show my name" out, and
+  the project's `rules.screenshots` is `off`, which the server enforces: on a
+  public page anybody with a script could otherwise put any picture on the
+  home page, whatever the widget's attribute says. The widget follows the
+  stricter of its attribute and the project's rule.
+- **Fewer addresses anywhere.** Rate limits now count a hash of the IP
+  address with a secret that lives only in the running process, and the log
+  says which limit tripped but no longer for whom. A server may also cap
+  posts per IP address a day (`PNB_POSTS_PER_IP_DAY`), off by default because
+  behind a phone network many people share one address; the site's server
+  sets it.
+- **The owner signs in with `#owner`.** The home page with `#owner` in its
+  address uses the Nimiq Hub (`@nimiq/hub-api` 1.15.0 from jsDelivr, loaded
+  only then), so the owner can approve and answer from a computer with their
+  real wallet. Without it the page never loads the Hub.
+
+Both widgets on the home page, the one in the page and the round button, are
+the same real board. The footer no longer says the site stores nothing: what
+you post goes to that server, without a name, and the guest key stays in the
+browser.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
@@ -619,10 +673,12 @@ Next: announce in the mini app competition community.
    minutes later.
 4. Tag `vX.Y.Z` on the same commit and push the tag: that builds the image
    and publishes the website, which then hands out the new version. Pushing
-   `main` alone builds nothing.
+   `main` alone builds nothing. `site/board.json` must name the home page's
+   board by then, or the website's build stops.
 
-The website on this machine: `npm run build`, then `npm run site`
-(http://localhost:5190). It shows this checkout's widget, not npm's. Before
+The website on this machine: `npm run build`, then `npm run site:board` and
+`npm run site` (http://localhost:5190). It shows this checkout's widget, not
+npm's, on a local board in memory. Before
 the first publish, GitHub Pages has to be switched on once: Settings → Pages →
 Source: "GitHub Actions".
 

@@ -136,6 +136,21 @@ describe('bootstrapProject', () => {
     });
   });
 
+  it('takes a board for a public page: no screenshots, posts waiting for approval', async () => {
+    const store = new MemoryStore();
+    const result = await bootstrapProject(store, { ...env, PNB_PROJECT_SCREENSHOTS: 'off', PNB_PROJECT_APPROVE: 'on' });
+    expect('created' in result && result.created.rules).toMatchObject({ screenshots: 'off', approve: true });
+    const plain = await bootstrapProject(new MemoryStore(), env);
+    expect('created' in plain && plain.created.rules).toMatchObject({ screenshots: 'board', approve: false });
+    expect(await bootstrapProject(new MemoryStore(), { ...env, PNB_PROJECT_SCREENSHOTS: 'none' })).toEqual({
+      invalid: 'PNB_PROJECT_SCREENSHOTS',
+      got: 'none',
+    });
+    expect(await bootstrapProject(new MemoryStore(), { ...env, PNB_PROJECT_APPROVE: 'yes' })).toMatchObject({
+      invalid: 'PNB_PROJECT_APPROVE',
+    });
+  });
+
   it('never makes a second one', async () => {
     const store = new MemoryStore();
     await bootstrapProject(store, env);

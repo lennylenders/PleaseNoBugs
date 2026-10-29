@@ -115,6 +115,8 @@ export interface ManageChange {
   reply: string;
   hidden: boolean;
   shotOff?: boolean;
+  /** Only for a post waiting for approval: true lets it onto the board. */
+  approved?: boolean;
 }
 
 /**
@@ -150,6 +152,7 @@ export function ManageSheet({
   const [reply, setReply] = useState(post.reply?.text ?? '');
   const [hidden, setHidden] = useState(!!post.hidden);
   const [shotOff, setShotOff] = useState(post.shotFor === 'off');
+  const [approved, setApproved] = useState(false);
   // Whether the author agreed to the board, so an owner may switch it.
   const switchable = post.shot && (post.shotFor === 'board' || post.shotFor === 'off');
   const shotWho: CopyKey =
@@ -239,6 +242,13 @@ export function ManageSheet({
         onInput={(e) => setReply((e.target as HTMLTextAreaElement).value)}
       />
 
+      {/* Approving comes first on a waiting post: it is what the post is waiting for. */}
+      {post.pending && (
+        <button type="button" class="approve-btn" aria-pressed={approved} onClick={() => setApproved(!approved)}>
+          {t(approved ? 'board.unapprove' : 'board.approve')}
+        </button>
+      )}
+
       <button type="button" class="hide-btn" aria-pressed={hidden} onClick={() => setHidden(!hidden)}>
         {t(hidden ? 'board.unhide' : 'board.hide')}
       </button>
@@ -247,7 +257,15 @@ export function ManageSheet({
         <button
           type="button"
           class="btn"
-          onClick={() => onSave({ status, reply: reply.trim(), hidden, ...(switchable ? { shotOff } : {}) })}
+          onClick={() =>
+            onSave({
+              status,
+              reply: reply.trim(),
+              hidden,
+              ...(switchable ? { shotOff } : {}),
+              ...(post.pending && approved ? { approved: true } : {}),
+            })
+          }
         >
           {t('board.save')}
         </button>

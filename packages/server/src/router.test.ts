@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { DAY_MS, LOGIN_TTL_MS } from '@pleasenobugs/core';
+import { DAY_MS, LOGIN_TTL_MS, type Rules } from '@pleasenobugs/core';
 import { MemoryStore } from './memory-store.js';
 import { newProject } from './projects.js';
 import { serve, wallet } from './test-helpers.js';
@@ -31,15 +31,18 @@ afterEach(async () => {
 });
 
 /** A fresh server with two projects, so every test starts from nothing. */
-async function setup(opts: { dashboard?: boolean } = {}) {
+async function setup(opts: { dashboard?: boolean; rules?: Partial<Rules>; postsPerIpDay?: number } = {}) {
   const store = new MemoryStore();
   let clock = Date.now();
-  await store.putProject(newProject({ id: 'board1', name: 'Board one', origins: [APP], owner: OWNER.address }));
+  await store.putProject(
+    newProject({ id: 'board1', name: 'Board one', origins: [APP], owner: OWNER.address, rules: opts.rules }),
+  );
   await store.putProject(newProject({ id: 'board2', name: 'Board two', origins: [OTHER_APP], owner: OWNER.address }));
   const srv = await serve({
     store,
     now: () => clock,
     dashboardOrigins: opts.dashboard ? [DASH] : [],
+    postsPerIpDay: opts.postsPerIpDay,
   });
   close = srv.close;
 
@@ -72,7 +75,7 @@ describe('reading', () => {
     expect(res.data.project).toEqual({
       id: 'board1',
       name: 'Board one',
-      rules: { perDay: 5, textMax: 200, replyMax: 300, kinds: ['bug', 'idea', 'review'] },
+      rules: { perDay: 5, textMax: 200, replyMax: 300, kinds: ['bug', 'idea', 'review'], screenshots: 'board', approve: false },
     });
     expect(res.data.posts[0]).toMatchObject({ votes: 1, voted: false, mine: false });
   });
@@ -690,5 +693,85 @@ describe('the server around it', () => {
   it('has a health check', async () => {
     const { call } = await setup();
     expect((await call('GET', '/health')).data).toEqual({ ok: true });
+  });
+});
+
+describe('what a board allows screenshots to be', () => {
+  const png = () => {
+    const bytes = new Uint8Array(64);
+    bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    return { type: 'image/png', data: Buffer.from(bytes).toString('base64'), board: true };
+  };
+
+  it('`off` refuses any screenshot, whatever the widget asked, and the post without one goes through', async () => {
+    const { call, post } = await setup({ rules: { screenshots: 'off' } });
+    expect((await post(A, { kind: 'bug', shot: png() })).status).toBe(400);
+    expect((await post(A, { kind: 'bug' })).status).toBe(200);
+    expect((await call('GET', '/v1/projects/board1')).data.rules.screenshots).toBe('off');
+  });
+
+  it('`owners` keeps one for the owners even when the author ticked "everyone"', async () => {
+    const { as, call, post } = await setup({ rules: { screenshots: 'owners' } });
+    expect((await post(A, { id: 'b1', kind: 'bug', shot: png() })).status).toBe(200);
+    expect((await call('GET', '/v1/projects/board1/posts')).data.posts[0].shot).toBeUndefined();
+    expect((await call('GET', '/v1/projects/board1/posts/b1/shot')).status).toBe(404);
+    expect((await as(OWNER, 'GET', '/posts')).data.posts[0]).toMatchObject({ shot: true, shotFor: 'owners' });
+  });
+});
+
+describe('approving posts first', () => {
+  it('shows a new post to its author and the owners only, marked as waiting', async () => {
+    const { as, call, post } = await setup({ rules: { approve: true } });
+    const sent = await post(A, { id: 'w1' });
+    expect(sent.data).toMatchObject({ ok: true, pending: true });
+
+    expect((await call('GET', '/v1/projects/board1/posts')).data.posts).toEqual([]);
+    expect((await as(B, 'GET', '/posts')).data.posts).toEqual([]);
+    expect((await as(A, 'GET', '/posts')).data.posts[0]).toMatchObject({ id: 'w1', mine: true, pending: true });
+    expect((await as(OWNER, 'GET', '/posts')).data.posts[0]).toMatchObject({ id: 'w1', pending: true });
+    // Nobody else can find it by its id either.
+    expect((await as(B, 'POST', '/posts/w1/vote', { up: true })).status).toBe(404);
+  });
+
+  it("puts it on the board once an owner approves, and an owner's own post never waits", async () => {
+    const { as, call, post } = await setup({ rules: { approve: true } });
+    await post(A, { id: 'w1' });
+    expect((await as(OWNER, 'POST', '/posts/w1/manage', { approved: true })).status).toBe(200);
+    const board = (await call('GET', '/v1/projects/board1/posts')).data.posts;
+    expect(board.map((p: { id: string }) => p.id)).toEqual(['w1']);
+    expect(board[0].pending).toBeUndefined();
+    expect((await as(B, 'POST', '/posts/w1/vote', { up: true })).data.votes).toBe(2);
+
+    expect((await post(OWNER, { id: 'o1' })).data.pending).toBeUndefined();
+    expect((await call('GET', '/v1/projects/board1/posts')).data.posts).toHaveLength(2);
+  });
+
+  it('counts a waiting post against the daily allowance, so waiting is no way around it', async () => {
+    const { post } = await setup({ rules: { approve: true, perDay: 2 } });
+    await post(A);
+    await post(A);
+    expect((await post(A)).data.error).toBe('too_many');
+  });
+
+  it('only owners approve', async () => {
+    const { as, post } = await setup({ rules: { approve: true } });
+    await post(A, { id: 'w1' });
+    expect((await as(A, 'POST', '/posts/w1/manage', { approved: true })).status).toBe(403);
+  });
+});
+
+describe('posts per IP address', () => {
+  it('stops one address after its daily number, over every wallet, when the server sets one', async () => {
+    const { post } = await setup({ postsPerIpDay: 2 });
+    expect((await post(A)).status).toBe(200);
+    expect((await post(B)).status).toBe(200);
+    const third = await post(C);
+    expect(third.status).toBe(429);
+    expect(third.data.error).toBe('rate_limited');
+  });
+
+  it('is off unless set', async () => {
+    const { post } = await setup();
+    for (const w of [A, B, C]) expect((await post(w)).status).toBe(200);
   });
 });

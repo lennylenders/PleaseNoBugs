@@ -42,7 +42,8 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `app-name` | What answers are signed with ("Shitti says"). Defaults to the project's name. |
 | `name` | A display name you already know, offered when the user chooses to show theirs. |
 | `kinds` | Which kinds to offer, of the ones your project takes: `bug,idea,review` by default. `kinds="bug,idea"` leaves reviews off the tiles and out of the list. |
-| `screenshots` | Who sees screenshots on bugs and ideas. On the board for everyone by default, each one only after its author ticks that everyone may see it. `owners` keeps them for your eyes only; `off` leaves the "Add a screenshot" button out. An unknown value counts as `owners`. |
+| `screenshots` | Who sees screenshots on bugs and ideas. On the board for everyone by default, each one only after its author ticks that everyone may see it. `owners` keeps them for your eyes only; `off` leaves the "Add a screenshot" button out. An unknown value counts as `owners`. The project's own rule (`PNB_PROJECT_SCREENSHOTS` on the server) wins when it is stricter. |
+| `names` | `off` leaves out "Show my name", so every post is anonymous. For a board on a public page. |
 | `readonly` | The board to read and scroll through, nothing else: no **+**, no votes (the count still shows), no "Sign in", and it never asks a wallet or sends a proof, not even inside Nimiq Pay. Every post shows as anonymous and without its screenshot, whatever its author chose, because a read-only board is usually shown somewhere other than the app its authors wrote for. |
 | `demo` | A board of sample posts in the page's memory, with no server: `<please-no-bugs demo>`. Voting and writing work, nothing is sent or stored, and a reload starts over. For trying the widget, or showing it off. |
 | `screen` | With `demo` only: hold one screen in view, `button`, `tiles`, `board`, `write` or `sent`. What the website's configurator uses to show the part you are changing. |
@@ -76,6 +77,12 @@ one off the board** there while the post stays up, or hide the whole post. A
 screenshot is deleted by itself when you mark the post Done or Not doing, or
 when the post is thrown away. Taking one off stops it being shown; it cannot
 take it back from anybody who already saved it.
+
+**Approving first.** On a project made with `PNB_PROJECT_APPROVE=on`, a new
+post waits until an owner approves it. Its author sees it on the board marked
+"Waiting for approval", and "Feedback sent!" says it shows once approved;
+nobody else sees it yet. Owners see it too, and approve it in the sheet where
+they answer it. Your own posts as an owner never wait.
 
 With `screenshots="owners"` they stay yours alone, never the board and not
 even their author: the warning says so instead, and there is nothing to tick.

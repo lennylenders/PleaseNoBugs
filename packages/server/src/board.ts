@@ -40,6 +40,9 @@ export function toVisible(
   // A screenshot on the board is the board's, like the text under it. Any
   // other one, and who sees it, is for owners only.
   if (row.shot === 'board') out.shot = true;
+  // Only its author and the owners ever receive a waiting post; this says why
+  // nobody else can see it yet.
+  if (row.pending && (owner || out.mine)) out.pending = true;
   if (owner) {
     if (row.context && Object.keys(row.context).length) out.context = row.context;
     if (row.hidden) out.hidden = true;

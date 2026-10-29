@@ -40,6 +40,8 @@ export interface PostRow {
   status: PostStatus;
   reply?: PostReply;
   hidden?: boolean;
+  /** Waiting for an owner's approval: its author and the owners see it, nobody else. */
+  pending?: boolean;
   context?: PostContext;
   /** Reviews only. */
   rating?: number;
@@ -89,10 +91,11 @@ export interface PostPatch {
   status?: PostStatus;
   reply?: PostReply | null;
   hidden?: boolean;
+  pending?: boolean;
   answeredAt?: number;
 }
 
-/** How much one board has had, for telemetry. Hidden posts are not counted. */
+/** How much one board has had, for telemetry. Hidden posts, and those still waiting for approval, are not counted. */
 export interface ProjectStats {
   bugs: number;
   ideas: number;

@@ -43,6 +43,12 @@ export interface RouterOptions {
   dashboardOrigins?: string[];
   /** The clock, so tests can move it. */
   now?: () => number;
+  /**
+   * How many posts one IP address may send in a day, over every board here.
+   * Off unless set: behind a phone network many people share one address, so
+   * it suits a board on a public page more than one inside an app.
+   */
+  postsPerIpDay?: number;
 }
 
 /** How many answers `GET /answers` hands back. More than anybody will have. */
@@ -184,8 +190,10 @@ export function createRouter(options: RouterOptions): express.Router {
 
       const rows = await store.posts(p.id, address);
       // Hidden posts reach owners, marked, so hiding can be undone. Everybody
-      // else gets a board without them, their authors included.
-      const shown = owner ? rows : rows.filter((row) => !row.hidden);
+      // else gets a board without them, their authors included. A post waiting
+      // for approval reaches owners and its own author, who would otherwise
+      // think it had been lost.
+      const shown = owner ? rows : rows.filter((row) => !row.hidden && (!row.pending || row.author === address));
       // One lookup for every author who let their name show, rather than one
       // per post: a board is mostly a handful of people saying several things.
       const named = [...new Set(shown.filter((row) => !row.anon).map((row) => row.author))];
@@ -235,7 +243,9 @@ export function createRouter(options: RouterOptions): express.Router {
       // there is nothing here, rather than that there is something they may
       // not see.
       const owner = r.kind === 'wallet' && r.owner;
-      if (!post || !shot || (!owner && (shot.for !== 'board' || post.hidden))) return fail(res, 404, 'no_post');
+      if (!post || !shot || (!owner && (shot.for !== 'board' || post.hidden || post.pending))) {
+        return fail(res, 404, 'no_post');
+      }
       res.set({
         'content-type': shot.type,
         // Never kept, by a browser or anything in between, so taking one off
@@ -266,6 +276,9 @@ export function createRouter(options: RouterOptions): express.Router {
     }),
   );
 
+  if (options.postsPerIpDay) {
+    router.post('/v1/projects/:pid/posts', rateLimit({ windowMs: DAY_MS, max: options.postsPerIpDay, name: 'post-day' }));
+  }
   router.post(
     '/v1/projects/:pid/posts',
     rateLimit({
@@ -285,7 +298,11 @@ export function createRouter(options: RouterOptions): express.Router {
       const body = (req.body ?? {}) as Record<string, unknown>;
       const text = typeof body.text === 'string' ? body.text.trim() : '';
       const context = body.context === undefined ? {} : cleanContext(body.context);
-      const shot = body.shot === undefined ? undefined : readShot(body.shot);
+      const shotRule = p.rules.screenshots ?? 'board';
+      const sent = body.shot === undefined ? undefined : readShot(body.shot);
+      // What the board allows beats what the widget asked: none at all, or
+      // the owners' alone whatever the author ticked.
+      const shot = sent && shotRule === 'owners' ? { ...sent, board: false } : sent;
       if (
         typeof body.id !== 'string' ||
         !body.id ||
@@ -298,7 +315,7 @@ export function createRouter(options: RouterOptions): express.Router {
         // Stars on a review and on nothing else.
         (body.kind === 'review' ? !isRating(body.rating) : body.rating !== undefined) ||
         shot === null ||
-        (shot && !takesShot(body.kind))
+        (shot && (!takesShot(body.kind) || shotRule === 'off'))
       ) {
         return fail(res, 400, 'bad_request');
       }
@@ -310,6 +327,8 @@ export function createRouter(options: RouterOptions): express.Router {
       }
 
       const at = now();
+      // An owner's own post needs nobody's approval.
+      const pending = !!p.rules.approve && !w.owner;
       const used = await store.countByAuthorSince(p.id, w.address, at - DAY_MS);
       if (used >= p.rules.perDay) {
         console.warn(`[post] ${p.id} too_many ${tag(w.address)} today=${used}`);
@@ -331,13 +350,14 @@ export function createRouter(options: RouterOptions): express.Router {
           status: 'open',
           ...(Object.keys(context).length ? { context } : {}),
           ...(body.kind === 'review' ? { rating: body.rating as number } : {}),
+          ...(pending ? { pending: true } : {}),
         },
         shot,
       );
       if (!created) return fail(res, 409, 'duplicate');
       const with_ = shot ? ` with a ${shot.data.length} byte screenshot` : '';
-      console.info(`[post] ${p.id} ${tag(w.address)} posted ${body.kind} ${body.id}${with_}`);
-      res.json({ ok: true, left: Math.max(0, p.rules.perDay - used - 1) });
+      console.info(`[post] ${p.id} ${tag(w.address)} posted ${body.kind} ${body.id}${with_}${pending ? ', waiting' : ''}`);
+      res.json({ ok: true, left: Math.max(0, p.rules.perDay - used - 1), ...(pending ? { pending: true } : {}) });
     }),
   );
 
@@ -349,7 +369,9 @@ export function createRouter(options: RouterOptions): express.Router {
       const w = await wallet(req, res, p);
       if (!w) return;
       const post = await store.getPost(p.id, String(req.params.id));
-      if (!post || (post.hidden && !w.owner)) return fail(res, 404, 'no_post');
+      if (!post || (!w.owner && (post.hidden || (post.pending && post.author !== w.address)))) {
+        return fail(res, 404, 'no_post');
+      }
       // Stated rather than toggled, so a retry lands where the tap meant it to.
       const up = (req.body ?? {}).up !== false;
       const votes = await store.vote(p.id, post.id, w.address, up);
@@ -386,7 +408,7 @@ export function createRouter(options: RouterOptions): express.Router {
       const post = await store.getPost(p.id, String(req.params.id));
       if (!post) return fail(res, 404, 'no_post');
 
-      const { status, reply, hidden, shotOff } = (req.body ?? {}) as Record<string, unknown>;
+      const { status, reply, hidden, shotOff, approved } = (req.body ?? {}) as Record<string, unknown>;
       const patch: PostPatch = {};
       // Whether this call was an *answer*, which is what the author is told
       // about. Hiding is not: telling somebody their post was taken down is
@@ -414,6 +436,12 @@ export function createRouter(options: RouterOptions): express.Router {
       if (hidden !== undefined) {
         if (typeof hidden !== 'boolean') return fail(res, 400, 'bad_request');
         patch.hidden = hidden;
+      }
+      // Letting a waiting post onto the board. Not an answer either: the
+      // author sees it arrive there, which says it.
+      if (approved !== undefined) {
+        if (typeof approved !== 'boolean') return fail(res, 400, 'bad_request');
+        patch.pending = !approved;
       }
       // Taking a screenshot off the board leaves the post on it. Putting one
       // back only works for a screenshot its author agreed to show; the store

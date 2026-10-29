@@ -1,4 +1,4 @@
-import type { PostKind, PostStatus, Rules } from './types.js';
+import type { PostKind, PostStatus, Rules, ShotRule } from './types.js';
 
 /**
  * The limits a new project starts with. These are the numbers Shitti's board
@@ -12,7 +12,16 @@ export const DEFAULT_RULES: Readonly<Rules> = Object.freeze({
   /** Longer than a post, because the reply is the one that has to explain. */
   replyMax: 300,
   kinds: ['bug', 'idea', 'review'] as PostKind[],
+  screenshots: 'board' as ShotRule,
+  approve: false,
 });
+
+export const SHOT_RULES: readonly ShotRule[] = ['board', 'owners', 'off'];
+
+/** Whether a value is one of the screenshot rules, for reading a request or a variable. */
+export function isShotRule(v: unknown): v is ShotRule {
+  return typeof v === 'string' && (SHOT_RULES as readonly string[]).includes(v);
+}
 
 /** A display name. Long enough for a real one, short enough for a card. */
 export const NAME_MAX = 24;

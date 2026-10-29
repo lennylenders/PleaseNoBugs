@@ -3,15 +3,18 @@
  *
  *   npm run build -w pleasenobugs && node site/serve.mjs   →   http://localhost:5190
  *
+ * The home page's board is the local one from `board.mjs`; start that too.
+ *
  * No dependencies: a file server is twenty lines. It serves nothing but files,
  * and answers nothing it does not have.
  */
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
-import { fill, ONLY, ROUTES } from './files.mjs';
+import { board, fill, ONLY, ROUTES } from './files.mjs';
 
 const PORT = Number(process.env.PORT) || 5190;
+const where = board(false);
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -31,7 +34,7 @@ createServer(async (req, res) => {
     const rest = normalize(path.slice(prefix.length));
     if (rest.startsWith('..') || (ONLY[prefix] && !ONLY[prefix].includes(rest))) break;
     try {
-      const body = fill(rest, await readFile(join(dir, rest)));
+      const body = fill(rest, await readFile(join(dir, rest)), where);
       res.writeHead(200, { 'content-type': TYPES[extname(rest)] ?? 'application/octet-stream', 'cache-control': 'no-store' });
       return res.end(body);
     } catch {
@@ -39,4 +42,4 @@ createServer(async (req, res) => {
     }
   }
   res.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
-}).listen(PORT, () => console.log(`PleaseNoBugs site on http://localhost:${PORT}`));
+}).listen(PORT, () => console.log(`PleaseNoBugs site on http://localhost:${PORT}, board ${where.project} on ${where.server}`));
