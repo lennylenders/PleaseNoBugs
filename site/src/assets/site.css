@@ -233,6 +233,27 @@ section + section { padding-top: 0; }
   overflow: hidden;
 }
 
+/* Other apps' boards, read-only (assets/apps.js). On no page yet. */
+.apps { display: grid; gap: 16px; max-width: 420px; width: 100%; margin: 0 auto; }
+.apps__picker { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.apps__tab {
+  display: grid;
+  gap: 2px;
+  flex: none;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--row);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.apps__tab[aria-selected='true'] { background: var(--card); border-color: var(--button); }
+.apps__name { font-weight: 800; }
+.apps__counts { color: var(--sub); font-size: 13px; }
+.apps__open { color: var(--button); font-weight: 700; text-align: center; }
+
 @media (max-width: 880px) {
   .hero { grid-template-columns: minmax(0, 1fr); gap: 36px; }
   .try { max-width: 420px; width: 100%; margin: 0 auto; }

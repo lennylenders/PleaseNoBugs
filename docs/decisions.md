@@ -529,6 +529,39 @@ the warning names a name for that reason. A self-hoster, and the owner for
 Shitti's board, now serves images their users chose to make public, which a
 privacy statement may need to mention.
 
+## 2026-10-29: Later, other apps' boards on the site. The frame now
+
+The owner wants, one day, the website to show the feedback of every app that
+uses PleaseNoBugs, Shitti first, so people can scroll through it and see
+which app hears what. Not switched on yet; what it needs is built now, so it
+ships in 0.2.0 and turning it on later needs no new widget.
+
+- **`readonly` on the widget.** The board to read and nothing else: no **+**,
+  no votes (the count shows), no "Sign in". It reads as a stranger, with no
+  signer, no app login and no remembered proof, even inside Nimiq Pay, so a
+  server never learns who looked. **Every post anonymous and no screenshots**,
+  whatever the author chose (`forReaders` in `readonly.ts`): a name or a
+  picture was agreed to for that app's board, not for a page somewhere else.
+  Hidden posts, and the app's context, never reach a stranger anyway; they are
+  dropped again so nothing depends on that.
+- **Listed by asking, never found.** `site/src/apps.json`, empty, takes
+  `{ name, server, project, url }` per app, added by its developer in a pull
+  request the owner accepts. Every server is somebody else's, and the
+  telemetry deliberately never says where one is; a switch on the server that
+  reported its address was the alternative, and would have changed what every
+  server sends, which the review count was already refused for.
+- **Read by the visitor's browser, from each app's own server**
+  (`site/src/assets/apps.js`). The site keeps no copy, which is what "No
+  hosted instance" was about. Cost: each app's server sees the visitors'
+  addresses, and an app whose server is down is simply missing.
+- **Off until a page has `<div data-pnb-apps>`** and the list is not empty.
+  No page has one.
+
+Before switching it on: whether search engines may index the boards
+(`noindex`, or not), and telling Shitti's users, in Shitti, that their
+feedback can be read on the PleaseNoBugs site too. Shitti is not on the list
+until then.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

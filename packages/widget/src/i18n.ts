@@ -49,6 +49,13 @@ const COPY = {
     nl: 'Hier staat nog niets. Vertel wat er stuk is of wat je mist.',
     de: 'Hier steht noch nichts. Sag uns, was kaputt ist oder was dir fehlt.',
   },
+  // A read-only board has no way to write, so it does not ask.
+  'board.emptyRead': {
+    en: 'Nothing here yet.',
+    nl: 'Hier staat nog niets.',
+    de: 'Hier steht noch nichts.',
+  },
+  'board.votes': { en: '{n} votes', nl: '{n} stemmen', de: '{n} Stimmen' },
   'board.emptyFiltered': {
     en: 'Nothing of that kind yet.',
     nl: 'Nog niets van deze soort.',

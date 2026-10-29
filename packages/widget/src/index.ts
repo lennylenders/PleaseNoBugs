@@ -29,6 +29,8 @@ export interface OpenOptions {
   kinds?: PostKind[];
   /** `'owners'` keeps screenshots off the board, for your eyes only; `false` leaves the button out. */
   screenshots?: boolean | 'owners';
+  /** The board to read and nothing else: no writing or voting, every post anonymous, no screenshots. */
+  readonly?: boolean;
 }
 
 /**
@@ -52,6 +54,7 @@ export function open(options: OpenOptions): () => void {
   if (options.kinds) el.setAttribute('kinds', options.kinds.join(','));
   if (options.screenshots === false) el.setAttribute('screenshots', 'off');
   if (options.screenshots === 'owners') el.setAttribute('screenshots', 'owners');
+  if (options.readonly) el.setAttribute('readonly', '');
   el.signer = options.signer;
   el.appLogin = options.appLogin;
   el.context = options.context;

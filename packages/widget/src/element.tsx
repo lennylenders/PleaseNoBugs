@@ -27,9 +27,10 @@ export const TAG = 'please-no-bugs';
  * (a colour), `app-name`, `name` (a display name to suggest), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
  * the board, for the app's owners only; `off` to leave them out),
- * `demo` (sample posts in the page's memory, no server: see `demo.ts`) and,
- * with `demo` only, `screen` (`button`, `tiles`, `board`, `write` or `sent`:
- * that screen, held, for the website's configurator).
+ * `readonly` (the board to scroll through and nothing else: see
+ * `readonly.ts`), `demo` (sample posts in the page's memory, no server: see
+ * `demo.ts`) and, with `demo` only, `screen` (`button`, `tiles`, `board`,
+ * `write` or `sent`: that screen, held, for the website's configurator).
  *
  * Properties, for things an attribute cannot carry: `signer`, `appLogin`,
  * `context`, `noise`, `strings`.
@@ -53,6 +54,7 @@ export class PleaseNoBugsElement extends HTMLElement {
     'name',
     'kinds',
     'screenshots',
+    'readonly',
     'demo',
     'screen',
   ];
@@ -139,7 +141,7 @@ export class PleaseNoBugsElement extends HTMLElement {
   }
 
   attributeChangedCallback(name: string) {
-    if (name === 'project' || name === 'server' || name === 'demo') this.#clientKey = '';
+    if (name === 'project' || name === 'server' || name === 'demo' || name === 'readonly') this.#clientKey = '';
     if (name === 'accent') this.#paintAccent();
     this.#render();
   }
@@ -200,9 +202,15 @@ export class PleaseNoBugsElement extends HTMLElement {
       }, 1000);
       return;
     }
-    const key = `${server}|${project}`;
+    const readonly = this.hasAttribute('readonly');
+    const key = `${server}|${project}|${readonly}`;
     if (!this.#client || this.#clientKey !== key) {
-      this.#client = createClient({ server, project, signer: this.#signer, appLogin: this.#appLogin });
+      // Read-only reads as a stranger: no wallet to ask, no app login, and no
+      // proof remembered from an earlier visit, so the server never learns who
+      // is looking, even inside Nimiq Pay.
+      this.#client = readonly
+        ? createClient({ server, project, signer: null, appLogin: null, storage: null })
+        : createClient({ server, project, signer: this.#signer, appLogin: this.#appLogin });
       this.#clientKey = key;
     }
     this.#show(this.#client, lang);
@@ -221,12 +229,15 @@ export class PleaseNoBugsElement extends HTMLElement {
       noise: this.#noise,
       kinds: readKinds(this.getAttribute('kinds')),
       screenshots: readScreenshots(this.getAttribute('screenshots')),
+      readonly: this.hasAttribute('readonly'),
       onPosted: (p: { id: string; kind: PostKind }) =>
         this.dispatchEvent(new CustomEvent('pleasenobugs:posted', { detail: p, bubbles: true, composed: true })),
     };
 
-    // Never outside the demo: a real board always opens as it should.
-    const screen = this.hasAttribute('demo') ? readScreen(this.getAttribute('screen')) : undefined;
+    // Never outside the demo: a real board always opens as it should. Nor on
+    // a read-only one, which has no screen but the board.
+    const screen =
+      this.hasAttribute('demo') && !app.readonly ? readScreen(this.getAttribute('screen')) : undefined;
     const held = screen === 'button' ? undefined : screen;
 
     if (mode === 'floating') {

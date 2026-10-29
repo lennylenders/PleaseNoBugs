@@ -154,7 +154,8 @@ export function PostCard({
   appName: string;
   t: Translate;
   locale: string;
-  onVote: (up: boolean) => void;
+  /** Absent on a read-only board: the count shows, with nothing to tap. */
+  onVote?: (up: boolean) => void;
   /** Your own post, or any post for an owner. */
   onDelete?: () => void;
   /** Owners only. Absent → the card is not a target. */
@@ -239,13 +240,20 @@ export function PostCard({
             <Icon.Trash />
           </button>
         )}
-        <VoteButton
-          votes={post.votes}
-          voted={post.voted}
-          onVote={onVote}
-          t={t}
-          label={post.kind === 'review' ? 'board.helpful' : 'board.upvote'}
-        />
+        {onVote ? (
+          <VoteButton
+            votes={post.votes}
+            voted={post.voted}
+            onVote={onVote}
+            t={t}
+            label={post.kind === 'review' ? 'board.helpful' : 'board.upvote'}
+          />
+        ) : (
+          <span class="vote vote--count" role="img" aria-label={t('board.votes', { n: post.votes })}>
+            <Icon.Caret />
+            <span>{post.votes}</span>
+          </span>
+        )}
       </div>
     </li>
   );

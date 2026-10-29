@@ -9,6 +9,7 @@ import {
   type PostKind,
 } from '@pleasenobugs/core';
 import type { Client } from '../client.js';
+import { forReaders } from '../readonly.js';
 import { insideNimiqPay } from '../signer.js';
 import type { CopyKey, Translate } from '../i18n.js';
 import { Choose, Sent } from './Choose.js';
@@ -45,6 +46,11 @@ export interface AppProps {
   kinds?: PostKind[];
   /** Whether bugs and ideas may carry a screenshot, and who sees it. On the board unless set otherwise. */
   screenshots?: Screenshots;
+  /**
+   * The board to read and nothing else: no writing, no votes, no signing in,
+   * every post anonymous and without its screenshot (see `forReaders`).
+   */
+  readonly?: boolean;
   /** Present when the board is an overlay: draws the X. */
   onClose?: () => void;
   /**
@@ -91,11 +97,14 @@ export function App({
   noise,
   kinds: offered,
   screenshots = 'board',
+  readonly = false,
   onClose,
   onPosted,
-  start = 'board',
+  start: asked = 'board',
   screen,
 }: AppProps) {
+  // The tiles are the way to writing, which a read-only board does not have.
+  const start = readonly ? 'board' : asked;
   const [read, setRead] = useState<BoardRead | null>(null);
   const [failed, setFailed] = useState(false);
   const [view, setView] = useState<View>(screen ?? start);
@@ -124,12 +133,12 @@ export function App({
     const res = await client.board();
     if (res.ok) {
       loaded.current = true;
-      setRead(res.data);
+      setRead(readonly ? forReaders(res.data) : res.data);
       setFailed(false);
     } else if (!loaded.current) {
       setFailed(true);
     }
-  }, [client]);
+  }, [client, readonly]);
 
   useEffect(() => {
     void pull();
@@ -437,15 +446,19 @@ export function App({
           <span />
         )}
         <h2 class="bar__title">{t('board.title')}</h2>
-        <button
-          type="button"
-          class="icon-btn"
-          aria-label={t('board.write')}
-          disabled={!rules || !kinds.length}
-          onClick={write}
-        >
-          <Icon.Plus />
-        </button>
+        {readonly ? (
+          <span />
+        ) : (
+          <button
+            type="button"
+            class="icon-btn"
+            aria-label={t('board.write')}
+            disabled={!rules || !kinds.length}
+            onClick={write}
+          >
+            <Icon.Plus />
+          </button>
+        )}
       </header>
 
       {kinds.length > 1 && (
@@ -491,7 +504,9 @@ export function App({
             <span class="spinner" style={{ display: 'inline-block' }} />
           </div>
         ) : slice.length === 0 ? (
-          <p class="empty">{t(posts.length === 0 ? 'board.emptyTitle' : 'board.emptyFiltered')}</p>
+          <p class="empty">
+            {t(posts.length > 0 ? 'board.emptyFiltered' : readonly ? 'board.emptyRead' : 'board.emptyTitle')}
+          </p>
         ) : (
           <ul class="list">
             {slice.map((post) => (
@@ -501,7 +516,7 @@ export function App({
                 appName={name}
                 t={t}
                 locale={locale}
-                onVote={(up) => void vote(post.id, up)}
+                onVote={readonly ? undefined : (up) => void vote(post.id, up)}
                 onDelete={post.mine || owner ? () => setOver({ kind: 'delete', post }) : undefined}
                 onManage={owner ? () => setOver({ kind: 'manage', post }) : undefined}
                 shotUrl={onBoard(post) ? client.shotUrl(post.id) : undefined}
@@ -533,7 +548,7 @@ export function App({
         {/* Quiet and last: the board is for reading, and this is only the way
             to be recognised before doing anything. Gone once signed in, and
             never drawn where there is no wallet to ask. */}
-        {read && !read.me && client.canSign && (
+        {read && !read.me && client.canSign && !readonly && (
           <div class="sign-in">
             <button type="button" class="text-btn" onClick={() => void signIn()}>
               {t('board.signIn')}
