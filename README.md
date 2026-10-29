@@ -13,7 +13,7 @@ one place, without asking anybody to send you an email.
   <img src="docs/images/tiles-nimiq.png" width="250" alt="The three tiles behind the plus, in the nimiq theme: report a bug, share an idea, write a review">
 </p>
 
-> **Status: 0.1.1, early.** It runs [Shitti](https://shitti.me)'s board.
+> **Status: 0.2.0, early.** It runs [Shitti](https://shitti.me)'s board.
 > This is a community tool, not an official Nimiq product.
 
 ## What it does
