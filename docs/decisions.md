@@ -1743,6 +1743,9 @@ Source: "GitHub Actions".
   publishing anything new. A publish whose browser confirmation times out can
   still have gone through: npm then answers the retry with "Cannot publish
   over previously staged version".
+- `pleasenobugs` in the project `PleaseNoBugs` has Healthcheck Path `/health`
+  and `RAILWAY_HEALTHCHECK_TIMEOUT_SEC=60` (set by hand on 2026-10-31); its
+  image deploy of 2026-11-20 is the first that ran the check, and passed.
 - The template's test deploys (2026-10-24 and 2026-10-31) left two extra
   installations, with no posts, on the collector's totals.
 - Commits here end with `Co-Authored-By: Claude Opus 5.5`; the first app's CLAUDE.md
@@ -1752,7 +1755,3 @@ Source: "GitHub Actions".
 
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.
 - Ask the Nimiq team whether they want to point mini app developers at it.
-- Railway's health check on `pleasenobugs` in the project `PleaseNoBugs`, by
-  hand, before 2026-12-01 (see "Railway settings live in the template"):
-  Healthcheck Path `/health` and `RAILWAY_HEALTHCHECK_TIMEOUT_SEC=60`. The
-  template and the home page's board were done and tested on 2026-10-31.
