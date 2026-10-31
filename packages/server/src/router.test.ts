@@ -580,6 +580,148 @@ describe('owners answering', () => {
   });
 });
 
+describe('fixes', () => {
+  const FIX = { version: '1.4.2', link: 'https://github.com/me/app/pull/42' };
+
+  it('an owner marks a bug done with where the fix is, and everybody sees it', async () => {
+    const { as, call, post } = await setup();
+    await post(A, { kind: 'bug', text: 'Send does nothing' });
+    const res = await as(OWNER, 'POST', '/posts/p1/manage', {
+      status: 'done',
+      fix: { version: ' 1.4.2 ', link: 'github.com/me/app/pull/42' },
+    });
+    expect(res.status).toBe(200);
+    const read = await call('GET', '/v1/projects/board1/posts');
+    expect(read.data.posts[0]).toMatchObject({ status: 'done', fix: FIX });
+    // The author hears it, with the fix.
+    expect((await as(A, 'GET', '/answers')).data.answers).toEqual([
+      expect.objectContaining({ id: 'p1', status: 'done', fix: FIX }),
+    ]);
+  });
+
+  it('refuses a link that is not on github.com or gitlab.com, a bad version, and a fix on anything not done', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'bug' });
+    await post(B, { kind: 'review', rating: 4 });
+    const manage = (id: string, body: object) => as(OWNER, 'POST', `/posts/${id}/manage`, body);
+    expect((await manage('p1', { status: 'done', fix: { link: 'https://evil.example/pull/1' } })).status).toBe(400);
+    expect((await manage('p1', { status: 'done', fix: { version: '1.4 beta' } })).status).toBe(400);
+    expect((await manage('p1', { status: 'planned', fix: FIX })).status).toBe(400);
+    expect((await manage('p2', { fix: FIX })).status).toBe(400);
+    expect((await manage('p1', { status: 'done', fix: 'yes' })).status).toBe(400);
+    expect((await as(A, 'GET', '/posts')).data.posts.every((p: any) => p.fix === undefined)).toBe(true);
+  });
+
+  it('takes a link to gitlab.com as well', async () => {
+    const { as, call, post } = await setup();
+    await post(A, { kind: 'bug' });
+    const link = 'https://gitlab.com/me/app/-/merge_requests/7';
+    expect((await as(OWNER, 'POST', '/posts/p1/manage', { status: 'done', fix: { link } })).status).toBe(200);
+    expect((await call('GET', '/v1/projects/board1/posts')).data.posts[0].fix).toEqual({ link });
+    const res = await as(OWNER, 'POST', '/updates', { id: 'u1', title: 'On GitLab', link: 'gitlab.com/me/app/-/releases/v2' });
+    expect(res.data.update.link).toBe('https://gitlab.com/me/app/-/releases/v2');
+  });
+
+  it('goes when the post moves away from done, or when it is emptied', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'bug' });
+    await as(OWNER, 'POST', '/posts/p1/manage', { status: 'done', fix: FIX });
+    await as(OWNER, 'POST', '/posts/p1/manage', { status: 'planned' });
+    expect((await as(A, 'GET', '/posts')).data.posts[0].fix).toBeUndefined();
+    await as(OWNER, 'POST', '/posts/p1/manage', { status: 'done', fix: FIX });
+    await as(OWNER, 'POST', '/posts/p1/manage', { fix: { version: '', link: '' } });
+    expect((await as(A, 'GET', '/posts')).data.posts[0]).toMatchObject({ status: 'done' });
+    expect((await as(A, 'GET', '/posts')).data.posts[0].fix).toBeUndefined();
+  });
+});
+
+describe('updates', () => {
+  const LINK = 'https://github.com/me/app/releases/tag/v1.4.2';
+  const write = (as: any, w: ReturnType<typeof wallet>, over: Record<string, unknown> = {}) =>
+    as(w, 'POST', '/updates', { id: 'u1', title: 'Switching accounts works again', link: LINK, ...over });
+
+  it('are written by owners only, and read by anybody, signed in or not', async () => {
+    const { as, call } = await setup();
+    expect((await write(as, A)).data.error).toBe('not_owner');
+    const res = await write(as, OWNER, { text: 'It follows the account you picked.', version: '1.4.2' });
+    expect(res.status).toBe(200);
+    const read = await call('GET', '/v1/projects/board1/updates');
+    expect(read.status).toBe(200);
+    expect(read.data.updates).toEqual([
+      {
+        id: 'u1',
+        title: 'Switching accounts works again',
+        text: 'It follows the account you picked.',
+        version: '1.4.2',
+        link: LINK,
+        at: expect.any(Number),
+        posts: [],
+      },
+    ]);
+    // The board says there is something to read, and only once there is.
+    expect((await call('GET', '/v1/projects/board1/posts')).data.updates).toBe(1);
+    expect((await call('GET', '/v1/projects/board2/posts')).data.updates).toBeUndefined();
+    expect((await call('GET', '/v1/projects/board2/updates')).data.updates).toEqual([]);
+  });
+
+  it('marks the bugs and ideas it fixed done, with its version and link, and leaves reviews alone', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'bug' });
+    await post(B, { kind: 'idea' });
+    await post(C, { kind: 'review', rating: 5 });
+    await post(A, { kind: 'idea', text: 'Something else' });
+    const res = await write(as, OWNER, { version: '1.4.2', posts: ['p1', 'p2', 'p3', 'nope', 'p1'] });
+    expect(res.data.update.posts).toEqual(['p1', 'p2']);
+    const posts = (await as(A, 'GET', '/posts')).data.posts;
+    const byId = (id: string) => posts.find((p: any) => p.id === id);
+    expect(byId('p1')).toMatchObject({ status: 'done', fix: { version: '1.4.2', link: LINK } });
+    expect(byId('p2')).toMatchObject({ status: 'done', fix: { version: '1.4.2', link: LINK } });
+    expect(byId('p3')).toMatchObject({ status: 'open' });
+    expect(byId('p4')).toMatchObject({ status: 'open' });
+    // Each author is told.
+    expect((await as(B, 'GET', '/answers')).data.answers[0]).toMatchObject({ id: 'p2', status: 'done' });
+  });
+
+  it('name only the posts anybody can see', async () => {
+    const { as, call, post } = await setup();
+    await post(A, { kind: 'bug' });
+    await post(B, { kind: 'bug' });
+    await write(as, OWNER, { posts: ['p1', 'p2'] });
+    await as(OWNER, 'POST', '/posts/p2/manage', { hidden: true });
+    expect((await call('GET', '/v1/projects/board1/updates')).data.updates[0].posts).toEqual(['p1']);
+  });
+
+  it('refuses one without a title or a GitHub or GitLab link, or with too much', async () => {
+    const { as } = await setup();
+    for (const bad of [
+      { title: '' },
+      { title: 'x'.repeat(81) },
+      { link: undefined },
+      { link: 'https://bitbucket.org/me/app' },
+      { version: 'not a version' },
+      { text: 'x'.repeat(301) },
+      { posts: 'p1' },
+      { posts: Array.from({ length: 51 }, (_, i) => `p${i}`) },
+      { id: '' },
+    ]) {
+      expect((await write(as, OWNER, bad)).status, JSON.stringify(bad).slice(0, 60)).toBe(400);
+    }
+  });
+
+  it('refuses the same id twice without touching any post, and an owner can delete one', async () => {
+    const { as, call, post } = await setup();
+    await post(A, { kind: 'bug' });
+    await write(as, OWNER);
+    expect((await write(as, OWNER, { posts: ['p1'] })).status).toBe(409);
+    expect((await as(A, 'GET', '/posts')).data.posts[0].status).toBe('open');
+
+    expect((await as(A, 'DELETE', '/updates/u1')).data.error).toBe('not_owner');
+    expect((await as(OWNER, 'DELETE', '/updates/u1')).status).toBe(200);
+    expect((await as(OWNER, 'DELETE', '/updates/u1')).data.error).toBe('no_update');
+    expect((await call('GET', '/v1/projects/board1/updates')).data.updates).toEqual([]);
+  });
+});
+
 describe('the dashboard', () => {
   const dash = (w: ReturnType<typeof wallet>) => ({ auth: w.proof('dashboard', DASH), origin: DASH });
 

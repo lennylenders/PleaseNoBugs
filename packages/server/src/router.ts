@@ -6,7 +6,13 @@ import {
   NAME_MAX,
   POST_ID_MAX,
   SHOT_MAX_BYTES,
+  UPDATE_POSTS_MAX,
+  UPDATE_TEXT_MAX,
+  UPDATE_TITLE_MAX,
   cleanContext,
+  cleanFix,
+  cleanCodeLink,
+  cleanVersion,
   decodeProof,
   isPostKind,
   isPostStatus,
@@ -16,7 +22,9 @@ import {
   normalizeOrigin,
   type ErrorCode,
   type Me,
+  type PostFix,
   type Project,
+  type Update,
 } from '@pleasenobugs/core';
 import { checkProof } from './auth.js';
 import { publicProject, toVisible } from './board.js';
@@ -198,12 +206,31 @@ export function createRouter(options: RouterOptions): express.Router {
       // per post: a board is mostly a handful of people saying several things.
       const named = [...new Set(shown.filter((row) => !row.anon).map((row) => row.author))];
       const names = await store.names(p.id, named);
+      const updates = (await store.updates(p.id)).length;
 
       res.json({
         project: publicProject(p),
         posts: shown.map((row) => toVisible(row, address, names.get(row.author), owner)),
         ...(r.kind === 'wallet' ? { me: await me(p, r.address, r.owner) } : {}),
+        ...(updates ? { updates } : {}),
       });
+    }),
+  );
+
+  router.get(
+    '/v1/projects/:pid/updates',
+    h(async (req, res) => {
+      const p = await project(req, res);
+      if (!p) return;
+      const r = await reader(req, p);
+      if (r.kind === 'refused') return fail(res, r.status, r.error);
+      // Public like the board, so the posts an update names are only those
+      // anybody can see there: never a hidden one, nor one still waiting.
+      const visible = new Set(
+        (await store.posts(p.id, null)).filter((row) => !row.hidden && !row.pending).map((row) => row.id),
+      );
+      const updates = await store.updates(p.id);
+      res.json({ updates: updates.map((u) => ({ ...u, posts: u.posts.filter((id) => visible.has(id)) })) });
     }),
   );
 
@@ -408,7 +435,7 @@ export function createRouter(options: RouterOptions): express.Router {
       const post = await store.getPost(p.id, String(req.params.id));
       if (!post) return fail(res, 404, 'no_post');
 
-      const { status, reply, hidden, shotOff, approved } = (req.body ?? {}) as Record<string, unknown>;
+      const { status, reply, hidden, shotOff, approved, fix } = (req.body ?? {}) as Record<string, unknown>;
       const patch: PostPatch = {};
       // Whether this call was an *answer*, which is what the author is told
       // about. Hiding is not: telling somebody their post was taken down is
@@ -433,6 +460,21 @@ export function createRouter(options: RouterOptions): express.Router {
         // An empty reply is how one is taken back, rather than a route of its own.
         patch.reply = said ? { text: said, at: now() } : null;
       }
+      // Where the fix is: a version and a GitHub or GitLab link, on a bug or an
+      // idea that is done once this call is through, and on nothing else.
+      // Telling somebody "fixed in 1.4.2" is an answer like any other.
+      const done = (patch.status ?? post.status) === 'done';
+      if (fix !== undefined) {
+        const cleaned = fix === null ? {} : cleanFix(fix);
+        if (cleaned === null) return fail(res, 400, 'bad_request');
+        const next = Object.keys(cleaned).length ? cleaned : null;
+        if (next && (post.kind === 'review' || !done)) return fail(res, 400, 'bad_request');
+        if (!sameFix(next, post.fix)) answered = true;
+        patch.fix = next;
+      }
+      // Moved away from done: the fix goes with it, rather than lingering
+      // under a post that says it is planned again.
+      if (!done && post.fix) patch.fix = null;
       if (hidden !== undefined) {
         if (typeof hidden !== 'boolean') return fail(res, 400, 'bad_request');
         patch.hidden = hidden;
@@ -455,6 +497,88 @@ export function createRouter(options: RouterOptions): express.Router {
       // be, nobody needs a picture of somebody's screen any more.
       if (patch.status === 'done' || patch.status === 'declined') await store.deleteShot(p.id, post.id);
       console.info(`[post] ${p.id} owner managed ${post.id}`);
+      res.json({ ok: true });
+    }),
+  );
+
+  router.post(
+    '/v1/projects/:pid/updates',
+    h(async (req, res) => {
+      const p = await project(req, res);
+      if (!p) return;
+      const w = await wallet(req, res, p);
+      if (!w) return;
+      if (!w.owner) return fail(res, 403, 'not_owner');
+
+      const body = (req.body ?? {}) as Record<string, unknown>;
+      const title = typeof body.title === 'string' ? body.title.trim() : '';
+      const text = body.text === undefined ? '' : typeof body.text === 'string' ? body.text.trim() : null;
+      const version = body.version === undefined ? '' : cleanVersion(body.version);
+      const link = cleanCodeLink(body.link);
+      const asked = body.posts === undefined ? [] : body.posts;
+      if (
+        typeof body.id !== 'string' ||
+        !body.id ||
+        body.id.length > POST_ID_MAX ||
+        !title ||
+        title.length > UPDATE_TITLE_MAX ||
+        text === null ||
+        text.length > UPDATE_TEXT_MAX ||
+        version === null ||
+        // Every update has somewhere to go: that is what tapping one does.
+        !link ||
+        !Array.isArray(asked) ||
+        asked.length > UPDATE_POSTS_MAX ||
+        !asked.every((id) => typeof id === 'string')
+      ) {
+        return fail(res, 400, 'bad_request');
+      }
+      // A retry of one already written: refused before any post is touched.
+      if ((await store.updates(p.id)).some((u) => u.id === body.id)) return fail(res, 409, 'duplicate');
+
+      // The bugs and ideas it fixed, of those on this board. Each goes to
+      // done with this update's version and link, which is the point of
+      // ticking it: one write, and every author hears their thing shipped.
+      const at = now();
+      const fix: PostFix = { ...(version ? { version } : {}), link };
+      const fixed: string[] = [];
+      for (const id of new Set(asked as string[])) {
+        const post = await store.getPost(p.id, id);
+        if (!post || post.kind === 'review') continue;
+        fixed.push(post.id);
+        if (post.status === 'done' && sameFix(fix, post.fix)) continue;
+        await store.updatePost(p.id, post.id, { status: 'done', fix, answeredAt: at });
+        // Done, so nobody needs the picture of somebody's screen any more.
+        await store.deleteShot(p.id, post.id);
+      }
+
+      const update: Update = {
+        id: body.id,
+        title,
+        ...(text ? { text } : {}),
+        ...(version ? { version } : {}),
+        link,
+        at,
+        posts: fixed,
+      };
+      if (!(await store.createUpdate(p.id, update))) return fail(res, 409, 'duplicate');
+      console.info(`[update] ${p.id} owner wrote ${update.id}, fixing ${fixed.length}`);
+      res.json({ ok: true, update });
+    }),
+  );
+
+  router.delete(
+    '/v1/projects/:pid/updates/:id',
+    h(async (req, res) => {
+      const p = await project(req, res);
+      if (!p) return;
+      const w = await wallet(req, res, p);
+      if (!w) return;
+      if (!w.owner) return fail(res, 403, 'not_owner');
+      // The posts it fixed stay fixed: taking a page off the list does not
+      // un-ship anything.
+      if (!(await store.deleteUpdate(p.id, String(req.params.id)))) return fail(res, 404, 'no_update');
+      console.info(`[update] ${p.id} owner deleted ${String(req.params.id)}`);
       res.json({ ok: true });
     }),
   );
@@ -585,6 +709,11 @@ function readShot(v: unknown): Shot | null {
   }
   if (type === 'image/webp' && ascii(0, 'RIFF') && ascii(8, 'WEBP')) return { type, data: bytes, board: agreed };
   return null;
+}
+
+/** Whether two fixes say the same, absent and empty being the same nothing. */
+function sameFix(a: PostFix | null | undefined, b: PostFix | null | undefined): boolean {
+  return (a?.version ?? '') === (b?.version ?? '') && (a?.link ?? '') === (b?.link ?? '');
 }
 
 /** A wallet, short enough for a log line and not enough to identify anyone at a glance. */

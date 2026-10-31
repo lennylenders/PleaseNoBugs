@@ -43,4 +43,11 @@ describe('forReaders', () => {
     const stars = forReaders(read).posts.find((p) => p.id === 'stars');
     expect(stars).toMatchObject({ text: 'Broken', rating: 4, votes: 1, reply: { text: 'Thanks' } });
   });
+
+  it('keeps where a fix is, and that there are updates: both are public to begin with', () => {
+    const fix = { version: '1.4.2', link: 'https://github.com/me/app/pull/42' };
+    const out = forReaders({ ...read, posts: [post({ id: 'fixed', status: 'done', fix })], updates: 3 });
+    expect(out.posts[0].fix).toEqual(fix);
+    expect(out.updates).toBe(3);
+  });
 });

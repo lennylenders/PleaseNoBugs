@@ -14,8 +14,9 @@ import { insideNimiqPay } from '../signer.js';
 import type { CopyKey, Translate } from '../i18n.js';
 import { Choose, Sent } from './Choose.js';
 import { Compose, type Draft, type Screenshots } from './Compose.js';
-import { KIND, PostCard, Stars } from './PostCard.js';
+import { Badge, CodeLink, KIND, PostCard, Stars } from './PostCard.js';
 import { DeleteSheet, ManageSheet, ShotSheet, type ManageChange } from './Sheets.js';
+import { Updates, type UpdateDraft } from './Updates.js';
 import * as Icon from './icons.js';
 
 const PER_PAGE = 15;
@@ -69,7 +70,7 @@ export interface AppProps {
   onPosted?: (post: { id: string; kind: PostKind }) => void;
 }
 
-export type View = 'board' | 'choose' | 'compose' | 'sent';
+export type View = 'board' | 'choose' | 'compose' | 'sent' | 'updates';
 
 /** Whatever is over the board, as one value so two can never be up at once. */
 type Over =
@@ -123,6 +124,8 @@ export function App({
   const [away, setAway] = useState(false);
   // Whether the last post landed on a board that approves first.
   const [waiting, setWaiting] = useState(false);
+  // The posts of yours whose "it is fixed" note you closed.
+  const [seen, setSeen] = useState<string[]>(() => readSeen(client.project));
   const scroller = useRef<HTMLDivElement>(null);
 
   // Keyed on the words rather than the array, which the element hands over as
@@ -223,6 +226,28 @@ export function App({
     const stars = posts.filter((p) => p.kind === 'review' && !p.hidden && p.rating).map((p) => p.rating as number);
     return stars.length ? { avg: stars.reduce((a, b) => a + b, 0) / stars.length, n: stars.length } : null;
   }, [posts]);
+  /**
+   * One of your own bugs or ideas that is done, which you have not closed
+   * the note for yet: the newest. Worked out from the board, which already
+   * says which posts are yours, so it costs no request and tells the server
+   * nothing.
+   */
+  const news = useMemo(
+    () =>
+      posts
+        .filter((p) => p.mine && p.status === 'done' && (p.kind === 'bug' || p.kind === 'idea') && !seen.includes(p.id))
+        .sort((a, b) => b.at - a.at)[0],
+    [posts, seen],
+  );
+  const closeNews = (id: string) => {
+    const next = [...seen, id].slice(-SEEN_MAX);
+    setSeen(next);
+    writeSeen(client.project, next);
+  };
+
+  // An owner always, to write the first one; anybody else once there is one.
+  const hasUpdates = !!rules && (owner || (read?.updates ?? 0) > 0);
+
   const pages = Math.max(1, Math.ceil(shown.length / PER_PAGE));
   const at = Math.min(page, pages);
   const slice = shown.slice((at - 1) * PER_PAGE, at * PER_PAGE);
@@ -321,12 +346,24 @@ export function App({
       status: change.status,
       hidden: change.hidden || undefined,
       reply: change.reply ? { text: change.reply, at: Date.now() } : undefined,
+      fix: change.status === 'done' && (change.fix?.version || change.fix?.link) ? change.fix : undefined,
       ...(change.shotOff !== undefined ? { shotFor: change.shotOff ? 'off' : 'board' } : {}),
       ...(change.approved ? { pending: undefined } : {}),
     });
     const res = await client.manage(post.id, change);
     if (!res.ok) sayRefusal(res.error);
     void pull();
+  };
+
+  /** An owner's new update. The posts it fixed change too, so the board is read again. */
+  const publish = async (draft: UpdateDraft) => {
+    const res = await client.postUpdate({ id: newId(), ...draft });
+    if (!res.ok) {
+      sayRefusal(res.error);
+      return false;
+    }
+    await pull();
+    return true;
   };
 
   const reviewed = posts.some((p) => p.mine && p.kind === 'review');
@@ -350,6 +387,25 @@ export function App({
     return (
       <div class="app">
         <Sent t={t} onBack={toBoard} waiting={waiting || (screen === 'sent' && !!rules?.approve)} appName={name} />
+      </div>
+    );
+  }
+
+  if (view === 'updates' && rules) {
+    return (
+      <div class="app">
+        <Updates
+          client={client}
+          t={t}
+          locale={locale}
+          appName={name}
+          owner={owner}
+          posts={posts}
+          onBack={toBoard}
+          onPublish={publish}
+          onFail={sayRefusal}
+        />
+        {toast && <div class="toast" role="status">{toast}</div>}
       </div>
     );
   }
@@ -449,13 +505,18 @@ export function App({
   return (
     <div class="app">
       <header class="bar">
-        {onClose ? (
-          <button type="button" class="icon-btn" aria-label={t('board.close')} onClick={onClose}>
-            <Icon.Close />
-          </button>
-        ) : (
-          <span />
-        )}
+        <div class="bar__side">
+          {onClose && (
+            <button type="button" class="icon-btn" aria-label={t('board.close')} onClick={onClose}>
+              <Icon.Close />
+            </button>
+          )}
+          {hasUpdates && (
+            <button type="button" class="icon-btn" aria-label={t('updates.title')} onClick={() => setView('updates')}>
+              <Icon.Updates />
+            </button>
+          )}
+        </div>
         <h2 class="bar__title">{t('board.title')}</h2>
         {readonly ? (
           <span />
@@ -492,6 +553,26 @@ export function App({
       )}
 
       <div class="scroll" ref={scroller}>
+        {/* Yours, and only yours: the bug you reported is fixed. Once, until
+            you close it, whichever filter is on. */}
+        {news && (
+          <div class="news" role="status">
+            <Badge tone="done" icon={() => <Icon.Done />} label={t('board.statusDone')} />
+            <div class="news__text">
+              <strong class="news__title">
+                {news.fix?.version
+                  ? t(news.kind === 'idea' ? 'news.ideaIn' : 'news.bugIn', { version: news.fix.version })
+                  : t(news.kind === 'idea' ? 'news.idea' : 'news.bug')}
+              </strong>
+              <span class="news__post">{news.text}</span>
+              {news.fix?.link && <CodeLink href={news.fix.link} t={t} label="news.see" />}
+            </div>
+            <button type="button" class="icon-btn news__close" aria-label={t('board.close')} onClick={() => closeNews(news.id)}>
+              <Icon.Close size={18} />
+            </button>
+          </div>
+        )}
+
         {/* What people think of the app, on top of the list it is drawn from.
             Only where reviews are in view, and only once there is one. */}
         {rating && kinds.includes('review') && (kind === 'all' || kind === 'review') && (
@@ -619,6 +700,33 @@ export function App({
 function newId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
   return `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** How many closed notes are remembered: plenty for anybody's own posts on one board. */
+const SEEN_MAX = 200;
+
+/**
+ * The posts whose "fixed" note this browser closed, per board. In
+ * `localStorage`, because a note that came back on every visit would be
+ * nagging; only post ids, nothing about anybody. Where storage throws
+ * (private mode, a sandboxed frame) it is remembered for this visit only.
+ */
+function readSeen(project: string): string[] {
+  try {
+    const raw = globalThis.localStorage?.getItem(`pleasenobugs.fixed.${project}`);
+    const ids = raw ? (JSON.parse(raw) as unknown) : [];
+    return Array.isArray(ids) ? ids.filter((x): x is string => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSeen(project: string, ids: string[]) {
+  try {
+    globalThis.localStorage?.setItem(`pleasenobugs.fixed.${project}`, JSON.stringify(ids));
+  } catch {
+    // Remembered in memory for this visit, which is the best there is.
+  }
 }
 
 /** The stricter of two screenshot settings: off, then owners, then the board. */

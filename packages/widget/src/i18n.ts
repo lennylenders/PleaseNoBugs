@@ -277,6 +277,107 @@ const COPY = {
   'board.save': { en: 'Save', nl: 'Opslaan', de: 'Speichern' },
   'board.context': { en: 'Sent with', nl: 'Meegestuurd', de: 'Mitgeschickt' },
 
+  // ---- Where a fix is ----
+  // In the owner's sheet, once Done is picked. An idea is built, not fixed.
+  'fix.title': { en: 'Fixed in', nl: 'Opgelost in', de: 'Behoben in' },
+  'fix.titleIdea': { en: 'Built in', nl: 'Gebouwd in', de: 'Umgesetzt in' },
+  'fix.version': { en: 'Version', nl: 'Versie', de: 'Version' },
+  'fix.versionBad': {
+    en: 'Letters, numbers and dots only, like 1.4.2.',
+    nl: 'Alleen letters, cijfers en punten, zoals 1.4.2.',
+    de: 'Nur Buchstaben, Ziffern und Punkte, etwa 1.4.2.',
+  },
+  'fix.link': { en: 'Link to the fix', nl: 'Link naar de oplossing', de: 'Link zum Fix' },
+  'fix.linkNote': {
+    en: 'A commit, pull request or release on github.com or gitlab.com.',
+    nl: 'Een commit, pull request of release op github.com of gitlab.com.',
+    de: 'Ein Commit, Pull Request oder Release auf github.com oder gitlab.com.',
+  },
+  'fix.linkBad': {
+    en: 'That is not a link to a page on github.com or gitlab.com.',
+    nl: 'Dat is geen link naar een pagina op github.com of gitlab.com.',
+    de: 'Das ist kein Link zu einer Seite auf github.com oder gitlab.com.',
+  },
+  'fix.who': {
+    en: 'Whoever reported this sees it on their board.',
+    nl: 'Wie dit meldde, ziet het op het eigen bord.',
+    de: 'Wer das gemeldet hat, sieht es auf dem eigenen Board.',
+  },
+  // On the card, for everybody.
+  'fix.in': { en: 'Fixed in {version}', nl: 'Opgelost in {version}', de: 'Behoben in {version}' },
+  'fix.inIdea': { en: 'Built in {version}', nl: 'Gebouwd in {version}', de: 'Umgesetzt in {version}' },
+  // {site} is GitHub or GitLab, whichever the link goes to.
+  'fix.view': { en: 'View on {site}', nl: 'Bekijk op {site}', de: 'Auf {site} ansehen' },
+
+  // ---- The note for whoever reported it ----
+  'news.bug': { en: 'Your bug is fixed', nl: 'Je bug is opgelost', de: 'Dein Bug ist behoben' },
+  'news.bugIn': {
+    en: 'Your bug is fixed in {version}',
+    nl: 'Je bug is opgelost in {version}',
+    de: 'Dein Bug ist behoben in {version}',
+  },
+  'news.idea': { en: 'Your idea is built', nl: 'Je idee is gebouwd', de: 'Deine Idee ist umgesetzt' },
+  'news.ideaIn': { en: 'Your idea is in {version}', nl: 'Je idee zit in {version}', de: 'Deine Idee ist in {version}' },
+  'news.see': { en: 'See the fix', nl: 'Bekijk de oplossing', de: 'Zum Fix' },
+
+  // ---- Updates ----
+  'updates.title': { en: 'Updates', nl: 'Updates', de: 'Updates' },
+  'updates.intro': {
+    en: 'What changed in {app}. Tap one to see the change itself.',
+    nl: 'Wat er veranderd is in {app}. Tik erop om de wijziging zelf te zien.',
+    de: 'Was sich in {app} geändert hat. Tipp drauf, um die Änderung selbst zu sehen.',
+  },
+  'updates.empty': { en: 'No updates yet.', nl: 'Nog geen updates.', de: 'Noch keine Updates.' },
+  'updates.emptyOwner': {
+    en: 'No updates yet. Write the first one with +.',
+    nl: 'Nog geen updates. Schrijf de eerste met +.',
+    de: 'Noch keine Updates. Schreib das erste mit +.',
+  },
+  'updates.bugOne': { en: '1 bug', nl: '1 bug', de: '1 Bug' },
+  'updates.bugMany': { en: '{n} bugs', nl: '{n} bugs', de: '{n} Bugs' },
+  'updates.ideaOne': { en: '1 idea', nl: '1 idee', de: '1 Idee' },
+  'updates.ideaMany': { en: '{n} ideas', nl: '{n} ideeën', de: '{n} Ideen' },
+  'updates.fromBoard': { en: '{list} from this board', nl: '{list} van dit bord', de: '{list} von diesem Board' },
+  'updates.write': { en: 'New update', nl: 'Nieuwe update', de: 'Neues Update' },
+  'updates.titleLabel': { en: 'Title', nl: 'Titel', de: 'Titel' },
+  'updates.titlePlaceholder': {
+    en: 'What changed, in a few words',
+    nl: 'Wat er veranderd is, in een paar woorden',
+    de: 'Was sich geändert hat, in ein paar Worten',
+  },
+  'updates.link': { en: 'Link on GitHub or GitLab', nl: 'Link op GitHub of GitLab', de: 'Link auf GitHub oder GitLab' },
+  'updates.linkNote': {
+    en: 'Only github.com and gitlab.com links: a release, pull request or commit.',
+    nl: 'Alleen links naar github.com of gitlab.com: een release, pull request of commit.',
+    de: 'Nur Links zu github.com oder gitlab.com: ein Release, ein Pull Request oder ein Commit.',
+  },
+  'updates.textLabel': { en: 'What changed', nl: 'Wat er veranderd is', de: 'Was sich geändert hat' },
+  'updates.textPlaceholder': {
+    en: 'A few lines for the people using {app}',
+    nl: 'Een paar regels voor wie {app} gebruikt',
+    de: 'Ein paar Zeilen für alle, die {app} nutzen',
+  },
+  'updates.fixes': { en: 'What it fixes', nl: 'Wat het oplost', de: 'Was es behebt' },
+  'updates.fixesNote': {
+    en: 'Open and planned bugs and ideas. Ticked ones go to Done, with this version and link.',
+    nl: 'Open en geplande bugs en ideeën. Aangevinkte gaan op Klaar, met deze versie en link.',
+    de: 'Offene und geplante Bugs und Ideen. Angehakte gehen auf Fertig, mit dieser Version und diesem Link.',
+  },
+  'updates.fixesNone': {
+    en: 'No open bugs or ideas on the board.',
+    nl: 'Geen open bugs of ideeën op het bord.',
+    de: 'Keine offenen Bugs oder Ideen auf dem Board.',
+  },
+  'updates.publish': { en: 'Publish update', nl: 'Update plaatsen', de: 'Update veröffentlichen' },
+  'updates.delete': { en: 'Delete update', nl: 'Update verwijderen', de: 'Update löschen' },
+  'updates.deleteTitle': { en: 'Delete this update?', nl: 'Deze update verwijderen?', de: 'Dieses Update löschen?' },
+  'updates.deleteNote': {
+    en: 'It leaves the Updates page. The posts it fixed stay Done.',
+    nl: 'Hij verdwijnt van de Updates-pagina. De posts die hij oploste blijven op Klaar.',
+    de: 'Es verschwindet von der Updates-Seite. Die Posts, die es behoben hat, bleiben auf Fertig.',
+  },
+  'updates.deleteBtn': { en: 'Delete', nl: 'Verwijderen', de: 'Löschen' },
+
   // ---- When ----
   'time.now': { en: 'just now', nl: 'zojuist', de: 'gerade eben' },
   'time.min': { en: '{n}m ago', nl: '{n}m geleden', de: 'vor {n} Min.' },

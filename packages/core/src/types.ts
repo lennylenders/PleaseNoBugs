@@ -30,6 +30,22 @@ export interface PostReply {
 }
 
 /**
+ * Where a fix can be found, set by an owner on a bug or an idea they marked
+ * done: the version it shipped in, and the page on GitHub or GitLab that
+ * shows it. Both optional, and gone as soon as the post stands anywhere but
+ * done.
+ *
+ * github.com and gitlab.com and nothing else, so a link on somebody's board
+ * always goes where it says it goes (see `cleanCodeLink`).
+ */
+export interface PostFix {
+  /** As the app numbers its releases: `1.4.2`, `v2.0-beta`. */
+  version?: string;
+  /** A page on github.com or gitlab.com: a commit, a pull request or a release. */
+  link?: string;
+}
+
+/**
  * Free-form detail for reproducing a bug: an app version, a screen, whether
  * the user was inside Nimiq Pay. Owners' eyes only.
  *
@@ -80,6 +96,8 @@ export interface Post {
    *  chose one. Never an address: a name is a label, an address an identity. */
   who?: string;
   reply?: PostReply;
+  /** A done bug or idea only: where the fix is. Sent to everybody. */
+  fix?: PostFix;
   /** Reviews only: 1 to 5 stars. */
   rating?: number;
   /** Owners only. */
@@ -158,13 +176,48 @@ export interface BoardRead {
   posts: Post[];
   /** Present only when the request carried a valid proof. */
   me?: Me;
+  /**
+   * How many updates the project has written, when it has any, so a widget
+   * can offer the Updates page without reading it first.
+   */
+  updates?: number;
 }
 
-/** One of your own posts that an owner has answered. `at` is when. */
+/**
+ * One of your own posts that an owner has answered. `at` is when. Where it
+ * stands and its fix come along, so an app can say "fixed in 1.4.2" rather
+ * than only that there is news.
+ */
 export interface Answer {
   id: string;
   text: string;
   at: number;
+  status?: PostStatus;
+  fix?: PostFix;
+}
+
+/**
+ * What changed in the app, written by an owner for the Updates page. Anybody
+ * may read a project's updates, signed in or not, like the board.
+ *
+ * Every update has a link, because what the page is for is getting from "it
+ * changed" to the change itself, on GitHub or GitLab, in one tap.
+ */
+export interface Update {
+  id: string;
+  title: string;
+  /** A few lines on what changed. */
+  text?: string;
+  version?: string;
+  /** A page on github.com or gitlab.com. */
+  link: string;
+  at: number;
+  /**
+   * The bugs and ideas on the board it fixed or built, as post ids. Each was
+   * marked done with this update's version and link when it was written. Only
+   * those still on the board are sent.
+   */
+  posts: string[];
 }
 
 /**
@@ -211,6 +264,7 @@ export type ErrorCode =
   | 'origin_not_allowed'
   | 'no_project'
   | 'no_post'
+  | 'no_update'
   | 'duplicate'
   | 'reviewed'
   | 'too_many'

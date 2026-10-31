@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import type { Post, PostKind, PostStatus } from '@pleasenobugs/core';
+import { cleanCodeLink, codeSite, type Post, type PostKind, type PostStatus } from '@pleasenobugs/core';
 import type { CopyKey, Translate } from '../i18n.js';
 import { whenLabel } from '../when.js';
 import * as Icon from './icons.js';
@@ -77,6 +77,52 @@ export function Badge({ tone, icon, label }: { tone: string; icon: () => preact.
       <span class={`badge__dot badge__dot--${tone}`}>{icon()}</span>
       {label}
     </span>
+  );
+}
+
+/** The mark of the site a link goes to. */
+export function SiteMark({ site, size = 14 }: { site: 'GitHub' | 'GitLab'; size?: number }) {
+  return site === 'GitLab' ? <Icon.GitLab size={size} /> : <Icon.GitHub size={size} />;
+}
+
+/**
+ * A link to a page on GitHub or GitLab, said as one: the site's mark, the
+ * words, and the arrow that says it opens elsewhere. `label` may name the
+ * site (`{site}`). Only ever drawn for a link that really is on github.com
+ * or gitlab.com, checked again here whatever the server sent.
+ */
+export function CodeLink({ href, t, label = 'fix.view' }: { href: string; t: Translate; label?: CopyKey }) {
+  const safe = cleanCodeLink(href);
+  const site = codeSite(href);
+  if (!safe || !site) return null;
+  return (
+    <a
+      class="code-link"
+      href={safe}
+      target="_blank"
+      rel="noopener noreferrer"
+      // Not a request to open the card, which for an owner is a button.
+      onClick={(e) => e.stopPropagation()}
+    >
+      <SiteMark site={site} />
+      <span>{t(label, { site })}</span>
+      <Icon.Out size={12} />
+    </a>
+  );
+}
+
+/** "Fixed in 1.4.2 · View on GitHub", under a done bug or idea that says where. */
+function FixLine({ post, t }: { post: Post; t: Translate }) {
+  const fix = post.status === 'done' ? post.fix : undefined;
+  if (!fix || (!fix.version && !fix.link)) return null;
+  return (
+    <div class="fix">
+      {fix.version && (
+        <span class="fix__version">{t(post.kind === 'idea' ? 'fix.inIdea' : 'fix.in', { version: fix.version })}</span>
+      )}
+      {fix.version && fix.link && <span class="fix__dot" aria-hidden="true">·</span>}
+      {fix.link && <CodeLink href={fix.link} t={t} />}
+    </div>
   );
 }
 
@@ -219,11 +265,16 @@ export function PostCard({
         </button>
       )}
 
-      {post.reply && (
+      {/* Where the fix is belongs with the answer, when there is one: it is
+          what the app said back. */}
+      {post.reply ? (
         <div class="card__reply">
           <span class="card__reply-who">{t('board.reply', { app: appName })}</span>
           <p class="card__reply-text">{post.reply.text}</p>
+          <FixLine post={post} t={t} />
         </div>
+      ) : (
+        <FixLine post={post} t={t} />
       )}
 
       <div class="card__foot">

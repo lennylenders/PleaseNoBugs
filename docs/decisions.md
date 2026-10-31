@@ -616,6 +616,69 @@ the same real board. The footer no longer says the site stores nothing: what
 you post goes to that server, without a name, and the guest key stays in the
 browser.
 
+## 2026-10-31: Fixed, with a link to GitHub or GitLab, and an Updates page
+
+The owner wants a board to show what came of what people reported: an app's
+maker marks a bug fixed in the widget, and everybody can see what changed in
+the app. Designed in Figma first (Page 3, "Widget · Fixed and updates"),
+built after the owner approved it. For 0.3.0: 0.2.0 was already on npm.
+
+- **Done gets "Fixed in"**: a version and a link, both optional, in the
+  sheet where an owner answers. The card says "Fixed in 1.4.2 · View on
+  GitHub" for everybody. Stored on the post (`fix`, schema 5), and gone when
+  the post moves away from done, so a fix never sits under something planned.
+- **GitHub and GitLab links only**, the owner's choice: a link on a board is
+  something an app's users are invited to tap, and "it goes to the code" is a
+  promise every board keeps whoever runs it. First github.com alone; the
+  owner added gitlab.com the same day, for makers who keep their code there.
+  `cleanCodeLink` in core, checked by the server, the sheets, and again where
+  a link is drawn, which shows the site's own mark and name ("View on
+  GitLab"). Weighed: any https link (an own changelog, a GitLab on the
+  maker's own server), which would have made every board a place to put any
+  link at all.
+- **The reporter hears it on their own board.** The owner was told the widget
+  showed answers already; it did not, only the API had them (`/answers`). So
+  the board now shows a note on top, "Your bug is fixed in 1.4.2", to whoever
+  wrote it, until they close it. Worked out from the board itself (`mine`,
+  `status`), so it costs no request; which notes were closed is kept in
+  `localStorage` as post ids. `/answers` now carries `status` and `fix` too,
+  for apps that show news themselves. No email, no push.
+- **Updates are written by the owner, in the widget**: a title, a version, a
+  GitHub or GitLab link (required: tapping one goes there), a few lines, and the
+  bugs and ideas it fixed. Weighed: reading GitHub Releases (no double work,
+  but only for public repositories, and a server fetching GitHub for every
+  board) and a page of done posts only (nothing for a change nobody reported).
+- **Ticking a post in an update marks it done**, with the update's version and
+  link, and its author gets the note. One write instead of answering each post
+  again. Deleting an update leaves those posts done.
+- **The page is public** and opens from a megaphone at the top left of the
+  board, beside Close when there is one. The button shows once there is an
+  update, and always to owners, who write the first. The board says how many
+  there are (`updates` on `BoardRead`), so the button needs no request of its
+  own; the page itself is read when it opens.
+
+## 2026-10-31: Museo Sans Rounded is the project's font, on the published site too
+
+The site showed Museo Sans Rounded only on the owner's computer: its files
+were kept out of git (2026-10-28) because they say "All rights reserved", so
+GitHub Pages fell back to Mulish. The owner says no licence is needed for
+them and asked for them online, having been told that the files would then
+be downloadable by anyone and stay in the public history for good. So
+`site/src/assets/fonts/` (weights 500, 700 and 900, the ones the site uses)
+is in git now and published with the site. The owner then made it the
+project's font: Mulish is gone from the site and from the repo's
+dependencies, and the system's font stands in only while it loads. The demo
+page (`packages/widget/demo`) uses it as well, from the same folder.
+
+- **The widget is unchanged**: it still takes the font of the app it sits in
+  (`--pnb-font: inherit`), the owner's choice, in every theme. On the site it
+  shows Museo Sans Rounded because the site does.
+- **Figma stays on Mulish for now.** The Figma connection draws text with
+  Figma's own fonts only, never those on the owner's computer (it sees no
+  Windows font at all), so it cannot set Museo Sans Rounded. In the Figma
+  desktop app, with the font installed, the owner can change the file's text
+  styles, which carry most of the text.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

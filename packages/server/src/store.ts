@@ -1,12 +1,14 @@
 import type {
   Answer,
   PostContext,
+  PostFix,
   PostKind,
   PostReply,
   PostStatus,
   Project,
   ShotFor,
   ShotType,
+  Update,
 } from '@pleasenobugs/core';
 
 /**
@@ -39,6 +41,8 @@ export interface PostRow {
   at: number;
   status: PostStatus;
   reply?: PostReply;
+  /** Done bugs and ideas only. */
+  fix?: PostFix;
   hidden?: boolean;
   /** Waiting for an owner's approval: its author and the owners see it, nobody else. */
   pending?: boolean;
@@ -90,6 +94,7 @@ export function shotFor(board: boolean, off: boolean): ShotFor {
 export interface PostPatch {
   status?: PostStatus;
   reply?: PostReply | null;
+  fix?: PostFix | null;
   hidden?: boolean;
   pending?: boolean;
   answeredAt?: number;
@@ -163,8 +168,16 @@ export interface Store {
   countByAuthorSince(projectId: string, author: string, since: number): Promise<number>;
   /** How many posts anybody wrote on this board after `since`. */
   countSince(projectId: string, since: number): Promise<number>;
-  /** This wallet's answered posts, newest answer first. */
+  /** This wallet's answered posts, newest answer first, with where each stands and its fix. */
   answersFor(projectId: string, author: string, limit: number): Promise<Answer[]>;
+
+  // ---- Updates ----
+  /** A board's updates, newest first, each with every post id it was written with. */
+  updates(projectId: string): Promise<Update[]>;
+  /** Answers false, writing nothing, when the id is taken. */
+  createUpdate(projectId: string, update: Update): Promise<boolean>;
+  /** Answers whether there was one. The posts it fixed keep their status and fix. */
+  deleteUpdate(projectId: string, id: string): Promise<boolean>;
 
   // ---- Names, per wallet per project ----
   names(projectId: string, addresses: string[]): Promise<Map<string, string>>;

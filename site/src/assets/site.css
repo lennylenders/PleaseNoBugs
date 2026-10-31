@@ -4,8 +4,8 @@
  * lighter purple cards and bands, turquoise buttons, white words.
  *
  * Fonts are served from this site, not Google's or Adobe's, so a visit tells
- * nobody. Museo Sans Rounded is the design's font. Its files are licensed and
- * kept out of git (assets/fonts/), so where they are missing Mulish stands in.
+ * nobody. Museo Sans Rounded is the project's font, in assets/fonts/; the
+ * system's font stands in for a moment while it loads.
  */
 @font-face {
   font-family: 'Museo Sans Rounded';
@@ -31,14 +31,6 @@
   src: url('fonts/museo-sans-rounded-900.otf') format('opentype');
 }
 
-@font-face {
-  font-family: 'Mulish';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 200 1000;
-  src: url('../fonts/mulish-latin-wght-normal.woff2') format('woff2-variations');
-}
-
 :root {
   color-scheme: dark;
   --page: #292a56;
@@ -61,7 +53,7 @@
   --radius: 10px;
   --radius-lg: 16px;
   --gutter: 16px;
-  --font: 'Museo Sans Rounded', 'Mulish', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font: 'Museo Sans Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 * { box-sizing: border-box; }

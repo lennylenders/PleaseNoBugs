@@ -36,6 +36,26 @@ describe('createDemoClient', () => {
     expect(twice).toMatchObject({ ok: false, error: 'reviewed' });
   });
 
+  it('has updates that go to GitHub, and a fixed bug that says where', async () => {
+    const c = createDemoClient();
+    const board = await c.board();
+    if (!board.ok) throw new Error('no board');
+    expect(board.data.updates).toBe(2);
+    expect(board.data.posts.find((p) => p.id === 'demo-1')?.fix).toEqual({
+      version: '1.4.2',
+      link: 'https://github.com/lennylenders/PleaseNoBugs/releases',
+    });
+    const res = await c.updates();
+    expect(res.ok && res.data.updates.map((u) => [u.version, u.posts])).toEqual([
+      ['1.4.2', ['demo-1']],
+      ['1.4.0', []],
+    ]);
+    expect(await c.postUpdate({ id: 'u', title: 'Mine', link: 'https://github.com/me/app' })).toMatchObject({
+      ok: false,
+      error: 'not_owner',
+    });
+  });
+
   it('stops at the daily allowance', async () => {
     const c = createDemoClient();
     for (let i = 0; i < 5; i++) await c.post({ id: `p${i}`, kind: 'idea', text: 'More' });

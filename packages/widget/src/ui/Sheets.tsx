@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'preact/hooks';
-import type { Post, PostStatus } from '@pleasenobugs/core';
+import {
+  LINK_MAX,
+  VERSION_MAX,
+  cleanCodeLink,
+  cleanVersion,
+  type Post,
+  type PostFix,
+  type PostStatus,
+} from '@pleasenobugs/core';
 import type { CopyKey, Translate } from '../i18n.js';
 import { Stars } from './PostCard.js';
+import * as Icon from './icons.js';
 
 /**
  * A screenshot as a URL to show, fetched when the sheet opens and let go when
@@ -84,14 +93,29 @@ export function ShotSheet({ t, src, onClose }: { t: Translate; src: string; onCl
   );
 }
 
-export function DeleteSheet({ t, onConfirm, onClose }: { t: Translate; onConfirm: () => void; onClose: () => void }) {
+/** Asking before something goes for good: a post, by default, or an update. */
+export function DeleteSheet({
+  t,
+  onConfirm,
+  onClose,
+  title = 'board.deleteTitle',
+  note = 'board.deleteNote',
+  confirm = 'board.delete',
+}: {
+  t: Translate;
+  onConfirm: () => void;
+  onClose: () => void;
+  title?: CopyKey;
+  note?: CopyKey;
+  confirm?: CopyKey;
+}) {
   return (
-    <Sheet label={t('board.deleteTitle')} onClose={onClose}>
-      <h2 class="sheet__title">{t('board.deleteTitle')}</h2>
-      <p class="sheet__quote">{t('board.deleteNote')}</p>
+    <Sheet label={t(title)} onClose={onClose}>
+      <h2 class="sheet__title">{t(title)}</h2>
+      <p class="sheet__quote">{t(note)}</p>
       <div class="sheet__actions">
         <button type="button" class="btn btn--danger" onClick={onConfirm}>
-          {t('board.delete')}
+          {t(confirm)}
         </button>
         <button type="button" class="text-btn" onClick={onClose}>
           {t('board.cancel')}
@@ -117,6 +141,8 @@ export interface ManageChange {
   shotOff?: boolean;
   /** Only for a post waiting for approval: true lets it onto the board. */
   approved?: boolean;
+  /** Only for a bug or an idea saved as done: where the fix is, `{}` for nowhere. */
+  fix?: PostFix;
 }
 
 /**
@@ -131,6 +157,11 @@ export interface ManageChange {
  * off it on its own**, for when it shows something private after all, while
  * the post stays up. One the author kept for the owners has no such switch:
  * nobody may put it on the board for them.
+ *
+ * **Picking Done opens "Fixed in"**: a version and a link to the fix on
+ * github.com or gitlab.com, both optional, which the card then shows to everybody and the
+ * author as news. A link anywhere else is said to be wrong right under it,
+ * and Save waits, rather than the server refusing the whole answer.
  */
 export function ManageSheet({
   t,
@@ -153,6 +184,13 @@ export function ManageSheet({
   const [hidden, setHidden] = useState(!!post.hidden);
   const [shotOff, setShotOff] = useState(post.shotFor === 'off');
   const [approved, setApproved] = useState(false);
+  const [version, setVersion] = useState(post.fix?.version ?? '');
+  const [link, setLink] = useState(post.fix?.link ?? '');
+  // A fix is for a bug or an idea, once it is done.
+  const fixing = status === 'done' && post.kind !== 'review';
+  const cleanVer = cleanVersion(version);
+  const cleanLink = cleanCodeLink(link);
+  const wrong = fixing && (cleanVer === null || cleanLink === null);
   // Whether the author agreed to the board, so an owner may switch it.
   const switchable = post.shot && (post.shotFor === 'board' || post.shotFor === 'off');
   const shotWho: CopyKey =
@@ -229,6 +267,46 @@ export function ManageSheet({
         </>
       )}
 
+      {fixing && (
+        <div class="fix-box">
+          <span class="fix-box__head">
+            <Icon.Link size={16} />
+            {t(post.kind === 'idea' ? 'fix.titleIdea' : 'fix.title')}
+          </span>
+          <label class="fix-box__label">
+            {t('fix.version')}
+            <input
+              class="input"
+              value={version}
+              maxLength={VERSION_MAX}
+              placeholder="1.4.2"
+              autocomplete="off"
+              aria-invalid={cleanVer === null}
+              onInput={(e) => setVersion((e.target as HTMLInputElement).value)}
+            />
+          </label>
+          {cleanVer === null && <p class="note note--bad">{t('fix.versionBad')}</p>}
+          <label class="fix-box__label">
+            {t('fix.link')}
+            <input
+              class="input"
+              type="url"
+              maxLength={LINK_MAX}
+              inputMode="url"
+              value={link}
+              placeholder="github.com/…/pull/42"
+              autocomplete="off"
+              aria-invalid={cleanLink === null}
+              onInput={(e) => setLink((e.target as HTMLInputElement).value)}
+            />
+          </label>
+          <p class={`note${cleanLink === null ? ' note--bad' : ''}`}>
+            {t(cleanLink === null ? 'fix.linkBad' : 'fix.linkNote')}
+          </p>
+          <p class="note">{t('fix.who')}</p>
+        </div>
+      )}
+
       <span class="label" style={{ display: 'block', marginTop: '20px', marginBottom: '8px' }}>
         {t('board.replyLabel')}
       </span>
@@ -257,6 +335,7 @@ export function ManageSheet({
         <button
           type="button"
           class="btn"
+          disabled={wrong}
           onClick={() =>
             onSave({
               status,
@@ -264,6 +343,9 @@ export function ManageSheet({
               hidden,
               ...(switchable ? { shotOff } : {}),
               ...(post.pending && approved ? { approved: true } : {}),
+              ...(fixing
+                ? { fix: { ...(cleanVer ? { version: cleanVer } : {}), ...(cleanLink ? { link: cleanLink } : {}) } }
+                : {}),
             })
           }
         >

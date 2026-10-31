@@ -28,6 +28,11 @@ one place, without asking anybody to send you an email.
 - **Lookalikes while typing**: posts that resemble yours appear under the field,
   so people second the existing wish instead of writing it a fifth time.
 - **Your answer under every post**: Planned, Done, Not doing, plus one reply.
+  Done can say where: "Fixed in 1.4.2 · View on GitHub", and whoever reported
+  it gets a note on their board.
+- **An Updates page**: what changed in your app, each update a tap away from
+  its release or pull request on GitHub or GitLab. Ticking the bugs an update fixes
+  marks them Done in one go.
 - **Bug reports carry context** you choose, like your app's version, shown to
   you and nobody else, and optionally **a screenshot on the board**, after the
   user ticks that everyone may see it. You can take one off again, or keep them
