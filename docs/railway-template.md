@@ -14,7 +14,7 @@ with the owner's referral code, `?referralCode=xm-X6O`, on purpose.
 | Setting | Value |
 |---|---|
 | Source | This GitHub repository, default branch (`main`). Every deploy builds what is on `main` at that moment. |
-| Build | The `Dockerfile` at the root of the repository. Railway uses it by itself; nothing to set. |
+| Build | The `Dockerfile` at the root of the repository. Railway uses it by itself; nothing to set. A deployed service's Settings may still say "Railpack, Default": the build log's `load build definition from Dockerfile` is what counts. |
 | Health check | Settings, Deploy, Healthcheck Path: `/health`. Railway then waits for it before the new deployment takes over. |
 | Restart policy | Railway's default, On Failure with up to 10 restarts. Nothing to set. |
 | Volume | Mounted on `/data`. The Dockerfile puts the database at `/data/pleasenobugs.db`; without the volume every deploy starts from an empty board. |
@@ -70,6 +70,15 @@ things set by hand: Healthcheck Path `/health` and
   variable to the server. The server now says so in the log.
 - "3 variables to configure" on the service card counts the asked ones; it is
   the quickest check that none has a value.
+
+## Tested again (2026-10-31)
+
+After the health check moved into the template: a new project built from the
+`Dockerfile`, the build log showed `Path: /health`, `Retry window: 1m0s` and
+`[1/1] Healthcheck succeeded!`, Deploy Logs showed `created project`, and
+`/health` answered `{"ok":true}`. The same day the home page's board
+(`pleasenobugs-site`) got `RAILWAY_HEALTHCHECK_TIMEOUT_SEC=60`; it already had
+the path.
 
 ## Test it again
 
