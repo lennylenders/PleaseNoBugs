@@ -36,6 +36,9 @@ export function toVisible(
   };
   if (!row.anon && name) out.who = name;
   if (row.reply) out.reply = row.reply;
+  // Only ever stored on a done post; checked again so a fix can never be
+  // read as a promise on something still open.
+  if (row.fix && row.status === 'done') out.fix = row.fix;
   if (row.rating !== undefined) out.rating = row.rating;
   // A screenshot on the board is the board's, like the text under it. Any
   // other one, and who sees it, is for owners only.

@@ -24,5 +24,7 @@ export function forReaders(read: BoardRead): BoardRead {
         mine: false,
         voted: false,
       })),
+    // The Updates page is public to begin with, so it comes along.
+    ...(read.updates ? { updates: read.updates } : {}),
   };
 }

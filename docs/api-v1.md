@@ -169,6 +169,7 @@ The whole board: a `BoardRead`.
   project: PublicProject;
   posts: Post[];
   me?: Me;          // present only when a valid proof was sent
+  updates?: number; // how many updates the project wrote, when it wrote any (0.3.0)
 }
 ```
 
@@ -186,6 +187,9 @@ The whole board: a `BoardRead`.
   `shot: true` on every post with a screenshot, plus `shotFor`: `board` (on
   the board), `off` (an owner took it off) or `owners` (its author never put it
   on the board, so it can never go there).
+- A done bug or idea may carry `fix: { version?, link? }`: the version it
+  shipped in and a page on github.com or gitlab.com, both set by an owner (see `manage`).
+  Sent to everybody. Never on a post that is not done.
 - Paging may be added later as an optional `cursor` parameter, which is an
   addition rather than a change.
 
@@ -221,13 +225,37 @@ that allows nothing.
 Your own posts that an owner has answered, newest first, at most 10:
 
 ```ts
-{ answers: { id: string; text: string; at: number }[] }
+{ answers: { id: string; text: string; at: number; status?: PostStatus; fix?: PostFix }[] }
 ```
 
-`at` is when it was answered. A status change is an answer too: marking a post
+`at` is when it was answered. `status` and `fix` (0.3.0) say what happened,
+so an app can say "fixed in 1.4.2" rather than only that there is news. A status change is an answer too: marking a post
 Done is a reply in one word. Hiding a post is **not**, since telling somebody
 their post was taken down starts an argument the board has nowhere to hold.
 How long to keep showing an answer is the client's decision.
+
+#### `GET /v1/projects/:pid/updates` *(0.3.0)*
+
+What changed in the app, written by its owners, newest first. Anybody may
+read it, like the board; a proof is not needed, but one that is sent has to
+hold up.
+
+```ts
+{
+  updates: {
+    id: string;
+    title: string;
+    text?: string;
+    version?: string;
+    link: string;       // a page on github.com or gitlab.com: every update has one
+    at: number;
+    posts: string[];    // the bugs and ideas it fixed, of those anybody can see on the board
+  }[];
+}
+```
+
+`posts` leaves out a post that was since hidden, deleted or is waiting for
+approval, so an update never names something the board does not show.
 
 ### Writing
 
@@ -315,11 +343,29 @@ always change it.
 #### `POST /v1/projects/:pid/posts/:id/manage` *(proof, owner)*
 
 ```ts
-{ status?: PostStatus; reply?: string; hidden?: boolean; shotOff?: boolean; approved?: boolean }
+{
+  status?: PostStatus;
+  reply?: string;
+  hidden?: boolean;
+  shotOff?: boolean;
+  approved?: boolean;
+  fix?: { version?: string; link?: string } | null;   // 0.3.0
+}
 ```
 
 Every field is optional and only those present are written. An empty `reply`
 takes the reply back. `{ ok: true }`, or `403 not_owner`.
+
+- `fix` says where the fix is, on a bug or an idea that is `done` once the
+  call is through: `version` as the app numbers its releases (letters, digits
+  and `. + _ -`, at most 24), `link` a page on **github.com or gitlab.com
+  and nowhere else**, not even a GitLab on somebody's own server (at most 300
+  chars). A link without `https://` gets it, `http://` and `www.` are tidied
+  away; anything else, a bare `github.com` included, is
+  `400 bad_request`. `null`, or both parts empty, removes it. A fix on a
+  review, or on a post that will not be done, is `400`. Moving a post away
+  from done removes its fix by itself. A changed fix is an answer, like a
+  status: the author hears it on `/answers`.
 
 - `shotOff: true` takes the post's screenshot off the board and leaves the post
   on it; `false` puts it back. Putting back does nothing to a screenshot whose
@@ -328,6 +374,35 @@ takes the reply back. `{ ok: true }`, or `403 not_owner`.
 
 - `approved: true` lets a waiting post onto the board; `false` sends it back
   to waiting. Like hiding, it is not an answer: the author sees it arrive.
+
+#### `POST /v1/projects/:pid/updates` *(proof, owner, 0.3.0)*
+
+```ts
+{
+  id: string;          // minted by the client, at most 128 chars
+  title: string;       // trimmed, 1..80 chars
+  text?: string;       // at most 300 chars
+  version?: string;    // as on `fix`
+  link: string;        // a page on github.com or gitlab.com, as on `fix`: required
+  posts?: string[];    // at most 50: the bugs and ideas it fixed
+}
+```
+
+Answers `{ ok: true, update }`, the update as it was stored.
+
+- **Every post named goes to done**, with this update's version and link as
+  its fix, and its author is told on `/answers` like any other answer. That is
+  the point of naming it: one write, and everybody whose report shipped
+  hears so. An id that is not on the board, or is a review, is skipped and
+  left out of `update.posts`.
+- Its screenshot goes, as with any post marked done.
+- A second write with the same id is `409 duplicate`, and touches no post.
+
+#### `DELETE /v1/projects/:pid/updates/:id` *(proof, owner, 0.3.0)*
+
+Takes it off the Updates page. The posts it fixed stay done, with their fix:
+taking a page off a list does not un-ship anything. `{ ok: true }`, or
+`404 no_update`.
 - A review takes no `status` other than `open` (`400 bad_request`).
 - Setting `done` or `declined` deletes the post's screenshot: it was there to
   get something fixed, and once that is settled nobody needs a picture of
@@ -384,7 +459,8 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 | 403 | `origin_not_allowed` | The request comes from an origin the project does not list. |
 | 404 | `no_project` | No such project. |
 | 404 | `no_post` | No such post, or one hidden from you or still waiting for approval. |
-| 409 | `duplicate` | A post with this id exists. |
+| 404 | `no_update` | No such update. |
+| 409 | `duplicate` | A post, or an update, with this id exists. |
 | 409 | `reviewed` | This wallet has a review on this board already. |
 | 429 | `too_many` | The day's posts are used up. Carries `perDay`. |
 | 429 | `rate_limited` | Too many requests. Carries `retryAfter` in seconds. |
@@ -402,6 +478,8 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 | Context | 10 keys, 100 chars per value | `CONTEXT_MAX_KEYS`, `CONTEXT_VALUE_MAX` |
 | Review | 1 per wallet, 1 to 5 stars | `RATING_MIN`, `RATING_MAX` |
 | Screenshot | 1 per bug or idea, 1 MB, JPEG, PNG or WebP | `SHOT_MAX_BYTES`, `SHOT_TYPES` |
+| Fix | a version of 24 chars, a github.com or gitlab.com link of 300 | `VERSION_MAX`, `LINK_MAX` |
+| Update | title 80 chars, text 300, at most 50 posts fixed | `UPDATE_TITLE_MAX`, `UPDATE_TEXT_MAX`, `UPDATE_POSTS_MAX` |
 | Proof lifetime | 30 days | `LOGIN_TTL_MS` |
 | Writing posts | 10 per 15 minutes per wallet | server |
 | Writing posts per IP address | none; a server may set one a day, over all its boards | `PNB_POSTS_PER_IP_DAY` |

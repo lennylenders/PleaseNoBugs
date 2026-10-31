@@ -48,7 +48,7 @@ describe('importBoard', () => {
     expect(two).toMatchObject({ votes: 1, hidden: true, anon: true, context: { host: 'nimiq-pay' } });
     expect((await store.names('p', [A.key])).get(A.key)).toBe('Alice');
     // The author's answer reaches them on /answers like any other.
-    expect(await store.answersFor('p', A.key, 10)).toEqual([{ id: 'post-1', text: 'Dark mode', at: 2000 }]);
+    expect(await store.answersFor('p', A.key, 10)).toEqual([{ id: 'post-1', text: 'Dark mode', at: 2000, status: 'planned' }]);
   });
 
   it('is harmless to run twice', async () => {

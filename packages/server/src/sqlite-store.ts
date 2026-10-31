@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 import type { DatabaseSync as Database, SQLInputValue } from 'node:sqlite';
-import type { Answer, PostContext, PostKind, PostStatus, Project, ShotType } from '@pleasenobugs/core';
+import type { Answer, PostContext, PostFix, PostKind, PostStatus, Project, ShotType, Update } from '@pleasenobugs/core';
 import { shotFor } from './store.js';
 import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Shot, Store, StoredShot, TelemetryRow } from './store.js';
 
@@ -99,6 +99,17 @@ export class SqliteStore implements Store {
         off        INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (project_id, post_id)
       );
+      CREATE TABLE IF NOT EXISTS updates (
+        project_id TEXT NOT NULL,
+        id         TEXT NOT NULL,
+        title      TEXT NOT NULL,
+        text       TEXT,
+        version    TEXT,
+        link       TEXT NOT NULL,
+        at         INTEGER NOT NULL,
+        posts      TEXT NOT NULL,
+        PRIMARY KEY (project_id, id)
+      );
     `);
     this.migrate();
   }
@@ -145,6 +156,16 @@ export class SqliteStore implements Store {
       const cols = this.all('PRAGMA table_info(posts)').map((c) => String(c.name));
       if (!cols.includes('pending')) this.db.exec('ALTER TABLE posts ADD COLUMN pending INTEGER NOT NULL DEFAULT 0');
       this.run("UPDATE meta SET value = '4' WHERE key = 'schema'");
+    }
+
+    // 5: where a fix is, on done posts. Nothing stored before had one, so
+    // both start empty. The updates table needs no step: it is new, and
+    // `CREATE TABLE IF NOT EXISTS` above makes it for old files too.
+    if (schema() < 5) {
+      const cols = this.all('PRAGMA table_info(posts)').map((c) => String(c.name));
+      if (!cols.includes('fix_version')) this.db.exec('ALTER TABLE posts ADD COLUMN fix_version TEXT');
+      if (!cols.includes('fix_link')) this.db.exec('ALTER TABLE posts ADD COLUMN fix_link TEXT');
+      this.run("UPDATE meta SET value = '5' WHERE key = 'schema'");
     }
   }
 
@@ -292,8 +313,9 @@ export class SqliteStore implements Store {
   async createPost(row: PostRow, shot?: Shot) {
     const inserted = this.run(
       `INSERT OR IGNORE INTO posts
-         (project_id, id, author, anon, kind, text, at, status, reply_text, reply_at, hidden, context, answered_at, rating, pending)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (project_id, id, author, anon, kind, text, at, status, reply_text, reply_at, hidden, context, answered_at, rating, pending,
+          fix_version, fix_link)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       row.projectId,
       row.id,
       row.author,
@@ -309,6 +331,8 @@ export class SqliteStore implements Store {
       row.answeredAt ?? null,
       row.rating ?? null,
       row.pending ? 1 : 0,
+      row.fix?.version ?? null,
+      row.fix?.link ?? null,
     );
     if (Number(inserted.changes) === 0) return false;
     this.run(
@@ -340,6 +364,10 @@ export class SqliteStore implements Store {
     if (patch.reply !== undefined) {
       sets.push('reply_text = ?', 'reply_at = ?');
       params.push(patch.reply?.text ?? null, patch.reply?.at ?? null);
+    }
+    if (patch.fix !== undefined) {
+      sets.push('fix_version = ?', 'fix_link = ?');
+      params.push(patch.fix?.version ?? null, patch.fix?.link ?? null);
     }
     if (patch.hidden !== undefined) {
       sets.push('hidden = ?');
@@ -437,13 +465,56 @@ export class SqliteStore implements Store {
 
   async answersFor(projectId: string, author: string, limit: number): Promise<Answer[]> {
     return this.all(
-      `SELECT id, text, answered_at FROM posts
+      `SELECT id, text, answered_at, status, fix_version, fix_link FROM posts
        WHERE project_id = ? AND author = ? AND answered_at IS NOT NULL
        ORDER BY answered_at DESC LIMIT ?`,
       projectId,
       author,
       limit,
-    ).map((r) => ({ id: String(r.id), text: String(r.text), at: Number(r.answered_at) }));
+    ).map((r) => {
+      const fix = toFix(r);
+      return {
+        id: String(r.id),
+        text: String(r.text),
+        at: Number(r.answered_at),
+        status: String(r.status) as PostStatus,
+        ...(fix ? { fix } : {}),
+      };
+    });
+  }
+
+  // ---- Updates ----
+
+  async updates(projectId: string): Promise<Update[]> {
+    return this.all('SELECT * FROM updates WHERE project_id = ? ORDER BY at DESC', projectId).map((r) => ({
+      id: String(r.id),
+      title: String(r.title),
+      ...(r.text === null || r.text === undefined ? {} : { text: String(r.text) }),
+      ...(r.version === null || r.version === undefined ? {} : { version: String(r.version) }),
+      link: String(r.link),
+      at: Number(r.at),
+      posts: JSON.parse(String(r.posts)) as string[],
+    }));
+  }
+
+  async createUpdate(projectId: string, u: Update) {
+    const inserted = this.run(
+      `INSERT OR IGNORE INTO updates (project_id, id, title, text, version, link, at, posts)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      projectId,
+      u.id,
+      u.title,
+      u.text ?? null,
+      u.version ?? null,
+      u.link,
+      u.at,
+      JSON.stringify(u.posts),
+    );
+    return Number(inserted.changes) > 0;
+  }
+
+  async deleteUpdate(projectId: string, id: string) {
+    return Number(this.run('DELETE FROM updates WHERE project_id = ? AND id = ?', projectId, id).changes) > 0;
   }
 
   // ---- Names ----
@@ -514,5 +585,15 @@ function toRow(r: Record<string, unknown>): PostRow {
   if (typeof r.context === 'string') row.context = JSON.parse(r.context) as PostContext;
   if (r.answered_at !== null && r.answered_at !== undefined) row.answeredAt = Number(r.answered_at);
   if (r.rating !== null && r.rating !== undefined) row.rating = Number(r.rating);
+  const fix = toFix(r);
+  if (fix) row.fix = fix;
   return row;
+}
+
+/** A post's fix from its two columns, or undefined when it has none. */
+function toFix(r: Record<string, unknown>): PostFix | undefined {
+  const fix: PostFix = {};
+  if (typeof r.fix_version === 'string') fix.version = r.fix_version;
+  if (typeof r.fix_link === 'string') fix.link = r.fix_link;
+  return Object.keys(fix).length ? fix : undefined;
 }

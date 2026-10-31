@@ -46,7 +46,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `names` | `off` leaves out "Show my name", so every post is anonymous. For a board on a public page. |
 | `readonly` | The board to read and scroll through, nothing else: no **+**, no votes (the count still shows), no "Sign in", and it never asks a wallet or sends a proof, not even inside Nimiq Pay. Every post shows as anonymous and without its screenshot, whatever its author chose, because a read-only board is usually shown somewhere other than the app its authors wrote for. |
 | `demo` | A board of sample posts in the page's memory, with no server: `<please-no-bugs demo>`. Voting and writing work, nothing is sent or stored, and a reload starts over. For trying the widget, or showing it off. |
-| `screen` | With `demo` only: hold one screen in view, `button`, `tiles`, `board`, `write` or `sent`. What the website's configurator uses to show the part you are changing. |
+| `screen` | With `demo` only: hold one screen in view, `button`, `tiles`, `board`, `write`, `sent` or `updates`. What the website's configurator uses to show the part you are changing. |
 
 | Property | |
 |---|---|
@@ -92,6 +92,23 @@ later.
 If your page has a Content Security Policy, screenshots on the board load as
 plain images from your server, so `img-src` needs your server next to
 `connect-src`.
+
+**Fixed, and where.** When you mark a bug or an idea **Done**, the sheet asks
+for the version it shipped in and a link to the fix, a commit, a pull request
+or a release. Both are optional; only github.com and gitlab.com links are
+accepted. The card then says "Fixed in 1.4.2 · View on GitHub" (or GitLab)
+for everybody,
+and whoever reported it gets a note on top of their board, "Your bug is fixed
+in 1.4.2", until they close it. Which notes were closed is remembered in the
+browser, as post ids and nothing else.
+
+**Updates.** The megaphone at the top of the board opens the Updates page:
+what changed in your app, newest first, each one opening its page on GitHub
+or GitLab.
+Anybody can read it, signed in or not. You write one with **+** there: a
+title, a version, a GitHub or GitLab link, a few lines, and which open bugs and ideas
+it fixes. Those you tick go to Done with that version and link, and their
+authors get the note. Until you write the first one, only you see the button.
 
 ## Theming
 
@@ -183,6 +200,7 @@ await client.post({ id: crypto.randomUUID(), kind: 'idea', text: 'Dark mode' });
 await client.post({ id: crypto.randomUUID(), kind: 'review', text: 'Love it', rating: 5 });
 const shot = await client.shot(postId);      // the screenshot as a Blob: on the board, or yours as an owner
 const src = client.shotUrl(postId);          // a board screenshot's address, for an <img>
+const news = await client.updates();         // what changed in the app; never asks the wallet
 ```
 
 Every call answers `{ ok: true, data }` or `{ ok: false, status, error }`, and

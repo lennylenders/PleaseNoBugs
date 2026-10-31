@@ -31,7 +31,8 @@ export const TAG = 'please-no-bugs';
  * `readonly` (the board to scroll through and nothing else: see
  * `readonly.ts`), `demo` (sample posts in the page's memory, no server: see
  * `demo.ts`) and, with `demo` only, `screen` (`button`, `tiles`, `board`,
- * `write` or `sent`: that screen, held, for the website's configurator).
+ * `write`, `sent` or `updates`: that screen, held, for the website's
+ * configurator).
  *
  * Properties, for things an attribute cannot carry: `signer`, `appLogin`,
  * `context`, `noise`, `strings`.
@@ -266,7 +267,14 @@ type Screen = 'button' | View;
  * readScreen('nope')    // → undefined
  */
 export function readScreen(v: string | null): Screen | undefined {
-  const views: Record<string, Screen> = { button: 'button', tiles: 'choose', board: 'board', write: 'compose', sent: 'sent' };
+  const views: Record<string, Screen> = {
+    button: 'button',
+    tiles: 'choose',
+    board: 'board',
+    write: 'compose',
+    sent: 'sent',
+    updates: 'updates',
+  };
   return v ? views[v.trim().toLowerCase()] : undefined;
 }
 

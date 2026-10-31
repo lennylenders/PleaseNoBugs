@@ -1,4 +1,11 @@
-import { DEFAULT_RULES, type BoardRead, type Post, type PostKind, type PostStatus } from '@pleasenobugs/core';
+import {
+  DEFAULT_RULES,
+  type BoardRead,
+  type Post,
+  type PostKind,
+  type PostStatus,
+  type Update,
+} from '@pleasenobugs/core';
 import type { Client, Result } from './client.js';
 
 /**
@@ -17,7 +24,8 @@ import type { Client, Result } from './client.js';
  */
 export function createDemoClient(lang = 'en'): Client {
   const now = Date.now();
-  let posts: Post[] = (SAMPLES[lang as keyof typeof SAMPLES] ?? SAMPLES.en).map((s, i) => ({
+  const known = (lang in SAMPLES ? lang : 'en') as keyof typeof SAMPLES;
+  let posts: Post[] = SAMPLES[known].map((s, i) => ({
     id: `demo-${i}`,
     kind: s.kind,
     text: s.text,
@@ -29,6 +37,16 @@ export function createDemoClient(lang = 'en'): Client {
     ...(s.who ? { who: s.who } : {}),
     ...(s.rating ? { rating: s.rating } : {}),
     ...(s.reply ? { reply: { text: s.reply, at: now - s.ago / 2 } } : {}),
+    ...(s.fix ? { fix: { version: s.fix, link: DEMO_LINK } } : {}),
+  }));
+  const updates: Update[] = UPDATES[known].map((u, i) => ({
+    id: `demo-update-${i}`,
+    title: u.title,
+    text: u.text,
+    version: u.version,
+    link: DEMO_LINK,
+    at: now - u.ago,
+    posts: u.posts.map((n) => `demo-${n}`),
   }));
   let name: string | undefined;
   let left = DEFAULT_RULES.perDay;
@@ -52,6 +70,7 @@ export function createDemoClient(lang = 'en'): Client {
         project: { id: 'demo', name: 'Demo app', rules: { ...DEFAULT_RULES, kinds: [...DEFAULT_RULES.kinds] } },
         posts: posts.map((p) => ({ ...p })),
         me: { owner: false, left, ...(name ? { name } : {}) },
+        updates: updates.length,
       }),
     me: () => ok({ owner: false, left, ...(name ? { name } : {}) }),
     answers: () => ok({ answers: [] }),
@@ -107,11 +126,22 @@ export function createDemoClient(lang = 'en'): Client {
       return ok({ ok: true as const, ...(name ? { name } : {}) });
     },
     manage: () => no(403, 'not_owner'),
+    // Only those whose posts are still here, like the server.
+    updates: () =>
+      ok({ updates: updates.map((u) => ({ ...u, posts: u.posts.filter((id) => !!find(id)) })) }),
+    postUpdate: () => no(403, 'not_owner'),
+    removeUpdate: () => no(403, 'not_owner'),
   };
 }
 
 /** Not a real address: nothing in a demo is anybody's. */
 const DEMO_ADDRESS = 'NQ00 DEMO DEMO DEMO DEMO DEMO DEMO DEMO DEMO';
+
+/**
+ * Where the demo's fixes and updates go: a real page on GitHub, this
+ * project's own releases, so a tap in a demo never lands on a 404.
+ */
+const DEMO_LINK = 'https://github.com/lennylenders/PleaseNoBugs/releases';
 
 /** A short wait, so the demo has the same rhythm as a board on a server. */
 function later<T>(value: Result<T>): Promise<Result<T>> {
@@ -127,16 +157,34 @@ interface Sample {
   who?: string;
   rating?: number;
   reply?: string;
+  /** The version a done post was fixed in. */
+  fix?: string;
 }
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 
+/** The Updates page, in the same languages. `posts` are places in the samples. */
+const UPDATES: Record<'en' | 'nl' | 'de', { title: string; text: string; version: string; ago: number; posts: number[] }[]> = {
+  en: [
+    { title: 'Switching accounts works again', text: 'The send button stayed grey after you switched accounts. It now follows the account you picked.', version: '1.4.2', ago: 2 * DAY, posts: [1] },
+    { title: 'Opens faster', text: 'About twice as fast on older phones.', version: '1.4.0', ago: 21 * DAY, posts: [] },
+  ],
+  nl: [
+    { title: 'Wisselen van account werkt weer', text: 'De verstuurknop bleef grijs nadat je van account wisselde. Nu volgt hij het account dat je kiest.', version: '1.4.2', ago: 2 * DAY, posts: [1] },
+    { title: 'Opent sneller', text: 'Ongeveer twee keer zo snel op oudere telefoons.', version: '1.4.0', ago: 21 * DAY, posts: [] },
+  ],
+  de: [
+    { title: 'Kontowechsel klappt wieder', text: 'Der Senden-Knopf blieb grau, nachdem du das Konto gewechselt hast. Jetzt folgt er dem Konto, das du gewählt hast.', version: '1.4.2', ago: 2 * DAY, posts: [1] },
+    { title: 'Startet schneller', text: 'Auf älteren Handys etwa doppelt so schnell.', version: '1.4.0', ago: 21 * DAY, posts: [] },
+  ],
+};
+
 /** The same board in each language the widget speaks. */
 const SAMPLES: Record<'en' | 'nl' | 'de', Sample[]> = {
   en: [
     { kind: 'idea', text: 'A dark mode that follows my phone', votes: 24, ago: 6 * DAY, status: 'planned', who: 'Mira', reply: 'On its way in the next release.' },
-    { kind: 'bug', text: 'The send button does nothing after I switch accounts', votes: 17, ago: 2 * DAY, status: 'done', reply: 'Fixed in 1.4.2, thanks for the steps!' },
+    { kind: 'bug', text: 'The send button does nothing after I switch accounts', votes: 17, ago: 2 * DAY, status: 'done', fix: '1.4.2', reply: 'Thanks for the steps, that made it easy to find.' },
     { kind: 'review', text: 'Fast, simple and it never asks me twice. Love it.', votes: 9, ago: 3 * DAY, rating: 5, who: 'Joost' },
     { kind: 'idea', text: 'Let me pin my favourite contacts to the top', votes: 12, ago: 4 * HOUR },
     { kind: 'review', text: 'Does what it says. The history screen could be clearer.', votes: 4, ago: 9 * DAY, rating: 4 },
@@ -145,7 +193,7 @@ const SAMPLES: Record<'en' | 'nl' | 'de', Sample[]> = {
   ],
   nl: [
     { kind: 'idea', text: 'Een donkere modus die mijn telefoon volgt', votes: 24, ago: 6 * DAY, status: 'planned', who: 'Mira', reply: 'Komt in de volgende versie.' },
-    { kind: 'bug', text: 'De verstuurknop doet niets nadat ik van account wissel', votes: 17, ago: 2 * DAY, status: 'done', reply: 'Opgelost in 1.4.2, bedankt voor de stappen!' },
+    { kind: 'bug', text: 'De verstuurknop doet niets nadat ik van account wissel', votes: 17, ago: 2 * DAY, status: 'done', fix: '1.4.2', reply: 'Bedankt voor de stappen, zo was hij snel gevonden.' },
     { kind: 'review', text: 'Snel, simpel en hij vraagt nooit twee keer. Top.', votes: 9, ago: 3 * DAY, rating: 5, who: 'Joost' },
     { kind: 'idea', text: 'Laat me mijn favoriete contacten bovenaan zetten', votes: 12, ago: 4 * HOUR },
     { kind: 'review', text: 'Doet wat hij belooft. Het geschiedenisscherm kan duidelijker.', votes: 4, ago: 9 * DAY, rating: 4 },
@@ -154,7 +202,7 @@ const SAMPLES: Record<'en' | 'nl' | 'de', Sample[]> = {
   ],
   de: [
     { kind: 'idea', text: 'Ein dunkler Modus, der meinem Handy folgt', votes: 24, ago: 6 * DAY, status: 'planned', who: 'Mira', reply: 'Kommt mit der nächsten Version.' },
-    { kind: 'bug', text: 'Der Senden-Knopf tut nichts, nachdem ich das Konto wechsle', votes: 17, ago: 2 * DAY, status: 'done', reply: 'Behoben in 1.4.2, danke für die Schritte!' },
+    { kind: 'bug', text: 'Der Senden-Knopf tut nichts, nachdem ich das Konto wechsle', votes: 17, ago: 2 * DAY, status: 'done', fix: '1.4.2', reply: 'Danke für die Schritte, so war er schnell gefunden.' },
     { kind: 'review', text: 'Schnell, einfach und fragt nie zweimal. Super.', votes: 9, ago: 3 * DAY, rating: 5, who: 'Joost' },
     { kind: 'idea', text: 'Lass mich meine Lieblingskontakte oben anheften', votes: 12, ago: 4 * HOUR },
     { kind: 'review', text: 'Tut, was es verspricht. Der Verlauf könnte klarer sein.', votes: 4, ago: 9 * DAY, rating: 4 },

@@ -155,10 +155,48 @@ describe.each(STORES)('%s', (_name, make) => {
     await s.updatePost('p1', 'b', { answeredAt: 30 });
     await s.updatePost('p1', 'd', { answeredAt: 50 });
     expect(await s.answersFor('p1', 'NQA', 10)).toEqual([
-      { id: 'b', text: 'dark mode', at: 30 },
-      { id: 'a', text: 'dark mode', at: 10 },
+      { id: 'b', text: 'dark mode', at: 30, status: 'open' },
+      { id: 'a', text: 'dark mode', at: 10, status: 'open' },
     ]);
     expect(await s.answersFor('p1', 'NQA', 1)).toHaveLength(1);
+  });
+
+  it('keeps a fix on a post, hands it back with the answer, and null takes it off', async () => {
+    const s = make();
+    await s.createPost(row({ id: 'a', kind: 'bug' }));
+    const fix = { version: '1.4.2', link: 'https://github.com/me/app/pull/42' };
+    await s.updatePost('p1', 'a', { status: 'done', fix, answeredAt: 20 });
+    expect((await s.getPost('p1', 'a'))?.fix).toEqual(fix);
+    expect((await s.posts('p1', null))[0].fix).toEqual(fix);
+    expect(await s.answersFor('p1', 'NQA', 10)).toEqual([{ id: 'a', text: 'dark mode', at: 20, status: 'done', fix }]);
+
+    // Half a fix is a fix: a version with no link, say.
+    await s.updatePost('p1', 'a', { fix: { version: '1.4.3' } });
+    expect((await s.getPost('p1', 'a'))?.fix).toEqual({ version: '1.4.3' });
+    await s.updatePost('p1', 'a', { fix: null });
+    expect((await s.getPost('p1', 'a'))?.fix).toBeUndefined();
+  });
+
+  it('keeps updates per board, newest first, and deletes one', async () => {
+    const s = make();
+    const u = (id: string, at: number) => ({
+      id,
+      title: `Update ${id}`,
+      link: 'https://github.com/me/app/releases',
+      at,
+      posts: ['post1'],
+    });
+    expect(await s.createUpdate('p1', u('u1', 10))).toBe(true);
+    expect(await s.createUpdate('p1', { ...u('u2', 30), text: 'Faster', version: '1.5.0' })).toBe(true);
+    expect(await s.createUpdate('p2', u('u1', 20))).toBe(true);
+    // The same id on the same board: the first stays as it was.
+    expect(await s.createUpdate('p1', { ...u('u1', 99), title: 'Again' })).toBe(false);
+
+    expect(await s.updates('p1')).toEqual([{ ...u('u2', 30), text: 'Faster', version: '1.5.0' }, u('u1', 10)]);
+    expect(await s.deleteUpdate('p1', 'u1')).toBe(true);
+    expect(await s.deleteUpdate('p1', 'u1')).toBe(false);
+    expect((await s.updates('p1')).map((x) => x.id)).toEqual(['u2']);
+    expect((await s.updates('p2')).map((x) => x.id)).toEqual(['u1']);
   });
 
   it('keeps names per wallet per project, and clears them', async () => {
@@ -308,11 +346,14 @@ describe('SqliteStore, opening a file an older version wrote', () => {
     try {
       expect((await s.getProject('p1'))?.rules.kinds).toEqual(['bug', 'idea', 'review']);
       expect((await s.getProject('p2'))?.rules.kinds).toEqual(['bug']);
-      expect(await s.getMeta('schema')).toBe('4');
+      expect(await s.getMeta('schema')).toBe('5');
       expect((await s.posts('p1', null))[0]).toMatchObject({ id: 'old' });
       // Shown before anybody could ask for approval, so it stays shown.
       expect((await s.posts('p1', null))[0].pending).toBeUndefined();
       expect((await s.posts('p1', null))[0].shot).toBeUndefined();
+      // Nothing written before 5 had a fix, and a board starts with no updates.
+      expect((await s.posts('p1', null))[0].fix).toBeUndefined();
+      expect(await s.updates('p1')).toEqual([]);
       expect(await s.createPost(row({ id: 'r1', kind: 'review', rating: 3 }))).toBe(true);
     } finally {
       s.close();
@@ -349,7 +390,7 @@ describe('SqliteStore, opening a file an older version wrote', () => {
 
     const s = new SqliteStore(file);
     try {
-      expect(await s.getMeta('schema')).toBe('4');
+      expect(await s.getMeta('schema')).toBe('5');
       expect((await s.posts('p1', null))[0].shot).toBe('owners');
       await s.setShotOff('p1', 'b1', false);
       expect((await s.getShot('p1', 'b1'))?.for).toBe('owners');
