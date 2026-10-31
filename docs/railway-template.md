@@ -9,6 +9,20 @@ The template is https://railway.com/deploy/PdvdtB, in the owner's workspace
 (listed as Personal, not published to the marketplace). The README links it
 with the owner's referral code, `?referralCode=xm-X6O`, on purpose.
 
+## The template itself
+
+Template settings (the gear in the editor's left bar):
+
+| Setting | Value |
+|---|---|
+| Name | `PleaseNoBugs` |
+| Icon | https://cdn.jsdelivr.net/gh/lennylenders/PleaseNoBugs@v0.2.0/site/src/assets/logo.svg (pinned to a tag, so it never changes under the template) |
+| Description | `Self-hosted feedback board for Nimiq mini apps: bugs and ideas from users.` (Railway allows 75 characters.) |
+
+Nothing on the template page or in a new project mentions Shitti: the
+project gets a random name, the service is `PleaseNoBugs`, and every log line
+starts with `[pleasenobugs]`.
+
 ## The service
 
 | Setting | Value |
@@ -58,7 +72,8 @@ needs from Railway therefore lives in the template's settings above.
 Any other Railway service that builds this repository needs the same two
 things set by hand: Healthcheck Path `/health` and
 `RAILWAY_HEALTHCHECK_TIMEOUT_SEC=60`. Those are `pleasenobugs` in
-`shitty-tasks` and the home page's board, in its own project.
+`shitty-tasks` and the home page's board, `pleasenobugs-site` in the project
+of the same name.
 
 ## Found while testing it (2026-10-24)
 
