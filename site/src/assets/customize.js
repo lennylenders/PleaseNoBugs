@@ -23,7 +23,6 @@ const STEPS = [
   { id: 'button', name: 'Feedback button', screen: 'button', mark: (r) => [r.querySelector('.fab')], floatingOnly: true },
   { id: 'tiles', name: 'Tiles', screen: 'tiles', mark: (r) => [...r.querySelectorAll('.tile')] },
   { id: 'board', name: 'Board', screen: 'board', mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')] },
-  { id: 'write', name: 'Write and send', screen: 'write', mark: (r) => [r.querySelector('.field'), r.querySelector('.send')] },
   { id: 'sent', name: 'Feedback sent!', screen: 'sent', mark: (r) => [r.querySelector('.sent')] },
   { id: 'code', name: 'Code', screen: 'tiles' },
 ];
@@ -46,7 +45,7 @@ const FAMILIES = {
   '--pnb-line': ['Lines', 'borders, empty stars, the screenshot box'],
   '--pnb-text': ['Text', 'titles and what people wrote'],
   '--pnb-text-quiet': ['Quiet text', 'dates, names, notes, counts, links'],
-  '--pnb-danger': ['Danger', 'too many words, things that went wrong'],
+  '--pnb-filter': ['Filter', 'the chosen filter at the top, and the chosen status when you answer'],
   '--pnb-bug': ['Bug', 'its tile and its badge'],
   '--pnb-idea': ['Idea', 'its tile and its badge'],
   '--pnb-review': ['Review', 'its tile and its badge'],
@@ -70,12 +69,11 @@ const COLOURS = {
     more: ['--pnb-tile-ink', '--pnb-text', '--pnb-text-quiet'],
   },
   board: {
-    main: ['--pnb-surface', '--pnb-text', '--pnb-bg'],
+    main: ['--pnb-surface', '--pnb-text', '--pnb-bg', '--pnb-line', '--pnb-filter'],
     more: [
       '--pnb-text-quiet',
       '--pnb-surface-2',
       '--pnb-sunken',
-      '--pnb-line',
       'accent',
       '--pnb-star',
       '--pnb-bug',
@@ -85,10 +83,6 @@ const COLOURS = {
       '--pnb-done',
       '--pnb-declined',
     ],
-  },
-  write: {
-    main: ['--pnb-surface', '--pnb-line', 'accent'],
-    more: ['--pnb-bg', '--pnb-text', '--pnb-text-quiet', '--pnb-surface-2', '--pnb-danger', '--pnb-bug', '--pnb-idea', '--pnb-review'],
   },
   sent: { main: ['--pnb-sent', '--pnb-done'], more: ['--pnb-text', '--pnb-text-quiet'] },
 };
@@ -129,27 +123,12 @@ const PARTS = {
     ['.stars', '--pnb-star'],
     ['.order__tab[aria-selected="true"]', '--pnb-surface'],
     ['.order__pill', '--pnb-sunken'],
-    ['.chip-pick[aria-pressed="true"], .chip-pick[aria-checked="true"]', '--pnb-text'],
+    ['.chip-pick[aria-pressed="true"], .chip-pick[aria-checked="true"]', '--pnb-filter'],
     ['.card__reply-who', { text: 'board.reply' }],
     ['.card__when, .card__who, .rating__n', '--pnb-text-quiet'],
     ['.card__text, .card__reply-text, .rating__avg', '--pnb-text'],
     ['.card__reply', '--pnb-bg'],
     ['.card, .rating, .chip-pick', '--pnb-surface'],
-    ['*', '--pnb-bg'],
-  ],
-  write: [
-    OUTSIDE,
-    ['.badge__dot--bug', '--pnb-bug'],
-    ['.badge__dot--idea', '--pnb-idea'],
-    ['.badge__dot--review', '--pnb-review'],
-    ['.icon-btn, .bar__title, .compose__kind, .switch-row__label, .check', '--pnb-text'],
-    ['.send .btn', 'accent'],
-    ['.switch[aria-checked="true"]', 'accent'],
-    ['.switch', '--pnb-surface-2'],
-    ['.field', '--pnb-surface'],
-    ['.shot__add', '--pnb-line'],
-    ['.left--bad', '--pnb-danger'],
-    ['.public, .note, .count, .left', '--pnb-text-quiet'],
     ['*', '--pnb-bg'],
   ],
   sent: [
@@ -161,8 +140,37 @@ const PARTS = {
   ],
 };
 
-/** Every custom property the steps offer, for putting them on the widget. */
-const PROPS = Object.keys(FAMILIES).filter((name) => name !== 'accent');
+/**
+ * What is written on a colour, worked out from it as the widget does for
+ * `accent`: the filter's words turn black or white with the filter.
+ */
+const INK = { '--pnb-filter': '--pnb-on-filter' };
+
+/** Every custom property the steps offer, and the ones worked out from them, for putting them on the widget. */
+const PROPS = [...Object.keys(FAMILIES).filter((name) => name !== 'accent'), ...Object.values(INK)];
+
+/** Chosen colours plus what is written on them. */
+function withInk(colours) {
+  const out = { ...colours };
+  for (const [name, ink] of Object.entries(INK)) if (colours[name]) out[ink] = readableOn(colours[name]);
+  return out;
+}
+
+/**
+ * Black or white, whichever reads better on `color`. A copy of `readableOn`
+ * in `packages/widget/src/element.tsx`: if it changes there, change it here.
+ */
+function readableOn(color) {
+  const hex = color.trim().replace('#', '');
+  const full = hex.length === 3 ? [...hex].map((c) => c + c).join('') : hex.slice(0, 6);
+  if (!/^[0-9a-f]{6}$/i.test(full)) return '#ffffff';
+  const channel = (i) => {
+    const v = parseInt(full.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  const lum = 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
+  return 1.05 / (lum + 0.05) >= (lum + 0.05) / 0.05 ? '#ffffff' : '#111118';
+}
 
 /**
  * The texts worth changing, per step, with the widget's own English words as
@@ -178,7 +186,6 @@ const STRINGS = {
     ['Question above the tiles', [['board.chooseTitle', 'What do you want to share?']]],
     ['Words on the tiles', [['board.tileBug', 'Report a bug'], ['board.tileIdea', 'Share an idea'], ['board.tileReview', 'Write a review']]],
   ],
-  write: [['Send button', [['board.send', 'Put it on the board']]]],
   sent: [['Title', [['board.sent', 'Feedback sent!']]]],
 };
 
@@ -231,8 +238,9 @@ function apply(el) {
   set('kinds', state.kinds.length === 3 ? '' : state.kinds.join(','));
   set('screenshots', state.screenshots === 'board' ? '' : state.screenshots);
   set('screen', previewing ? '' : step().screen);
+  const colours = withInk(state.colours);
   for (const name of PROPS) {
-    if (state.colours[name]) el.style.setProperty(name, state.colours[name]);
+    if (colours[name]) el.style.setProperty(name, colours[name]);
     else el.style.removeProperty(name);
   }
   el.strings = Object.keys(state.strings).length ? { ...state.strings } : undefined;
@@ -281,11 +289,7 @@ function fitPanel() {
   style.textContent =
     `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; } }` +
     // While choosing, the widget holds still: a part is picked, not scrolled past.
-    // The field is a little lower then, so the whole writing screen, field to
-    // send button, fits in the box at once.
-    // The send button waits for words, so it is dimmed; here it shows its
-    // real colour, since that is what is being chosen.
-    (previewing ? '' : ' .scroll { overflow: hidden !important; } .compose .field { height: 96px; min-height: 0; } .btn:disabled { opacity: 1; }');
+    (previewing ? '' : ' .scroll { overflow: hidden !important; }');
 }
 
 function update() {
@@ -670,7 +674,7 @@ function html() {
 
 function css() {
   // A kind left off takes its colours out of the code, kept here for if it comes back.
-  const rows = Object.entries(state.colours)
+  const rows = Object.entries(withInk(state.colours))
     .filter(([k]) => !offKind(k)).map(([k, v]) => `  ${k}: ${v};`);
   if (state.mode === 'inline') rows.unshift('  height: 600px; /* inline: give it a height, or it grows with its posts */');
   if (!rows.length) return "/* No colours changed: PleaseNoBugs' own are used. */";

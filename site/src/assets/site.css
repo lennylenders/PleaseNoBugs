@@ -602,7 +602,7 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
 
 /* The main colours of a step: round, with their names under them. */
 /* Equal columns, so the dots sit evenly whatever their names. */
-.dots { display: grid; grid-template-columns: repeat(auto-fill, 76px); gap: 14px 4px; }
+.dots { display: grid; grid-template-columns: repeat(auto-fill, 72px); gap: 14px 4px; }
 .dot { position: relative; display: grid; justify-items: center; align-content: start; gap: 6px; font-size: 13px; color: var(--ink-2); text-align: center; }
 .dot .swatch__dot { width: 32px; height: 32px; box-shadow: inset 0 0 0 2px #fff; }
 .dot .swatch__reset {

@@ -679,6 +679,34 @@ page (`packages/widget/demo`) uses it as well, from the same folder.
   desktop app, with the font installed, the owner can change the file's text
   styles, which carry most of the text.
 
+## 2026-11-01: The configurator loses "Write and send", Board gains Lines and Filter
+
+The owner found two steps of `customize.html` illogical. Designed in Figma
+first (Page 3, "Site · Customize · Board · Lines and Filter (2026-11-01)"),
+built after the owner approved it. For 0.3.0.
+
+- **"Write and send" is gone.** Its colours were all offered in other steps
+  already. What only it had is dropped from the configurator, the owner's
+  choice: the send button's words (the widget's own, in every language) and
+  Danger. Both can still be set in code. The screenshots setting, which was
+  there too, moved to Settings rather than going with it. The old Figma frame
+  is kept, dimmed and named as removed.
+- **Board shows five colours up front**: Cards, Text, Background, Lines and
+  Filter. Lines (`--pnb-line`) was behind "More colours", though the card
+  borders are in plain sight on that screen.
+- **Filter is a new token**, `--pnb-filter`, with `--pnb-on-filter` for its
+  words: the chosen filter over the list, and the chosen status in an owner's
+  answer sheet, which is the same kind of pill. Before, both were the text
+  colour turned round; those stay the defaults, so no theme looks different.
+  Only the fill is offered, the owner's choice: the configurator picks black
+  or white words for it as the widget does for `accent`. A developer setting
+  the token by hand sets both, since CSS cannot pick a readable colour by
+  itself in every browser yet.
+- The Figma step frames are behind the site (they still say eight steps and
+  have Look). The proposal is a frame of its own, set in Mulish, because the
+  Figma connection cannot load Museo Sans Rounded and so cannot copy or edit
+  a frame that uses it.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

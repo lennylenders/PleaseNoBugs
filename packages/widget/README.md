@@ -131,6 +131,8 @@ please-no-bugs {
   --pnb-bug: #e5484d;  --pnb-idea: #8b5cf6;  --pnb-review: #e9a00b;
   --pnb-planned: #8a8fb8;  --pnb-done: #21bca5;  --pnb-declined: #8a8fb8;
   --pnb-star: #f5a524;
+  --pnb-filter: var(--pnb-text);         /* the chosen filter, and the chosen status in your answer sheet */
+  --pnb-on-filter: var(--pnb-bg);        /* its words: set both, as they are not picked for you */
   --pnb-tile-bug: var(--pnb-bug);        /* the three tiles; may be gradients */
   --pnb-tile-idea: var(--pnb-idea);
   --pnb-tile-review: var(--pnb-review);

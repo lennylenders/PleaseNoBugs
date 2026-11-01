@@ -39,6 +39,10 @@
   --pnb-declined: #8a8fb8;
   /* A filled star. */
   --pnb-star: #f5a524;
+  /* The chosen filter over the list, and the chosen status where an owner
+     answers: the text colour turned round, unless a theme says otherwise. */
+  --pnb-filter: var(--pnb-text);
+  --pnb-on-filter: var(--pnb-bg);
   /* The tiles you pick a kind on, and what is written on them: each painted
      in its kind's colour, as in the design. */
   --pnb-tile-bug: var(--pnb-bug);
@@ -273,8 +277,8 @@ button {
 
 .chip-pick[aria-pressed='true'],
 .chip-pick[aria-checked='true'] {
-  background: var(--pnb-text);
-  color: var(--pnb-bg);
+  background: var(--pnb-filter);
+  color: var(--pnb-on-filter);
 }
 
 .scroll {
