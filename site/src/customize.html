@@ -26,17 +26,15 @@
     </header>
 
     <main class="wrap steps">
-      <h1>Make it yours</h1>
-      <p class="lead">Your choices end up in the code at the end, and nowhere else.</p>
+      <h1 id="step-name">Settings</h1>
+      <p class="lead" id="hint">Pick a way: the box shows how it opens.</p>
 
       <div class="studio">
       <div class="progress">
         <p class="progress__step" aria-live="polite">
           <span class="progress__count" id="count">Step 1 of 7</span>
-          <b id="step-name">Settings</b>
         </p>
         <div class="progress__bars" id="bars" aria-hidden="true"></div>
-        <p class="progress__hint" id="hint">Tap a part of the widget to change it.</p>
       </div>
 
       <div class="editor">
@@ -53,7 +51,6 @@
 
         <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
           <div class="edit__step" data-step="settings">
-            <h2>Settings</h2>
             <p class="edit__hint">How the widget shows up in your app.</p>
             <fieldset class="field">
               <legend>Shown as</legend>
@@ -66,13 +63,11 @@
           </div>
 
           <div class="edit__step" data-step="button" hidden>
-            <h2>Feedback button</h2>
             <p class="edit__hint">The button in the corner that opens the feedback feature.</p>
             <div data-colours="button"></div>
           </div>
 
           <div class="edit__step" data-step="tiles" hidden>
-            <h2>Tiles</h2>
             <p class="edit__hint">The buttons people pick from when they tap Feedback. These are PleaseNoBugs' own colours: tap one to change it.</p>
             <div data-colours="tiles"></div>
             <fieldset class="field">
@@ -87,14 +82,12 @@
           </div>
 
           <div class="edit__step" data-step="board" hidden>
-            <h2>Board</h2>
             <p class="edit__hint">The list of posts people read and vote on, with your answers under them.</p>
             <div data-strings="board"></div>
             <div data-colours="board"></div>
           </div>
 
           <div class="edit__step" data-step="shots" hidden>
-            <h2>Screenshots</h2>
             <p class="edit__hint">A bug or an idea can carry a screenshot. Who may see it?</p>
             <fieldset class="field">
               <legend>Screenshots on bugs and ideas</legend>
@@ -110,14 +103,12 @@
           </div>
 
           <div class="edit__step" data-step="sent" hidden>
-            <h2>Feedback sent!</h2>
             <p class="edit__hint">What people see right after they send.</p>
             <div data-strings="sent"></div>
             <div data-colours="sent"></div>
           </div>
 
           <div class="edit__step" data-step="code" hidden>
-            <h2>Your code</h2>
             <section class="feed" aria-labelledby="feed-title">
               <h3 id="feed-title">Building with AI? Feed it this.</h3>
               <p class="feed__about">

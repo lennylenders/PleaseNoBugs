@@ -13,13 +13,14 @@
  *  somebody's app without them choosing to. */
 const VERSION = '%VERSION%';
 
-/** What the line over the box says where a part of the widget can be tapped. */
+/** What the line under the heading says where a part of the widget can be tapped. */
 const TAP = 'Tap a part of the widget to change it.';
 
 /**
  * The steps, in order. `screen` is the widget's `screen` attribute that puts
  * the part in view; `mark` finds that part in the widget's shadow root, to
- * draw a line around it; `hint` is the line over the box. The last step is
+ * draw a line around it; `name` is the page's heading and `hint` the line
+ * under it, saying what to do. The last step is
  * `live`: the widget is itself there, every tap its own, to check every
  * colour and word on every screen before taking the code.
  */
