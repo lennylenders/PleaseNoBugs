@@ -525,6 +525,9 @@ button {
   gap: 2px;
   flex: 1;
   min-width: 0;
+  /* No width of its own, or the post's one long line would widen the whole
+     widget wherever the app lets it size to its content. */
+  width: 0;
 }
 
 .news__title {
