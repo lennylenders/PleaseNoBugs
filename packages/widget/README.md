@@ -16,8 +16,11 @@ wallet by itself; everywhere else it reads, and your app can hand it a signer.
 | `mode` | What it does |
 |---|---|
 | `inline` (default) | Fills the element. Give it a height, or it grows with its posts. |
-| `floating` | A round button in the corner. It opens on the tiles (bug, idea, review), with the board one tap under them. |
-| `overlay` | The board, right now. |
+| `floating` | A round button in the corner. A tap grows it into the panel; closing shrinks it back into the button. Without the motion when the phone asks for less. |
+| `overlay` | Over the page, right now. |
+
+Each opens on the tiles (bug, idea, review), with the board one tap under
+them. `start="board"` opens on the board instead.
 
 `floating` and `overlay` cover the whole screen on a phone. From 640 pixels
 wide they are a panel in the bottom-right corner instead, 375 wide and up to
@@ -36,6 +39,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 |---|---|
 | `project`, `server` | Required. |
 | `mode` | `inline`, `floating` or `overlay`. |
+| `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board. |
 | `lang` | `en`, `nl`, `de`, or any code you supply `strings` for. Defaults to Nimiq Pay's language, then the page's. |
 | `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (gradient tiles and buttons, light only). Every theme has the same shapes: painted tiles with a white glyph, the same badges; only the colours differ. `shitti` is the old name of `pleasenobugs` and still works. |
 | `accent` | One colour, e.g. `#e84a5f`. The text on it picks black or white by itself. |

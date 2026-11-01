@@ -1,5 +1,5 @@
 import { render } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { POST_KINDS, type AppLogin, type PostContext, type PostKind } from '@pleasenobugs/core';
 import { createClient, type Client } from './client.js';
 import { pickLang, translator, type Strings } from './i18n.js';
@@ -22,8 +22,11 @@ export const TAG = 'please-no-bugs';
  *   whole screen. The "paste one line and done" route.
  * - `overlay`: the board over the whole screen, now. What {@link open} uses.
  *
+ * Each opens on the tiles that ask what to write, with the board one tap
+ * under them; `start="board"` opens on the board instead.
+ *
  * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
- * `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq`), `accent`
+ * `start` (`tiles` or `board`), `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq`), `accent`
  * (a colour), `app-name`, `name` (a display name to suggest), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
  * the board, for the app's owners only; `off` to leave them out), `names`
@@ -49,6 +52,7 @@ export class PleaseNoBugsElement extends HTMLElement {
     'project',
     'server',
     'mode',
+    'start',
     'lang',
     'theme',
     'accent',
@@ -243,13 +247,16 @@ export class PleaseNoBugsElement extends HTMLElement {
     const screen =
       this.hasAttribute('demo') && !app.readonly ? readScreen(this.getAttribute('screen')) : undefined;
     const held = screen === 'button' ? undefined : screen;
+    // The tiles first, whichever way it is shown: somebody who opens a
+    // feedback feature mostly came to say something. The board is one tap on.
+    const start = this.getAttribute('start') === 'board' ? 'board' : 'choose';
 
     if (mode === 'floating') {
-      render(<Floating app={app} label={app.t('board.open')} screen={screen} />, this.#mount);
+      render(<Floating app={app} label={app.t('board.open')} screen={screen} start={start} />, this.#mount);
     } else if (mode === 'overlay') {
-      render(<Overlay app={app} screen={held} onGone={() => this.close()} />, this.#mount);
+      render(<Overlay app={app} start={start} screen={held} onGone={() => this.close()} />, this.#mount);
     } else {
-      render(<App {...app} screen={held} />, this.#mount);
+      render(<App {...app} start={start} screen={held} />, this.#mount);
     }
   }
 }
@@ -293,18 +300,34 @@ function Overlay({
   onGone,
   start,
   screen,
+  button,
+  grow,
 }: {
   app: AppBase;
   onGone: () => void;
   start?: 'board' | 'choose';
   screen?: View;
+  /** The round button it belongs to: it shrinks back into that one on close. */
+  button?: () => HTMLElement | null;
+  /** Opened by a tap on that button: it grows out of it. */
+  grow?: boolean;
 }) {
   const [leaving, setLeaving] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const leave = () => {
+    if (leaving) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return onGone();
     setLeaving(true);
+    const from = button?.();
+    if (from && panel.current) morph(panel.current, from, 'close').then(onGone);
   };
+
+  useLayoutEffect(() => {
+    const from = button?.();
+    if (grow && from && panel.current && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      void morph(panel.current, from, 'open');
+    }
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -320,7 +343,7 @@ function Overlay({
       <div class={`backdrop${leaving ? ' backdrop--leaving' : ''}`} onClick={leave} />
       <div
         ref={panel}
-        class={`overlay${leaving ? ' overlay--leaving' : ''}`}
+        class={`overlay${button ? ' overlay--morph' : ''}${leaving ? ' overlay--leaving' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={app.t('board.title')}
@@ -334,24 +357,160 @@ function Overlay({
   );
 }
 
-/** A round button in the corner, and the panel it opens on the tiles. */
-function Floating({ app, label, screen }: { app: AppBase; label: string; screen?: Screen }) {
+/**
+ * A round button in the corner, and the panel it opens on the tiles.
+ *
+ * **The button becomes the panel**: a tap grows it out of its corner into
+ * the panel, and closing shrinks the panel back into it (see {@link morph}).
+ * So the button stays in the page while the panel is open, out of sight, to
+ * measure where to grow from and shrink to.
+ */
+function Floating({
+  app,
+  label,
+  screen,
+  start,
+}: {
+  app: AppBase;
+  label: string;
+  screen?: Screen;
+  start: 'board' | 'choose';
+}) {
   const [open, setOpen] = useState(!!screen && screen !== 'button');
+  // Only a tap grows it; a screen the demo holds open is simply there.
+  const [grow, setGrow] = useState(false);
+  const fab = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (screen) setOpen(screen !== 'button');
   }, [screen]);
-  return open ? (
-    <Overlay
-      app={app}
-      start="choose"
-      screen={screen === 'button' ? undefined : screen}
-      onGone={() => setOpen(false)}
-    />
-  ) : (
-    <button type="button" class="fab" aria-label={label} title={label} onClick={() => setOpen(true)}>
-      <Icon.Feedback />
-    </button>
+  return (
+    <>
+      <button
+        ref={fab}
+        type="button"
+        class={`fab${open ? ' fab--away' : ''}`}
+        aria-label={label}
+        title={label}
+        aria-hidden={open}
+        tabIndex={open ? -1 : 0}
+        onClick={() => {
+          setGrow(true);
+          setOpen(true);
+        }}
+      >
+        <Icon.Feedback />
+      </button>
+      {open && (
+        <Overlay
+          app={app}
+          start={start}
+          screen={screen === 'button' ? undefined : screen}
+          button={() => fab.current}
+          grow={grow}
+          onGone={() => {
+            setOpen(false);
+            setGrow(false);
+          }}
+        />
+      )}
+    </>
   );
+}
+
+/** How long the button takes to become the panel, and the panel the button. */
+const MORPH_OPEN_MS = 340;
+const MORPH_CLOSE_MS = 260;
+
+/**
+ * Grow the panel out of the round button, or shrink it back in.
+ *
+ * Three things move together. The panel is cut to the button's disc and
+ * the cut opens to the whole panel (`clip-path`). A skin in the button's own
+ * colour, glyph and all, lies over it and fades, so what grows starts as the
+ * button and turns into the panel. And what is in the panel comes in from a
+ * slight blur with a small spring at the end. Closing runs it backwards,
+ * quicker. Resolves once it is done; the closing state is held until then,
+ * so nothing flashes before the panel is taken away.
+ *
+ * With the Web Animations API rather than CSS, because where the button is,
+ * relative to the panel, is only known once both are on the screen.
+ */
+function morph(panel: HTMLElement, button: HTMLElement, way: 'open' | 'close'): Promise<void> {
+  if (typeof panel.animate !== 'function') return Promise.resolve();
+  const box = panel.getBoundingClientRect();
+  const fab = button.getBoundingClientRect();
+  const round = fab.width / 2;
+  const small = `inset(${fab.top - box.top}px ${box.right - fab.right}px ${box.bottom - fab.bottom}px ${fab.left - box.left}px round ${round}px)`;
+  const big = `inset(0px 0px 0px 0px round ${getComputedStyle(panel).borderTopLeftRadius})`;
+  const open = way === 'open';
+  const timing: KeyframeAnimationOptions = {
+    duration: open ? MORPH_OPEN_MS : MORPH_CLOSE_MS,
+    easing: open ? 'cubic-bezier(0.3, 0.9, 0.3, 1)' : 'cubic-bezier(0.5, 0, 0.75, 0)',
+    fill: open ? 'none' : 'forwards',
+  };
+
+  // The skin: the button, laid over what is in the panel, so the panel's cut
+  // cuts it too. Inside the panel rather than beside it, so it is wherever
+  // the panel is, whatever the page does to fixed positions.
+  const skin = document.createElement('div');
+  skin.className = 'morph';
+  skin.setAttribute('aria-hidden', 'true');
+  const glyph = button.cloneNode(true) as HTMLElement;
+  glyph.className = 'morph__glyph';
+  glyph.removeAttribute('title');
+  Object.assign(glyph.style, { left: `${fab.left - box.left}px`, top: `${fab.top - box.top}px`, width: `${fab.width}px`, height: `${fab.height}px` });
+  skin.append(glyph);
+  const content = panel.firstElementChild as HTMLElement | null;
+  panel.append(skin);
+  if (content) content.style.transformOrigin = `${fab.left + round - box.left}px ${fab.top + round - box.top}px`;
+
+  const cut = open ? [{ clipPath: small }, { clipPath: big }] : [{ clipPath: big }, { clipPath: small }];
+  const steady = { ...timing, easing: 'linear' };
+  const runs = [
+    panel.animate(cut, timing),
+    skin.animate(
+      open
+        ? [{ opacity: 1 }, { opacity: 1, offset: 0.15 }, { opacity: 0, offset: 0.7 }, { opacity: 0 }]
+        : [{ opacity: 0 }, { opacity: 0, offset: 0.3 }, { opacity: 1, offset: 0.85 }, { opacity: 1 }],
+      steady,
+    ),
+    glyph.animate(
+      open ? [{ opacity: 1 }, { opacity: 0, offset: 0.35 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 0, offset: 0.65 }, { opacity: 1 }],
+      steady,
+    ),
+  ];
+  if (content) {
+    runs.push(
+      content.animate(
+        open
+          ? [
+              { opacity: 0, filter: 'blur(6px)', transform: 'scale(0.92)', offset: 0 },
+              { opacity: 0, filter: 'blur(6px)', transform: 'scale(0.92)', offset: 0.2 },
+              { opacity: 1, filter: 'blur(0px)', transform: 'scale(1.015)', offset: 0.78 },
+              { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)', offset: 1 },
+            ]
+          : [
+              { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)', offset: 0 },
+              { opacity: 0, filter: 'blur(4px)', transform: 'scale(0.94)', offset: 0.6 },
+              { opacity: 0, filter: 'blur(4px)', transform: 'scale(0.94)', offset: 1 },
+            ],
+        { ...timing, easing: open ? 'ease-out' : 'ease-in' },
+      ),
+    );
+  }
+  return Promise.all(runs.map((r) => r.finished))
+    .catch(() => undefined)
+    .then(() => {
+      if (open) {
+        if (content) content.style.transformOrigin = '';
+      } else {
+        // The button is back where the skin ends, before the panel goes: no
+        // frame without either.
+        button.classList.remove('fab--away');
+        panel.style.visibility = 'hidden';
+      }
+      skin.remove();
+    });
 }
 
 /**

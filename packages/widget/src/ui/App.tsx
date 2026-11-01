@@ -58,7 +58,8 @@ export interface AppProps {
   onClose?: () => void;
   /**
    * What opens first: the board, or the tiles that ask what to write. The
-   * floating button starts on the tiles; the board is one tap under them.
+   * element starts every way on the tiles, the board one tap under them,
+   * unless it says `start="board"`.
    */
   start?: 'board' | 'choose';
   /**

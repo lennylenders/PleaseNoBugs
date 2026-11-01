@@ -707,6 +707,80 @@ built after the owner approved it. For 0.3.0.
   Figma connection cannot load Museo Sans Rounded and so cannot copy or edit
   a frame that uses it.
 
+## 2026-11-01: The round button grows into the panel, and step 1 shows each way in a phone
+
+The owner wanted step 1 of the configurator to show what Button, Inline and
+Overlay mean, and sent a video of a toolbar that grows into a menu as the
+way the round button should open. Designed in Figma first (Page 3, "Site ·
+Customize · Step 1 · Mode animations (2026-11-01)", as still frames with
+timings), built after the owner approved it. For 0.3.0.
+
+- **The real widget morphs**, the owner's choice over showing it on the site
+  alone: a tap grows the round button into the panel (340 ms) and closing
+  shrinks the panel back into it (260 ms), on a phone (the whole screen) and
+  on a wide screen (the corner panel). The panel is cut to the button's disc
+  and the cut opens (`clip-path`), a skin in the button's colour with its
+  glyph lies over it and fades, and the tiles come in out of a slight blur
+  with a small spring. With the Web Animations API, since where the button
+  is relative to the panel is only known on the screen; the skin lives
+  inside the panel, so a page that moves fixed positions (a transformed
+  parent, as on the configurator) cannot misplace it. The button stays in
+  the page, hidden, while the panel is open, to measure where to shrink to.
+  Only a tap grows it: a screen the demo holds open is just there. With
+  reduced motion it opens and closes without moving, as before. Overlay and
+  inline are unchanged.
+- **Step 1 shows a phone** in the big box instead of the widget, playing the
+  chosen way over and over: the button growing into the tiles; the app's own
+  menu, then its Feedback page with the board inline in it; the app's own
+  "Send feedback", then the board rising from the bottom. Each loop is 4 to
+  4.6 s. In a phone because Overlay only rises from the bottom on a phone,
+  and these are phone apps. The widgets in it are real ones in `demo` mode,
+  inline and held on a screen, in the chosen colours; the motion is CSS
+  keyframes in `site.css`, resting on the open state, which is what shows
+  with reduced motion. Preview still shows the real widget, morph and all.
+- The morph is checked on the local site at both widths, not inside Nimiq
+  Pay: that waits for Shitti to take 0.3.0.
+
+## 2026-11-01: Every way opens on the tiles, and step 1 shows the wide screen too
+
+The owner saw only the phone on a computer, and wanted each to show what
+really happens there; and wanted Inline and Overlay to arrive on the tiles
+after the tap, as the button does. Built straight away, the owner's choice,
+following the frames approved above.
+
+- **Every way opens on the tiles now**, in the real widget, for everybody,
+  the owner's choice: `inline` and `overlay` used to open on the board
+  (2026-10-28, "`overlay` still opens on the board"). Somebody who opens a
+  feedback feature mostly came to say something, and the board is one tap
+  on ("See the board"). A new attribute, `start="board"`, keeps the old way;
+  a `readonly` board is always the board. The site's home page board, which
+  is there to be read, and the widget's demo page (the README's screenshots)
+  say `start="board"`. Shitti's users see the tiles first too once Shitti
+  takes 0.3.0. Weighed: a choice in step 1, with the board as the default;
+  and the tiles in the animation only, which would have shown something the
+  widget does not do.
+- **Step 1 shows a computer screen from 640px wide**, the width at which the
+  widget itself turns into the corner panel, and the phone below that; it
+  changes over when the window is resized. The computer plays the widget as
+  it is there: the button growing into the corner panel while the page dims,
+  the app's own menu bar opening its Feedback page with the widget in a
+  column, and the app's own "Send feedback" bringing the panel up in the
+  corner. Overlay does not rise from the bottom there, because on a wide
+  screen the widget does not either, the owner's choice.
+- **No device frames**, the owner's correction the same day: a phone and a
+  browser window drawn inside the box did not match the rest of the page.
+  The loops now play straight on the box's own pretend app, the one the
+  preview shows, at real size: the panel 375 wide and 24px from the edges
+  on a wide screen, the whole box on a narrow one, as the widget itself
+  sits there. Every place is measured from the box's edges or from what is
+  tapped, so a box of any size plays the same.
+- **Inline on a wide screen works as on a phone, sideways**, the owner's
+  next correction: a menu button at the top right opens the app's menu as
+  a panel on the right, Feedback in it opens the app's Feedback page in the
+  rest of the screen, against the panel, and the panel stays open beside
+  it. The widget takes the width it is given there, as an inline widget
+  does. Before, it was a menu bar with the widget in a 375 column.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

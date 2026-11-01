@@ -227,17 +227,20 @@ const step = () => STEPS.find((s) => s.id === at);
 
 // ---- The widget ----------------------------------------------------------
 
-/** Put the settings on the widget: attributes, colours and texts. */
-function apply(el) {
+/**
+ * Put the settings on the widget: attributes, colours and texts. The device in
+ * step 1 holds its widgets inline, on a screen of their own.
+ */
+function apply(el, mode = state.mode, held = previewing ? '' : step().screen) {
   const set = (name, value) => (value ? el.setAttribute(name, value) : el.removeAttribute(name));
   el.setAttribute('demo', '');
-  el.setAttribute('mode', state.mode);
+  el.setAttribute('mode', mode);
   set('theme', THEME);
   set('lang', 'en');
   set('accent', state.accent);
   set('kinds', state.kinds.length === 3 ? '' : state.kinds.join(','));
   set('screenshots', state.screenshots === 'board' ? '' : state.screenshots);
-  set('screen', previewing ? '' : step().screen);
+  set('screen', held);
   const colours = withInk(state.colours);
   for (const name of PROPS) {
     if (colours[name]) el.style.setProperty(name, colours[name]);
@@ -259,6 +262,7 @@ function mount() {
   fitPanel();
   observeRoot(board);
   watch();
+  paintDevice();
 }
 
 /** An overlay is gone once closed; a button brings it back. */
@@ -292,9 +296,101 @@ function fitPanel() {
     (previewing ? '' : ' .scroll { overflow: hidden !important; }');
 }
 
+// ---- The device in step 1 ------------------------------------------------
+
+/**
+ * In Settings the box plays how the chosen way opens instead of holding the
+ * widget, over and over, on the same pretend app as the preview and at its
+ * real size: the round button growing into the panel, the app's own menu
+ * opening a page with the widget in it, or the widget coming up over the
+ * app. Each arrives on the tiles, as the widget does. As on a computer
+ * where the window is wide enough for the widget's corner panel (640px, as
+ * in the widget), as on a phone below that, so each shows what really
+ * happens there. The widgets in it are real ones, in `demo` mode, inline and
+ * held on one screen, in your colours; the moving is CSS (`.play--…` in
+ * site.css). With reduced motion it stands still, open.
+ */
+let device = null;
+const wide = window.matchMedia('(min-width: 640px)');
+
+/** The round button's glyph: a copy of `Feedback` in the widget's icons.tsx. */
+const GLYPH =
+  '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 6C12 5.45 11.55 5 11 5H5.815L6.48 1.825c.015-.075.025-.155.025-.235 0-.31-.125-.59-.33-.795L5.38 0 .44 4.94C.17 5.21 0 5.585 0 6v6.5c0 .83.67 1.5 1.5 1.5h6.75c.62 0 1.155-.375 1.38-.915l2.265-5.29c.065-.17.105-.35.105-.545V6zm10.5 4h-6.75c-.62 0-1.155.375-1.38.915l-2.265 5.29c-.065.17-.105.35-.105.545V18c0 .55.45 1 1 1h5.185l-.665 3.175c-.015.075-.025.155-.025.235 0 .31.125.59.33.795L18.62 24l4.94-4.94c.27-.27.44-.645.44-1.06v-6.5c0-.83-.67-1.5-1.5-1.5z"/></svg>';
+
+const TILES = '<please-no-bugs data-screen="tiles"></please-no-bugs>';
+/** Where a finger taps: inside the thing it taps, so it is always on it. */
+const TAP_A = '<span class="pl-tap pl-tap--a"></span>';
+const TAP_B = '<span class="pl-tap pl-tap--b"></span>';
+const CTA = `<span class="pl-cta">Send feedback${TAP_A}</span>`;
+
+/** The pretend app, as in the preview, with what a way needs of it. */
+const app = (extra = '', burger = false) =>
+  `<div class="screen__app"><b>${burger ? `<span class="ph-burger">${TAP_A}</span>` : ''}Your app</b><i></i><i></i><i></i><i></i>${extra}</div>`;
+
+/** What plays, per width and way. */
+const PLAYS = {
+  phone: {
+    floating: `${app()}<div class="ph-open">${TILES}</div>
+      <div class="ph-skin"><span class="ph-glyph">${GLYPH}</span></div>
+      <span class="pl-spot">${TAP_A}</span>`,
+    inline: `${app('', true)}<div class="pl-dim"></div>
+      <nav class="ph-menu"><b>Your app</b><span>Home</span><span>Settings</span><span class="ph-menu__pick">Feedback${TAP_B}</span><span>About</span></nav>
+      <div class="ph-page"><b class="ph-back">‹&nbsp; Your app</b>${TILES}</div>`,
+    overlay: `${app(CTA)}<div class="pl-dim"></div><div class="ph-sheet">${TILES}</div>`,
+  },
+  desk: {
+    floating: `${app()}<div class="pl-dim"></div>
+      <div class="dk-panel dk-open">${TILES}<div class="dk-skin"><span class="dk-glyph">${GLYPH}</span></div></div>
+      <span class="pl-spot">${TAP_A}</span>`,
+    inline: `${app(`<span class="ph-burger dk-burger">${TAP_A}</span>`)}<div class="pl-dim"></div>
+      <div class="dk-feed">${TILES}</div>
+      <nav class="dk-menu"><b>Menu</b><span>Home</span><span>Settings</span><span class="dk-menu__pick">Feedback${TAP_B}</span><span>About</span></nav>`,
+    overlay: `${app(CTA)}<div class="pl-dim"></div><div class="dk-panel dk-rise">${TILES}</div>`,
+  },
+};
+
+function paintDevice() {
+  const mode = at === 'settings' && !previewing ? state.mode : null;
+  const kind = wide.matches ? 'desk' : 'phone';
+  screen.classList.toggle('screen--device', !!mode);
+  // The app's own background behind every way, inline too.
+  screen.classList.toggle('screen--inline', state.mode === 'inline' && !mode);
+  if (device && device.dataset.key !== `${kind} ${mode}`) {
+    device.remove();
+    device = null;
+  }
+  if (!mode) return;
+  if (!device) {
+    device = document.createElement('div');
+    device.className = `play play--${kind} play--${mode}`;
+    device.dataset.key = `${kind} ${mode}`;
+    device.setAttribute('aria-hidden', 'true');
+    device.innerHTML = PLAYS[kind][mode];
+    screen.append(device);
+  }
+  for (const w of device.querySelectorAll('please-no-bugs')) {
+    apply(w, 'inline', w.dataset.screen);
+    // Held still, and without the bar over the tiles, which here would only
+    // be an empty strip: the real panel has its X there.
+    if (w.shadowRoot && !w.shadowRoot.querySelector('style[data-site]')) {
+      const style = document.createElement('style');
+      style.dataset.site = '';
+      style.textContent = '.scroll { overflow: hidden !important; } .bar { visibility: hidden; }';
+      w.shadowRoot.append(style);
+    }
+  }
+  // The button and the panel behind it in the widget's own colours, which
+  // live in its shadow root: read from one of the widgets in the box.
+  const css = getComputedStyle(device.querySelector('please-no-bugs'));
+  for (const [mine, theirs] of [['--ph-fab', '--pnb-fab'], ['--ph-on-fab', '--pnb-on-fab'], ['--ph-bg', '--pnb-bg']]) {
+    device.style.setProperty(mine, css.getPropertyValue(theirs).trim());
+  }
+}
+
 function update() {
   for (const input of form.querySelectorAll('[data-string]')) input.hidden = offKind(input.dataset.string);
   if (board) apply(board);
+  paintDevice();
   paintSwatches();
   writeCode();
 }
@@ -310,6 +406,7 @@ function go(id) {
   paintSteps();
   if (previewing) endPreview();
   else if (board) apply(board);
+  paintDevice();
   watch();
   // On a phone the card is under the widget: bring it into view.
   if (changed && window.matchMedia('(max-width: 639px)').matches) {
@@ -459,6 +556,7 @@ function observeRoot(el) {
 
 window.addEventListener('resize', () => {
   fitPanel();
+  paintDevice();
   watch();
 });
 // A hidden tab draws no frames: catch up when it is back.

@@ -664,7 +664,7 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
 
 .screen--inline .screen__app { display: none; }
 .screen--inline { background: var(--device); }
-.screen--inline please-no-bugs {
+.screen--inline > please-no-bugs {
   display: block;
   width: min(375px, 100%);
   height: 100%;
@@ -681,6 +681,322 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
 
 /* While previewing the widget is itself again: its own pointer, its own taps. */
 .screen--live { cursor: auto; }
+
+/*
+ * Step 1: instead of the widget, the box plays how the chosen way opens
+ * (see `paintDevice` in customize.js), over the same pretend app as the
+ * preview and at its real size: below 640px as on a phone, the widget over
+ * the whole box; from 640px as on a computer, the corner panel.
+ *
+ * Each way is one loop. The resting styles are the open state, which is
+ * what shows with reduced motion; the keyframes start from closed.
+ */
+.screen--device { cursor: default; }
+.screen--device > .screen__app,
+.screen--device > please-no-bugs { display: none; }
+
+.play { position: absolute; inset: 0; overflow: hidden; }
+.play please-no-bugs { display: block; height: 100%; }
+.play .screen__app b { display: flex; align-items: center; gap: 14px; }
+.ph-burger {
+  position: relative;
+  width: 22px;
+  height: 17px;
+  background:
+    linear-gradient(var(--ink) 0 0) top / 100% 3px no-repeat,
+    linear-gradient(var(--ink) 0 0) center / 100% 3px no-repeat,
+    linear-gradient(var(--ink) 0 0) bottom / 100% 3px no-repeat;
+}
+.pl-cta {
+  position: relative;
+  justify-self: start;
+  margin-top: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 2px solid var(--button);
+  color: var(--button);
+  font-size: 15px;
+  font-weight: 900;
+}
+.pl-dim { position: absolute; inset: 0; background: rgba(10, 10, 30, 0.5); opacity: 0; }
+.play--desk.play--floating .pl-dim,
+.play--desk.play--overlay .pl-dim { opacity: 1; }
+
+/* A tap: a light ring, centred on what it taps. */
+.pl-tap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  opacity: 0;
+}
+/* Where the round button is: as in the widget, 16px from the corner on a
+   phone and 24px on a wide screen. */
+.pl-spot { position: absolute; width: 40px; height: 40px; }
+.play--phone .pl-spot { right: 16px; bottom: 16px; }
+.play--desk .pl-spot { right: 24px; bottom: 24px; }
+
+/* Button on a phone, 4.2 s: tap, the button grows into the panel over the
+   whole box (0.35 s), the panel stays, shrinks back into the button
+   (0.26 s), a pause. As the widget does it (`morph` in element.tsx), with
+   its skin, its glyph and its spring. */
+.ph-open,
+.ph-skin { position: absolute; inset: 0; }
+.ph-open { background: var(--ph-bg); animation: ph-grow 4.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
+.ph-open please-no-bugs {
+  transform-origin: calc(100% - 36px) calc(100% - 36px);
+  animation: ph-content 4.2s infinite ease-out;
+}
+.ph-skin {
+  background: var(--ph-fab);
+  opacity: 0;
+  animation: ph-grow 4.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1), ph-skin 4.2s infinite linear;
+}
+.ph-glyph,
+.dk-glyph {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--ph-on-fab);
+  opacity: 0;
+  animation: ph-glyph 4.2s infinite linear;
+}
+.ph-glyph { right: 16px; bottom: 16px; }
+.play--floating .pl-tap--a { animation: ph-tap-fab 4.2s infinite ease-out; }
+
+@keyframes ph-grow {
+  0%, 17.9% { clip-path: inset(calc(100% - 56px) 16px 16px calc(100% - 56px) round 20px); }
+  26.2%, 69% { clip-path: inset(0px 0px 0px 0px round 0px); }
+  75.2%, 100% { clip-path: inset(calc(100% - 56px) 16px 16px calc(100% - 56px) round 20px); }
+}
+@keyframes ph-skin {
+  0%, 19.1% { opacity: 1; }
+  23.7%, 70.9% { opacity: 0; }
+  74.3%, 100% { opacity: 1; }
+}
+@keyframes ph-glyph {
+  0%, 17.9% { opacity: 1; }
+  20.8%, 73% { opacity: 0; }
+  75.2%, 100% { opacity: 1; }
+}
+@keyframes ph-content {
+  0%, 19.6% { opacity: 0; filter: blur(6px); transform: scale(0.92); }
+  24.4% { opacity: 1; filter: blur(0); transform: scale(1.015); }
+  26.2%, 69% { opacity: 1; filter: blur(0); transform: scale(1); }
+  72.7%, 100% { opacity: 0; filter: blur(4px); transform: scale(0.94); }
+}
+@keyframes ph-tap-fab {
+  0%, 11.9% { opacity: 0; transform: scale(0.6); }
+  14.3% { opacity: 1; transform: scale(1); }
+  17.9%, 100% { opacity: 0; transform: scale(1.25); }
+}
+
+/* Inline on a phone, 4.6 s: tap the app's menu, it slides in, tap Feedback,
+   the app's Feedback page slides in with the widget in it, on the tiles,
+   stays, slides away. */
+.ph-menu {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: min(270px, 80%);
+  display: grid;
+  align-content: start;
+  background: var(--row);
+  box-shadow: var(--shadow);
+  transform: translateX(-100%);
+  animation: ph-menu 4.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.ph-menu b { padding: 24px 24px 12px; font-size: 20px; font-weight: 900; }
+.ph-menu > span { position: relative; margin: 0 10px; padding: 12px 14px; border-radius: 12px; font-size: 17px; font-weight: 700; }
+.ph-menu > .ph-menu__pick { animation: ph-pick 4.6s infinite step-end; }
+.play--phone.play--inline .pl-dim { animation: ph-dim-inline 4.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
+.ph-page {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--page);
+  animation: ph-page 4.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.ph-back { padding: 24px; font-size: 20px; font-weight: 900; }
+.ph-page please-no-bugs { min-height: 0; }
+.play--phone.play--inline .pl-tap--a { animation: ph-tap-menu 4.6s infinite ease-out; }
+.play--phone.play--inline .pl-tap--b { animation: ph-tap-pick 4.6s infinite ease-out; }
+
+@keyframes ph-menu {
+  0%, 13% { transform: translateX(-100%); }
+  19.6%, 40.2% { transform: translateX(0); }
+  40.3%, 100% { transform: translateX(-100%); }
+}
+@keyframes ph-dim-inline {
+  0%, 13% { opacity: 0; }
+  19.6%, 40.2% { opacity: 1; }
+  40.3%, 100% { opacity: 0; }
+}
+@keyframes ph-pick {
+  0%, 27.5% { background: transparent; }
+  28%, 40.3% { background: var(--card); }
+  40.4%, 100% { background: transparent; }
+}
+@keyframes ph-page {
+  0%, 32.6% { transform: translateX(100%); }
+  40.2%, 78.3% { transform: translateX(0); }
+  84.8%, 100% { transform: translateX(100%); }
+}
+@keyframes ph-tap-menu {
+  0%, 7.6% { opacity: 0; transform: scale(0.6); }
+  9.8% { opacity: 1; transform: scale(1); }
+  13%, 100% { opacity: 0; transform: scale(1.25); }
+}
+@keyframes ph-tap-pick {
+  0%, 26% { opacity: 0; transform: scale(0.6); }
+  28.2% { opacity: 1; transform: scale(1); }
+  31.5%, 100% { opacity: 0; transform: scale(1.25); }
+}
+
+/* Overlay on a phone, 4 s: tap the app's own button, the widget rises from
+   the bottom (0.3 s), stays, slides back down. */
+.ph-sheet {
+  position: absolute;
+  inset: 0;
+  animation: ph-sheet 4s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.play--phone.play--overlay .pl-dim { animation: ph-dim-overlay 4s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
+.play--overlay .pl-tap--a { animation: ph-tap-cta 4s infinite ease-out; }
+
+@keyframes ph-sheet {
+  0%, 15% { transform: translateY(100%); }
+  22.5%, 71.3% { transform: translateY(0); }
+  78.3%, 100% { transform: translateY(100%); }
+}
+@keyframes ph-dim-overlay {
+  0%, 15% { opacity: 0; }
+  22.5%, 71.3% { opacity: 1; }
+  78.3%, 100% { opacity: 0; }
+}
+@keyframes ph-tap-cta {
+  0%, 10% { opacity: 0; transform: scale(0.6); }
+  12% { opacity: 1; transform: scale(1); }
+  15%, 100% { opacity: 0; transform: scale(1.25); }
+}
+
+/* On a wide screen: the corner panel, 375 wide, 24px from the edges and as
+   tall as what is in it, as the widget has it. */
+.dk-panel {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  width: 375px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--ph-bg);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.24);
+}
+
+/* Button, 4.2 s, on the phone's timing: the button in the corner grows into
+   the panel while the page dims. Its skin lies inside the panel, as in the
+   widget, so the panel's cut cuts it too. */
+.dk-open { animation: dk-grow 4.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
+.dk-panel please-no-bugs { height: auto; }
+.dk-open please-no-bugs { transform-origin: calc(100% - 20px) calc(100% - 20px); animation: ph-content 4.2s infinite ease-out; }
+.dk-skin { position: absolute; inset: 0; background: var(--ph-fab); opacity: 0; animation: ph-skin 4.2s infinite linear; }
+.dk-glyph { right: 0; bottom: 0; }
+.play--desk.play--floating .pl-dim { animation: dk-dim-btn 4.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
+
+@keyframes dk-grow {
+  0%, 17.9% { clip-path: inset(calc(100% - 40px) 0px 0px calc(100% - 40px) round 20px); }
+  26.2%, 69% { clip-path: inset(0px 0px 0px 0px round 16px); }
+  75.2%, 100% { clip-path: inset(calc(100% - 40px) 0px 0px calc(100% - 40px) round 20px); }
+}
+@keyframes dk-dim-btn {
+  0%, 17.9% { opacity: 0; }
+  26.2%, 69% { opacity: 1; }
+  75.2%, 100% { opacity: 0; }
+}
+
+/* Inline, 4.6 s, as on a phone but beside the app: tap the app's menu, it
+   opens on the right, click Feedback, and the app's Feedback page fills the
+   rest of the screen with the widget in it, on the tiles, the menu still
+   open beside it; then both go. The widget takes the width it is given. */
+.play .dk-burger { position: absolute; top: 28px; right: 24px; }
+.dk-menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 240px;
+  display: grid;
+  align-content: start;
+  background: var(--row);
+  box-shadow: var(--shadow);
+  animation: dk-menu 4.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.dk-menu b { padding: 24px 24px 12px; font-size: 20px; font-weight: 900; }
+.dk-menu > span { position: relative; margin: 0 10px; padding: 12px 14px; border-radius: 12px; font-size: 17px; font-weight: 700; }
+.dk-menu > .dk-menu__pick { background: var(--card); animation: dk-menu-pick 4.6s infinite step-end; }
+.dk-feed {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 240px;
+  background: var(--page);
+  animation: dk-feed 4.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.play--desk.play--inline .pl-dim { animation: dk-dim-inline 4.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
+.play--desk.play--inline .pl-tap--a { animation: ph-tap-menu 4.6s infinite ease-out; }
+.play--desk.play--inline .pl-tap--b { animation: ph-tap-pick 4.6s infinite ease-out; }
+
+@keyframes dk-menu {
+  0%, 13% { transform: translateX(100%); }
+  19.6%, 78.3% { transform: translateX(0); }
+  84.8%, 100% { transform: translateX(100%); }
+}
+@keyframes dk-feed {
+  0%, 32.6% { opacity: 0; transform: translateX(-16px); }
+  40.2%, 78.3% { opacity: 1; transform: none; }
+  84.8%, 100% { opacity: 0; transform: translateX(-16px); }
+}
+@keyframes dk-dim-inline {
+  0%, 13% { opacity: 0; }
+  19.6%, 78.3% { opacity: 1; }
+  84.8%, 100% { opacity: 0; }
+}
+@keyframes dk-menu-pick {
+  0%, 27.5% { background: transparent; }
+  28%, 84.8% { background: var(--card); }
+  84.9%, 100% { background: transparent; }
+}
+
+/* Overlay, 4 s: click the app's own "Send feedback", the page dims and the
+   panel comes up in the corner, as the widget's overlay does on a wide
+   screen; it stays, and goes. */
+.dk-rise { animation: dk-rise 4s infinite cubic-bezier(0.2, 0.8, 0.2, 1); }
+.play--desk.play--overlay .pl-dim { animation: dk-dim-overlay 4s infinite ease; }
+
+@keyframes dk-rise {
+  0%, 15% { opacity: 0; transform: translateY(16px); }
+  21%, 71.3% { opacity: 1; transform: none; }
+  75.8%, 100% { opacity: 0; transform: translateY(16px); }
+}
+@keyframes dk-dim-overlay {
+  0%, 15% { opacity: 0; }
+  20%, 71.3% { opacity: 1; }
+  76.3%, 100% { opacity: 0; }
+}
+
+/* Asked for less motion: each way shows open, and stands still. */
+@media (prefers-reduced-motion: reduce) {
+  .play * { animation: none !important; }
+}
 
 /* Beside the steps it can be as tall as the window leaves. */
 @media (min-width: 900px) {
