@@ -1541,20 +1541,9 @@ button {
   animation: none;
 }
 
-/* The button's skin over the panel while it grows, glyph and all. */
-.morph {
-  position: absolute;
-  inset: 0;
-  z-index: 40;
-  pointer-events: none;
-  background: var(--pnb-fab);
-}
-
-.morph__glyph {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  color: var(--pnb-on-fab);
+/* What grows is the panel's own background: the content fades in on it. */
+.overlay--morph {
+  background: var(--pnb-bg);
 }
 
 @media (min-width: 640px) {

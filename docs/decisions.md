@@ -867,6 +867,37 @@ where they take the code.
   motion it is the line alone, briefly. Every time the last step is reached
   going forward, not on coming back to it.
 
+## 2026-11-01: The home page plays a tour of the widget, and the panel grows in its own colour
+
+The owner first wanted visitors to open the widget themselves (a closed
+widget, a wiggling button, "Try me"), then, the same day, a tour that plays
+on its own instead, in the configurator's box.
+
+- **The home page plays a tour** in the configurator's box (`.editor`,
+  `.screen`, the same size and pretend app), beside the text as the
+  configurator's steps are. The real widget in `demo` mode, sample posts in
+  the page's memory, nothing sent, plays through on its own, over and over
+  (`assets/tour.js`, about 30 s), as a user meets it: the button tapped,
+  Report a bug on the tiles, the bug typed and sent, "Feedback sent!", and
+  only then the board, everybody else's feedback and the app's answers,
+  scrolled, an idea voted up, closed. Its point, the owner's: all feedback
+  is open for anyone to read. A subtitle says what each step is and means
+  ("Step 2 of 6", a title, a line): in the app's bottom left corner beside
+  the panel from 640px (not the top left, where it would cover the pretend
+  app's title), above the box on a phone. A ring shows
+  each tap, as in step 1; the taps are the widget's own buttons clicked from
+  the script, so it shows what the widget really does. The box is `inert`:
+  a click does nothing. A fresh widget each round; it waits while off
+  screen or in a hidden tab; with reduced motion the board stands open,
+  still. The page's own button, which goes to the real board, stays in the
+  window's corner.
+- **The panel grows in its own background**, everywhere: the button's colour
+  no longer lies over it while it grows (the owner found that, and the
+  blurred tiles, looked like a bug). The button is gone the moment it is
+  tapped; on closing it comes back, with a short fade, once the panel is a
+  disc again. Opacity, scale and the cut only, so it stays smooth. Step 1 of
+  the configurator plays it the same way.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

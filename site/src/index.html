@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="assets/site.css" />
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/board.js" type="module"></script>
+    <script src="assets/tour.js" type="module"></script>
   </head>
   <body>
     <header class="top">
@@ -35,10 +36,20 @@
           </div>
         </div>
         <div class="try">
-          <div class="device">
-            <please-no-bugs project="%BOARD_PROJECT%" server="%BOARD_SERVER%" start="board" theme="pleasenobugs" lang="en" names="off" screenshots="off"></please-no-bugs>
+          <div class="editor tour">
+            <p class="tour-say" id="tour-say">
+              <span class="tour-say__n"></span>
+              <b class="tour-say__title"></b>
+              <span class="tour-say__text"></span>
+            </p>
+            <div class="screen screen--home" id="tour" aria-hidden="true" inert>
+              <div class="screen__app">
+                <b>Your app</b>
+                <i></i><i></i><i></i><i></i>
+              </div>
+            </div>
           </div>
-          <p>This is the real widget. Tell us what you think of it.</p>
+          <p>Everything your users post is on the board, open for anyone to read and vote on.</p>
         </div>
       </div>
     </main>
@@ -46,7 +57,7 @@
     <footer class="foot">
       <div class="wrap">
         <span>PleaseNoBugs is open source, MIT licensed.</span>
-        <span>No tracking. What you post above goes to our own PleaseNoBugs server, without a name, and shows once we approved it. <a href="https://github.com/lennylenders/PleaseNoBugs">Source on GitHub</a></span>
+        <span>No tracking. What you post with the round button in the corner of this page goes to our own PleaseNoBugs server, without a name, and shows once we approved it. <a href="https://github.com/lennylenders/PleaseNoBugs">Source on GitHub</a></span>
       </div>
     </footer>
 

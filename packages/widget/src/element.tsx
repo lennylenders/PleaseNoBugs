@@ -420,17 +420,23 @@ function Floating({
 /** How long the button takes to become the panel, and the panel the button. */
 const MORPH_OPEN_MS = 340;
 const MORPH_CLOSE_MS = 260;
+/** How long the button takes to come back once the panel is a disc again. */
+const FAB_BACK_MS = 160;
 
 /**
  * Grow the panel out of the round button, or shrink it back in.
  *
- * Three things move together. The panel is cut to the button's disc and
- * the cut opens to the whole panel (`clip-path`). A skin in the button's own
- * colour, glyph and all, lies over it and fades, so what grows starts as the
- * button and turns into the panel. And what is in the panel comes in from a
- * slight blur with a small spring at the end. Closing runs it backwards,
- * quicker. Resolves once it is done; the closing state is held until then,
- * so nothing flashes before the panel is taken away.
+ * The panel is cut to the button's disc and the cut opens to the whole
+ * panel (`clip-path`), so what grows is the panel itself, in its own
+ * background: the button is gone the moment it is tapped, never stretched.
+ * What is in the panel fades in as it opens, scaled up a little from the
+ * button's corner. Closing runs it backwards, quicker, and the button comes
+ * back only once the panel is a disc where it was. Resolves once it is
+ * done; the closing state is held until then, so nothing flashes before the
+ * panel is taken away.
+ *
+ * Opacity, scale and the cut only, no blur: those a browser can draw every
+ * frame, so it stays smooth on a phone too.
  *
  * With the Web Animations API rather than CSS, because where the button is,
  * relative to the panel, is only known once both are on the screen.
@@ -449,50 +455,25 @@ function morph(panel: HTMLElement, button: HTMLElement, way: 'open' | 'close'): 
     fill: open ? 'none' : 'forwards',
   };
 
-  // The skin: the button, laid over what is in the panel, so the panel's cut
-  // cuts it too. Inside the panel rather than beside it, so it is wherever
-  // the panel is, whatever the page does to fixed positions.
-  const skin = document.createElement('div');
-  skin.className = 'morph';
-  skin.setAttribute('aria-hidden', 'true');
-  const glyph = button.cloneNode(true) as HTMLElement;
-  glyph.className = 'morph__glyph';
-  glyph.removeAttribute('title');
-  Object.assign(glyph.style, { left: `${fab.left - box.left}px`, top: `${fab.top - box.top}px`, width: `${fab.width}px`, height: `${fab.height}px` });
-  skin.append(glyph);
   const content = panel.firstElementChild as HTMLElement | null;
-  panel.append(skin);
   if (content) content.style.transformOrigin = `${fab.left + round - box.left}px ${fab.top + round - box.top}px`;
 
   const cut = open ? [{ clipPath: small }, { clipPath: big }] : [{ clipPath: big }, { clipPath: small }];
-  const steady = { ...timing, easing: 'linear' };
-  const runs = [
-    panel.animate(cut, timing),
-    skin.animate(
-      open
-        ? [{ opacity: 1 }, { opacity: 1, offset: 0.15 }, { opacity: 0, offset: 0.7 }, { opacity: 0 }]
-        : [{ opacity: 0 }, { opacity: 0, offset: 0.3 }, { opacity: 1, offset: 0.85 }, { opacity: 1 }],
-      steady,
-    ),
-    glyph.animate(
-      open ? [{ opacity: 1 }, { opacity: 0, offset: 0.35 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 0, offset: 0.65 }, { opacity: 1 }],
-      steady,
-    ),
-  ];
+  const runs = [panel.animate(cut, timing)];
   if (content) {
     runs.push(
       content.animate(
         open
           ? [
-              { opacity: 0, filter: 'blur(6px)', transform: 'scale(0.92)', offset: 0 },
-              { opacity: 0, filter: 'blur(6px)', transform: 'scale(0.92)', offset: 0.2 },
-              { opacity: 1, filter: 'blur(0px)', transform: 'scale(1.015)', offset: 0.78 },
-              { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)', offset: 1 },
+              { opacity: 0, transform: 'scale(0.96)', offset: 0 },
+              { opacity: 0, transform: 'scale(0.96)', offset: 0.15 },
+              { opacity: 1, transform: 'scale(1)', offset: 0.8 },
+              { opacity: 1, transform: 'scale(1)', offset: 1 },
             ]
           : [
-              { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)', offset: 0 },
-              { opacity: 0, filter: 'blur(4px)', transform: 'scale(0.94)', offset: 0.6 },
-              { opacity: 0, filter: 'blur(4px)', transform: 'scale(0.94)', offset: 1 },
+              { opacity: 1, transform: 'scale(1)', offset: 0 },
+              { opacity: 0, transform: 'scale(0.96)', offset: 0.55 },
+              { opacity: 0, transform: 'scale(0.96)', offset: 1 },
             ],
         { ...timing, easing: open ? 'ease-out' : 'ease-in' },
       ),
@@ -503,13 +484,18 @@ function morph(panel: HTMLElement, button: HTMLElement, way: 'open' | 'close'): 
     .then(() => {
       if (open) {
         if (content) content.style.transformOrigin = '';
-      } else {
-        // The button is back where the skin ends, before the panel goes: no
-        // frame without either.
-        button.classList.remove('fab--away');
-        panel.style.visibility = 'hidden';
+        return;
       }
-      skin.remove();
+      // The button back where the disc ends, before the panel goes: no
+      // frame without either.
+      button.classList.remove('fab--away');
+      panel.style.visibility = 'hidden';
+      if (typeof button.animate === 'function') {
+        button.animate([{ opacity: 0, transform: 'scale(0.8)' }, { opacity: 1, transform: 'scale(1)' }], {
+          duration: FAB_BACK_MS,
+          easing: 'ease-out',
+        });
+      }
     });
 }
 

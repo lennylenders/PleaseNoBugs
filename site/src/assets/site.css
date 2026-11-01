@@ -195,8 +195,9 @@ section + section { padding-top: 0; }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
-  gap: 48px;
+  /* The text in the configurator's steps column, the tour in its preview's. */
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: 48px 32px;
   align-items: center;
   padding-top: 40px;
   padding-bottom: 56px;
@@ -206,23 +207,71 @@ section + section { padding-top: 0; }
 .hero .lead { font-size: 20px; line-height: 30px; max-width: 660px; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 
-.try { display: grid; gap: 24px; justify-items: center; }
-.try p { margin: 0; color: var(--sub); font-size: 14px; text-align: center; }
+.try { display: grid; gap: 16px; }
+.try > p { margin: 0; color: var(--sub); font-size: 14px; text-align: center; }
 
-.device {
-  width: 100%;
-  height: 620px;
-  border-radius: 28px;
-  padding: 10px;
-  background: var(--device);
-  box-shadow: 0 30px 60px rgba(31, 35, 72, 0.22);
+/*
+ * The tour: the configurator's box (`.editor`, `.screen`), the same size and
+ * the same pretend app, with the real widget in `demo` mode playing through
+ * on its own (assets/tour.js). Nothing in it takes a tap: it is `inert`.
+ */
+.screen--home { cursor: default; user-select: none; }
+
+/* What each step of the tour shows, as a subtitle: in the app's bottom left
+   corner beside the panel from 640px, where the widget is a corner panel;
+   over the box on a phone, where the widget fills it. */
+.tour { position: relative; }
+.tour-say {
+  display: grid;
+  gap: 4px;
+  min-height: 92px;
+  align-content: start;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+  transition: opacity 180ms ease;
+}
+.tour-say--away { opacity: 0; }
+.tour-say__n { color: var(--button); font-size: 12px; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; }
+.tour-say__title { font-size: 16px; font-weight: 900; }
+.tour-say__text { color: var(--sub); }
+@media (min-width: 640px) {
+  .tour-say {
+    position: absolute;
+    z-index: 2;
+    left: 40px;
+    bottom: 40px;
+    /* The room the corner panel (375px, 24px from the edge) leaves. */
+    width: clamp(150px, calc(100% - 479px), 240px);
+    min-height: 0;
+    margin: 0;
+    box-shadow: 0 12px 32px rgba(10, 10, 30, 0.35);
+  }
 }
 
-.device please-no-bugs {
-  display: block;
-  height: 100%;
-  border-radius: 20px;
-  overflow: hidden;
+/* Where the tour taps: the configurator's ring, moved to each thing it taps. */
+.tour-tap {
+  position: absolute;
+  z-index: 2147483647;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  opacity: 0;
+}
+.tour-tap--on { animation: tour-tap 520ms ease-out; }
+@keyframes tour-tap {
+  0% { opacity: 0; transform: scale(0.6); }
+  30% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.25); }
 }
 
 /* Other apps' boards, read-only (assets/apps.js). On no page yet. */
@@ -246,10 +295,9 @@ section + section { padding-top: 0; }
 .apps__counts { color: var(--sub); font-size: 13px; }
 .apps__open { color: var(--button); font-weight: 700; text-align: center; }
 
-@media (max-width: 880px) {
+/* Under each other below 900px, as the configurator's steps and box. */
+@media (max-width: 899px) {
   .hero { grid-template-columns: minmax(0, 1fr); gap: 36px; }
-  .try { max-width: 420px; width: 100%; margin: 0 auto; }
-  .device { height: 560px; }
 }
 
 /* ---- The table, after the design's list of posts ---------------------- */
@@ -433,7 +481,7 @@ section + section { padding-top: 0; }
   .progress { grid-area: progress; }
   .edit { grid-area: edit; }
   .actions { grid-area: actions; align-self: start; }
-  .editor { grid-area: preview; align-self: start; position: sticky; top: 88px; }
+  .studio .editor { grid-area: preview; align-self: start; position: sticky; top: 88px; }
 }
 
 .progress { margin: 0; }
@@ -757,8 +805,10 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
 
 /* Button on a phone, 6.2 s: tap, the button grows into the panel over the
    whole box (0.35 s), the panel stays, shrinks back into the button
-   (0.26 s), a pause. As the widget does it (`morph` in element.tsx), with
-   its skin, its glyph and its spring. */
+   (0.26 s), a pause. As the widget does it (`morph` in element.tsx): the
+   skin is the button at rest, gone the moment it is tapped, so what grows
+   is the panel in its own background; back, with its glyph, once the panel
+   is a disc again. */
 .ph-open,
 .ph-skin { position: absolute; inset: 0; }
 .ph-open { background: var(--ph-bg); animation: ph-grow 6.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
@@ -791,20 +841,19 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
   50.94%, 100% { clip-path: inset(calc(100% - 56px) 16px 16px calc(100% - 56px) round 20px); }
 }
 @keyframes ph-skin {
-  0%, 12.94% { opacity: 1; }
-  16.05%, 48.03% { opacity: 0; }
-  50.33%, 100% { opacity: 1; }
+  0%, 12.13% { opacity: 1; }
+  12.14%, 50.94% { opacity: 0; }
+  53.52%, 100% { opacity: 1; }
 }
 @keyframes ph-glyph {
   0%, 12.13% { opacity: 1; }
-  14.09%, 49.45% { opacity: 0; }
-  50.94%, 100% { opacity: 1; }
+  12.14%, 50.94% { opacity: 0; }
+  53.52%, 100% { opacity: 1; }
 }
 @keyframes ph-content {
-  0%, 13.28% { opacity: 0; filter: blur(6px); transform: scale(0.92); }
-  16.53% { opacity: 1; filter: blur(0); transform: scale(1.015); }
-  17.75%, 46.74% { opacity: 1; filter: blur(0); transform: scale(1); }
-  49.25%, 100% { opacity: 0; filter: blur(4px); transform: scale(0.94); }
+  0%, 12.97% { opacity: 0; transform: scale(0.96); }
+  16.63%, 46.74% { opacity: 1; transform: scale(1); }
+  49.04%, 100% { opacity: 0; transform: scale(0.96); }
 }
 @keyframes ph-tap-fab {
   0%, 8.06% { opacity: 0; transform: scale(0.6); }
@@ -916,8 +965,8 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
 }
 
 /* Button, 6.2 s, on the phone's timing: the button in the corner grows into
-   the panel while the page dims. Its skin lies inside the panel, as in the
-   widget, so the panel's cut cuts it too. */
+   the panel while the page dims. Its skin, the button at rest, lies inside
+   the panel, so the panel's cut cuts it too. */
 .dk-open { animation: dk-grow 6.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
 .dk-panel please-no-bugs { height: auto; }
 .dk-open please-no-bugs { transform-origin: calc(100% - 20px) calc(100% - 20px); animation: ph-content 6.2s infinite ease-out; }

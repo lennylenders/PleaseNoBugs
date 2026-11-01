@@ -65,12 +65,17 @@ export function createDemoClient(lang = 'en'): Client {
     signIn: () => ok(DEMO_ADDRESS),
     signOut() {},
 
+    // At once, without the wait: the tiles are there while the panel grows,
+    // instead of a spinner they replace halfway.
     board: () =>
-      ok<BoardRead>({
-        project: { id: 'demo', name: 'Demo app', rules: { ...DEFAULT_RULES, kinds: [...DEFAULT_RULES.kinds] } },
-        posts: posts.map((p) => ({ ...p })),
-        me: { owner: false, left, ...(name ? { name } : {}) },
-        updates: updates.length,
+      Promise.resolve<Result<BoardRead>>({
+        ok: true,
+        data: {
+          project: { id: 'demo', name: 'Demo app', rules: { ...DEFAULT_RULES, kinds: [...DEFAULT_RULES.kinds] } },
+          posts: posts.map((p) => ({ ...p })),
+          me: { owner: false, left, ...(name ? { name } : {}) },
+          updates: updates.length,
+        },
       }),
     me: () => ok({ owner: false, left, ...(name ? { name } : {}) }),
     answers: () => ok({ answers: [] }),
