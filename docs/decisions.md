@@ -823,6 +823,50 @@ after the owner approved it.
   shows what is copied; where copying is blocked it opens, to select by
   hand.
 
+## 2026-11-01: A test step with confetti, one button per step, calmer loops
+
+The owner's round after using the page, built straight away, with a look
+at every step's sense.
+
+- **The loops rest longer**: two seconds more at the end of each, so a loop
+  is 6 to 6.6 s. The motion keeps its speed; only the wait before it starts
+  again grew. It felt busy.
+- **A test step after "Feedback sent!"**, "Your widget is done!": the widget
+  in the box is itself there, every tap its own, with a line on what to try
+  for the way chosen, confetti in the site's colours once on arriving
+  (forward only, never with reduced motion), and one big "Get the code".
+  The Preview button on every step is gone, the owner's choice: trying it
+  out has its own step now, and every step has only Back and Next.
+- **No agent picker**: one button, "Feed it to your AI agent", one toast
+  ("Nom nom. Now paste it into your agent's chat."), and the prompt greets
+  with "Hi!". The owner found the pick unneeded, and it changed nothing in
+  the prompt anyway.
+- **One big button per step.** On the last step "Copy code" moved from the
+  bottom, where it competed with the agent's button, to a quiet button
+  beside the HTML and CSS tabs. The last step's foot has only Back.
+- **The line over the box fits each step.** "Tap a part of the widget to
+  change it" only where a part can be tapped; Settings says the box shows
+  how it opens, Screenshots that the widget shows what changes, the test
+  step that everything works, and Code to hand it to an agent or paste it.
+
+## 2026-11-01: No test step; the last step is live and says "You're ready!"
+
+Reverses the test step of the entry above, the same day. The owner: that
+the widget works goes without saying; what a developer wants to check is
+whether the colours and words they changed are right, and they can do that
+where they take the code.
+
+- **The test step is gone** (seven steps again with the round button). The
+  widget in the box is itself in the last step, Code, every tap its own;
+  the line over the box says to check the colours and words there, then
+  take the code.
+- **"You're ready!"** is Shitti's fanfare, the one it shows when you invite
+  somebody, the owner's choice: the page dims, one big line lands with a
+  small bounce, and paper is thrown from its middle in the site's colours.
+  It clears itself after 2.6 seconds, sooner on a tap, and with reduced
+  motion it is the line alone, briefly. Every time the last step is reached
+  going forward, not on coming back to it.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

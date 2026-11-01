@@ -13,19 +13,24 @@
  *  somebody's app without them choosing to. */
 const VERSION = '%VERSION%';
 
+/** What the line over the box says where a part of the widget can be tapped. */
+const TAP = 'Tap a part of the widget to change it.';
+
 /**
  * The steps, in order. `screen` is the widget's `screen` attribute that puts
  * the part in view; `mark` finds that part in the widget's shadow root, to
- * draw a line around it.
+ * draw a line around it; `hint` is the line over the box. The last step is
+ * `live`: the widget is itself there, every tap its own, to check every
+ * colour and word on every screen before taking the code.
  */
 const STEPS = [
-  { id: 'settings', name: 'Settings', screen: 'tiles' },
-  { id: 'button', name: 'Feedback button', screen: 'button', mark: (r) => [r.querySelector('.fab')], floatingOnly: true },
-  { id: 'tiles', name: 'Tiles', screen: 'tiles', mark: (r) => [...r.querySelectorAll('.tile')] },
-  { id: 'board', name: 'Board', screen: 'board', mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')] },
-  { id: 'shots', name: 'Screenshots', screen: 'write', mark: (r) => [r.querySelector('.shot')], shotsOnly: true },
-  { id: 'sent', name: 'Feedback sent!', screen: 'sent', mark: (r) => [r.querySelector('.sent')] },
-  { id: 'code', name: 'Code', screen: 'tiles' },
+  { id: 'settings', name: 'Settings', screen: 'tiles', hint: 'Pick a way: the box shows how it opens.' },
+  { id: 'button', name: 'Feedback button', screen: 'button', mark: (r) => [r.querySelector('.fab')], floatingOnly: true, hint: TAP },
+  { id: 'tiles', name: 'Tiles', screen: 'tiles', mark: (r) => [...r.querySelectorAll('.tile')], hint: TAP },
+  { id: 'board', name: 'Board', screen: 'board', mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')], hint: TAP },
+  { id: 'shots', name: 'Screenshots', screen: 'write', mark: (r) => [r.querySelector('.shot')], shotsOnly: true, hint: 'Pick who sees them: the widget shows what changes.' },
+  { id: 'sent', name: 'Feedback sent!', screen: 'sent', mark: (r) => [r.querySelector('.sent')], hint: TAP },
+  { id: 'code', name: 'Code', screen: '', live: true, hint: 'Check your colours and words in the box: it works now. Then take the code.' },
 ];
 
 /**
@@ -195,7 +200,6 @@ const screen = document.getElementById('screen');
 const mark = document.getElementById('mark');
 const backBtn = document.getElementById('back');
 const nextBtn = document.getElementById('next');
-const previewBtn = document.getElementById('preview');
 const copyBtn = document.getElementById('copy');
 
 /**
@@ -267,7 +271,7 @@ const INLINE_FRAME = `<div class="inline-frame" aria-hidden="true">
     <b class="ph-back">‹&nbsp; Your app</b>
   </div>`;
 
-/** A fresh widget in the box: for a new mode, and for a preview that starts as it would in an app. */
+/** A fresh widget in the box: for a new mode, and for the test step, where it starts as it would in an app. */
 function mount() {
   board?.remove();
   screen.querySelector('.screen__again')?.remove();
@@ -320,7 +324,7 @@ function fitPanel() {
 
 /**
  * In Settings the box plays how the chosen way opens instead of holding the
- * widget, over and over, on the same pretend app as the preview and at its
+ * widget, over and over, on the same pretend app as the other steps and at its
  * real size: the round button growing into the panel, the app's own menu
  * opening a page with the widget in it, or the widget coming up over the
  * app. Each arrives on the tiles, as the widget does. As on a computer
@@ -343,7 +347,7 @@ const TAP_A = '<span class="pl-tap pl-tap--a"></span>';
 const TAP_B = '<span class="pl-tap pl-tap--b"></span>';
 const CTA = `<span class="pl-cta">Send feedback${TAP_A}</span>`;
 
-/** The pretend app, as in the preview, with what a way needs of it. */
+/** The pretend app, as in the other steps, with what a way needs of it. */
 const app = (extra = '', burger = false) =>
   `<div class="screen__app"><b>${burger ? `<span class="ph-burger">${TAP_A}</span>` : ''}Your app</b><i></i><i></i><i></i><i></i>${extra}</div>`;
 
@@ -422,12 +426,19 @@ function update() {
 function go(id) {
   if (!route().some((s) => s.id === id)) id = 'settings';
   const changed = id !== at;
+  const forward = route().findIndex((s) => s.id === id) > route().findIndex((s) => s.id === at);
   at = id;
   revealed = null;
   for (const el of form.querySelectorAll('[data-step]')) el.hidden = el.dataset.step !== at;
   paintSteps();
-  if (previewing) endPreview();
-  else if (board) apply(board);
+  // Into the last step and out of it, a fresh widget, as it starts in an app.
+  const live = !!step().live;
+  if (live !== previewing) {
+    previewing = live;
+    screen.classList.toggle('screen--live', live);
+    mount();
+    if (live && forward) cheer("You're ready!");
+  } else if (board) apply(board);
   paintDevice();
   watch();
   // On a phone the card is under the widget: bring it into view.
@@ -444,11 +455,70 @@ function paintSteps() {
   document.getElementById('bars').innerHTML = steps
     .map((s, n) => `<i class="${n < i ? 'done' : n === i ? 'now' : ''}"></i>`)
     .join('');
+  document.getElementById('hint').textContent = step().hint;
   backBtn.hidden = i === 0;
   const last = i === steps.length - 1;
   nextBtn.hidden = last;
-  copyBtn.hidden = !last;
   if (!last) nextBtn.textContent = `Next: ${steps[i + 1].name}`;
+}
+
+// ---- You're ready --------------------------------------------------------
+
+/** How long the cheer holds before it clears itself, as in Shitti. */
+const CHEER_MS = 2600;
+/** How many pieces of paper, how far the fastest fly out, and how far all of them sink. */
+const PIECES = 44;
+const SPREAD = 190;
+const FALL = 320;
+/** The site's palette, and the tiles'. */
+const PAPER = ['#1fc7d4', '#21bca5', '#e9a00b', '#e5484d', '#8b5cf6', '#ffffff'];
+
+/**
+ * One line of good news over the whole page, with a burst of paper from its
+ * middle: Shitti's fanfare, the one it shows when you invite somebody. Every
+ * time the last step is reached going forward: the widget is done. It holds
+ * a moment and clears itself; a tap clears it sooner. With reduced motion
+ * the line alone, briefly.
+ *
+ * Each piece gets its own angle, reach and spin, so they are thrown with the
+ * Web Animations API rather than forty-odd one-off keyframes.
+ */
+function cheer(line) {
+  document.querySelector('.fanfare')?.remove();
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const el = document.createElement('div');
+  el.className = 'fanfare';
+  el.setAttribute('role', 'status');
+  el.innerHTML = '<div class="fanfare__paper" aria-hidden="true"></div><p class="fanfare__line"></p>';
+  el.querySelector('.fanfare__line').textContent = line;
+  const paper = el.querySelector('.fanfare__paper');
+  const done = () => el.remove();
+  el.addEventListener('click', done);
+  document.body.append(el);
+  setTimeout(done, still ? 600 : CHEER_MS);
+  if (still) return;
+  const life = CHEER_MS - 200;
+  for (let i = 0; i < PIECES; i++) {
+    const bit = document.createElement('i');
+    if (i % 3 === 0) bit.className = 'round';
+    bit.style.background = PAPER[i % PAPER.length];
+    paper.append(bit);
+    // Even all round, jittered, so it is a burst and not the spokes of a wheel.
+    const angle = (i / PIECES) * Math.PI * 2 + Math.random() * 0.6;
+    const reach = SPREAD * (0.45 + Math.random() * 0.55);
+    const dx = Math.cos(angle) * reach;
+    const dy = Math.sin(angle) * reach;
+    const spin = (Math.random() - 0.5) * 1080;
+    bit.animate(
+      [
+        { transform: 'translate(0, 0) rotate(0deg)', opacity: 1, offset: 0 },
+        // The throw peaks early; after that it falls.
+        { transform: `translate(${dx}px, ${dy}px) rotate(${spin * 0.4}deg)`, opacity: 1, offset: 0.35 },
+        { transform: `translate(${dx * 1.15}px, ${dy + FALL}px) rotate(${spin}deg)`, opacity: 0, offset: 1 },
+      ],
+      { duration: life * (0.55 + Math.random() * 0.45), easing: 'cubic-bezier(0.15, 0.6, 0.35, 1)', fill: 'forwards' },
+    );
+  }
 }
 
 backBtn.addEventListener('click', () => {
@@ -463,7 +533,7 @@ nextBtn.addEventListener('click', () => {
 
 /**
  * A tap in the widget picks a part instead of using it: caught on its way
- * down, before the widget's own buttons hear it. While previewing, the widget
+ * down, before the widget's own buttons hear it. In the test step the widget
  * has its taps to itself.
  */
 screen.addEventListener(
@@ -584,27 +654,6 @@ window.addEventListener('resize', () => {
 // A hidden tab draws no frames: catch up when it is back.
 document.addEventListener('visibilitychange', watch);
 
-// ---- Preview -------------------------------------------------------------
-
-previewBtn.addEventListener('click', () => (previewing ? endPreview() : startPreview()));
-
-/** The widget as it is in an app: no part held, every tap its own. */
-function startPreview() {
-  previewing = true;
-  previewBtn.textContent = 'Stop preview';
-  screen.classList.add('screen--live');
-  document.getElementById('hint').textContent = 'Try it: everything works, and nothing leaves this page.';
-  mount();
-}
-
-function endPreview() {
-  previewing = false;
-  previewBtn.textContent = 'Preview';
-  screen.classList.remove('screen--live');
-  document.getElementById('hint').textContent = 'Tap a part of the widget to change it.';
-  mount();
-}
-
 // ---- Settings ------------------------------------------------------------
 
 form.addEventListener('input', (e) => {
@@ -633,9 +682,6 @@ form.addEventListener('input', (e) => {
   } else if (t.dataset.string) {
     if (t.value.trim()) state.strings[t.dataset.string] = t.value;
     else delete state.strings[t.dataset.string];
-  } else if (t.name === 'agent') {
-    agent = t.value;
-    return writeCode();
   } else return;
   update();
 });
@@ -829,29 +875,19 @@ function writeCode() {
   document.querySelector('#code-html code').innerHTML = highlight(html());
   document.querySelector('#code-css code').innerHTML = highlight(css());
   document.getElementById('prompt').textContent = prompt();
-  if (!fed) feedBtn.textContent = agent ? `Feed it to ${agent}` : 'Feed it to your AI';
 }
 
 // ---- The prompt ----------------------------------------------------------
 
 /**
- * The last step's first route: one prompt for the developer's AI agent, with
- * the code above and all it needs to put it in any kind of app and to get a
- * server running. The agent picked changes the button, the greeting and the
- * toast, never the prompt. Like everything here it is remembered nowhere.
+ * The last step's first route: one prompt for the developer's AI agent,
+ * whichever it is, with the code above and all it needs to put it in any
+ * kind of app and to get a server running.
  */
-let agent = 'Claude';
+const FEED = 'Feed it to your AI agent';
 /** While the button says "Fed!". */
 let fed = 0;
 const feedBtn = document.getElementById('feed');
-
-/** What the toast says once the prompt is copied, per agent. */
-const FED = {
-  Claude: 'Claude says nom nom. Paste it in the chat.',
-  Cursor: 'Cursor is chewing on it. Paste it in the chat.',
-  Codex: 'Codex is fed. Paste it in and watch it go.',
-  '': "Copied. Paste it into your AI's chat.",
-};
 
 /** Where the element goes, per way of showing it. */
 const PLACE = {
@@ -868,7 +904,7 @@ function prompt() {
   const style = css().startsWith('/*') ? '' : css();
   const strings = Object.keys(state.strings).some((k) => !offKind(k));
   return [
-    `${agent ? `Hi ${agent}!` : 'Hi!'} Please add PleaseNoBugs to this app: a feedback board where its users report bugs, share ideas and write reviews, as one web component. I chose its look and settings on PleaseNoBugs' customize page; they are in the code below.`,
+    `Hi! Please add PleaseNoBugs to this app: a feedback board where its users report bugs, share ideas and write reviews, as one web component. I chose its look and settings on PleaseNoBugs' customize page; they are in the code below.`,
     `Docs: ${REPO}`,
     '',
     '1. The server',
@@ -904,12 +940,12 @@ feedBtn.addEventListener('click', async () => {
     document.querySelector('.feed__peek').open = true;
     return toast('Copying was blocked: select the prompt below instead');
   }
-  toast(FED[agent]);
+  toast("Nom nom. Now paste it into your agent's chat.");
   feedBtn.textContent = 'Fed!';
   clearTimeout(fed);
   fed = setTimeout(() => {
     fed = 0;
-    writeCode();
+    feedBtn.textContent = FEED;
   }, 2000);
 });
 

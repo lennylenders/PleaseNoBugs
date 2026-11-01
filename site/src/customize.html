@@ -122,16 +122,7 @@
                 One prompt with everything your agent needs: your settings, the code, where it goes in your kind of
                 app, and how to get a server running. It asks you for what only you know, like your wallet address.
               </p>
-              <fieldset class="field">
-                <legend>Your agent</legend>
-                <div class="seg">
-                  <label><input type="radio" name="agent" value="Claude" checked /><span>Claude</span></label>
-                  <label><input type="radio" name="agent" value="Cursor" /><span>Cursor</span></label>
-                  <label><input type="radio" name="agent" value="Codex" /><span>Codex</span></label>
-                  <label><input type="radio" name="agent" value="" /><span>Another</span></label>
-                </div>
-              </fieldset>
-              <button type="button" class="btn feed__btn" id="feed">Feed it to Claude</button>
+              <button type="button" class="btn feed__btn" id="feed">Feed it to your AI agent</button>
               <details class="feed__peek">
                 <summary>Peek at the prompt</summary>
                 <pre class="code"><code id="prompt"></code></pre>
@@ -142,9 +133,12 @@
               Paste this into your app. Swap <code>YOUR_PROJECT_ID</code> and <code>YOUR_SERVER</code> for what your
               server printed when it started. <a href="https://github.com/lennylenders/PleaseNoBugs#readme">No server yet?</a>
             </p>
-            <div class="tabs" role="tablist" aria-label="Code">
-              <button type="button" role="tab" aria-selected="true" aria-controls="code-html" id="tab-html">HTML</button>
-              <button type="button" role="tab" aria-selected="false" aria-controls="code-css" id="tab-css">CSS</button>
+            <div class="code-head">
+              <div class="tabs" role="tablist" aria-label="Code">
+                <button type="button" role="tab" aria-selected="true" aria-controls="code-html" id="tab-html">HTML</button>
+                <button type="button" role="tab" aria-selected="false" aria-controls="code-css" id="tab-css">CSS</button>
+              </div>
+              <button type="button" class="btn btn--small btn--grey" id="copy">Copy code</button>
             </div>
             <pre class="code" id="code-html" role="tabpanel" aria-labelledby="tab-html"><code></code></pre>
             <pre class="code" id="code-css" role="tabpanel" aria-labelledby="tab-css" hidden><code></code></pre>
@@ -154,9 +148,7 @@
         <div class="actions">
           <button type="button" class="btn btn--small btn--grey" id="back">Back</button>
           <span class="spacer"></span>
-          <button type="button" class="btn btn--small btn--grey" id="preview">Preview</button>
           <button type="button" class="btn btn--small" id="next">Next</button>
-          <button type="button" class="btn btn--small" id="copy" hidden>Copy code</button>
         </div>
       </div>
     </main>
