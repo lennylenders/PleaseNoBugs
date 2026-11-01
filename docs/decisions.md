@@ -800,6 +800,29 @@ Three changes to the configurator, the owner's, built straight away.
   under the box changes; with Off the box goes). The step is left out when
   only reviews are on the tiles, since a review takes no screenshot.
 
+## 2026-11-01: The last step feeds a prompt to the developer's AI agent
+
+Most developers build with an AI agent now, so the Code step leads with a
+prompt for it, above the code to paste by hand, which stays. Designed in
+Figma first (Page 3, "Site · Customize · Code · Feed it to your AI"), built
+after the owner approved it.
+
+- **One prompt, built from the same choices as the code**: the code (and
+  the CSS when colours changed), the pinned version, how to place it with
+  plain HTML or a bundler, where the element goes for the way it is shown,
+  the texts line when texts changed, Nimiq Pay's bar, and how to check it.
+- **The server too**, the owner's choice: the agent first asks whether there
+  is one, and if not walks the developer through Railway (which they click
+  themselves), the app's own Node backend, or Docker. It is told never to
+  make up the wallet address, the project id or the server address.
+- **A little fun, kept to the edges**: the developer picks Claude, Cursor,
+  Codex or another, which only changes the button ("Feed it to Claude"),
+  the greeting and the toast ("Claude says nom nom. Paste it in the
+  chat."); the prompt is the same for all. Names only, no logos. The pick
+  is remembered nowhere, like everything on the page. "Peek at the prompt"
+  shows what is copied; where copying is blocked it opens, to select by
+  hand.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

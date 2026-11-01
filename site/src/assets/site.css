@@ -1023,6 +1023,46 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
   .screen { height: 640px; }
 }
 
+/* The last step's first route: a prompt for the developer's AI agent. In
+   the accent's outline, as the one thing on the step to do first. */
+.feed {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 18px;
+  border-radius: 12px;
+  background: var(--page);
+  border: 1.5px solid var(--button);
+}
+.feed h3 { margin: 0; font-size: 17px; font-weight: 900; }
+.feed__about { margin: 0; font-size: 14px; line-height: 1.5; color: var(--sub); }
+.feed .field { margin: 0; }
+/* Four agents on one row, down to a phone. */
+.feed .seg span { padding-inline: 6px; }
+.feed__btn { width: 100%; }
+.feed__peek summary {
+  width: max-content;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--button);
+  cursor: pointer;
+}
+.feed__peek .code {
+  margin-top: 10px;
+  max-height: 320px;
+  overflow: auto;
+  padding: 14px 16px;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* "or paste it yourself", between two lines. */
+.or { display: flex; align-items: center; gap: 10px; margin: 20px 0 6px; font-size: 13px; font-weight: 700; color: var(--quiet); }
+.or::before,
+.or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
 .tabs { display: flex; gap: 4px; margin: 24px 0 10px; }
 .tabs button {
   border: 0;

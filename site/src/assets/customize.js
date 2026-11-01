@@ -633,6 +633,9 @@ form.addEventListener('input', (e) => {
   } else if (t.dataset.string) {
     if (t.value.trim()) state.strings[t.dataset.string] = t.value;
     else delete state.strings[t.dataset.string];
+  } else if (t.name === 'agent') {
+    agent = t.value;
+    return writeCode();
   } else return;
   update();
 });
@@ -825,7 +828,90 @@ function highlight(code) {
 function writeCode() {
   document.querySelector('#code-html code').innerHTML = highlight(html());
   document.querySelector('#code-css code').innerHTML = highlight(css());
+  document.getElementById('prompt').textContent = prompt();
+  if (!fed) feedBtn.textContent = agent ? `Feed it to ${agent}` : 'Feed it to your AI';
 }
+
+// ---- The prompt ----------------------------------------------------------
+
+/**
+ * The last step's first route: one prompt for the developer's AI agent, with
+ * the code above and all it needs to put it in any kind of app and to get a
+ * server running. The agent picked changes the button, the greeting and the
+ * toast, never the prompt. Like everything here it is remembered nowhere.
+ */
+let agent = 'Claude';
+/** While the button says "Fed!". */
+let fed = 0;
+const feedBtn = document.getElementById('feed');
+
+/** What the toast says once the prompt is copied, per agent. */
+const FED = {
+  Claude: 'Claude says nom nom. Paste it in the chat.',
+  Cursor: 'Cursor is chewing on it. Paste it in the chat.',
+  Codex: 'Codex is fed. Paste it in and watch it go.',
+  '': "Copied. Paste it into your AI's chat.",
+};
+
+/** Where the element goes, per way of showing it. */
+const PLACE = {
+  floating: 'It draws a round button in the bottom-right corner by itself. Put the element once, near the root, so it is on every screen.',
+  inline:
+    'It fills the element it is in. Give the app a Feedback page or panel, for example behind a Feedback item in its menu, and put it there with a height, such as the full height of that page.',
+  overlay:
+    "It covers the screen as soon as it is in the page. Show it from the app's own Feedback button or menu item, and take it away when it fires pleasenobugs:close.",
+};
+
+const REPO = 'https://github.com/lennylenders/PleaseNoBugs';
+
+function prompt() {
+  const style = css().startsWith('/*') ? '' : css();
+  const strings = Object.keys(state.strings).some((k) => !offKind(k));
+  return [
+    `${agent ? `Hi ${agent}!` : 'Hi!'} Please add PleaseNoBugs to this app: a feedback board where its users report bugs, share ideas and write reviews, as one web component. I chose its look and settings on PleaseNoBugs' customize page; they are in the code below.`,
+    `Docs: ${REPO}`,
+    '',
+    '1. The server',
+    'The widget talks to a PleaseNoBugs server that I run myself, so nobody else holds the feedback. First ask me whether I have one. If I do, ask me for its project id and its address: it prints both in its log every time it starts. If not, help me pick one of these and walk me through it:',
+    '- Railway, no command line, about $1 a month: I open https://railway.com/deploy/PdvdtB, sign in and fill in three fields. Tell me what goes in them: PNB_PROJECT_NAME (what users call this app), PNB_PROJECT_ORIGINS (where it runs, comma-separated, the local dev address too, like https://my.app,http://localhost:5173) and PNB_PROJECT_OWNER (my NQ... wallet address, which answers posts). Then I paste you what Deploy Logs says.',
+    `- This app's own Node backend (Node 22.13 or newer): npx @pleasenobugs/server create-project --name "..." --origin https://... --owner "NQ...", then npx @pleasenobugs/server. Or mount it in Express: ${REPO}/tree/main/packages/server`,
+    '- Docker on a machine I rent: docker-compose.yml from the repo, a .env with PNB_DOMAIN and the same three fields, then docker compose up -d; the project id is in docker compose logs pleasenobugs.',
+    'Never make up my wallet address, the project id or the server address: ask me.',
+    '',
+    '2. The widget',
+    'Add this, with YOUR_PROJECT_ID and https://YOUR_SERVER replaced by the real values:',
+    '',
+    html(),
+    ...(style ? ['', "And this CSS, in the app's global stylesheet:", '', style] : []),
+    '',
+    '- Plain HTML: the script once, the element where it goes.',
+    `- With a bundler (React, Vue, Svelte, ...): npm install pleasenobugs@${VERSION}, import 'pleasenobugs' once at startup, and render <please-no-bugs> with the same attributes. It is a custom element: write the attributes as they are.`,
+    ...(strings ? ["- The texts I changed go on the element's strings property, as in the code; in a framework, set it from a ref once it is rendered."] : []),
+    `- ${PLACE[state.mode]}`,
+    '- Inside Nimiq Pay, Pay draws its own bar over the page and the widget cannot see it. If this app already measures that bar, pass it on: please-no-bugs { --pnb-inset-top: ...; --pnb-inset-bottom: ...; }',
+    '- Keep the version pinned.',
+    '',
+    '3. Check it',
+    'Start the app, open the widget and make sure the board loads. Posting or voting asks the wallet to sign; inside Nimiq Pay that happens by itself. To answer posts, I open it with the owner wallet and tap "Sign in with your wallet" at the foot of the board.',
+  ].join('\n');
+}
+
+feedBtn.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(`${prompt()}\n`);
+  } catch {
+    // Blocked: the prompt is in the page, to select by hand.
+    document.querySelector('.feed__peek').open = true;
+    return toast('Copying was blocked: select the prompt below instead');
+  }
+  toast(FED[agent]);
+  feedBtn.textContent = 'Fed!';
+  clearTimeout(fed);
+  fed = setTimeout(() => {
+    fed = 0;
+    writeCode();
+  }, 2000);
+});
 
 for (const tab of document.querySelectorAll('[role=tab]')) {
   tab.addEventListener('click', () => {
