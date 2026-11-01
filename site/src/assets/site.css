@@ -490,9 +490,13 @@ section + section { padding-top: 0; }
 .edit__step > :last-child,
 .edit__step > :last-child > .field:last-child { margin-bottom: 0; }
 .edit .field .input + .input { margin-top: 2px; }
-/* A line under a choice saying what each option means. */
+/* A line under a choice saying what the picked option means; only that one shows. */
 .field__about { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: var(--sub); }
 .field__about b { color: var(--ink); font-weight: 700; }
+.field:has(.field__about[data-for]) .field__about[data-for] { display: none; }
+.field:has(input[value='board']:checked) .field__about[data-for='board'],
+.field:has(input[value='owners']:checked) .field__about[data-for='owners'],
+.field:has(input[value='off']:checked) .field__about[data-for='off'] { display: block; }
 .edit .tabs { margin: 0 0 10px; }
 .edit .tabs button[aria-selected='true'] { background: var(--row); }
 

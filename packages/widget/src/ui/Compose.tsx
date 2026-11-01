@@ -36,7 +36,7 @@ export interface Draft {
  * Most of what is on this screen exists to stop somebody regretting the tap
  * afterwards:
  *
- * - **"Everybody can read this" sits above the field**, so it arrives before
+ * - **"Everyone can see this" sits above the field**, so it arrives before
  *   the typing rather than after.
  * - **Lookalikes appear while you type** and can be seconded from here. That is
  *   the only thing on the board that reduces its own input; the alternative is
@@ -188,8 +188,8 @@ export function Compose({
         class="field"
         value={text}
         maxLength={textMax}
-        placeholder={review ? t('board.placeholderReview', { app: appName }) : t('board.placeholder')}
-        aria-label={review ? t('board.placeholderReview', { app: appName }) : t('board.placeholder')}
+        placeholder={t(ASK[kind], { app: appName })}
+        aria-label={t(ASK[kind], { app: appName })}
         onInput={(e) => {
           setText((e.target as HTMLTextAreaElement).value);
           // An edit answers the complaint.
@@ -320,6 +320,13 @@ export function Compose({
     </div>
   );
 }
+
+/** The question in the empty field, one per kind. */
+const ASK: Record<PostKind, CopyKey> = {
+  bug: 'board.placeholder',
+  idea: 'board.placeholderIdea',
+  review: 'board.placeholderReview',
+};
 
 /** The longest side a screenshot is sent at: plenty to read a phone screen by. */
 const SHOT_SIDE = 1600;

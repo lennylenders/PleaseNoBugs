@@ -108,21 +108,27 @@ const COPY = {
   // ---- Writing one ----
   'board.composeTitle': { en: 'Your feedback', nl: 'Jouw feedback', de: 'Dein Feedback' },
   'board.whatKind': { en: 'What is it?', nl: 'Wat is het?', de: 'Was ist es?' },
+  // On a bug; an idea and a review each ask their own question.
   'board.placeholder': {
-    en: 'What is broken, or what do you miss?',
-    nl: 'Wat is er stuk, of wat mis je?',
-    de: 'Was ist kaputt, oder was fehlt dir?',
+    en: 'What’s broken?',
+    nl: 'Wat is er stuk?',
+    de: 'Was ist kaputt?',
+  },
+  'board.placeholderIdea': {
+    en: 'What’s missing?',
+    nl: 'Wat mis je?',
+    de: 'Was fehlt dir?',
   },
   'board.placeholderReview': {
-    en: 'What do you like or dislike about {app}?',
-    nl: 'Wat vind je goed of minder goed aan {app}?',
-    de: 'Was gefällt dir an {app}, was nicht?',
+    en: 'What do you think of {app}?',
+    nl: 'Wat vind je van {app}?',
+    de: 'Wie findest du {app}?',
   },
   'board.yourRating': { en: 'Your rating', nl: 'Jouw beoordeling', de: 'Deine Bewertung' },
   'board.public': {
-    en: 'Everybody using {app} can read this.',
-    nl: 'Iedereen die {app} gebruikt kan dit lezen.',
-    de: 'Jeder, der {app} nutzt, kann das lesen.',
+    en: 'Everyone using {app} can see this.',
+    nl: 'Iedereen die {app} gebruikt ziet dit.',
+    de: 'Alle, die {app} nutzen, sehen das.',
   },
   'board.showName': { en: 'Show my name', nl: 'Mijn naam tonen', de: 'Meinen Namen zeigen' },
   'board.namePlaceholder': { en: 'Your name', nl: 'Je naam', de: 'Dein Name' },
@@ -130,32 +136,32 @@ const COPY = {
   // wallet is not known: the daily limit and one vote per wallet both have to
   // ask who.
   'board.anonNote': {
-    en: 'Nobody on the board sees who wrote it, and your wallet address is never shown. The server does know your wallet: votes and the daily limit are counted per wallet.',
-    nl: 'Niemand op het bord ziet wie het schreef, en je wallet-adres wordt nooit getoond. De server kent je wallet wel: stemmen en de daglimiet tellen per wallet.',
-    de: 'Niemand auf dem Board sieht, wer es geschrieben hat, und deine Wallet-Adresse wird nie gezeigt. Der Server kennt deine Wallet schon: Stimmen und das Tageslimit zählen pro Wallet.',
+    en: 'Your wallet address is never public, but the server uses it to track votes and daily limits.',
+    nl: 'Je wallet-adres is nooit openbaar, maar de server gebruikt het voor stemmen en de daglimiet.',
+    de: 'Deine Wallet-Adresse ist nie öffentlich, aber der Server nutzt sie für Stimmen und das Tageslimit.',
   },
   // ---- A screenshot ----
-  'board.shotAdd': { en: 'Add a screenshot', nl: 'Screenshot toevoegen', de: 'Screenshot hinzufügen' },
+  'board.shotAdd': { en: 'Add screenshot', nl: 'Screenshot toevoegen', de: 'Screenshot hinzufügen' },
   'board.shotRemove': { en: 'Remove screenshot', nl: 'Screenshot weghalen', de: 'Screenshot entfernen' },
   // Said before somebody picks one, because a screenshot of a wallet app is
   // the easiest way to give away a balance without noticing. On a board that
   // shows screenshots, and the one for `screenshots="owners"`. The address
   // line is there because posting anonymously is undone by a picture of it.
   'board.shotNoteBoard': {
-    en: 'Everyone who views the board sees it. Check it shows nothing private, like a balance, an address or a name. An address on it shows it was you, even if you post anonymously.',
-    nl: 'Iedereen die het bord bekijkt ziet hem. Kijk of er niets privés op staat, zoals een saldo, een adres of een naam. Een adres erop laat zien dat jij het was, ook als je anoniem post.',
-    de: 'Jeder, der das Board ansieht, sieht ihn. Prüf, dass nichts Privates drauf ist, etwa ein Kontostand, eine Adresse oder ein Name. Eine Adresse darauf zeigt, dass du es warst, auch wenn du anonym postest.',
+    en: 'Screenshots are public. Hide personal info and wallet addresses.',
+    nl: 'Screenshots zijn openbaar. Verberg persoonlijke gegevens en wallet-adressen.',
+    de: 'Screenshots sind öffentlich. Verdecke persönliche Daten und Wallet-Adressen.',
   },
   // Ticked under the picture itself, so the yes is about this one.
   'board.shotAgree': {
-    en: 'I checked it: everyone may see this screenshot.',
-    nl: 'Ik heb gekeken: iedereen mag deze screenshot zien.',
-    de: 'Ich hab nachgesehen: Jeder darf diesen Screenshot sehen.',
+    en: 'Checked: everyone may see this.',
+    nl: 'Gecheckt: iedereen mag dit zien.',
+    de: 'Geprüft: Alle dürfen das sehen.',
   },
   'board.shotNote': {
-    en: 'Only {app} sees it, not the board. Check it shows nothing private, like a balance or an address.',
-    nl: 'Alleen {app} ziet hem, het bord niet. Kijk of er niets privés op staat, zoals een saldo of adres.',
-    de: 'Nur {app} sieht ihn, nicht das Board. Prüf, dass nichts Privates drauf ist, etwa ein Kontostand oder eine Adresse.',
+    en: 'Only {app} sees it. Hide personal info and wallet addresses.',
+    nl: 'Alleen {app} ziet hem. Verberg persoonlijke gegevens en wallet-adressen.',
+    de: 'Nur {app} sieht ihn. Verdecke persönliche Daten und Wallet-Adressen.',
   },
   'board.shotFailed': {
     en: 'That image could not be read. Try another one.',
@@ -218,9 +224,9 @@ const COPY = {
     de: 'Vielleicht schon gesagt?',
   },
   'board.likeThisNote': {
-    en: 'Back one of these instead and it counts for more.',
-    nl: 'Steun er liever een van deze, dan telt het zwaarder.',
-    de: 'Unterstütz lieber eins davon, dann zählt es mehr.',
+    en: 'Vote for one of these instead.',
+    nl: 'Stem liever op een van deze.',
+    de: 'Stimm lieber für eins davon.',
   },
   // Two ways a post can be refused, because the answer to one is "go again"
   // and the answer to the other is "come back tomorrow".

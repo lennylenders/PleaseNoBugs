@@ -21,7 +21,7 @@ const HUB = 'https://cdn.jsdelivr.net/npm/@nimiq/hub-api@1.15.0/dist/standalone/
 /** What the board says about who you are, true for a guest key instead of a wallet. */
 const GUEST = {
   'board.anonNote':
-    'Nobody sees who wrote it: this board shows no names. Your browser keeps a key of its own, which counts your votes and your posts per day. No account, no email.',
+    'This board shows no names. Your browser keeps its own key to count votes and daily posts. No account needed.',
   'board.needWallet': 'This browser cannot sign here. Try a recent Chrome, Safari or Firefox, or open it in Nimiq Pay.',
   'board.signIn': 'Show what is left of my day',
 };
