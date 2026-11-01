@@ -23,6 +23,7 @@ const STEPS = [
   { id: 'button', name: 'Feedback button', screen: 'button', mark: (r) => [r.querySelector('.fab')], floatingOnly: true },
   { id: 'tiles', name: 'Tiles', screen: 'tiles', mark: (r) => [...r.querySelectorAll('.tile')] },
   { id: 'board', name: 'Board', screen: 'board', mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')] },
+  { id: 'shots', name: 'Screenshots', screen: 'write', mark: (r) => [r.querySelector('.shot')], shotsOnly: true },
   { id: 'sent', name: 'Feedback sent!', screen: 'sent', mark: (r) => [r.querySelector('.sent')] },
   { id: 'code', name: 'Code', screen: 'tiles' },
 ];
@@ -221,8 +222,15 @@ let previewing = false;
 /** The widget in the box. */
 let board = null;
 
-/** The steps there are for the current choices: no round button unless it is one. */
-const route = () => STEPS.filter((s) => !s.floatingOnly || state.mode === 'floating');
+/**
+ * The steps there are for the current choices: no round button unless it is
+ * one, and no screenshots without a bug or an idea to put them on.
+ */
+const route = () =>
+  STEPS.filter(
+    (s) =>
+      (!s.floatingOnly || state.mode === 'floating') && (!s.shotsOnly || state.kinds.some((k) => k !== 'review')),
+  );
 const step = () => STEPS.find((s) => s.id === at);
 
 // ---- The widget ----------------------------------------------------------
@@ -249,11 +257,23 @@ function apply(el, mode = state.mode, held = previewing ? '' : step().screen) {
   el.strings = Object.keys(state.strings).length ? { ...state.strings } : undefined;
 }
 
+/**
+ * Where an inline widget sits after step 1: in the app's Feedback page, as
+ * step 1's animation left it. The menu beside it on a wide screen, the
+ * page's bar over it on a narrow one (site.css picks).
+ */
+const INLINE_FRAME = `<div class="inline-frame" aria-hidden="true">
+    <nav class="dk-menu"><b>Your app</b><span>Home</span><span>Settings</span><span class="dk-menu__pick">Feedback</span><span>About</span></nav>
+    <b class="ph-back">‹&nbsp; Your app</b>
+  </div>`;
+
 /** A fresh widget in the box: for a new mode, and for a preview that starts as it would in an app. */
 function mount() {
   board?.remove();
   screen.querySelector('.screen__again')?.remove();
+  screen.querySelector('.inline-frame')?.remove();
   screen.classList.toggle('screen--inline', state.mode === 'inline');
+  if (state.mode === 'inline') screen.insertAdjacentHTML('beforeend', INLINE_FRAME);
   board = document.createElement('please-no-bugs');
   revealed = null;
   apply(board);
@@ -342,9 +362,9 @@ const PLAYS = {
     floating: `${app()}<div class="pl-dim"></div>
       <div class="dk-panel dk-open">${TILES}<div class="dk-skin"><span class="dk-glyph">${GLYPH}</span></div></div>
       <span class="pl-spot">${TAP_A}</span>`,
-    inline: `${app(`<span class="ph-burger dk-burger">${TAP_A}</span>`)}<div class="pl-dim"></div>
-      <div class="dk-feed">${TILES}</div>
-      <nav class="dk-menu"><b>Menu</b><span>Home</span><span>Settings</span><span class="dk-menu__pick">Feedback${TAP_B}</span><span>About</span></nav>`,
+    inline: `${app('', true)}<div class="pl-dim"></div>
+      <nav class="dk-menu"><b>Your app</b><span>Home</span><span>Settings</span><span class="dk-menu__pick">Feedback${TAP_B}</span><span>About</span></nav>
+      <div class="dk-feed">${TILES}</div>`,
     overlay: `${app(CTA)}<div class="pl-dim"></div><div class="dk-panel dk-rise">${TILES}</div>`,
   },
 };
@@ -391,6 +411,8 @@ function update() {
   for (const input of form.querySelectorAll('[data-string]')) input.hidden = offKind(input.dataset.string);
   if (board) apply(board);
   paintDevice();
+  // Kinds can take the screenshots step away, or bring it back.
+  paintSteps();
   paintSwatches();
   writeCode();
 }

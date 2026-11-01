@@ -662,14 +662,26 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
 .screen__app i:nth-of-type(3) { width: 70%; height: 120px; margin-top: 8px; border-radius: 10px; background: var(--row); }
 .screen__app i:nth-of-type(4) { width: 40%; }
 
+/* Inline after step 1: where step 1's animation left it, in the app's own
+   Feedback page. Beside the app's menu, open with Feedback picked, on a
+   wide screen; under the page's "‹ Your app" bar on a narrow one. */
 .screen--inline .screen__app { display: none; }
-.screen--inline { background: var(--device); }
 .screen--inline > please-no-bugs {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 240px;
   display: block;
-  width: min(375px, 100%);
-  height: 100%;
-  margin: 0 auto;
-  box-shadow: 0 0 0 1px var(--line);
+}
+.inline-frame { display: none; }
+.screen--inline > .inline-frame { display: block; }
+.inline-frame .ph-back { display: none; }
+
+@media (max-width: 639px) {
+  .screen--inline > please-no-bugs { left: 0; top: 72px; }
+  .inline-frame .dk-menu { display: none; }
+  .inline-frame .ph-back { display: block; }
 }
 
 .screen__again {
@@ -922,48 +934,50 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
   75.2%, 100% { opacity: 0; }
 }
 
-/* Inline, 4.6 s, as on a phone but beside the app: tap the app's menu, it
-   opens on the right, click Feedback, and the app's Feedback page fills the
-   rest of the screen with the widget in it, on the tiles, the menu still
-   open beside it; then both go. The widget takes the width it is given. */
-.play .dk-burger { position: absolute; top: 28px; right: 24px; }
+/* Inline, 4.6 s, as on a phone but beside the app: tap the menu button in
+   front of the app's name, the menu slides in from the left, click
+   Feedback, and the app's Feedback page fills the rest of the screen with
+   the widget in it, on the tiles, the menu still open beside it; then both
+   go. The widget takes the width it is given. The menu without its motion
+   is also the frame the inline widget sits in after step 1 (`.inline-frame`). */
 .dk-menu {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
   bottom: 0;
   width: 240px;
   display: grid;
   align-content: start;
   background: var(--row);
   box-shadow: var(--shadow);
-  animation: dk-menu 4.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
 }
 .dk-menu b { padding: 24px 24px 12px; font-size: 20px; font-weight: 900; }
 .dk-menu > span { position: relative; margin: 0 10px; padding: 12px 14px; border-radius: 12px; font-size: 17px; font-weight: 700; }
-.dk-menu > .dk-menu__pick { background: var(--card); animation: dk-menu-pick 4.6s infinite step-end; }
+.dk-menu > .dk-menu__pick { background: var(--card); }
 .dk-feed {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 0;
-  right: 240px;
+  left: 240px;
+  right: 0;
   background: var(--page);
   animation: dk-feed 4.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
 }
+.play--inline .dk-menu { animation: dk-menu 4.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
+.play--inline .dk-menu__pick { animation: dk-menu-pick 4.6s infinite step-end; }
 .play--desk.play--inline .pl-dim { animation: dk-dim-inline 4.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
 .play--desk.play--inline .pl-tap--a { animation: ph-tap-menu 4.6s infinite ease-out; }
 .play--desk.play--inline .pl-tap--b { animation: ph-tap-pick 4.6s infinite ease-out; }
 
 @keyframes dk-menu {
-  0%, 13% { transform: translateX(100%); }
+  0%, 13% { transform: translateX(-100%); }
   19.6%, 78.3% { transform: translateX(0); }
-  84.8%, 100% { transform: translateX(100%); }
+  84.8%, 100% { transform: translateX(-100%); }
 }
 @keyframes dk-feed {
-  0%, 32.6% { opacity: 0; transform: translateX(-16px); }
+  0%, 32.6% { opacity: 0; transform: translateX(16px); }
   40.2%, 78.3% { opacity: 1; transform: none; }
-  84.8%, 100% { opacity: 0; transform: translateX(-16px); }
+  84.8%, 100% { opacity: 0; transform: translateX(16px); }
 }
 @keyframes dk-dim-inline {
   0%, 13% { opacity: 0; }

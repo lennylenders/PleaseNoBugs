@@ -54,7 +54,7 @@
         <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
           <div class="edit__step" data-step="settings">
             <h2>Settings</h2>
-            <p class="edit__hint">How the widget shows up in your app, and who sees screenshots.</p>
+            <p class="edit__hint">How the widget shows up in your app.</p>
             <fieldset class="field">
               <legend>Shown as</legend>
               <div class="seg">
@@ -62,15 +62,6 @@
                 <label><input type="radio" name="mode" value="inline" /><span>Inline</span></label>
                 <label><input type="radio" name="mode" value="overlay" /><span>Overlay</span></label>
               </div>
-            </fieldset>
-            <fieldset class="field">
-              <legend>Screenshots on bugs and ideas</legend>
-              <div class="seg">
-                <label><input type="radio" name="screenshots" value="board" checked /><span>Everyone</span></label>
-                <label><input type="radio" name="screenshots" value="owners" /><span>Only you</span></label>
-                <label><input type="radio" name="screenshots" value="off" /><span>Off</span></label>
-              </div>
-              <p class="field__about"><b>Everyone</b>: on the board, once the user ticks that everyone may see it. <b>Only you</b>: never on the board.</p>
             </fieldset>
           </div>
 
@@ -100,6 +91,20 @@
             <p class="edit__hint">The list of posts people read and vote on, with your answers under them.</p>
             <div data-strings="board"></div>
             <div data-colours="board"></div>
+          </div>
+
+          <div class="edit__step" data-step="shots" hidden>
+            <h2>Screenshots</h2>
+            <p class="edit__hint">A bug or an idea can carry a screenshot. Who may see it?</p>
+            <fieldset class="field">
+              <legend>Screenshots on bugs and ideas</legend>
+              <div class="seg">
+                <label><input type="radio" name="screenshots" value="board" checked /><span>Everyone</span></label>
+                <label><input type="radio" name="screenshots" value="owners" /><span>Only you</span></label>
+                <label><input type="radio" name="screenshots" value="off" /><span>Off</span></label>
+              </div>
+              <p class="field__about"><b>Everyone</b>: on the board, once the user ticks that everyone may see it. <b>Only you</b>: never on the board. <b>Off</b>: no screenshots at all.</p>
+            </fieldset>
           </div>
 
           <div class="edit__step" data-step="sent" hidden>

@@ -781,6 +781,25 @@ following the frames approved above.
   it. The widget takes the width it is given there, as an inline widget
   does. Before, it was a menu bar with the widget in a 375 column.
 
+## 2026-11-01: Inline stays where step 1 left it, and screenshots get a step of their own
+
+Three changes to the configurator, the owner's, built straight away.
+
+- **Inline on a wide screen mirrors the phone**: the menu button stands in
+  front of "Your app" and the menu slides in from the left, the Feedback
+  page opening on its right. Before, both were on the right.
+- **After step 1 an inline widget stays where the animation left it**, up
+  to and including Code, and in Preview: in the app's Feedback page, beside
+  the app's menu (open, Feedback picked) on a wide screen, under the page's
+  "‹ Your app" bar on a narrow one, filling the rest of the box. Before, it
+  was a 375 column in the middle of a dark box. The owner chose the exact
+  end of the animation over the same place without the menu.
+- **Screenshots is its own step, after Board**, instead of a choice in
+  Settings. It shows the writing screen with "Add a screenshot" outlined, so
+  Everyone, Only you and Off show what they do as they are picked (the note
+  under the box changes; with Off the box goes). The step is left out when
+  only reviews are on the tiles, since a review takes no screenshot.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
