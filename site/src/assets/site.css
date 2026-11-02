@@ -193,21 +193,35 @@ section + section { padding-top: 0; }
 
 /* ---- The one pager: what it is, and the widget to try ----------------- */
 
+/*
+ * The text beside the tour, centred on the box alone: the choice of side and
+ * the line about it sit in a row of their own under the box, so they do not
+ * pull the text down. The text column is wide enough for the heading on two
+ * lines, the tour's for the corner panel and the subtitle beside it.
+ */
 .hero {
   display: grid;
-  /* The text in the configurator's steps column, the tour in its preview's. */
-  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
-  gap: 48px 32px;
+  grid-template-columns: minmax(0, 460px) minmax(620px, 1fr);
+  grid-template-areas:
+    'text tour'
+    '. try';
+  gap: 16px 48px;
   align-items: center;
   padding-top: 40px;
   padding-bottom: 56px;
 }
+.hero__text { grid-area: text; }
+.hero > .tour { grid-area: tour; }
+.hero > .try { grid-area: try; }
 
-.hero h1 { max-width: 587px; letter-spacing: -0.52px; }
-.hero .lead { font-size: 20px; line-height: 30px; max-width: 660px; }
+.hero h1 { font-size: clamp(34px, 4.2vw, 48px); letter-spacing: -0.5px; }
+.hero .lead { font-size: 20px; line-height: 30px; max-width: 440px; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 
-.try { display: grid; gap: 16px; }
+/* Short enough beside the text that the box and the choice under it fit a laptop's window. */
+.hero .screen--home { height: clamp(480px, calc(100vh - 280px), 640px); }
+
+.try { display: grid; gap: 12px; }
 .try > p { margin: 0; color: var(--sub); font-size: 14px; text-align: center; }
 
 /*
@@ -293,9 +307,19 @@ section + section { padding-top: 0; }
 .apps__counts { color: var(--sub); font-size: 13px; }
 .apps__open { color: var(--button); font-weight: 700; text-align: center; }
 
-/* Under each other below 900px, as the configurator's steps and box. */
-@media (max-width: 899px) {
-  .hero { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+/* Under each other where the two would not both fit, in one column. */
+@media (max-width: 1099px) {
+  .hero {
+    grid-template-columns: minmax(0, 760px);
+    grid-template-areas: 'text' 'tour' 'try';
+    justify-content: center;
+  }
+  .hero__text { margin-bottom: 20px; }
+  .hero .lead { max-width: 660px; }
+  .hero .screen--home { height: 520px; }
+}
+@media (max-width: 639px) {
+  .hero .screen--home { height: 640px; }
 }
 
 /* ---- The table, after the design's list of posts ---------------------- */

@@ -926,6 +926,24 @@ on its own instead, in the configurator's box.
   owner's choice: on a computer they took a strip of the panel for nothing
   a wheel or a cut-off card does not already say. Scrolling is unchanged.
 
+## 2026-11-02: The home page's text and tour in proportion
+
+The owner found the heading and its line out of proportion with the tour.
+The heading broke over three lines in a 420px column, and the text was
+centred on the box and the choice under it together, so it sat low.
+
+- **The text is centred on the box alone**: the App user / App owner choice
+  and its line are a row of their own under the box (`grid-template-areas`).
+- **The heading fits two lines**: a 460px text column and the heading at
+  48px at most. The tour keeps at least 620px, the room the corner panel
+  and the subtitle beside it need, so it is no longer the configurator's
+  exact size.
+- **It fits a laptop's window**: the box is the window's height less 280px
+  (480 to 640px), so the box and the choice under it show on a 1280×800
+  screen without scrolling.
+- **Under 1100px, one column** of at most 760px, text above the box: below
+  that the two would not both fit.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
