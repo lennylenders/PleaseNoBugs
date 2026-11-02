@@ -1,8 +1,9 @@
 /**
  * The home page's tour. The page is a pretend app: the heading, its line
- * and two ways in, and the real widget's round button in its corner, in
- * `demo` mode. A visitor picks a side and the widget plays through it on its
- * own, once, over the page, then the two ways in are back:
+ * and "Watch demo", and the real widget's round button in its corner, in
+ * `demo` mode. "Watch demo" turns the page into the configurator's pretend
+ * app ("Your app" and its skeleton) with a choice of side in its middle;
+ * the side picked plays through on its own, once, then the heading is back:
  *
  * - **App user**, as a user meets it: tap the round button, pick Report a
  *   bug on the tiles, describe it, send it, and only then the board, with
@@ -28,6 +29,8 @@ const frame = document.getElementById('tour-frame');
 const page = box?.querySelector('.tour-page');
 const subtitle = document.getElementById('tour-say');
 const pausedNote = document.getElementById('tour-paused');
+const watch = document.getElementById('tour-watch');
+const pick = document.getElementById('tour-pick');
 const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 /**
@@ -356,11 +359,23 @@ function pause(on) {
   frame.classList.toggle('tour--paused', on);
 }
 
-/** Back to the page and its two ways in, with a fresh widget, closed. */
+/** The pretend app with the choice of side in it, or the heading back. */
+function choose(on) {
+  frame.classList.toggle('tour--app', on);
+  page.inert = on;
+  pick.hidden = !on;
+  if (on) pick.querySelector('[data-pov]').focus({ preventScroll: true });
+  else if (!document.activeElement || document.activeElement === document.body || frame.contains(document.activeElement)) {
+    // Back where the visitor came from, unless they went elsewhere meanwhile.
+    watch.focus({ preventScroll: true });
+  }
+}
+
+/** Back to the heading and "Watch demo", with a fresh widget, closed. */
 function rest() {
   pause(false);
   frame.classList.remove('tour--playing');
-  page.inert = false;
+  choose(false);
   mount('user');
 }
 
@@ -371,8 +386,8 @@ async function play(pov) {
   if (mine !== current) return;
   running = mine;
   pause(false);
+  pick.hidden = true;
   frame.classList.add('tour--playing');
-  page.inert = true;
   last = (pov === 'owner' ? ownerRound() : userRound())
     .catch((e) => {
       // A step that did not find its button ends the tour rather than hang it.
@@ -389,16 +404,21 @@ function stop() {
   rest();
 }
 
-if (box && frame && page && subtitle && pausedNote) {
+if (box && frame && page && subtitle && pausedNote && watch && pick) {
   await customElements.whenDefined('please-no-bugs');
   mount('user');
   watchSight();
 
-  for (const start of page.querySelectorAll('[data-pov]')) {
-    start.addEventListener('click', (e) => {
+  watch.addEventListener('click', () => choose(true));
+  document.getElementById('tour-back')?.addEventListener('click', () => choose(false));
+  pick.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') choose(false);
+  });
+  for (const side of pick.querySelectorAll('[data-pov]')) {
+    side.addEventListener('click', (e) => {
       // Not also a click on the box, which would pause what just started.
       e.stopPropagation();
-      void play(start.dataset.pov);
+      void play(side.dataset.pov);
     });
   }
   document.getElementById('tour-stop')?.addEventListener('click', (e) => {

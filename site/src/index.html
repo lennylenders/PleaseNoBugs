@@ -30,13 +30,24 @@
       <div class="wrap hero">
         <div class="editor tour" id="tour-frame">
           <div class="screen screen--home" id="tour">
+            <div class="screen__app tour-app" aria-hidden="true">
+              <b>Your app</b>
+              <i></i><i></i><i></i><i></i>
+            </div>
             <div class="tour-page">
               <h1>Stop guessing what your users want.</h1>
               <p class="lead">Customize your feedback board with one tag and let your users drive your roadmap.</p>
               <div class="tour-start">
-                <button type="button" class="btn" data-pov="user"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.5v11a.75.75 0 0 0 1.14.64l9-5.5a.75.75 0 0 0 0-1.28l-9-5.5A.75.75 0 0 0 3 1.5z"/></svg>Watch as app user</button>
-                <button type="button" class="btn btn--quiet" data-pov="owner"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.5v11a.75.75 0 0 0 1.14.64l9-5.5a.75.75 0 0 0 0-1.28l-9-5.5A.75.75 0 0 0 3 1.5z"/></svg>Watch as app owner</button>
+                <button type="button" class="btn" id="tour-watch"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.5v11a.75.75 0 0 0 1.14.64l9-5.5a.75.75 0 0 0 0-1.28l-9-5.5A.75.75 0 0 0 3 1.5z"/></svg>Watch demo</button>
               </div>
+            </div>
+            <div class="tour-pick" id="tour-pick" role="group" aria-labelledby="tour-pick-title" hidden>
+              <b id="tour-pick-title">Watch the demo as…</b>
+              <div class="tour-pick__ways">
+                <button type="button" class="btn" data-pov="user">App user</button>
+                <button type="button" class="btn btn--quiet" data-pov="owner">App owner</button>
+              </div>
+              <button type="button" class="tour-pick__back" id="tour-back">Back</button>
             </div>
             <div class="tour-paused" id="tour-paused" hidden>
               <span class="tour-paused__play"><svg width="22" height="22" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.5v11a.75.75 0 0 0 1.14.64l9-5.5a.75.75 0 0 0 0-1.28l-9-5.5A.75.75 0 0 0 3 1.5z"/></svg></span>

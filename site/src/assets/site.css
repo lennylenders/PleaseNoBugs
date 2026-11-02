@@ -221,9 +221,65 @@ section + section { padding-top: 0; }
 .tour-start { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 .tour-start .btn { gap: 10px; min-height: 48px; padding: 0 22px; }
 .tour-start svg { flex: none; }
-/* While the tour plays the page is only what the widget opens over, and a
-   click on the box pauses it. */
-.tour--playing .tour-start { visibility: hidden; }
+/* "Watch demo" turns the page into the pretend app, "Your app" and its
+   skeleton, as in the configurator, for the choice of side and the tour;
+   the heading is back when it is over. */
+.tour-page,
+.tour--app .tour-app {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 240ms ease, visibility 0s;
+}
+/* Gone: faded out first, then out of reach. */
+.tour-app,
+.tour--app .tour-page {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 240ms ease, visibility 0s 240ms;
+}
+
+/* The choice of side, in the middle of the pretend app. */
+.tour-pick {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  width: min(360px, calc(100% - 32px));
+  padding: 28px 24px 20px;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 16px 48px rgba(10, 10, 30, 0.4);
+  text-align: center;
+  transform: translate(-50%, -50%);
+  animation: tour-pick-in 240ms ease-out;
+}
+.tour-pick[hidden] { display: none; }
+.tour-pick > b { font-size: 20px; font-weight: 900; }
+.tour-pick__ways { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.tour-pick__ways .btn { min-width: 128px; min-height: 48px; }
+.tour-pick__back {
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: var(--sub);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+@keyframes tour-pick-in {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-pick { animation: none; }
+  .tour-page,
+  .tour-app { transition: none; }
+}
+
+/* While the tour plays a click on the box pauses it. */
 .tour--playing .screen--home { cursor: pointer; }
 
 .hero__below { display: flex; justify-content: center; margin-top: 24px; }

@@ -971,6 +971,16 @@ Reverses the entry above on the layout.
   box on a phone, and only while it plays. The App user / App owner choice
   and its line under the box are gone: the two buttons are the choice.
 
+## 2026-11-02: One "Watch demo", and the tour plays in "Your app"
+
+- **One button, "Watch demo"**, under the heading. It turns the page into
+  the configurator's pretend app, "Your app" and its skeleton, the heading
+  and its line faded out, with a card in the middle: "Watch the demo as…",
+  App user or App owner, and Back (or Escape) to the heading. The owner's
+  choice of where the choice goes.
+- **The tour plays in "Your app"**, not over the heading; when it is over,
+  or stopped, the heading and "Watch demo" are back.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
