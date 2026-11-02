@@ -289,6 +289,19 @@ button {
   padding: 0 16px calc(96px + var(--_bottom));
 }
 
+/* No scrollbar where the widget scrolls: a computer's would take a strip of
+   the panel for something a wheel, a finger or a cut-off card already says.
+   Scrolling itself is unchanged. */
+.scroll,
+.sheet {
+  scrollbar-width: none;
+}
+
+.scroll::-webkit-scrollbar,
+.sheet::-webkit-scrollbar {
+  display: none;
+}
+
 .list {
   list-style: none;
   margin: 0;

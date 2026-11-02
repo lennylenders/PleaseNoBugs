@@ -76,4 +76,37 @@ describe('createDemoClient', () => {
     expect(await c.shot('demo-0')).toMatchObject({ ok: false });
     expect(await c.manage('demo-0', { status: 'done' })).toMatchObject({ ok: false, error: 'not_owner' });
   });
+
+  it('as the owner, answers and fixes a bug, and an update closes what it names', async () => {
+    const c = createDemoClient('en', { owner: true });
+    const first = await c.board();
+    expect(first.ok && first.data.me.owner).toBe(true);
+    // Sam's bug, with what the app sent along, which owners see.
+    expect(first.ok && first.data.posts[5].context).toEqual({ version: '1.4.2', screen: 'Send' });
+
+    const fixed = await c.manage('demo-5', {
+      status: 'done',
+      reply: 'Fixed, thanks Sam!',
+      fix: { version: '1.4.3', link: 'github.com/me/app/pull/42' },
+    });
+    expect(fixed).toMatchObject({ ok: true });
+    const after = await c.board();
+    expect(after.ok && after.data.posts[5]).toMatchObject({
+      status: 'done',
+      reply: { text: 'Fixed, thanks Sam!' },
+      fix: { version: '1.4.3', link: 'https://github.com/me/app/pull/42' },
+    });
+    // Away from done, the fix goes with it.
+    await c.manage('demo-5', { status: 'planned' });
+    const planned = await c.board();
+    expect(planned.ok && planned.data.posts[5].fix).toBeUndefined();
+
+    const update = await c.postUpdate({ id: 'u1', title: 'Amounts fit', version: '1.4.4', link: 'github.com/me/app/releases', posts: ['demo-5'] });
+    expect(update.ok && update.data.update).toMatchObject({ title: 'Amounts fit', posts: ['demo-5'] });
+    const board = await c.board();
+    expect(board.ok && board.data.posts[5]).toMatchObject({ status: 'done', fix: { version: '1.4.4' } });
+    const list = await c.updates();
+    expect(list.ok && list.data.updates[0].id).toBe('u1');
+    expect(await c.removeUpdate('u1')).toMatchObject({ ok: true });
+  });
 });

@@ -898,6 +898,34 @@ on its own instead, in the configurator's box.
   disc again. Opacity, scale and the cut only, so it stays smooth. Step 1 of
   the configurator plays it the same way.
 
+## 2026-11-02: The tour has an owner's side, the subtitles are titles, and no scrollbars
+
+- **App user or App owner**, picked under the tour's box (the configurator's
+  segmented choice). The owner's side: the board, Sam's bug tapped, Done
+  with "Fixed in 1.4.3" and a pull request link, an answer to Sam, saved,
+  the card as everybody sees it, then an update on the Updates page. A
+  pick starts the tour over at once on that side; the line under the box
+  says what that side is about.
+- **`demo="owner"`** in the widget, for that and for any developer who wants
+  to try the owner's side with no server: the same sample board, signed in
+  as its owner. Answering, a status, "Fixed in", hiding and updates work in
+  the page's memory as on the server (`cleanFix`, a fix gone once a post is
+  no longer done, an update closing what it names). Sam's sample bug carries
+  what an app would send along (version, screen), which owners see. The
+  demo's updates read at once, like its board.
+- **The subtitles are one short line**, no step number, the owner's
+  choice: shorter to take in while it plays. About your user on one side
+  and about you on the other, and only the first step says who ("Your user
+  taps the button", then "Picks what it is"; "You open your board", then
+  "Pick a bug"): after that it goes without saying.
+- **Slower, and quieter while the bug is typed**: every pause half again as
+  long (`PACE`), typing and taps as they were, so a visitor can take each
+  step in. "Said already, maybe?" is hidden in the tour only: the sample
+  board has a bug like the one typed, and it made the step busy.
+- **No scrollbars in the widget**, everywhere (`.scroll` and `.sheet`), the
+  owner's choice: on a computer they took a strip of the panel for nothing
+  a wheel or a cut-off card does not already say. Scrolling is unchanged.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

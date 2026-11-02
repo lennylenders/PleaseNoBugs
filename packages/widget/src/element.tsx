@@ -33,7 +33,7 @@ export const TAG = 'please-no-bugs';
  * (`off` leaves out "Show my name", so every post is anonymous),
  * `readonly` (the board to scroll through and nothing else: see
  * `readonly.ts`), `demo` (sample posts in the page's memory, no server: see
- * `demo.ts`) and, with `demo` only, `screen` (`button`, `tiles`, `board`,
+ * `demo.ts`; `demo="owner"` is the owner's side of it) and, with `demo` only, `screen` (`button`, `tiles`, `board`,
  * `write`, `sent` or `updates`: that screen, held, for the website's
  * configurator).
  *
@@ -186,9 +186,11 @@ export class PleaseNoBugsElement extends HTMLElement {
         return;
       }
       // Keyed on the language too: the sample posts speak the board's.
-      const key = `demo|${lang}`;
+      // `demo="owner"`: the same board, seen by the app's owner.
+      const owner = this.getAttribute('demo') === 'owner';
+      const key = `demo|${lang}|${owner}`;
       if (!this.#client || this.#clientKey !== key) {
-        this.#client = this.#demo.createDemoClient(lang);
+        this.#client = this.#demo.createDemoClient(lang, { owner });
         this.#clientKey = key;
       }
       this.#show(this.#client, lang);

@@ -1,5 +1,6 @@
 import {
   DEFAULT_RULES,
+  cleanFix,
   type BoardRead,
   type Post,
   type PostKind,
@@ -16,13 +17,16 @@ import type { Client, Result } from './client.js';
  * "Feedback sent!") and **nothing leaves the browser**. Nothing is stored
  * either, not even in `localStorage`, so a reload is a fresh board.
  *
- * The visitor is signed in from the start as an ordinary user, never an
- * owner: a demo should show what an app's users see.
+ * The visitor is signed in from the start as an ordinary user: a demo shows
+ * what an app's users see. With `owner` (`<please-no-bugs demo="owner">`)
+ * they are the app's owner instead, and the owner's side works too:
+ * answering, a status, "Fixed in", hiding, writing and deleting updates.
+ * Still nothing leaves the browser.
  *
  * Typed as a {@link Client}, so a change to the real client that this one
  * does not follow is a type error rather than a demo that quietly lies.
  */
-export function createDemoClient(lang = 'en'): Client {
+export function createDemoClient(lang = 'en', { owner = false } = {}): Client {
   const now = Date.now();
   const known = (lang in SAMPLES ? lang : 'en') as keyof typeof SAMPLES;
   let posts: Post[] = SAMPLES[known].map((s, i) => ({
@@ -38,8 +42,10 @@ export function createDemoClient(lang = 'en'): Client {
     ...(s.rating ? { rating: s.rating } : {}),
     ...(s.reply ? { reply: { text: s.reply, at: now - s.ago / 2 } } : {}),
     ...(s.fix ? { fix: { version: s.fix, link: DEMO_LINK } } : {}),
+    // What the app sent along, which only owners see.
+    ...(owner && s.context ? { context: { ...s.context } } : {}),
   }));
-  const updates: Update[] = UPDATES[known].map((u, i) => ({
+  let updates: Update[] = UPDATES[known].map((u, i) => ({
     id: `demo-update-${i}`,
     title: u.title,
     text: u.text,
@@ -54,7 +60,7 @@ export function createDemoClient(lang = 'en'): Client {
   const shots = new Map<string, string>();
 
   const ok = <T>(data: T): Promise<Result<T>> => later({ ok: true, data });
-  const no = (status: number, error: 'not_found' | 'reviewed' | 'too_many' | 'not_owner') =>
+  const no = (status: number, error: 'not_found' | 'reviewed' | 'too_many' | 'not_owner' | 'bad_request') =>
     later<never>({ ok: false, status, error });
   const find = (id: string) => posts.find((p) => p.id === id);
 
@@ -73,11 +79,11 @@ export function createDemoClient(lang = 'en'): Client {
         data: {
           project: { id: 'demo', name: 'Demo app', rules: { ...DEFAULT_RULES, kinds: [...DEFAULT_RULES.kinds] } },
           posts: posts.map((p) => ({ ...p })),
-          me: { owner: false, left, ...(name ? { name } : {}) },
+          me: { owner, left, ...(name ? { name } : {}) },
           updates: updates.length,
         },
       }),
-    me: () => ok({ owner: false, left, ...(name ? { name } : {}) }),
+    me: () => ok({ owner, left, ...(name ? { name } : {}) }),
     answers: () => ok({ answers: [] }),
 
     post(p) {
@@ -130,12 +136,71 @@ export function createDemoClient(lang = 'en'): Client {
       for (const p of posts) if (p.mine && p.who !== undefined) p.who = name;
       return ok({ ok: true as const, ...(name ? { name } : {}) });
     },
-    manage: () => no(403, 'not_owner'),
-    // Only those whose posts are still here, like the server.
+    // As the server: one change for all of it, and a fix only on a done
+    // bug or idea, gone as soon as it stands anywhere else.
+    manage(id, change) {
+      if (!owner) return no(403, 'not_owner');
+      const p = find(id);
+      if (!p) return no(404, 'not_found');
+      if (change.status && p.kind !== 'review') p.status = change.status;
+      if (change.reply !== undefined) {
+        const text = change.reply.trim();
+        if (text) p.reply = { text, at: Date.now() };
+        else delete p.reply;
+      }
+      if (change.hidden !== undefined) {
+        if (change.hidden) p.hidden = true;
+        else delete p.hidden;
+      }
+      if (change.approved) delete p.pending;
+      if (p.status !== 'done' || p.kind === 'review') delete p.fix;
+      else if (change.fix !== undefined) {
+        const fix = change.fix && cleanFix(change.fix);
+        if (change.fix && !fix) return no(400, 'bad_request');
+        if (fix && (fix.version || fix.link)) p.fix = fix;
+        else delete p.fix;
+      }
+      return ok({ ok: true as const });
+    },
+    // Only those whose posts are still here, like the server; at once, like
+    // the board, so the page is there to read rather than a spinner first.
     updates: () =>
-      ok({ updates: updates.map((u) => ({ ...u, posts: u.posts.filter((id) => !!find(id)) })) }),
-    postUpdate: () => no(403, 'not_owner'),
-    removeUpdate: () => no(403, 'not_owner'),
+      Promise.resolve<Result<{ updates: Update[] }>>({
+        ok: true,
+        data: { updates: updates.map((u) => ({ ...u, posts: u.posts.filter((id) => !!find(id)) })) },
+      }),
+    // The bugs and ideas it names go to done, with its version and link.
+    postUpdate(u) {
+      if (!owner) return no(403, 'not_owner');
+      const fix = cleanFix({ version: u.version ?? '', link: u.link });
+      if (!u.title.trim() || !fix?.link) return no(400, 'bad_request');
+      const named = (u.posts ?? []).filter((id) => {
+        const p = find(id);
+        return p && p.kind !== 'review';
+      });
+      for (const id of named) {
+        const p = find(id) as Post;
+        p.status = 'done';
+        p.fix = fix;
+      }
+      const update: Update = {
+        id: u.id,
+        title: u.title.trim(),
+        ...(u.text?.trim() ? { text: u.text.trim() } : {}),
+        ...(fix.version ? { version: fix.version } : {}),
+        link: fix.link,
+        at: Date.now(),
+        posts: named,
+      };
+      updates = [update, ...updates];
+      return ok({ ok: true as const, update });
+    },
+    removeUpdate(id) {
+      if (!owner) return no(403, 'not_owner');
+      if (!updates.some((u) => u.id === id)) return no(404, 'not_found');
+      updates = updates.filter((u) => u.id !== id);
+      return ok({ ok: true as const });
+    },
   };
 }
 
@@ -164,6 +229,8 @@ interface Sample {
   reply?: string;
   /** The version a done post was fixed in. */
   fix?: string;
+  /** What the app sent along with it, shown to owners. */
+  context?: Record<string, string>;
 }
 
 const HOUR = 3_600_000;
@@ -193,7 +260,7 @@ const SAMPLES: Record<'en' | 'nl' | 'de', Sample[]> = {
     { kind: 'review', text: 'Fast, simple and it never asks me twice. Love it.', votes: 9, ago: 3 * DAY, rating: 5, who: 'Joost' },
     { kind: 'idea', text: 'Let me pin my favourite contacts to the top', votes: 12, ago: 4 * HOUR },
     { kind: 'review', text: 'Does what it says. The history screen could be clearer.', votes: 4, ago: 9 * DAY, rating: 4 },
-    { kind: 'bug', text: 'Amounts over 1,000 overlap the currency on small phones', votes: 6, ago: 20 * HOUR, who: 'Sam' },
+    { kind: 'bug', text: 'Amounts over 1,000 overlap the currency on small phones', votes: 6, ago: 20 * HOUR, who: 'Sam', context: { version: '1.4.2', screen: 'Send' } },
     { kind: 'idea', text: 'Export my history as a CSV file', votes: 3, ago: 12 * DAY, status: 'declined', reply: 'Not for now: it would mean storing more than we want to.' },
   ],
   nl: [
@@ -202,7 +269,7 @@ const SAMPLES: Record<'en' | 'nl' | 'de', Sample[]> = {
     { kind: 'review', text: 'Snel, simpel en hij vraagt nooit twee keer. Top.', votes: 9, ago: 3 * DAY, rating: 5, who: 'Joost' },
     { kind: 'idea', text: 'Laat me mijn favoriete contacten bovenaan zetten', votes: 12, ago: 4 * HOUR },
     { kind: 'review', text: 'Doet wat hij belooft. Het geschiedenisscherm kan duidelijker.', votes: 4, ago: 9 * DAY, rating: 4 },
-    { kind: 'bug', text: 'Bedragen boven 1.000 vallen over de munt op kleine telefoons', votes: 6, ago: 20 * HOUR, who: 'Sam' },
+    { kind: 'bug', text: 'Bedragen boven 1.000 vallen over de munt op kleine telefoons', votes: 6, ago: 20 * HOUR, who: 'Sam', context: { version: '1.4.2', screen: 'Send' } },
     { kind: 'idea', text: 'Mijn geschiedenis exporteren als CSV-bestand', votes: 3, ago: 12 * DAY, status: 'declined', reply: 'Voorlopig niet: dan zouden we meer moeten bewaren dan we willen.' },
   ],
   de: [
@@ -211,7 +278,7 @@ const SAMPLES: Record<'en' | 'nl' | 'de', Sample[]> = {
     { kind: 'review', text: 'Schnell, einfach und fragt nie zweimal. Super.', votes: 9, ago: 3 * DAY, rating: 5, who: 'Joost' },
     { kind: 'idea', text: 'Lass mich meine Lieblingskontakte oben anheften', votes: 12, ago: 4 * HOUR },
     { kind: 'review', text: 'Tut, was es verspricht. Der Verlauf könnte klarer sein.', votes: 4, ago: 9 * DAY, rating: 4 },
-    { kind: 'bug', text: 'Beträge über 1.000 überlappen die Währung auf kleinen Handys', votes: 6, ago: 20 * HOUR, who: 'Sam' },
+    { kind: 'bug', text: 'Beträge über 1.000 überlappen die Währung auf kleinen Handys', votes: 6, ago: 20 * HOUR, who: 'Sam', context: { version: '1.4.2', screen: 'Send' } },
     { kind: 'idea', text: 'Meinen Verlauf als CSV-Datei exportieren', votes: 3, ago: 12 * DAY, status: 'declined', reply: 'Vorerst nicht: Dafür müssten wir mehr speichern, als wir wollen.' },
   ],
 };

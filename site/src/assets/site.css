@@ -222,24 +222,22 @@ section + section { padding-top: 0; }
    over the box on a phone, where the widget fills it. */
 .tour { position: relative; }
 .tour-say {
-  display: grid;
-  gap: 4px;
-  min-height: 92px;
-  align-content: start;
   margin: 0 0 12px;
   padding: 12px 14px;
   border-radius: 12px;
   background: var(--card);
   color: var(--ink);
-  font-size: 14px;
-  line-height: 1.4;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.3;
   text-align: left;
   transition: opacity 180ms ease;
 }
-.tour-say--away { opacity: 0; }
-.tour-say__n { color: var(--button); font-size: 12px; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; }
-.tour-say__title { font-size: 16px; font-weight: 900; }
-.tour-say__text { color: var(--sub); }
+.tour-say--away,
+.tour-say:empty { opacity: 0; }
+
+/* Whose side the tour plays: the configurator's segmented choice, centred. */
+.tour-pov { justify-self: center; min-width: 260px; }
 @media (min-width: 640px) {
   .tour-say {
     position: absolute;
@@ -247,7 +245,7 @@ section + section { padding-top: 0; }
     left: 40px;
     bottom: 40px;
     /* The room the corner panel (375px, 24px from the edge) leaves. */
-    width: clamp(150px, calc(100% - 479px), 240px);
+    max-width: clamp(150px, calc(100% - 479px), 240px);
     min-height: 0;
     margin: 0;
     box-shadow: 0 12px 32px rgba(10, 10, 30, 0.35);
