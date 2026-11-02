@@ -1,7 +1,8 @@
 /**
- * The home page's tour: the real widget, in `demo` mode, playing through
- * what it is on its own, over and over, on the configurator's pretend app.
- * Two sides to pick from under the box:
+ * The home page's tour. The page is a pretend app: the heading, its line
+ * and two ways in, and the real widget's round button in its corner, in
+ * `demo` mode. A visitor picks a side and the widget plays through it on its
+ * own, once, over the page, then the two ways in are back:
  *
  * - **App user**, as a user meets it: tap the round button, pick Report a
  *   bug on the tiles, describe it, send it, and only then the board, with
@@ -12,22 +13,22 @@
  *   an update telling everyone what changed.
  *
  * A subtitle says what each step is (`USER`, `OWNER`), a ring shows each
- * tap, as in the configurator's step 1.
+ * tap, as in the configurator's step 1. A click on the box pauses it, a
+ * second goes on; paused, it can be stopped.
  *
- * The box is `inert`: a visitor watches, nothing in it takes a tap. The
+ * The widget is `inert`: a visitor watches, nothing in it takes a tap. The
  * taps here are the widget's own buttons, clicked from this script, so what
- * plays is what the widget really does. A fresh widget every round, so the
+ * plays is what the widget really does. A fresh widget every time, so the
  * demo board starts over too: its posts live only in the page's memory and
- * nothing leaves the browser.
- *
- * It waits while the box is off screen or the tab is hidden, starts over at
- * once on the other side when that is picked, and with reduced motion it
- * holds the board open, still.
+ * nothing leaves the browser. It waits while the box is off screen or the
+ * tab is hidden.
  */
 const box = document.getElementById('tour');
+const frame = document.getElementById('tour-frame');
+const page = box?.querySelector('.tour-page');
 const subtitle = document.getElementById('tour-say');
-const about = document.getElementById('tour-about');
-const picker = document.querySelector('.tour-pov');
+const pausedNote = document.getElementById('tour-paused');
+const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 /**
  * The subtitles, one per step: about your user on one side, about you on
@@ -42,12 +43,6 @@ const USER = [
   'Votes for an idea',
 ];
 const OWNER = ['You open your board', 'Pick a bug', 'Mark it fixed', 'Answer the user', 'See it on the board', 'Post an update'];
-
-/** The line under the box, per side. */
-const ABOUT = {
-  user: 'Everything your users post is on the board, open for anyone to read and vote on.',
-  owner: 'You answer on the same board, say what is fixed and where, and tell everyone what changed.',
-};
 
 /** What the tour writes, typed out a letter at a time. */
 const BUG = 'The save button does nothing on my phone';
@@ -73,6 +68,8 @@ function widget(pov) {
   })) {
     el.setAttribute(k, v);
   }
+  el.inert = true;
+  el.setAttribute('aria-hidden', 'true');
   return el;
 }
 
@@ -103,44 +100,38 @@ function mount(pov) {
   return el;
 }
 
-// ---- Waiting: only while somebody can see it, and never past a switch ----
+// ---- Time: it only runs while it plays, unpaused, where it can be seen ----
 
-/** Thrown out of a round when the other side is picked. */
+/** Thrown out of a tour that was stopped. */
 const STOP = Symbol('stop');
-/** Which round is current; a round that is not stops at its next pause. */
-let round = 0;
-let playing = 0;
-let switched = () => {};
-let onSwitch = new Promise((r) => (switched = r));
-
+/** Which tour is current, and which is running: one that is not current stops at its next pause. */
+let current = 0;
+let running = 0;
+let paused = false;
 let seen = true;
-let wake = null;
-const gate = () => (seen ? Promise.resolve() : new Promise((r) => (wake = r)));
 
-/** A pause, cut short by a switch, after which the old round stops. */
-const sleep = (ms) =>
-  Promise.race([new Promise((r) => setTimeout(r, ms)), onSwitch]).then(() => {
-    if (playing !== round) throw STOP;
-  });
 /** How much longer every pause is than the numbers below say: time to take each step in. */
 const PACE = 1.5;
 
-/** A pause in the tour, which also holds it while it is out of sight. Typing and taps keep their speed. */
-const wait = async (ms) => {
-  await sleep(ms * PACE);
-  await Promise.race([gate(), onSwitch]);
-  if (playing !== round) throw STOP;
-};
+/**
+ * `ms` of the tour's own time, counted in short steps: none passes while it
+ * is paused or out of sight, and a stop ends it within a step.
+ */
+async function sleep(ms) {
+  let left = ms;
+  while (left > 0) {
+    const step = Math.min(left, 50);
+    await new Promise((r) => setTimeout(r, step));
+    if (running !== current) throw STOP;
+    if (!paused && seen) left -= step;
+  }
+}
+/** A pause between steps. Typing and taps keep their speed. */
+const wait = (ms) => sleep(ms * PACE);
 
 function watchSight() {
   let onScreen = true;
-  const update = () => {
-    seen = onScreen && !document.hidden;
-    if (seen && wake) {
-      wake();
-      wake = null;
-    }
-  };
+  const update = () => (seen = onScreen && !document.hidden);
   new IntersectionObserver(([e]) => {
     onScreen = e.isIntersecting;
     update();
@@ -179,7 +170,7 @@ async function tap(target) {
 /** Scroll the panel's list by `by` pixels, smoothly, and let it settle. */
 async function scroll(el, by) {
   const list = el.shadowRoot.querySelector('.scroll');
-  list?.scrollBy({ top: by, behavior: 'smooth' });
+  list?.scrollBy({ top: by, behavior: still.matches ? 'auto' : 'smooth' });
   await wait(900);
 }
 
@@ -191,7 +182,7 @@ async function reveal(target) {
   const t = target.getBoundingClientRect();
   const by = t.bottom > l.bottom - 24 ? t.bottom - l.bottom + 24 : t.top < l.top + 24 ? t.top - l.top - 24 : 0;
   if (!by) return;
-  list.scrollBy({ top: by, behavior: 'smooth' });
+  list.scrollBy({ top: by, behavior: still.matches ? 'auto' : 'smooth' });
   await wait(600);
 }
 
@@ -215,10 +206,9 @@ const button = (selector, text) => (root) =>
 
 /** Put step `n` (from 1) of `steps` in the subtitle, the old one fading out first. */
 async function say(steps, n) {
-  if (!subtitle) return;
   subtitle.classList.add('tour-say--away');
   await sleep(180);
-  subtitle.textContent = steps[n - 1];
+  subtitle.querySelector('.tour-say__title').textContent = steps[n - 1];
   subtitle.classList.remove('tour-say--away');
 }
 
@@ -353,46 +343,71 @@ async function ownerRound() {
   await wait(900);
 }
 
-let pov = 'user';
+// ---- Playing, pausing, stopping -----------------------------------------
 
-/** Show the side picked: the line under the box, and the tour over from step 1. */
-function pick(next) {
-  pov = next;
-  if (about) about.textContent = ABOUT[pov];
-  round += 1;
-  switched();
-  onSwitch = new Promise((r) => (switched = r));
+/** The tour that is playing, so a new one starts only once it is out. */
+let last = Promise.resolve();
+
+/** Pause or go on. */
+function pause(on) {
+  paused = on;
+  pausedNote.hidden = !on;
+  subtitle.querySelector('.tour-say__hint').textContent = on ? 'Click to continue' : 'Click to pause';
+  frame.classList.toggle('tour--paused', on);
 }
 
-if (box) {
+/** Back to the page and its two ways in, with a fresh widget, closed. */
+function rest() {
+  pause(false);
+  frame.classList.remove('tour--playing');
+  page.inert = false;
+  mount('user');
+}
+
+/** Play one side, once, then rest. */
+async function play(pov) {
+  const mine = ++current;
+  await last;
+  if (mine !== current) return;
+  running = mine;
+  pause(false);
+  frame.classList.add('tour--playing');
+  page.inert = true;
+  last = (pov === 'owner' ? ownerRound() : userRound())
+    .catch((e) => {
+      // A step that did not find its button ends the tour rather than hang it.
+      if (e !== STOP) console.warn(e);
+    })
+    .then(() => {
+      if (mine === current) rest();
+    });
+}
+
+/** Stop wherever it is: the tour ends at its next step. */
+function stop() {
+  current += 1;
+  rest();
+}
+
+if (box && frame && page && subtitle && pausedNote) {
   await customElements.whenDefined('please-no-bugs');
-  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const steps = () => (pov === 'owner' ? OWNER : USER);
-  // Still: the board, open, as the tour would show it on that side.
-  const hold = async () => {
-    playing = round;
-    const el = mount(pov);
-    el.setAttribute('screen', 'board');
-    await say(steps(), 5);
-  };
-  picker?.addEventListener('change', (e) => {
-    pick(e.target.value);
-    if (still) void hold();
-  });
-  if (still) {
-    await hold();
-  } else {
-    watchSight();
-    for (;;) {
-      playing = round;
-      try {
-        await (pov === 'owner' ? ownerRound() : userRound());
-      } catch (e) {
-        if (e === STOP) continue;
-        // A step that did not find its button: start the round over rather than stop.
-        console.warn(e);
-        await new Promise((r) => setTimeout(r, 1000));
-      }
-    }
+  mount('user');
+  watchSight();
+
+  for (const start of page.querySelectorAll('[data-pov]')) {
+    start.addEventListener('click', (e) => {
+      // Not also a click on the box, which would pause what just started.
+      e.stopPropagation();
+      void play(start.dataset.pov);
+    });
   }
+  document.getElementById('tour-stop')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stop();
+  });
+  // While it plays, a visitor's click anywhere on the box, the subtitle with
+  // it, pauses or goes on. Not the tour's own taps, which bubble up here too.
+  frame.addEventListener('click', (e) => {
+    if (e.isTrusted && frame.classList.contains('tour--playing')) pause(!paused);
+  });
 }

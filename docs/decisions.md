@@ -944,6 +944,33 @@ centred on the box and the choice under it together, so it sat low.
 - **Under 1100px, one column** of at most 760px, text above the box: below
   that the two would not both fit.
 
+## 2026-11-02: The home page is the pretend app, and the tour plays when asked
+
+The owner found a tour that starts on its own too much on arrival, wanted
+to pause it, and wanted the pretend app to be the landing page itself.
+Reverses the entry above on the layout.
+
+- **The page is the pretend app**: the configurator's box (a plain rounded
+  screen, the owner's choice over a browser window) the width of the page,
+  with the heading, its line and two buttons as the app's own page, and the
+  widget's round button in its corner. "Make it yours" sits under the box.
+  The screen is the window's height less 220px (560 to 760px).
+- **Nothing plays until asked**: "Watch as app user" or "Watch as app
+  owner" plays that side once, over the page, then the buttons are back.
+  The widget is `inert` and `aria-hidden`; the page is `inert` while it
+  plays.
+- **A click pauses it, another goes on**: anywhere on the box, the subtitle
+  too, which is a button and says "Click to pause". Paused, the box dims
+  under a play button, "Paused · Click to continue" and "Stop the demo".
+  Only a visitor's click counts (`isTrusted`): the tour's own taps on the
+  widget bubble up to the box as clicks too. Time in the tour runs in short
+  steps that do not count while paused or out of sight, so typing stops
+  mid-word; what the widget does on its own (going back to the board after
+  "Feedback sent!") does not wait.
+- **The subtitle** is in the app's bottom left corner from 640px, under the
+  box on a phone, and only while it plays. The App user / App owner choice
+  and its line under the box are gone: the two buttons are the choice.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
