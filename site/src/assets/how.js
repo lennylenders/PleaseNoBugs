@@ -1,12 +1,13 @@
 /**
- * The drawings on How it works, one per part. Each is HTML in the widget's
- * colours (how-it-works.html, site.css), not the widget: this script plays it
+ * The drawings on What is it?, one per part. Each is HTML in the widget's
+ * colours and glyphs (what-is-it.html, site.css), not the widget: this script plays it
  * by putting classes on its `.stage` and the things in it, and site.css moves
  * them there.
  *
- * - **What's in it**: the round button opens on the tiles, the board comes
- *   in, an idea gets a vote, a review its stars, and the bug your answer:
- *   Done, fixed in a version, with a link. About 10 s, then again.
+ * - **What it is about**: three users each say something in a bubble, a bug,
+ *   an idea and a review, and it lands on the board; the others read along
+ *   and vote for the idea; you answer the bug, it is Done and fixed in a
+ *   version, and whoever reported it gets a tick. About 10 s, then again.
  * - **Why**: votes go up and Top sorts the board by them; somebody starts on
  *   an idea that is there already, "Said already, maybe?" shows it, and they
  *   vote for it instead; the board turns light, in other colours. About 13 s,
@@ -93,26 +94,44 @@ function bump(vote, voted = false) {
   setTimeout(() => vote.classList.remove('is-bump'), 200);
 }
 
-// ---- 1. What's in it ------------------------------------------------------
+// ---- 1. What it is about ------------------------------------------------
 
 {
-  const el = document.getElementById('what');
-  const posts = el ? [...el.querySelectorAll('.post')] : [];
-  const vote = el?.querySelector('[data-tap="vote"]');
-  const VOTES = '12';
+  const el = document.getElementById('about');
+  const who = el ? Object.fromEntries([...el.querySelectorAll('[data-who]')].map((w) => [w.dataset.who, w])) : {};
+  const post = el ? Object.fromEntries([...el.querySelectorAll('[data-post]')].map((p) => [p.dataset.post, p])) : {};
+  const vote = el?.querySelector('[data-vote]');
+  /** Who says what, in turn: each one a post. */
+  const SAYS = [
+    ['sam', 'bug'],
+    ['mira', 'idea'],
+    ['jo', 'review'],
+  ];
 
   function reset() {
-    el.classList.remove('is-open', 'is-board', 'is-stars', 'is-answered');
-    for (const p of posts) p.classList.remove('is-in');
+    el.classList.remove('is-stars', 'is-answered');
+    for (const w of Object.values(who)) w.classList.remove('is-saying', 'is-sent', 'is-reading', 'is-thanked');
+    for (const p of Object.values(post)) p.classList.remove('is-in');
     vote.classList.remove('is-voted');
-    vote.querySelector('[data-count]').textContent = VOTES;
+    vote.querySelector('[data-count]').textContent = '1';
   }
 
   function end() {
     reset();
-    el.classList.add('is-open', 'is-board', 'is-stars', 'is-answered');
-    for (const p of posts) p.classList.add('is-in');
+    el.classList.remove('is-resetting');
+    for (const p of Object.values(post)) p.classList.add('is-in');
+    el.classList.add('is-stars', 'is-answered');
+    who.sam.classList.add('is-thanked');
+    bump(vote);
     bump(vote, true);
+  }
+
+  /** `w` says it in a bubble, and the bubble goes off into the board. */
+  async function say(w, sleep) {
+    w.classList.add('is-saying');
+    await sleep(850);
+    w.classList.add('is-sent');
+    await sleep(160);
   }
 
   stage(
@@ -120,31 +139,41 @@ function bump(vote, voted = false) {
     async (sleep) => {
       for (;;) {
         reset();
-        await sleep(900);
-        await tap(el, el.querySelector('[data-tap="fab"]'), sleep);
-        el.classList.add('is-open');
-        await sleep(1700);
+        await sleep(600);
 
-        // The board, one post after the other.
-        el.classList.add('is-board');
-        for (const p of posts) {
-          await sleep(250);
-          p.classList.add('is-in');
+        for (const [w, p] of SAYS) {
+          await say(who[w], sleep);
+          post[p].classList.add('is-in');
+          if (p === 'review') el.classList.add('is-stars');
+          await sleep(380);
+          who[w].classList.remove('is-saying', 'is-sent');
         }
-        await sleep(900);
+        await sleep(200);
 
-        await tap(el, vote, sleep);
-        bump(vote, true);
-        await sleep(700);
-        el.classList.add('is-stars');
-        await sleep(1300);
+        // The others read along, and vote for the idea.
+        for (const w of ['sam', 'jo']) {
+          who[w].classList.add('is-reading');
+          bump(vote, w === 'jo');
+          await sleep(450);
+          who[w].classList.remove('is-reading');
+          await sleep(150);
+        }
+        await sleep(300);
 
-        // Your answer on the bug.
+        // You answer the bug, and Sam sees it fixed.
+        await say(who.you, sleep);
         el.classList.add('is-answered');
-        await sleep(3000);
+        await sleep(500);
+        who.you.classList.remove('is-saying', 'is-sent');
+        who.sam.classList.add('is-thanked');
+        await sleep(2400);
 
-        el.classList.remove('is-open');
-        await sleep(2000);
+        // Faded out, put back, faded in, and a rest.
+        el.classList.add('is-resetting');
+        await sleep(450);
+        reset();
+        el.classList.remove('is-resetting');
+        await sleep(1500);
       }
     },
     end,

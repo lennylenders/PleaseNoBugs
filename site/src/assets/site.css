@@ -405,7 +405,7 @@ section + section { padding-top: 0; }
   .tour-page { justify-content: flex-start; padding-top: 40px; }
 }
 
-/* ---- How it works: three parts, each with a drawing that plays it ------ */
+/* ---- What is it?: three parts, each with a drawing that plays it ------- */
 
 /*
  * Each part is its text and a drawing of the widget, side by side from 900px
@@ -425,11 +425,7 @@ section + section { padding-top: 0; }
 }
 .how__text > p { color: var(--sub); line-height: 1.55; margin: 14px 0 0; }
 .how__text a { color: var(--button); font-weight: 700; }
-.how__small { font-size: 14px; }
-.how__list,
 .how__points { display: grid; gap: 14px; margin: 22px 0 0; padding: 0; list-style: none; }
-.how__list li { display: flex; gap: 12px; align-items: flex-start; color: var(--sub); line-height: 1.5; }
-.how__list b,
 .how__points b { color: var(--ink); font-weight: 700; }
 .how__points li { position: relative; padding-left: 22px; color: var(--sub); line-height: 1.55; }
 .how__points li::before {
@@ -444,26 +440,9 @@ section + section { padding-top: 0; }
 }
 .how__show { display: flex; justify-content: center; min-width: 0; }
 
-.kind { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; white-space: nowrap; }
-.kind i {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  color: #fff;
-}
-.kind .ico { width: 14px; height: 14px; }
-/* One colour per kind, the same as the widget's pleasenobugs theme and Figma's
-   widget/bug, widget/idea and widget/review. */
-.kind--bug i { background: #e5484d; }
-.kind--idea i { background: #8b5cf6; }
-.kind--review i { background: #e9a00b; }
-.kind--answer i { background: var(--device); }
-
 /* -- What the drawings are made of: the widget's look, in small --------- */
 
-/* The widget's own glyphs (the symbols at the top of how-it-works.html). */
+/* The widget's own glyphs (the symbols at the top of what-is-it.html). */
 .ico { display: block; flex: none; width: 16px; height: 16px; }
 
 /* The widget's pleasenobugs colours; the second drawing turns them light. */
@@ -510,8 +489,6 @@ section + section { padding-top: 0; }
 .board { display: grid; gap: 8px; align-content: start; }
 .board__bar { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 4px; }
 .board__bar b { font-size: 16px; font-weight: 900; }
-.board__news { color: var(--s-ink); }
-.board__news .ico { width: 18px; height: 18px; }
 
 .post {
   display: grid;
@@ -572,80 +549,137 @@ section + section { padding-top: 0; }
 /* Where a drawing taps: the tour's ring (`.tour-tap`), placed by how.js. */
 .stage .tour-tap { z-index: 5; }
 
-/* -- 1. What's in it: tiles, the board, your answer ---------------------- */
+/* -- 1. What it is about: your users say it, the board keeps it, you answer */
 
-.phone {
-  position: relative;
-  width: min(100%, 300px);
-  height: 500px;
+/* Your users on the left, the board, you on the right; on a narrow screen
+   you are under the board. Each says something in a bubble that goes into
+   the board, where it is a post. */
+.stage--about { container-type: inline-size; }
+.talk {
+  --send: 48px, -50%;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 52px;
+  grid-template-areas: 'users board you';
+  gap: 16px;
+  width: min(100%, 540px);
   margin: 0 auto;
-  border: 8px solid var(--device);
-  border-radius: 30px;
-  background: var(--page);
-  overflow: hidden;
+  transition: opacity 400ms ease;
+}
+.is-resetting .talk { opacity: 0; }
+/* Each user beside their own post: below the board's title, spread as its posts are. */
+.talk__users { grid-area: users; display: grid; align-content: space-around; justify-items: center; padding-top: 48px; }
+.talk__you { grid-area: you; display: grid; align-content: center; justify-items: center; }
+.talk__board {
+  grid-area: board;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 12px 10px;
+  border: 1.5px solid var(--s-line);
+  border-radius: 16px;
+  background: var(--s-bg);
   box-shadow: var(--shadow);
 }
-
-/* The panel grows out of the button and shrinks back into it, as the widget's. */
-.phone .panel {
-  position: absolute;
-  inset: 0;
-  padding: 12px 10px;
-  background: var(--s-bg);
-  clip-path: inset(calc(100% - 58px) 14px 14px calc(100% - 58px) round 22px);
-  opacity: 0;
-  transition: clip-path 380ms cubic-bezier(0.3, 0.9, 0.3, 1), opacity 120ms linear 260ms;
-}
-.is-open .phone .panel {
-  clip-path: inset(0 round 0);
-  opacity: 1;
-  transition: clip-path 380ms cubic-bezier(0.3, 0.9, 0.3, 1), opacity 80ms linear;
+@container (max-width: 459px) {
+  .talk {
+    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-areas: 'users board' '. you';
+    gap: 12px;
+  }
+  .talk__you { justify-items: end; padding-right: 8px; }
+  .talk .bubble--you { --send-you: -16px, calc(-50% - 44px); }
 }
 
-/* As the widget's tiles: two to a row, the bug the whole width, a white
-   glyph over its name. */
-.tiles {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-content: center;
-  gap: 10px;
-  padding: 16px 12px;
-  transition: opacity 250ms ease, transform 250ms ease;
-}
-.tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 116px;
-  padding: 12px 8px;
-  border-radius: 8px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  text-align: center;
-}
-.tile:first-child { grid-column: 1 / -1; }
-.tile i {
+.who { position: relative; display: grid; place-items: center; }
+.avatar {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.05)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.07));
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #12132b;
+  font-size: 17px;
+  font-weight: 900;
+  transition: transform 250ms cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 250ms ease;
 }
-.tile .ico { width: 26px; height: 26px; }
-.tile--bug { background: #e5484d; }
-.tile--idea { background: #8b5cf6; }
-.tile--review { background: #e9a00b; }
+.avatar--1 { background: #f4a3a0; }
+.avatar--2 { background: #c9b8ff; }
+.avatar--3 { background: #f3c969; }
+.avatar--you { background: var(--s-accent); font-size: 13px; }
+/* Reading along, and voting. */
+.is-reading .avatar { transform: scale(1.12); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.25); }
 
-.phone .board { opacity: 0; transition: opacity 250ms ease; }
-.is-board .tiles { opacity: 0; transform: translateY(-12px); }
-.is-board .phone .board { opacity: 1; }
-.phone .post { opacity: 0; transform: translateY(10px); }
-.phone .post.is-in { opacity: 1; transform: none; }
+/* What each says: a bubble beside them, that goes off into the board. */
+.bubble {
+  position: absolute;
+  z-index: 3;
+  left: calc(100% + 10px);
+  top: 50%;
+  display: flex;
+  gap: 1px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: #fff;
+  color: #1b1b24;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(10, 10, 30, 0.3);
+  opacity: 0;
+  transform: translate(-6px, -50%) scale(0.8);
+  transform-origin: left center;
+  transition: opacity 220ms ease, transform 320ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.bubble::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  background: inherit;
+  transform: rotate(45deg);
+}
+.is-saying .bubble { opacity: 1; transform: translate(0, -50%) scale(1); }
+.is-sent .bubble {
+  opacity: 0;
+  transform: translate(var(--send)) scale(0.5);
+  transition: opacity 380ms ease-in, transform 380ms ease-in;
+}
+.bubble--stars .star { width: 14px; height: 14px; color: #f5a524; }
+.bubble--you {
+  --send-you: -48px, -50%;
+  left: auto;
+  right: calc(100% + 10px);
+  transform: translate(6px, -50%) scale(0.8);
+  transform-origin: right center;
+}
+.bubble--you::before { left: auto; right: -5px; }
+.is-sent .bubble--you { transform: translate(var(--send-you)) scale(0.5); }
+
+/* Thanked: the one who reported the bug sees it fixed. */
+.who__tick {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--page);
+  border-radius: 50%;
+  background: #21bca5;
+  color: #fff;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 200ms ease, transform 300ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.who__tick .ico { width: 9px; height: 9px; }
+.is-thanked .who__tick { opacity: 1; transform: none; }
+
+.stage--about .post { opacity: 0; transform: translateY(8px); }
+.stage--about .post.is-in { opacity: 1; transform: none; }
 
 .post__stars { display: flex; gap: 1px; margin: 0; }
 .post__stars .star { width: 15px; height: 15px; color: var(--s-line); transition: color 200ms ease; }
@@ -655,25 +689,20 @@ section + section { padding-top: 0; }
 .post__stars .star:nth-child(4) { transition-delay: 360ms; }
 .post__stars .star:nth-child(5) { transition-delay: 480ms; }
 
-/* Your answer: Done, and a reply with "Fixed in" opening under the post. */
+/* Your answer: Done, and "Fixed in" under the post. */
 .badge--done { opacity: 0; transform: scale(0.6); transition: opacity 200ms ease, transform 300ms cubic-bezier(0.3, 1.4, 0.5, 1); }
 .is-answered .badge--done { opacity: 1; transform: none; }
-.post__answer {
-  display: grid;
-  gap: 2px;
+.post__fix {
   max-height: 0;
-  padding: 0 10px;
-  border-left: 3px solid var(--s-accent);
-  border-radius: 6px;
-  background: var(--s-bg);
+  margin: 0;
   overflow: hidden;
+  color: var(--s-accent);
+  font-size: 12px;
+  font-weight: 700;
   opacity: 0;
-  transition: max-height 400ms ease, padding 400ms ease, opacity 300ms ease;
+  transition: max-height 350ms ease, opacity 300ms ease;
 }
-.is-answered .post__answer { max-height: 90px; padding: 7px 10px; opacity: 1; }
-.post__answer small { color: var(--s-quiet); font-size: 11px; }
-.post__answer span { font-size: 13px; }
-.post__answer em { color: var(--s-accent); font-size: 12px; font-style: normal; font-weight: 700; }
+.is-answered .post__fix { max-height: 20px; opacity: 1; }
 
 /* -- 2. Why: votes sort it, a duplicate is caught, your colours ---------- */
 
