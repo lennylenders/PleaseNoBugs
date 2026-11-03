@@ -103,9 +103,9 @@ function bump(vote, voted = false) {
   const vote = el?.querySelector('[data-vote]');
   /** Who says what, in turn: each one a post. */
   const SAYS = [
-    ['sam', 'bug'],
-    ['mira', 'idea'],
-    ['jo', 'review'],
+    ['fons', 'bug'],
+    ['ines', 'idea'],
+    ['micha', 'review'],
   ];
 
   function reset() {
@@ -121,7 +121,7 @@ function bump(vote, voted = false) {
     el.classList.remove('is-resetting');
     for (const p of Object.values(post)) p.classList.add('is-in');
     el.classList.add('is-stars', 'is-answered');
-    who.sam.classList.add('is-thanked');
+    who.fons.classList.add('is-thanked');
     bump(vote);
     bump(vote, true);
   }
@@ -151,21 +151,21 @@ function bump(vote, voted = false) {
         await sleep(200);
 
         // The others read along, and vote for the idea.
-        for (const w of ['sam', 'jo']) {
+        for (const w of ['fons', 'micha']) {
           who[w].classList.add('is-reading');
-          bump(vote, w === 'jo');
+          bump(vote, w === 'micha');
           await sleep(450);
           who[w].classList.remove('is-reading');
           await sleep(150);
         }
         await sleep(300);
 
-        // You answer the bug, and Sam sees it fixed.
+        // The app developer answers the bug, and Fons sees it fixed.
         await say(who.you, sleep);
         el.classList.add('is-answered');
         await sleep(500);
         who.you.classList.remove('is-saying', 'is-sent');
-        who.sam.classList.add('is-thanked');
+        who.fons.classList.add('is-thanked');
         await sleep(2400);
 
         // Faded out, put back, faded in, and a rest.
