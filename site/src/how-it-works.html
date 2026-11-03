@@ -4,11 +4,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>How PleaseNoBugs works</title>
-    <meta name="description" content="What your users can write on the PleaseNoBugs board, who sees what, and the three ways to show it in your app." />
+    <meta name="description" content="What is in the PleaseNoBugs widget, what it does for you as an app developer, and how to add it to your app in a few lines." />
     <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="assets/site.css" />
+    <script src="assets/how.js" type="module"></script>
   </head>
   <body>
+    <!-- The widget's own glyphs, path for path from packages/widget/src/ui/icons.tsx, used by everything below. -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-bug" viewBox="32 24 28 28"><path fill="currentColor" d="M46.5 24C47.9547 24 49.125 25.1703 49.125 26.625V38.875C49.125 40.3297 47.9547 41.5 46.5 41.5C45.0453 41.5 43.875 40.3297 43.875 38.875V26.625C43.875 25.1703 45.0453 24 46.5 24ZM43 48.5C43 47.5717 43.3687 46.6815 44.0251 46.0251C44.6815 45.3687 45.5717 45 46.5 45C47.4283 45 48.3185 45.3687 48.9749 46.0251C49.6313 46.6815 50 47.5717 50 48.5C50 49.4283 49.6313 50.3185 48.9749 50.9749C48.3185 51.6313 47.4283 52 46.5 52C45.5717 52 44.6815 51.6313 44.0251 50.9749C43.3687 50.3185 43 49.4283 43 48.5Z"/></symbol>
+      <symbol id="i-idea" viewBox="32 24 27.18 27.18"><path fill="currentColor" d="M59.182 31.1652V34.6498C59.182 35.8396 58.9535 37.0177 58.5095 38.117C58.0656 39.2162 57.4149 40.2149 56.5947 41.0562C55.7744 41.8975 54.8006 42.5649 53.7289 43.0202C52.6572 43.4755 51.5085 43.7098 50.3485 43.7098H46.951V50.6791H44.233V40.9222L44.2588 39.5283C44.4299 37.2528 45.4321 35.1274 47.065 33.5769C48.6979 32.0264 50.8412 31.1651 53.0665 31.1652H59.182ZM37.438 25.5898C39.4348 25.59 41.3811 26.2343 43.0012 27.4315C44.6214 28.6287 45.8334 30.3181 46.4658 32.2608C45.4259 33.1646 44.5739 34.2738 43.9605 35.5224C43.3472 36.7709 42.9851 38.1333 42.8957 39.5283H41.515C38.9919 39.5283 36.5723 38.5003 34.7882 36.6706C33.0042 34.8408 32.002 32.3591 32.002 29.7714V25.5898H37.438Z"/></symbol>
+      <symbol id="i-review" viewBox="32 24 27.188 27.188"><path fill="currentColor" d="M53.8936 40.0933C53.547 40.4266 53.387 40.9186 53.4683 41.3866L54.6536 47.9466C54.7483 48.5066 54.5216 49.0653 54.0536 49.3866C53.6003 49.7199 53.0003 49.7599 52.4936 49.4933L46.5883 46.4133C46.3736 46.3066 46.147 46.2386 45.9216 46.2386H45.5603C45.427 46.2519 45.3083 46.3066 45.2003 46.3586L39.2936 49.4533C39.0003 49.5999 38.667 49.6533 38.347 49.5999C37.547 49.4399 37.0283 48.6919 37.1603 47.9053L38.347 41.3453C38.427 40.8666 38.267 40.3866 37.9216 40.0399L33.107 35.3733C32.707 34.9733 32.5603 34.3986 32.7483 33.8666C32.9216 33.3453 33.3736 32.9586 33.9336 32.8666L40.5603 31.9053C41.067 31.8519 41.507 31.5466 41.7336 31.0933L44.6536 25.1066C44.7203 24.9733 44.8136 24.8519 44.9216 24.7466L45.0403 24.6533C45.0936 24.5853 45.1736 24.5333 45.255 24.4799L45.4003 24.4266L45.627 24.3333H46.1883C46.695 24.3866 47.135 24.6919 47.3616 25.1319L50.3203 31.0933C50.5336 31.5333 50.947 31.8266 51.427 31.9053L58.0536 32.8666C58.6136 32.9466 59.0816 33.3333 59.267 33.8666C59.4403 34.3986 59.2936 34.9866 58.8803 35.3733L53.8936 40.0933Z"/></symbol>
+      <symbol id="i-done" viewBox="-0.2 -1.8 12 12"><path fill="none" stroke="currentColor" stroke-width="1.607" stroke-linecap="round" stroke-linejoin="round" d="M0.803574 4.3749L4.01786 7.58918L10.8036 0.803467"/></symbol>
+      <symbol id="i-updates" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" d="M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6"/></symbol>
+      <symbol id="i-caret" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6.5l7.2 9a1 1 0 0 1-.78 1.6H5.58a1 1 0 0 1-.78-1.6L12 6.5z"/></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9L12 3.5z"/></symbol>
+      <symbol id="i-feedback" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6C12 5.45 11.55 5 11 5H5.815L6.48 1.825c.015-.075.025-.155.025-.235 0-.31-.125-.59-.33-.795L5.38 0 .44 4.94C.17 5.21 0 5.585 0 6v6.5c0 .83.67 1.5 1.5 1.5h6.75c.62 0 1.155-.375 1.38-.915l2.265-5.29c.065-.17.105-.35.105-.545V6zm10.5 4h-6.75c-.62 0-1.155.375-1.38.915l-2.265 5.29c-.065.17-.105.35-.105.545V18c0 .55.45 1 1 1h5.185l-.665 3.175c-.015.075-.025.155-.025.235 0 .31.125.59.33.795L18.62 24l4.94-4.94c.27-.27.44-.645.44-1.06v-6.5c0-.83-.67-1.5-1.5-1.5z"/></symbol>
+    </svg>
+
     <header class="top">
       <div class="wrap top__inner">
         <a class="brand" href="./">
@@ -24,65 +37,174 @@
     </header>
 
     <main>
-      <section>
+      <section class="how-intro">
         <div class="wrap">
-          <div class="section-head">
-            <h1>How it works</h1>
-            <p class="lead">Your users tap the Feedback button in the corner of your app. It opens three options: report a bug, share an idea or write a review. They pick one, add a few words, and it is on your feedback board.</p>
-          </div>
-          <table class="table">
-            <thead>
-              <tr><th>Option</th><th>What your users do</th><th>Who sees it</th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><span class="kind kind--bug"><i>!</i>Report a bug</span></td>
-                <td class="what"><b>Tell you something does not work.</b> They can add a screenshot, which goes on the board once they tick that everyone may see it, and your app's version comes along if you pass it in.</td>
-                <td><span class="pill pill--everyone">Everyone, screenshot too</span> <span class="pill pill--only-you">Version: only you</span></td>
-              </tr>
-              <tr>
-                <td><span class="kind kind--idea"><i>+</i>Share an idea</span></td>
-                <td class="what"><b>Suggest something your app is missing.</b> Similar ideas show up while they type, so they can vote for one that is already there instead of posting it twice.</td>
-                <td><span class="pill pill--everyone">Everyone</span></td>
-              </tr>
-              <tr>
-                <td><span class="kind kind--review"><i>★</i>Write a review</span></td>
-                <td class="what"><b>Give one to five stars and a few words.</b> The average rating sits at the top of the board. One review per wallet.</td>
-                <td><span class="pill pill--everyone">Everyone</span></td>
-              </tr>
-              <tr>
-                <td><span class="kind kind--answer"><i>✓</i>Your answer</span></td>
-                <td class="what"><b>Planned, Done or Not doing,</b> with a line of your own under the post. It is on the board, so nobody needs an inbox.</td>
-                <td><span class="pill pill--done">Done</span> <span class="pill pill--not-doing">Not doing</span></td>
-              </tr>
-            </tbody>
-          </table>
+          <h1>How it works</h1>
+          <p class="lead">What is in the widget, what it does for you, and how to put it in your app.</p>
         </div>
       </section>
 
-      <section>
+      <!-- 1. What it is. The drawing plays it: tiles, the board, an answer. -->
+      <section class="how" aria-labelledby="what-title">
+        <div class="wrap how__row">
+          <div class="how__text">
+            <h2 id="what-title">What's in the widget</h2>
+            <p>A feedback board for Nimiq mini apps, in one tag. Your users report bugs, share ideas and write reviews. Everything is out in the open on the board: anyone can read it and vote. You answer under a post, set where it stands, and say which version fixed it.</p>
+            <ul class="how__list">
+              <li><span class="kind kind--bug"><i><svg class="ico" aria-hidden="true"><use href="#i-bug"/></svg></i></span><div><b>Report a bug.</b> Something does not work. A screenshot can come along.</div></li>
+              <li><span class="kind kind--idea"><i><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i></span><div><b>Share an idea.</b> Something your app is missing. Others vote for it.</div></li>
+              <li><span class="kind kind--review"><i><svg class="ico" aria-hidden="true"><use href="#i-review"/></svg></i></span><div><b>Write a review.</b> One to five stars and a few words, with the average on top. One per wallet.</div></li>
+              <li><span class="kind kind--answer"><i><svg class="ico" aria-hidden="true"><use href="#i-done"/></svg></i></span><div><b>Your answer.</b> Planned, Done or Not doing, a line of your own, and "Fixed in" with a link to GitHub or GitLab. Whoever reported it gets a note.</div></li>
+              <li><span class="kind kind--answer"><i><svg class="ico" aria-hidden="true"><use href="#i-updates"/></svg></i></span><div><b>Updates.</b> A page of what changed in your app, newest first.</div></li>
+            </ul>
+            <p class="how__small">A screenshot only shows on the board once its author ticks that everyone may see it. Your app's version, if you pass it in, is for your eyes only.</p>
+          </div>
+
+          <div class="how__show">
+            <div class="stage stage--what" id="what" aria-hidden="true">
+              <div class="phone">
+                <div class="mock-app"><b>Your app</b><i></i><i></i><i></i><i></i></div>
+                <span class="fab" data-tap="fab"><svg class="ico" aria-hidden="true"><use href="#i-feedback"/></svg></span>
+                <div class="panel">
+                  <div class="tiles">
+                    <span class="tile tile--bug"><i><svg class="ico" aria-hidden="true"><use href="#i-bug"/></svg></i>Report a bug</span>
+                    <span class="tile tile--idea"><i><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i>Share an idea</span>
+                    <span class="tile tile--review"><i><svg class="ico" aria-hidden="true"><use href="#i-review"/></svg></i>Write a review</span>
+                  </div>
+                  <div class="board">
+                    <div class="board__bar"><b>Feedback</b><span class="board__news"><svg class="ico" aria-hidden="true"><use href="#i-updates"/></svg></span></div>
+                    <div class="post" data-post="bug">
+                      <div class="post__tags"><span class="badge"><i class="badge__dot badge__dot--bug"><svg class="ico" aria-hidden="true"><use href="#i-bug"/></svg></i>Bug</span><span class="badge badge--done"><i class="badge__dot badge__dot--done"><svg class="ico" aria-hidden="true"><use href="#i-done"/></svg></i>Done</span></div>
+                      <p class="post__text">The save button does nothing</p>
+                      <div class="post__answer">
+                        <small>Your app says</small>
+                        <span>Fixed, thanks for telling us!</span>
+                        <em>Fixed in 1.4.3 · View on GitHub</em>
+                      </div>
+                      <div class="post__foot"><span>Sam</span><span class="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b>3</b></span></div>
+                    </div>
+                    <div class="post" data-post="idea">
+                      <div class="post__tags"><span class="badge"><i class="badge__dot badge__dot--idea"><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i>Idea</span></div>
+                      <p class="post__text">A dark mode</p>
+                      <div class="post__foot"><span>Mira</span><span class="vote" data-tap="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>13</b></span></div>
+                    </div>
+                    <div class="post" data-post="review">
+                      <div class="post__tags"><span class="badge"><i class="badge__dot badge__dot--review"><svg class="ico" aria-hidden="true"><use href="#i-review"/></svg></i>Review</span></div>
+                      <p class="post__stars"><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg></p>
+                      <p class="post__text">Quick and simple. Love it.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. What it does for you. The drawing plays votes, a duplicate caught, your colours. -->
+      <section class="how how--flip" aria-labelledby="why-title">
+        <div class="wrap how__row">
+          <div class="how__text">
+            <h2 id="why-title">Why app developers use it</h2>
+            <ul class="how__points">
+              <li><b>Know what your users really want.</b> Votes put the most wanted ideas and the most annoying bugs on top, so you know what to build next.</li>
+              <li><b>Fewer duplicates.</b> While someone writes, similar posts show up under "Said already, maybe?", and they vote for that one instead.</li>
+              <li><b>One place to answer.</b> Your reply, the status and the version that fixed it sit under the post, for everyone to see. No inbox, no email threads.</li>
+              <li><b>It looks like your app.</b> Your colours and your words, in English, Dutch or German, and only the kinds of feedback you want. <a href="customize.html">Try it in the configurator</a>.</li>
+              <li><b>Your feedback, no sign-up.</b> The posts live on a server you run, so nobody else holds them. Inside Nimiq Pay your users post with the wallet they already have: no account, no password.</li>
+            </ul>
+          </div>
+
+          <div class="how__show">
+            <div class="stage stage--why" id="why" aria-hidden="true">
+              <div class="sheetbox">
+                <div class="board">
+                  <div class="board__bar"><b>Feedback</b></div>
+                  <div class="sort"><span data-sort="top" data-tap="top">Top</span><span data-sort="new" class="is-on">New</span></div>
+                  <div class="rank">
+                    <div class="post post--row" data-idea="export"><span class="badge"><i class="badge__dot badge__dot--idea"><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i></span><p class="post__text">Export to CSV</p><span class="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>3</b></span></div>
+                    <div class="post post--row" data-idea="dark"><span class="badge"><i class="badge__dot badge__dot--idea"><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i></span><p class="post__text">Dark mode</p><span class="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>9</b></span></div>
+                    <div class="post post--row" data-idea="buttons"><span class="badge"><i class="badge__dot badge__dot--bug"><svg class="ico" aria-hidden="true"><use href="#i-bug"/></svg></i></span><p class="post__text">Buttons too small</p><span class="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>5</b></span></div>
+                    <div class="post post--row" data-idea="link"><span class="badge"><i class="badge__dot badge__dot--idea"><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i></span><p class="post__text">Share a payment link</p><span class="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>2</b></span></div>
+                  </div>
+                </div>
+                <div class="compose">
+                  <b>Share an idea</b>
+                  <p class="compose__field"><span data-typed></span><i class="caret"></i></p>
+                  <div class="alike">
+                    <small>Said already, maybe?</small>
+                    <p>Vote for one of these instead.</p>
+                    <div class="alike__row"><span class="badge"><i class="badge__dot badge__dot--idea"><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i></span><p class="post__text">Dark mode</p><span class="vote" data-tap="alike"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>14</b></span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. How to add it. The drawing types the tag, then plays the three ways. -->
+      <section class="how how--add" aria-labelledby="add-title">
         <div class="wrap">
           <div class="section-head">
-            <h2>Three ways to show it</h2>
-            <p>Pick one with <code>mode</code>. On a phone the board covers the screen; on a wider screen it opens as a panel in the corner.</p>
+            <h2 id="add-title">How to add it</h2>
+            <p>A server, a script and one tag. Paste it in, and your app has a feedback board.</p>
           </div>
-          <div class="cards">
-            <article class="card">
-              <div class="mini mini--floating" aria-hidden="true"><div class="mini__fab"></div></div>
-              <h3>A button in the corner</h3>
-              <p><code>mode="floating"</code>. A small round button that opens on the tiles. The "paste one line and done" route.</p>
-            </article>
-            <article class="card">
-              <div class="mini mini--inline" aria-hidden="true"><div class="mini__board"></div></div>
-              <h3>Part of your page</h3>
-              <p><code>mode="inline"</code>. The board fills the element you put it in, for a feedback screen of your own.</p>
-            </article>
-            <article class="card">
-              <div class="mini mini--overlay" aria-hidden="true"><div class="mini__board"></div></div>
-              <h3>From your own menu</h3>
-              <p><code>mode="overlay"</code>, or <code>open()</code> from a menu item you already have. The board, straight away.</p>
-            </article>
+
+          <div class="stage stage--add" id="add" aria-hidden="true">
+            <pre class="code add__code"><code class="add__ghost" data-ghost></code><code data-code></code></pre>
+            <div class="add__app">
+              <div class="add__screen">
+                <div class="mock-app"><b>Your app<span class="add__menu" data-tap="menu">Feedback</span></b><i></i><i></i><i></i><i></i></div>
+                <div class="add__dim"></div>
+                <div class="add__inline"><div class="miniboard"><b>Feedback</b><i></i><i></i><i></i></div></div>
+                <span class="fab" data-tap="fab"><svg class="ico" aria-hidden="true"><use href="#i-feedback"/></svg></span>
+                <div class="add__panel"><div class="miniboard"><b>Feedback</b><i></i><i></i><i></i></div></div>
+              </div>
+              <p class="add__says" data-says></p>
+            </div>
           </div>
+
+          <ol class="steps-list">
+            <li>
+              <h3>Start your server</h3>
+              <p>The board lives on a PleaseNoBugs server of your own. On Railway that is a button and three fields, no command line, about $1 a month; Node and Docker work too. When it starts, it prints your project id and its address.</p>
+              <p><a href="https://github.com/lennylenders/PleaseNoBugs#get-it-running">Set up a server</a></p>
+            </li>
+            <li>
+              <h3>Load the script</h3>
+              <pre class="code"><code><span class="t">&lt;script</span> <span class="a">src</span>=<span class="s">"https://unpkg.com/pleasenobugs@%VERSION%"</span><span class="t">&gt;</span><span class="t">&lt;/script</span><span class="t">&gt;</span></code></pre>
+              <p>With a bundler: <code>npm install pleasenobugs</code>, then <code>import 'pleasenobugs'</code> once.</p>
+            </li>
+            <li>
+              <h3>Add the tag</h3>
+              <pre class="code"><code><span class="t">&lt;please-no-bugs</span>
+  <span class="a">project</span>=<span class="s">"YOUR_PROJECT_ID"</span>
+  <span class="a">server</span>=<span class="s">"https://YOUR_SERVER"</span>
+  <span class="a">mode</span>=<span class="s">"floating"</span>
+<span class="t">&gt;</span><span class="t">&lt;/please-no-bugs</span><span class="t">&gt;</span></code></pre>
+              <p>Use the project id and address your server printed.</p>
+            </li>
+            <li>
+              <h3>Pick how it shows</h3>
+              <dl class="modes">
+                <dt><code>mode="floating"</code> Button</dt>
+                <dd>A round button in the corner that opens the board. The one to start with.</dd>
+                <dt><code>mode="inline"</code> Inline</dt>
+                <dd>The board inside a page of your own. Give it a height.</dd>
+                <dt><code>mode="overlay"</code> Overlay</dt>
+                <dd>Over your page, straight away. Or open it from a menu item you already have:</dd>
+              </dl>
+              <pre class="code"><code><span class="t">import</span> { open } <span class="t">from</span> <span class="s">'pleasenobugs'</span>;
+menuItem.onclick = () =&gt; open({ project, server });</code></pre>
+              <p>On a phone it covers the screen; on a wider screen it is a panel in the corner.</p>
+            </li>
+            <li>
+              <h3>Make it yours</h3>
+              <p>Pick your colours, words and kinds in the configurator. It writes this code for you, or a prompt for your AI agent.</p>
+              <p><a class="btn btn--small" href="customize.html">Customize it</a></p>
+            </li>
+          </ol>
         </div>
       </section>
     </main>

@@ -405,23 +405,44 @@ section + section { padding-top: 0; }
   .tour-page { justify-content: flex-start; padding-top: 40px; }
 }
 
-/* ---- The table, after the design's list of posts ---------------------- */
+/* ---- How it works: three parts, each with a drawing that plays it ------ */
 
-.table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 15px; }
-.table th {
-  text-align: left;
-  font-weight: 500;
-  color: var(--faint);
-  padding: 0 16px 12px;
-  border-bottom: 1.5px solid var(--line);
+/*
+ * Each part is its text and a drawing of the widget, side by side from 900px
+ * (the second the other way round), the drawing under the text on a phone.
+ * The drawings are not the widget: they are drawn here in its pleasenobugs
+ * colours, and assets/how.js plays them by putting classes on `.stage`, once
+ * they are in view. With reduced motion they show their last picture and
+ * stand still.
+ */
+.how-intro { padding-bottom: 0; }
+.how-intro .lead { margin-top: 12px; }
+.how { padding: 56px 0 24px; }
+.how__row { display: grid; gap: 32px; align-items: center; }
+@media (min-width: 900px) {
+  .how__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; }
+  .how--flip .how__show { order: -1; }
 }
-.table td { padding: 16px; vertical-align: top; }
-.table tbody tr:nth-child(odd) td { background: var(--row); }
-.table td:first-child { border-radius: var(--radius) 0 0 var(--radius); }
-.table td:last-child { border-radius: 0 var(--radius) var(--radius) 0; text-align: right; }
-.table th:last-child { text-align: right; }
-.table .what { color: var(--sub); }
-.table .what b { color: var(--ink); font-weight: 700; }
+.how__text > p { color: var(--sub); line-height: 1.55; margin: 14px 0 0; }
+.how__text a { color: var(--button); font-weight: 700; }
+.how__small { font-size: 14px; }
+.how__list,
+.how__points { display: grid; gap: 14px; margin: 22px 0 0; padding: 0; list-style: none; }
+.how__list li { display: flex; gap: 12px; align-items: flex-start; color: var(--sub); line-height: 1.5; }
+.how__list b,
+.how__points b { color: var(--ink); font-weight: 700; }
+.how__points li { position: relative; padding-left: 22px; color: var(--sub); line-height: 1.55; }
+.how__points li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--button);
+}
+.how__show { display: flex; justify-content: center; min-width: 0; }
 
 .kind { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; white-space: nowrap; }
 .kind i {
@@ -431,9 +452,8 @@ section + section { padding-top: 0; }
   height: 28px;
   border-radius: 8px;
   color: #fff;
-  font-style: normal;
-  font-size: 14px;
 }
+.kind .ico { width: 14px; height: 14px; }
 /* One colour per kind, the same as the widget's pleasenobugs theme and Figma's
    widget/bug, widget/idea and widget/review. */
 .kind--bug i { background: #e5484d; }
@@ -441,90 +461,492 @@ section + section { padding-top: 0; }
 .kind--review i { background: #e9a00b; }
 .kind--answer i { background: var(--device); }
 
-.pill {
-  display: inline-block;
-  padding: 3px 8px;
+/* -- What the drawings are made of: the widget's look, in small --------- */
+
+/* The widget's own glyphs (the symbols at the top of how-it-works.html). */
+.ico { display: block; flex: none; width: 16px; height: 16px; }
+
+/* The widget's pleasenobugs colours; the second drawing turns them light. */
+.stage {
+  --s-bg: #292a56;
+  --s-card: #5656ac;
+  --s-chip: #454689;
+  --s-sunken: #1a1a32;
+  --s-line: #6d6dc5;
+  --s-ink: #ffffff;
+  --s-quiet: rgba(255, 255, 255, 0.78);
+  --s-accent: #1fc7d4;
+  --s-on-accent: #12132b;
+  position: relative;
+  width: 100%;
+  color: var(--s-ink);
+}
+
+.mock-app { display: grid; gap: 10px; align-content: start; padding: 22px 18px; }
+.mock-app b { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; font-size: 17px; font-weight: 900; }
+.mock-app i { display: block; height: 12px; border-radius: 5px; background: var(--card-2); transition: max-width 400ms ease, opacity 300ms ease; max-width: 100%; }
+.mock-app i:nth-of-type(1) { width: 62%; }
+.mock-app i:nth-of-type(2) { width: 48%; }
+.mock-app i:nth-of-type(3) { width: 74%; height: 96px; margin-top: 6px; border-radius: 10px; background: var(--row); }
+.mock-app i:nth-of-type(4) { width: 40%; }
+
+/* The round button, as `--pnb-fab` paints it. */
+.fab {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--s-accent);
+  color: var(--s-on-accent);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  transition: transform 300ms cubic-bezier(0.3, 1.4, 0.5, 1), opacity 200ms ease;
+}
+.fab .ico { width: 20px; height: 20px; }
+
+.board { display: grid; gap: 8px; align-content: start; }
+.board__bar { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 4px; }
+.board__bar b { font-size: 16px; font-weight: 900; }
+.board__news { color: var(--s-ink); }
+.board__news .ico { width: 18px; height: 18px; }
+
+.post {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--s-card);
+  font-size: 13px;
+  transition: background-color 600ms ease, opacity 300ms ease, transform 300ms ease;
+}
+.post__tags { display: flex; gap: 6px; }
+.post__text { margin: 0; font-size: 14px; line-height: 1.3; }
+.post__foot { display: flex; align-items: center; justify-content: space-between; color: var(--s-quiet); font-size: 12px; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 3px;
+  border-radius: 999px;
+  background: var(--s-chip);
+  font-size: 11px;
+  font-weight: 700;
+  transition: background-color 600ms ease;
+}
+/* As the widget's: a white glyph half the size of its disc. */
+.badge__dot {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: #fff;
+}
+.badge__dot .ico { width: 8px; height: 8px; }
+.badge__dot--bug { background: #e5484d; }
+.badge__dot--idea { background: #8b5cf6; }
+.badge__dot--review { background: #e9a00b; }
+.badge__dot--done { background: #21bca5; }
+
+.vote {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--s-chip);
+  color: var(--s-ink);
+  font-size: 12px;
+  white-space: nowrap;
+  transition: background-color 300ms ease, color 300ms ease, transform 200ms ease;
+}
+.vote b { font-weight: 900; }
+.vote .ico { width: 11px; height: 11px; }
+.vote.is-voted { background: var(--s-accent); color: var(--s-on-accent); }
+.vote.is-bump { transform: scale(1.15); }
+
+/* Where a drawing taps: the tour's ring (`.tour-tap`), placed by how.js. */
+.stage .tour-tap { z-index: 5; }
+
+/* -- 1. What's in it: tiles, the board, your answer ---------------------- */
+
+.phone {
+  position: relative;
+  width: min(100%, 300px);
+  height: 500px;
+  margin: 0 auto;
+  border: 8px solid var(--device);
+  border-radius: 30px;
+  background: var(--page);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* The panel grows out of the button and shrinks back into it, as the widget's. */
+.phone .panel {
+  position: absolute;
+  inset: 0;
+  padding: 12px 10px;
+  background: var(--s-bg);
+  clip-path: inset(calc(100% - 58px) 14px 14px calc(100% - 58px) round 22px);
+  opacity: 0;
+  transition: clip-path 380ms cubic-bezier(0.3, 0.9, 0.3, 1), opacity 120ms linear 260ms;
+}
+.is-open .phone .panel {
+  clip-path: inset(0 round 0);
+  opacity: 1;
+  transition: clip-path 380ms cubic-bezier(0.3, 0.9, 0.3, 1), opacity 80ms linear;
+}
+
+/* As the widget's tiles: two to a row, the bug the whole width, a white
+   glyph over its name. */
+.tiles {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: center;
+  gap: 10px;
+  padding: 16px 12px;
+  transition: opacity 250ms ease, transform 250ms ease;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 116px;
+  padding: 12px 8px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+.tile:first-child { grid-column: 1 / -1; }
+.tile i {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.05)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.07));
+}
+.tile .ico { width: 26px; height: 26px; }
+.tile--bug { background: #e5484d; }
+.tile--idea { background: #8b5cf6; }
+.tile--review { background: #e9a00b; }
+
+.phone .board { opacity: 0; transition: opacity 250ms ease; }
+.is-board .tiles { opacity: 0; transform: translateY(-12px); }
+.is-board .phone .board { opacity: 1; }
+.phone .post { opacity: 0; transform: translateY(10px); }
+.phone .post.is-in { opacity: 1; transform: none; }
+
+.post__stars { display: flex; gap: 1px; margin: 0; }
+.post__stars .star { width: 15px; height: 15px; color: var(--s-line); transition: color 200ms ease; }
+.is-stars .post__stars .star { color: #f5a524; }
+.post__stars .star:nth-child(2) { transition-delay: 120ms; }
+.post__stars .star:nth-child(3) { transition-delay: 240ms; }
+.post__stars .star:nth-child(4) { transition-delay: 360ms; }
+.post__stars .star:nth-child(5) { transition-delay: 480ms; }
+
+/* Your answer: Done, and a reply with "Fixed in" opening under the post. */
+.badge--done { opacity: 0; transform: scale(0.6); transition: opacity 200ms ease, transform 300ms cubic-bezier(0.3, 1.4, 0.5, 1); }
+.is-answered .badge--done { opacity: 1; transform: none; }
+.post__answer {
+  display: grid;
+  gap: 2px;
+  max-height: 0;
+  padding: 0 10px;
+  border-left: 3px solid var(--s-accent);
   border-radius: 6px;
+  background: var(--s-bg);
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 400ms ease, padding 400ms ease, opacity 300ms ease;
+}
+.is-answered .post__answer { max-height: 90px; padding: 7px 10px; opacity: 1; }
+.post__answer small { color: var(--s-quiet); font-size: 11px; }
+.post__answer span { font-size: 13px; }
+.post__answer em { color: var(--s-accent); font-size: 12px; font-style: normal; font-weight: 700; }
+
+/* -- 2. Why: votes sort it, a duplicate is caught, your colours ---------- */
+
+.sheetbox {
+  position: relative;
+  width: min(100%, 360px);
+  height: 420px;
+  margin: 0 auto;
+  padding: 14px 12px;
+  border: 1.5px solid var(--s-line);
+  border-radius: 16px;
+  background: var(--s-bg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: background-color 600ms ease, border-color 600ms ease, color 600ms ease, opacity 400ms ease;
+}
+.is-resetting .sheetbox { opacity: 0; }
+
+/* The widget's own light theme. */
+.stage.is-light {
+  --s-bg: #ffffff;
+  --s-card: #f4f4f7;
+  --s-chip: #e8e8ef;
+  --s-sunken: #e8e8ef;
+  --s-line: #dcdce5;
+  --s-ink: #1b1b24;
+  --s-quiet: #5a5a6b;
+  --s-accent: #2563eb;
+  --s-on-accent: #ffffff;
+}
+
+/* Each row has its place from `--i`; changing it slides the row there. */
+.rank { position: relative; height: 252px; margin-top: 4px; }
+.post--row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  transform: translateY(calc(var(--i, 0) * 64px));
+  transition: transform 550ms cubic-bezier(0.3, 0.9, 0.3, 1), background-color 600ms ease, box-shadow 300ms ease;
+}
+.post--row .badge { padding: 3px; }
+.post--row .post__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.post--row.is-top { box-shadow: inset 0 0 0 2px var(--s-accent); }
+
+/* Top and New, floating at the foot of the board as in the widget. */
+.sort {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--s-sunken);
+  transform: translateX(-50%);
+  transition: background-color 600ms ease;
+}
+.sort span {
+  padding: 6px 18px;
+  border-radius: 999px;
+  color: var(--s-quiet);
   font-size: 13px;
   font-weight: 700;
-  white-space: nowrap;
+  transition: background-color 300ms ease, color 300ms ease;
 }
-/* Named by what they say, as Figma's pill/* variables. Done and Not doing
-   are the colours of those statuses on the board. */
-.pill--everyone { background: var(--device); color: #1fc7d4; }
-.pill--only-you { background: var(--device); color: #ffc21f; }
-.pill--done { background: var(--device); color: #21bca5; }
-.pill--not-doing { background: var(--device); color: #8a8fb8; }
+.sort .is-on { background: var(--s-card); color: var(--s-ink); }
 
-@media (max-width: 720px) {
-  .table thead { display: none; }
-  .table, .table tbody, .table tr, .table td { display: block; }
-  .table tr { padding: 12px 16px; border-radius: var(--radius); }
-  .table tbody tr:nth-child(odd) { background: var(--row); }
-  .table tbody tr:nth-child(odd) td { background: none; }
-  .table td { padding: 4px 0; text-align: left !important; }
-}
-
-/* ---- Cards -------------------------------------------------------------- */
-
-.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-
-.card {
-  background: var(--card);
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-}
-
-.card p { color: var(--sub); margin: 8px 0 0; line-height: 1.55; font-size: 15px; }
-.card code { font-size: 14px; color: var(--ink); background: var(--row); padding: 1px 6px; border-radius: 4px; }
-
-@media (max-width: 880px) { .cards { grid-template-columns: 1fr; } }
-
-/* Little drawings of the three modes. */
-.mini {
-  position: relative;
-  height: 132px;
-  border-radius: var(--radius);
-  background: var(--row);
-  border: 1.5px solid var(--line);
-  margin-bottom: 18px;
-  overflow: hidden;
-}
-.mini::before {
-  content: '';
+/* Writing an idea: the sheet comes up, and "Said already, maybe?" under it. */
+.compose {
   position: absolute;
-  left: 14px; right: 40%; top: 16px;
-  height: 8px;
-  border-radius: 4px;
-  background: var(--card-2);
-  box-shadow: 0 16px 0 var(--card-2), 0 32px 0 var(--card-2);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  gap: 10px;
+  padding: 16px 14px 18px;
+  border-radius: 16px 16px 0 0;
+  background: var(--s-card);
+  box-shadow: 0 -10px 30px rgba(10, 10, 30, 0.35);
+  transform: translateY(105%);
+  transition: transform 420ms cubic-bezier(0.3, 0.9, 0.3, 1), background-color 600ms ease;
 }
-.mini__board {
-  position: absolute;
-  background: var(--page);
-  border: 1px solid var(--line);
+.is-writing .compose { transform: none; }
+.compose > b { font-size: 15px; font-weight: 900; }
+.compose__field {
+  min-height: 44px;
+  margin: 0;
+  padding: 11px 12px;
+  border: 1.5px solid var(--s-accent);
   border-radius: 8px;
+  background: var(--s-bg);
+  font-size: 14px;
 }
-.mini__board::before {
+.alike { display: grid; gap: 4px; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 350ms ease, opacity 300ms ease; }
+.is-alike .alike { max-height: 120px; opacity: 1; }
+.alike small { font-size: 12px; font-weight: 700; }
+.alike p { margin: 0 0 4px; color: var(--s-quiet); font-size: 12px; }
+.alike__row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--s-bg); font-size: 13px; }
+.alike__row .badge { padding: 3px; }
+.alike__row .post__text { flex: 1; }
+
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 1px;
+  vertical-align: -0.15em;
+  background: currentColor;
+  animation: caret 1s steps(1) infinite;
+}
+@keyframes caret { 50% { opacity: 0; } }
+
+/* -- 3. How to add it: the tag typed, then the three ways ---------------- */
+
+.how--add .section-head { margin-bottom: 24px; }
+.stage--add { display: grid; gap: 16px; align-items: center; }
+@media (min-width: 900px) {
+  .stage--add { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; }
+}
+
+/* The finished code, unseen, keeps the box its full height while it is typed. */
+.add__code { display: grid; white-space: pre-wrap; overflow-wrap: anywhere; }
+.add__code > code { grid-area: 1 / 1; }
+.add__ghost { visibility: hidden; }
+
+.add__app { display: grid; gap: 10px; }
+.add__screen {
+  position: relative;
+  height: 300px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--page);
+  overflow: hidden;
+  container-type: inline-size;
+}
+@container (max-width: 420px) {
+  .add__screen .add__panel { --pad: 0px; --panel-w: 100%; --fab-in: 12px; }
+}
+.add__screen .mock-app { padding: 16px 18px; gap: 9px; }
+.add__screen .mock-app i:nth-of-type(3) { height: 76px; }
+.add__menu { padding: 4px 10px; border-radius: 999px; background: var(--row); color: var(--sub); font-size: 12px; font-weight: 700; }
+.add__screen .fab { right: 12px; bottom: 12px; width: 40px; height: 40px; transform: scale(0); opacity: 0; }
+.add__screen .fab .ico { width: 18px; height: 18px; }
+.has-tag:not([data-mode='inline']):not([data-mode='overlay']) .add__screen .fab { transform: none; opacity: 1; }
+
+.add__dim { position: absolute; inset: 0; background: rgba(10, 10, 30, 0.5); opacity: 0; transition: opacity 300ms ease; }
+.is-open .add__dim { opacity: 1; }
+
+/* In the corner on a wider screen, the whole screen on a phone; the button
+   sits `--fab-in` inside the panel's corner. */
+.add__panel {
+  --pad: 12px;
+  --panel-w: min(46%, 220px);
+  --fab-in: 0px;
+  position: absolute;
+  top: var(--pad);
+  right: var(--pad);
+  bottom: var(--pad);
+  width: var(--panel-w);
+  border-radius: 12px;
+  background: var(--s-bg);
+  overflow: hidden;
+  clip-path: inset(calc(100% - 40px - var(--fab-in)) var(--fab-in) var(--fab-in) calc(100% - 40px - var(--fab-in)) round 20px);
+  opacity: 0;
+  transition: clip-path 380ms cubic-bezier(0.3, 0.9, 0.3, 1), opacity 120ms linear 260ms, transform 380ms cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.is-open .add__panel { clip-path: inset(0 round 12px); opacity: 1; transition: clip-path 380ms cubic-bezier(0.3, 0.9, 0.3, 1), opacity 80ms linear; }
+/* An overlay comes up from your own menu, not out of a button. */
+[data-mode='overlay'] .add__panel { clip-path: inset(0 round 12px); transform: translateY(24px); transition: opacity 300ms ease, transform 380ms cubic-bezier(0.3, 0.9, 0.3, 1); }
+[data-mode='overlay'].is-open .add__panel { transform: none; }
+
+/* Inline, the board is part of the page, beside it or under its title. */
+.add__inline {
+  position: absolute;
+  top: 54px;
+  right: 12px;
+  bottom: 12px;
+  left: 54%;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: var(--s-bg);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 350ms ease, transform 350ms ease;
+}
+[data-mode='inline'] .add__inline { opacity: 1; transform: none; }
+[data-mode='inline'] .add__screen .mock-app i { max-width: calc(54% - 30px); }
+@container (max-width: 420px) {
+  .add__inline { left: 12px; }
+  [data-mode='inline'] .add__screen .mock-app i { opacity: 0; }
+}
+
+.miniboard { display: grid; gap: 7px; padding: 12px 10px; }
+.miniboard b { margin-bottom: 2px; font-size: 13px; font-weight: 900; }
+.miniboard i { position: relative; display: block; height: 40px; border-radius: 8px; background: var(--s-card); }
+.miniboard i::before {
   content: '';
   position: absolute;
-  left: 10px; right: 10px; top: 12px;
-  height: 18px;
-  border-radius: 5px;
+  left: 8px;
+  top: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
   background: #e5484d;
-  box-shadow: 0 24px 0 #8b5cf6, 0 48px 0 #e9a00b;
 }
-.mini--inline .mini__board { left: 50%; right: 14px; top: 12px; bottom: 12px; }
-.mini--floating .mini__fab {
+.miniboard i::after {
+  content: '';
   position: absolute;
-  right: 14px; bottom: 14px;
-  width: 28px; height: 28px;
+  left: 8px;
+  right: 30%;
+  bottom: 8px;
+  height: 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.miniboard i:nth-of-type(2)::before { background: #8b5cf6; }
+.miniboard i:nth-of-type(3)::before { background: #e9a00b; }
+
+.add__says { min-height: 1.5em; margin: 0; color: var(--sub); font-size: 14px; text-align: center; transition: opacity 200ms ease; }
+.add__says code { color: var(--ink); }
+.add__says.is-away { opacity: 0; }
+
+/* The steps under it. */
+.steps-list { display: grid; gap: 20px; margin: 40px 0 0; padding: 0; list-style: none; counter-reset: step; }
+@media (min-width: 900px) { .steps-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; } }
+.steps-list > li {
+  position: relative;
+  min-width: 0;
+  padding: 22px 22px 22px 66px;
+  border-radius: var(--radius-lg);
+  background: var(--row);
+  counter-increment: step;
+}
+.steps-list > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 20px;
+  top: 18px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--button);
+  color: #12132b;
+  font-weight: 900;
 }
-.mini--overlay { background: color-mix(in srgb, var(--scrim) 50%, var(--row)); }
-.mini--overlay .mini__board { right: 14px; bottom: 12px; width: 42%; top: 12px; }
+.steps-list h3 { margin-top: 4px; }
+.steps-list p { margin: 10px 0 0; color: var(--sub); line-height: 1.55; font-size: 15px; }
+.steps-list p a:not(.btn) { color: var(--button); font-weight: 700; }
+.steps-list p code,
+.modes code { padding: 1px 6px; border-radius: 4px; background: var(--device); color: var(--ink); font-size: 13px; }
+.steps-list .code { margin-top: 12px; padding: 14px 16px; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.modes { display: grid; gap: 4px; margin: 12px 0 0; font-size: 15px; }
+.modes dt { margin-top: 6px; font-weight: 700; }
+.modes dd { margin: 0; color: var(--sub); line-height: 1.5; }
+
+@media (max-width: 560px) {
+  .steps-list > li { padding: 20px 16px 20px 56px; }
+  .steps-list > li::before { left: 14px; }
+}
+
+/* Asked for less motion: the last picture, standing still. */
+@media (prefers-reduced-motion: reduce) {
+  .stage *,
+  .stage { transition: none !important; }
+  .stage .caret { animation: none; }
+}
 
 /* ---- Code -------------------------------------------------------------- */
 
