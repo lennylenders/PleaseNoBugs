@@ -1,5 +1,14 @@
 import { useState } from 'preact/hooks';
-import { cleanCodeLink, codeSite, type Post, type PostKind, type PostStatus } from '@pleasenobugs/core';
+import {
+  cleanCodeLink,
+  codeSite,
+  shownThread,
+  type Message,
+  type Post,
+  type PostKind,
+  type PostStatus,
+} from '@pleasenobugs/core';
+import { marks, snippet } from '../filter.js';
 import type { CopyKey, Translate } from '../i18n.js';
 import { whenLabel } from '../when.js';
 import * as Icon from './icons.js';
@@ -184,22 +193,41 @@ export function VoteButton({
  * card scrolls near, so a long board does not fetch every picture on it. An
  * owner sees a screenshot that is not on the board as a small mark instead,
  * and opens it from the manage sheet.
+ *
+ * **The conversation under it is a count, not text**: however long it gets,
+ * the card stays the size of a card, and the count opens it on a page of its
+ * own (see `Talk`). Only a search that found its words there quotes a line.
  */
 export function PostCard({
   post,
-  appName,
   t,
   locale,
   onVote,
   onDelete,
   onManage,
+  onTalk,
   shotUrl,
   onShot,
+  fresh,
+  query = '',
+  found,
+  bare,
 }: {
   post: Post;
-  appName: string;
+  /** What the board calls the app. Unused since the card stopped quoting it; kept so callers need not change. */
+  appName?: string;
   t: Translate;
   locale: string;
+  /** Opens the conversation. Absent → the count is only a count. */
+  onTalk?: () => void;
+  /** For an owner: its author answered, and the app has not since. */
+  fresh?: boolean;
+  /** What the board is searched for, marked in the text. */
+  query?: string;
+  /** The message a search found its words in, quoted under the text. */
+  found?: Message;
+  /** Just the post, as the top of its conversation page: no foot, no screenshot. */
+  bare?: boolean;
   /** Absent on a read-only board: the count shows, with nothing to tap. */
   onVote?: (up: boolean) => void;
   /** Your own post, or any post for an owner. */
@@ -216,6 +244,7 @@ export function PostCard({
   const kind = KIND[post.kind];
   const status = STATUS[post.status];
   const when = whenLabel(post.at, locale);
+  const talk = shownThread(post.thread).length;
 
   return (
     <li
@@ -246,12 +275,21 @@ export function PostCard({
         )}
         {post.hidden && <span class="card__off">{t('board.hidden')}</span>}
         {post.pending && <span class="card__wait">{t('board.waiting')}</span>}
+        {fresh && <span class="card__new">{t('owner.newAnswer')}</span>}
         <span class="card__when">{'date' in when ? when.date : t(when.key, when.vars)}</span>
       </div>
 
-      <p class="card__text">{post.text}</p>
+      <p class="card__text">
+        <Marked text={post.text} query={query} />
+      </p>
 
-      {shotUrl && !broken && (
+      {found && (
+        <p class="card__found">
+          {t('search.inThread')} “<Marked text={snippet(found.text, query)} query={query} />”
+        </p>
+      )}
+
+      {shotUrl && !broken && !bare && (
         <button
           type="button"
           class="card__pic"
@@ -265,18 +303,9 @@ export function PostCard({
         </button>
       )}
 
-      {/* Where the fix is belongs with the answer, when there is one: it is
-          what the app said back. */}
-      {post.reply ? (
-        <div class="card__reply">
-          <span class="card__reply-who">{t('board.reply', { app: appName })}</span>
-          <p class="card__reply-text">{post.reply.text}</p>
-          <FixLine post={post} t={t} />
-        </div>
-      ) : (
-        <FixLine post={post} t={t} />
-      )}
+      <FixLine post={post} t={t} />
 
+      {!bare && (
       <div class="card__foot">
         <span class="card__who">{post.mine ? t('board.byYou') : (post.who ?? t('board.anon'))}</span>
         {onDelete && (
@@ -292,6 +321,27 @@ export function PostCard({
             <Icon.Trash />
           </button>
         )}
+        {talk > 0 &&
+          (onTalk ? (
+            <button
+              type="button"
+              class="card__talk"
+              aria-label={`${t('talk.open')}: ${t('talk.count', { n: talk })}`}
+              onClick={(e) => {
+                // Not the owner's manage sheet: the conversation itself.
+                e.stopPropagation();
+                onTalk();
+              }}
+            >
+              <Icon.Messages />
+              <span>{talk}</span>
+            </button>
+          ) : (
+            <span class="card__talk" role="img" aria-label={t('talk.count', { n: talk })}>
+              <Icon.Messages />
+              <span>{talk}</span>
+            </span>
+          ))}
         {onVote ? (
           <VoteButton
             votes={post.votes}
@@ -307,6 +357,17 @@ export function PostCard({
           </span>
         )}
       </div>
+      )}
     </li>
+  );
+}
+
+/** A text with what was searched for marked in it. */
+export function Marked({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  return (
+    <>
+      {marks(text, query).map((part, i) => (part.hit ? <mark key={i}>{part.text}</mark> : part.text))}
+    </>
   );
 }

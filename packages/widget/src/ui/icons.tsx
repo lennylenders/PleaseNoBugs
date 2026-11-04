@@ -103,6 +103,17 @@ export const GitHub = ({ size = 14 }: P) => (
   </svg>
 );
 
+/** Looking for one: the search field. */
+export const Search = ({ size = 16 }: P) => svg(size, <path d="M17.5 11a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0zM16 16l4 4" />);
+
+/** Choosing what to see: the Filter button. */
+export const Sliders = ({ size = 16 }: P) =>
+  svg(size, <path d="M4 7h9M19 7h1M4 17h3M13 17h7M18.5 7a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM12.5 17a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />);
+
+/** The conversation under a post: a speech bubble, with how many messages beside it. */
+export const Messages = ({ size = 16 }: P) =>
+  svg(size, <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5z" />);
+
 /** A picture: adding a screenshot, and the owner's sign that one came along. */
 export const Image = ({ size = 20 }: P) =>
   svg(size, <path d="M4 5.5h16v13H4zM4 15.5l4.5-4.5 4 4 2.5-2.5 5 5M15.5 9.5h.01" />);

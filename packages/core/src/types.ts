@@ -23,10 +23,39 @@ export type PostKind = 'bug' | 'idea' | 'review';
  */
 export type PostStatus = 'open' | 'planned' | 'done' | 'declined';
 
-/** An owner's answer under a post. One reply, never a thread. */
+/**
+ * The app's latest message under a post, for widgets from before
+ * conversations: they read this and nothing else. The whole conversation is
+ * `thread`.
+ */
 export interface PostReply {
   text: string;
   at: number;
+}
+
+/**
+ * Who wrote a message under a post: the app (one of the project's owners,
+ * speaking for it) or whoever wrote the post.
+ */
+export type MessageFrom = 'app' | 'author';
+
+/**
+ * One message in the conversation under a bug or an idea.
+ *
+ * The turns are the point: the app may write whenever it likes, the author
+ * only right after the app said something. So a conversation is always the
+ * app asking and the author answering, and never somebody talking to a wall.
+ */
+export interface Message {
+  /** Minted by whoever sends it, so a retry is recognised. */
+  id: string;
+  from: MessageFrom;
+  text: string;
+  at: number;
+  /** When it was last changed, if it was. Only ever the last message, before anybody answered it. */
+  edited?: number;
+  /** Owners only: an author's message an owner took off the board. */
+  hidden?: boolean;
 }
 
 /**
@@ -95,7 +124,13 @@ export interface Post {
   /** The author's display name. Absent when they posted anonymously or never
    *  chose one. Never an address: a name is a label, an address an identity. */
   who?: string;
+  /** The app's latest message, for widgets from before `thread`. */
   reply?: PostReply;
+  /**
+   * The conversation under it, oldest first. Absent until somebody wrote.
+   * Hidden messages reach owners only, marked.
+   */
+  thread?: Message[];
   /** A done bug or idea only: where the fix is. Sent to everybody. */
   fix?: PostFix;
   /** Reviews only: 1 to 5 stars. */
@@ -267,6 +302,8 @@ export type ErrorCode =
   | 'no_update'
   | 'duplicate'
   | 'reviewed'
+  | 'not_your_turn'
+  | 'closed'
   | 'too_many'
   | 'rate_limited'
   | 'not_found'

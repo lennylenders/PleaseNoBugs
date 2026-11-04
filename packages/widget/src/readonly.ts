@@ -1,4 +1,4 @@
-import type { BoardRead } from '@pleasenobugs/core';
+import { shownThread, type BoardRead } from '@pleasenobugs/core';
 
 /**
  * A board as `readonly` shows it: everybody anonymous, no screenshots, and
@@ -19,11 +19,11 @@ export function forReaders(read: BoardRead): BoardRead {
     project: read.project,
     posts: read.posts
       .filter((p) => !p.hidden)
-      .map(({ who: _who, shot: _shot, shotFor: _shotFor, context: _context, hidden: _hidden, ...p }) => ({
-        ...p,
-        mine: false,
-        voted: false,
-      })),
+      .map(({ who: _who, shot: _shot, shotFor: _shotFor, context: _context, hidden: _hidden, thread, ...p }) => {
+        // A message an owner took off the board stays off, whoever is reading.
+        const shown = shownThread(thread);
+        return { ...p, ...(shown.length ? { thread: shown } : {}), mine: false, voted: false };
+      }),
     // The Updates page is public to begin with, so it comes along.
     ...(read.updates ? { updates: read.updates } : {}),
   };

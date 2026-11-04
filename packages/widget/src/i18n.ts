@@ -56,6 +56,7 @@ const COPY = {
     de: 'Hier steht noch nichts.',
   },
   'board.votes': { en: '{n} votes', nl: '{n} stemmen', de: '{n} Stimmen' },
+  'board.voteOne': { en: '1 vote', nl: '1 stem', de: '1 Stimme' },
   'board.emptyFiltered': {
     en: 'Nothing of that kind yet.',
     nl: 'Nog niets van deze soort.',
@@ -219,15 +220,23 @@ const COPY = {
     de: 'Das waren die {max} für heute. Morgen wieder.',
   },
   'board.likeThis': {
-    en: 'Said already, maybe?',
-    nl: 'Misschien al gezegd?',
-    de: 'Vielleicht schon gesagt?',
+    en: 'Already on the board?',
+    nl: 'Staat het er al?',
+    de: 'Schon auf dem Board?',
   },
   'board.likeThisNote': {
-    en: 'Vote for one of these instead.',
-    nl: 'Stem liever op een van deze.',
-    de: 'Stimm lieber für eins davon.',
+    en: 'Vote instead of sending it again.',
+    nl: 'Stem liever dan het nog een keer te sturen.',
+    de: 'Stimm lieber ab, statt es noch mal zu schicken.',
   },
+  // Seconding a lookalike instead of writing it again, which closes the form.
+  'board.meToo': { en: 'Me too', nl: 'Ik ook', de: 'Ich auch' },
+  'board.meTooDone': {
+    en: 'Your vote is on it. Thank you.',
+    nl: 'Je stem staat erop. Bedankt.',
+    de: 'Deine Stimme ist drauf. Danke.',
+  },
+  'board.voted': { en: 'Voted', nl: 'Gestemd', de: 'Abgestimmt' },
   // Two ways a post can be refused, because the answer to one is "go again"
   // and the answer to the other is "come back tomorrow".
   'board.failed': {
@@ -325,6 +334,97 @@ const COPY = {
   'news.idea': { en: 'Your idea is built', nl: 'Je idee is gebouwd', de: 'Deine Idee ist umgesetzt' },
   'news.ideaIn': { en: 'Your idea is in {version}', nl: 'Je idee zit in {version}', de: 'Deine Idee ist in {version}' },
   'news.see': { en: 'See the fix', nl: 'Bekijk de oplossing', de: 'Zum Fix' },
+
+  // ---- The conversation under a post ----
+  'talk.title': { en: 'Conversation', nl: 'Gesprek', de: 'Unterhaltung' },
+  'talk.open': { en: 'Open the conversation', nl: 'Gesprek openen', de: 'Unterhaltung öffnen' },
+  'talk.count': { en: '{n} messages', nl: '{n} berichten', de: '{n} Nachrichten' },
+  'talk.you': { en: 'You say', nl: 'Jij zegt', de: 'Du sagst' },
+  'talk.who': { en: '{who} says', nl: '{who} zegt', de: '{who} sagt' },
+  'talk.edited': { en: 'edited', nl: 'aangepast', de: 'bearbeitet' },
+  'talk.answerLabel': { en: 'Your answer to {app}', nl: 'Jouw antwoord aan {app}', de: 'Deine Antwort an {app}' },
+  'talk.placeholder': { en: 'Write your answer…', nl: 'Schrijf je antwoord…', de: 'Schreib deine Antwort…' },
+  'talk.send': { en: 'Send', nl: 'Versturen', de: 'Senden' },
+  'talk.edit': { en: 'Edit', nl: 'Aanpassen', de: 'Bearbeiten' },
+  'talk.remove': { en: 'Remove', nl: 'Weghalen', de: 'Entfernen' },
+  'talk.save': { en: 'Save', nl: 'Opslaan', de: 'Speichern' },
+  'talk.next': { en: '{app} answers next.', nl: '{app} antwoordt hierna.', de: '{app} antwortet als Nächstes.' },
+  'talk.closedDone': {
+    en: 'Closed: {app} marked this done.',
+    nl: 'Gesloten: {app} heeft dit op Klaar gezet.',
+    de: 'Geschlossen: {app} hat das auf Fertig gesetzt.',
+  },
+  'talk.closedDeclined': {
+    en: 'Closed: {app} is not doing this.',
+    nl: 'Gesloten: {app} doet dit niet.',
+    de: 'Geschlossen: {app} macht das nicht.',
+  },
+  // Said when what was on screen is no longer what is on the board.
+  'talk.moved': {
+    en: 'Something changed in the meantime. Have a look first.',
+    nl: 'Er is intussen iets veranderd. Kijk eerst even.',
+    de: 'Inzwischen hat sich etwas geändert. Schau erst mal.',
+  },
+  'talk.hide': { en: 'Hide', nl: 'Verbergen', de: 'Ausblenden' },
+  'talk.unhide': { en: 'Put back', nl: 'Terugzetten', de: 'Zurückstellen' },
+  'talk.label': { en: 'Conversation', nl: 'Gesprek', de: 'Unterhaltung' },
+  'talk.writeTo': { en: 'Write to {who}…', nl: 'Schrijf aan {who}…', de: 'Schreib an {who}…' },
+  'talk.changeLast': { en: 'Change your last message', nl: 'Je laatste bericht aanpassen', de: 'Deine letzte Nachricht ändern' },
+  'talk.gets': {
+    en: '{who} gets a note on the board.',
+    nl: '{who} krijgt een melding op het bord.',
+    de: '{who} bekommt einen Hinweis auf dem Board.',
+  },
+  // How an owner's sheet names the author of an anonymous post.
+  'talk.author': { en: 'the author', nl: 'de schrijver', de: 'die Person' },
+
+  // ---- The note for whoever wrote it, once the app answered ----
+  'answered.bug': { en: '{app} answered your bug', nl: '{app} heeft op je bug gereageerd', de: '{app} hat auf deinen Bug geantwortet' },
+  'answered.idea': { en: '{app} answered your idea', nl: '{app} heeft op je idee gereageerd', de: '{app} hat auf deine Idee geantwortet' },
+  'answered.review': {
+    en: '{app} answered your review',
+    nl: '{app} heeft op je review gereageerd',
+    de: '{app} hat auf deine Bewertung geantwortet',
+  },
+  'answered.see': { en: 'See the conversation', nl: 'Bekijk het gesprek', de: 'Zur Unterhaltung' },
+
+  // ---- For owners: answers waiting ----
+  'owner.newAnswer': { en: 'New answer', nl: 'Nieuw antwoord', de: 'Neue Antwort' },
+  'owner.waitingOne': { en: '1 answer waits for you', nl: '1 antwoord wacht op jou', de: '1 Antwort wartet auf dich' },
+  'owner.waitingMany': { en: '{n} answers wait for you', nl: '{n} antwoorden wachten op jou', de: '{n} Antworten warten auf dich' },
+  'owner.showThese': { en: 'Show only these', nl: 'Toon alleen deze', de: 'Nur diese zeigen' },
+
+  // ---- Search and filter ----
+  'search.placeholder': { en: 'Search bugs and ideas', nl: 'Zoek in bugs en ideeën', de: 'Bugs und Ideen durchsuchen' },
+  'search.clear': { en: 'Clear the search', nl: 'Zoekopdracht wissen', de: 'Suche löschen' },
+  'search.countOne': { en: '1 post matches "{q}"', nl: '1 post past bij "{q}"', de: '1 Post passt zu „{q}“' },
+  'search.count': { en: '{n} posts match "{q}"', nl: '{n} posts passen bij "{q}"', de: '{n} Posts passen zu „{q}“' },
+  'search.inThread': { en: 'In the conversation:', nl: 'In het gesprek:', de: 'In der Unterhaltung:' },
+  'filter.button': { en: 'Filter', nl: 'Filter', de: 'Filter' },
+  'filter.title': { en: 'Filter', nl: 'Filter', de: 'Filter' },
+  'filter.kind': { en: 'Kind', nl: 'Soort', de: 'Art' },
+  'filter.status': { en: 'Status', nl: 'Status', de: 'Status' },
+  'filter.statusNote': {
+    en: 'Reviews have no status, so choosing one hides them.',
+    nl: 'Reviews hebben geen status, dus als je er een kiest verdwijnen ze.',
+    de: 'Bewertungen haben keinen Status, also blendet eine Auswahl sie aus.',
+  },
+  'filter.own': { en: 'Only for you', nl: 'Alleen voor jou', de: 'Nur für dich' },
+  'filter.waiting': { en: 'Waiting on you', nl: 'Wacht op jou', de: 'Wartet auf dich' },
+  'filter.mine': { en: 'Only my posts', nl: 'Alleen mijn posts', de: 'Nur meine Posts' },
+  'filter.reset': { en: 'Reset', nl: 'Wissen', de: 'Zurücksetzen' },
+  'filter.showOne': { en: 'Show 1 post', nl: 'Toon 1 post', de: '1 Post zeigen' },
+  'filter.show': { en: 'Show {n} posts', nl: 'Toon {n} posts', de: '{n} Posts zeigen' },
+  'filter.on': { en: '{n} filters on', nl: '{n} filters aan', de: '{n} Filter an' },
+  'filter.remove': { en: 'Turn off {label}', nl: '{label} uitzetten', de: '{label} ausschalten' },
+  'filter.clearAll': { en: 'Clear all', nl: 'Alles wissen', de: 'Alles löschen' },
+  'filter.none': { en: 'Nothing found', nl: 'Niets gevonden', de: 'Nichts gefunden' },
+  'filter.noneNote': {
+    en: 'Nothing matches your search and filters. Clear them to look everywhere.',
+    nl: 'Niets past bij je zoekopdracht en filters. Wis ze om overal te zoeken.',
+    de: 'Nichts passt zu deiner Suche und deinen Filtern. Lösch sie, um überall zu suchen.',
+  },
+  'filter.clear': { en: 'Clear search and filters', nl: 'Zoekopdracht en filters wissen', de: 'Suche und Filter löschen' },
 
   // ---- Updates ----
   'updates.title': { en: 'Updates', nl: 'Updates', de: 'Updates' },

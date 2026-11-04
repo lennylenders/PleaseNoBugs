@@ -207,6 +207,10 @@ await client.post({ id: crypto.randomUUID(), kind: 'review', text: 'Love it', ra
 const shot = await client.shot(postId);      // the screenshot as a Blob: on the board, or yours as an owner
 const src = client.shotUrl(postId);          // a board screenshot's address, for an <img>
 const news = await client.updates();         // what changed in the app; never asks the wallet
+// The conversation under a post: the app any time, its author right after the app.
+await client.say(postId, { id: crypto.randomUUID(), text: 'A Pixel 7, every time.' });
+await client.editMessage(postId, messageId, { text: 'A Pixel 8, every time.' });   // your last, until answered
+await client.unsay(postId, messageId);
 ```
 
 Every call answers `{ ok: true, data }` or `{ ok: false, status, error }`, and

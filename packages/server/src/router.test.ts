@@ -580,6 +580,141 @@ describe('owners answering', () => {
   });
 });
 
+describe('the conversation under a post', () => {
+  let m = 0;
+  const say = (as: any, w: ReturnType<typeof wallet>, post: string, text: string) =>
+    as(w, 'POST', `/posts/${post}/messages`, { id: `m${++m}`, text });
+  const thread = async (as: any, w: ReturnType<typeof wallet> = B) =>
+    ((await as(w, 'GET', '/posts')).data.posts[0].thread ?? []).map((x: any) => `${x.from}: ${x.text}`);
+
+  it('goes app, author, app, author: the author only ever answers the app', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'bug' });
+    // Nothing to answer yet.
+    expect((await say(as, A, 'p1', 'More details')).data.error).toBe('not_your_turn');
+    expect((await say(as, OWNER, 'p1', 'Which phone?')).status).toBe(200);
+    expect((await say(as, A, 'p1', 'A Pixel 7')).status).toBe(200);
+    // Twice in a row is not a conversation.
+    expect((await say(as, A, 'p1', 'Oh, and Android 14')).data.error).toBe('not_your_turn');
+    // The app may say as much as it likes.
+    expect((await say(as, OWNER, 'p1', 'Thanks!')).status).toBe(200);
+    expect((await say(as, OWNER, 'p1', 'One more thing: every time?')).status).toBe(200);
+    expect((await say(as, A, 'p1', 'Every time')).status).toBe(200);
+    // Everybody reads it, in order.
+    expect(await thread(as)).toEqual([
+      'app: Which phone?',
+      'author: A Pixel 7',
+      'app: Thanks!',
+      'app: One more thing: every time?',
+      'author: Every time',
+    ]);
+  });
+
+  it('nobody but the author and the owners takes part', async () => {
+    const { as, post } = await setup();
+    await post(A);
+    await say(as, OWNER, 'p1', 'Tell me more');
+    expect((await say(as, B, 'p1', 'Me too!')).data.error).toBe('not_yours');
+  });
+
+  it('a review gets one answer from the app and never one back', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'review', rating: 4, text: 'Nice' });
+    expect((await say(as, OWNER, 'p1', 'Thanks!')).status).toBe(200);
+    expect((await say(as, A, 'p1', 'You are welcome')).data.error).toBe('closed');
+    expect((await say(as, OWNER, 'p1', 'Really, thanks')).data.error).toBe('not_your_turn');
+  });
+
+  it('done or not doing closes it for the author, and opening the post opens it again', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'bug' });
+    await say(as, OWNER, 'p1', 'Fixed, I think?');
+    await as(OWNER, 'POST', '/posts/p1/manage', { status: 'done' });
+    expect((await say(as, A, 'p1', 'Not for me')).data.error).toBe('closed');
+    // The app still may.
+    expect((await say(as, OWNER, 'p1', 'Shipped in 1.4.2')).status).toBe(200);
+    await as(OWNER, 'POST', '/posts/p1/manage', { status: 'open' });
+    expect((await say(as, A, 'p1', 'Still broken for me')).status).toBe(200);
+  });
+
+  it('your own last message changes or goes only until it is answered', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'bug' });
+    await say(as, OWNER, 'p1', 'Which phone?');
+    const mine = (await say(as, A, 'p1', 'A Pixle')).data.message.id;
+    expect((await as(A, 'PATCH', `/posts/p1/messages/${mine}`, { text: 'A Pixel 7' })).status).toBe(200);
+    expect((await as(OWNER, 'PATCH', `/posts/p1/messages/${mine}`, { text: 'Hacked' })).data.error).toBe('not_yours');
+    expect((await as(B, 'GET', '/posts')).data.posts[0].thread[1]).toMatchObject({ text: 'A Pixel 7', edited: expect.any(Number) });
+    await say(as, OWNER, 'p1', 'Thanks');
+    expect((await as(A, 'PATCH', `/posts/p1/messages/${mine}`, { text: 'A Pixel 8' })).data.error).toBe('not_your_turn');
+    expect((await as(A, 'DELETE', `/posts/p1/messages/${mine}`)).data.error).toBe('not_your_turn');
+  });
+
+  it('taking your answer back makes it your turn again', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'bug' });
+    await say(as, OWNER, 'p1', 'Which phone?');
+    const mine = (await say(as, A, 'p1', 'Wrong post, sorry')).data.message.id;
+    expect((await as(A, 'DELETE', `/posts/p1/messages/${mine}`)).status).toBe(200);
+    expect(await thread(as)).toEqual(['app: Which phone?']);
+    expect((await say(as, A, 'p1', 'A Pixel 7')).status).toBe(200);
+  });
+
+  it('an owner takes an author’s message off the board and puts it back', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'bug' });
+    const q = (await say(as, OWNER, 'p1', 'Which phone?')).data.message.id;
+    const rude = (await say(as, A, 'p1', 'Something rude')).data.message.id;
+    expect((await as(A, 'PATCH', `/posts/p1/messages/${rude}`, { hidden: true })).data.error).toBe('not_owner');
+    expect((await as(OWNER, 'PATCH', `/posts/p1/messages/${q}`, { hidden: true })).status).toBe(400);
+    expect((await as(OWNER, 'PATCH', `/posts/p1/messages/${rude}`, { hidden: true })).status).toBe(200);
+    // Gone for everybody else, its author included; owners see it marked.
+    expect(await thread(as, B)).toEqual(['app: Which phone?']);
+    expect(await thread(as, A)).toEqual(['app: Which phone?']);
+    expect((await as(OWNER, 'GET', '/posts')).data.posts[0].thread[1]).toMatchObject({ text: 'Something rude', hidden: true });
+    // What is not there does not count: the author may answer again.
+    expect((await say(as, A, 'p1', 'A Pixel 7')).status).toBe(200);
+    expect((await as(OWNER, 'PATCH', `/posts/p1/messages/${rude}`, { hidden: false })).status).toBe(200);
+    expect(await thread(as)).toEqual(['app: Which phone?', 'author: Something rude', 'author: A Pixel 7']);
+  });
+
+  it('the app writing is news for the author; the author writing is not', async () => {
+    const { as, post, advance } = await setup();
+    await post(A, { kind: 'bug' });
+    await say(as, OWNER, 'p1', 'Which phone?');
+    const first = (await as(A, 'GET', '/answers')).data.answers[0].at;
+    advance(1000);
+    await say(as, A, 'p1', 'A Pixel 7');
+    expect((await as(A, 'GET', '/answers')).data.answers[0].at).toBe(first);
+  });
+
+  it('refuses nonsense and retries', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'bug' });
+    expect((await as(OWNER, 'POST', '/posts/p1/messages', { id: 'x', text: '' })).status).toBe(400);
+    expect((await as(OWNER, 'POST', '/posts/p1/messages', { id: 'x', text: 'y'.repeat(301) })).status).toBe(400);
+    expect((await as(OWNER, 'POST', '/posts/p1/messages', { text: 'no id' })).status).toBe(400);
+    expect((await as(OWNER, 'POST', '/posts/p1/messages', { id: 'x', text: 'Hi' })).status).toBe(200);
+    expect((await as(OWNER, 'POST', '/posts/p1/messages', { id: 'x', text: 'Hi' })).data.error).toBe('duplicate');
+    expect((await as(OWNER, 'POST', '/posts/nope/messages', { id: 'y', text: 'Hi' })).data.error).toBe('no_post');
+    expect((await as(OWNER, 'PATCH', '/posts/p1/messages/nope', { text: 'Hi' })).data.error).toBe('not_found');
+  });
+
+  it('a widget from before conversations still answers with `reply`, without repeating itself', async () => {
+    const { as, post } = await setup();
+    await post(A, { kind: 'bug' });
+    await as(OWNER, 'POST', '/posts/p1/manage', { reply: 'Which phone?' });
+    await say(as, A, 'p1', 'A Pixel 7');
+    // Such a widget sends its reply box with every save, unchanged.
+    await as(OWNER, 'POST', '/posts/p1/manage', { status: 'planned', reply: 'Which phone?' });
+    expect(await thread(as)).toEqual(['app: Which phone?', 'author: A Pixel 7']);
+    // New words after the author's answer are a new message, and `reply` follows.
+    await as(OWNER, 'POST', '/posts/p1/manage', { reply: 'Thanks, found it' });
+    expect(await thread(as)).toEqual(['app: Which phone?', 'author: A Pixel 7', 'app: Thanks, found it']);
+    expect((await as(B, 'GET', '/posts')).data.posts[0].reply.text).toBe('Thanks, found it');
+  });
+});
+
 describe('fixes', () => {
   const FIX = { version: '1.4.2', link: 'https://github.com/me/app/pull/42' };
 

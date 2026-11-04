@@ -981,6 +981,60 @@ Reverses the entry above on the layout.
 - **The tour plays in "Your app"**, not over the heading; when it is over,
   or stopped, the heading and "Watch demo" are back.
 
+## 2026-11-03: A conversation under a post, in turns
+
+The owner's problem: a developer who needed to ask about a bug could answer
+once, and its author could never say anything back. Their choices, after the
+Figma design "Widget · Conversation" (Page 3) was approved:
+
+- **The author answers only right after the app**, as often as that goes
+  back and forth; the app (any owner) writes whenever it likes. Only the
+  author takes part, never other users. One function in core,
+  `authorMayAnswer`, says whose turn it is, for the server that enforces it
+  and the widget that draws the box.
+- **Reviews stay as they were**: one answer from the app, nothing back.
+- **Done or Not doing closes it for the author**; back to Open or Planned
+  opens it again. The app may still write.
+- **Public, like the reply was.** An owner can take an author's message off
+  the board and put it back; a hidden message does not count for turns.
+- **Your own last message can be changed or taken back** until the other side
+  answers it, on both sides.
+- **Cards stay short**: no messages on the board, only a count beside the
+  vote, which opens the conversation on a page of its own. The owner's
+  choice, so nobody scrolls past long threads to find a bug.
+- **The author hears it from a note on the board** ("Demo app answered your
+  bug"), like a fix, and nothing on the card. Owners see "New answer" on a
+  card, and "N answers wait for you · Show only these" on top.
+- **An author's message is as long as the app's** (`rules.replyMax`).
+- Stored as one JSON column on the post (SQLite schema 6), changed only if
+  it is still what was read, so two answers at once never both land. An old
+  reply became the app's first message; `reply` is still sent, as the app's
+  latest message, for widgets from before, and `manage`'s `reply` still works.
+- **Approval stays a rule a board may have**, and never applies to messages.
+  The owner wants it off on the website's own board: a production change,
+  not made yet.
+
+## 2026-11-03: Search and a Filter panel instead of a row of chips
+
+From the Figma design "Widget · Search and filter":
+
+- **One row on top**: a search field and a Filter button with a count of what
+  is on. Search looks in the post and its conversation (every word, anywhere),
+  marks what it found, and quotes the message when the match is there.
+- **The panel**: Kind, Status, "Only my posts", and for owners "Only for you"
+  (Waiting on you, Off the board, Waiting for approval where a board approves
+  first). More than one choice per group; between groups all have to match.
+  Choosing a status leaves reviews out: they have none. The button says how
+  many posts it will show.
+- **What is on shows as chips with an x** under the search, and "Clear all";
+  a search and filters that leave nothing say so with one button to clear both.
+- **Top / New stays where it was**, at the bottom of the board.
+- **"Already on the board?" while writing** keeps the lookalikes and gives each
+  a "Me too" that votes for it and closes the form.
+- Not chosen: remembering the filter between visits, counts in the panel.
+- The row keeps the class `.filters`, which the website's tour finds the
+  board by.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

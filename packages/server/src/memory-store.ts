@@ -1,4 +1,4 @@
-import type { Answer, PostKind, Project, Update } from '@pleasenobugs/core';
+import type { Answer, Message, PostKind, Project, Update } from '@pleasenobugs/core';
 import { shotFor } from './store.js';
 import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Shot, Store, StoredShot, TelemetryRow } from './store.js';
 
@@ -125,8 +125,6 @@ export class MemoryStore implements Store {
     const row = this.board(projectId).get(id);
     if (!row) return;
     if (patch.status !== undefined) row.status = patch.status;
-    if (patch.reply === null) delete row.reply;
-    else if (patch.reply !== undefined) row.reply = { ...patch.reply };
     if (patch.fix === null) delete row.fix;
     else if (patch.fix !== undefined) row.fix = { ...patch.fix };
     if (patch.hidden !== undefined) {
@@ -138,6 +136,14 @@ export class MemoryStore implements Store {
       else delete row.pending;
     }
     if (patch.answeredAt !== undefined) row.answeredAt = patch.answeredAt;
+  }
+
+  async setThread(projectId: string, id: string, next: Message[], prev: Message[]) {
+    const row = this.board(projectId).get(id);
+    if (!row || JSON.stringify(row.thread ?? []) !== JSON.stringify(prev)) return false;
+    if (next.length) row.thread = structuredClone(next);
+    else delete row.thread;
+    return true;
   }
 
   async deletePost(projectId: string, id: string) {

@@ -88,11 +88,12 @@ export async function importBoard(store: Store, project: Project, file: unknown)
     }
     const votes = p.votes ?? [];
     if (!Array.isArray(votes) || !votes.every(isNimiqAddress)) throw new ImportError(`${where}.votes (${id})`);
-    let reply: PostRow['reply'];
+    // A reply from the old board is the app's first message here.
+    let thread: PostRow['thread'];
     if (p.reply !== undefined && p.reply !== null) {
       const r = p.reply as Record<string, unknown>;
       if (typeof r.text !== 'string' || typeof r.at !== 'number') throw new ImportError(`${where}.reply (${id})`);
-      reply = { text: r.text, at: r.at };
+      thread = [{ id: 'reply', from: 'app', text: r.text, at: r.at }];
     }
     const context = p.context === undefined ? null : cleanContext(p.context);
     if (p.context !== undefined && context === null) throw new ImportError(`${where}.context (${id})`);
@@ -106,7 +107,7 @@ export async function importBoard(store: Store, project: Project, file: unknown)
       text: p.text.trim(),
       at: p.at,
       status,
-      ...(reply ? { reply } : {}),
+      ...(thread ? { thread } : {}),
       ...(p.hidden === true ? { hidden: true } : {}),
       ...(context && Object.keys(context).length ? { context } : {}),
       ...(typeof p.answeredAt === 'number' ? { answeredAt: p.answeredAt } : {}),

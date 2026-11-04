@@ -24,11 +24,18 @@ shipped months ago and never touched again.
 widget's markup. It has a name, one or more **owners** (wallet addresses), the
 **origins** the widget may run on, and its **rules**.
 
-**Post.** A `bug`, an `idea` or a `review`, with at most one reply from the
-owners. One reply, never a thread: a conversation between two people belongs
-in a conversation, and this is a noticeboard. Bugs and ideas also have a status
-the owners set; a review has 1 to 5 stars instead (`rating`) and stays `open`,
+**Post.** A `bug`, an `idea` or a `review`. Bugs and ideas have a status the
+owners set; a review has 1 to 5 stars instead (`rating`) and stays `open`,
 since nothing about an opinion gets planned or fixed.
+
+**Conversation** *(0.3.0)*. Under a post, the app (any owner, speaking for
+it) and the post's author write in turns: the app whenever it likes, the
+author **only right after a message from the app**, and only on a bug or an
+idea that is not `done` or `declined`. So an owner can ask what they need to
+know to fix something, and the author can answer, without the board becoming
+a chat between strangers: nobody else writes there. A review gets one answer
+from the app and none back. Before 0.3.0 a post had at most one reply; that
+reply is now the app's first message.
 
 **`kind` grows.** `review` came after 0.1.1, and a client must expect kinds it
 does not know: skip the post rather than fail on it. A project only receives
@@ -190,6 +197,11 @@ The whole board: a `BoardRead`.
 - A done bug or idea may carry `fix: { version?, link? }`: the version it
   shipped in and a page on github.com or gitlab.com, both set by an owner (see `manage`).
   Sent to everybody. Never on a post that is not done.
+- A post somebody wrote under carries `thread` *(0.3.0)*, oldest first:
+  `{ id, from: 'app' | 'author', text, at, edited?, hidden? }[]`. A message
+  an owner took off the board is left out for everybody but owners, who get
+  it with `hidden: true`. `reply: { text, at }` is the app's latest message,
+  kept for clients from before conversations.
 - Paging may be added later as an optional `cursor` parameter, which is an
   addition rather than a change.
 
@@ -353,8 +365,15 @@ always change it.
 }
 ```
 
-Every field is optional and only those present are written. An empty `reply`
-takes the reply back. `{ ok: true }`, or `403 not_owner`.
+Every field is optional and only those present are written. `{ ok: true }`,
+or `403 not_owner`.
+
+- `reply` is how clients from before conversations answer, and still works:
+  the same words as the app's latest message change nothing (such a client
+  sends them with every save); other words change the app's last message
+  while nobody has answered it, or add a new one after the author's answer;
+  empty takes the app's last message back. New clients use the messages
+  routes below.
 
 - `fix` says where the fix is, on a bug or an idea that is `done` once the
   call is through: `version` as the app numbers its releases (letters, digits
@@ -374,6 +393,52 @@ takes the reply back. `{ ok: true }`, or `403 not_owner`.
 
 - `approved: true` lets a waiting post onto the board; `false` sends it back
   to waiting. Like hiding, it is not an answer: the author sees it arrive.
+
+### The conversation under a post *(0.3.0)*
+
+Which side a wallet writes on is decided by who signed: an owner is the app,
+the post's author is the author, and anybody else gets `403 not_yours`. A
+post hidden from you, or waiting and not yours, is `404 no_post`. Every change
+is written only if the conversation is still what the server read, so two
+answers sent at once never both land after the same question: the second is
+`409 not_your_turn`.
+
+#### `POST /v1/projects/:pid/posts/:id/messages` *(proof)*
+
+```ts
+{ id: string; text: string }   // id minted by the client, at most 128; text 1..rules.replyMax
+```
+
+Answers `{ ok: true, message }`.
+
+- The author: only on a bug or an idea that is not `done` or `declined`
+  (`409 closed` otherwise, and always on a review), and only when the last
+  message everybody sees is the app's (`409 not_your_turn`).
+- The app: whenever it likes, except a second answer on a review
+  (`409 not_your_turn`: change the first one instead).
+- The app writing is an answer: the author hears it on `/answers`. The author
+  writing is not news to anybody on that route.
+- An id already in the conversation is `409 duplicate`.
+
+#### `PATCH /v1/projects/:pid/posts/:id/messages/:mid` *(proof)*
+
+```ts
+{ text?: string; hidden?: boolean }
+```
+
+- `text` changes your own message, and only while it is the last one
+  everybody sees: once it was answered, `409 not_your_turn`. It then carries
+  `edited`. An author's, on a post that closed since, is `409 closed`.
+- `hidden` is for owners, on an author's message only: `true` takes it off
+  the board, `false` puts it back. A hidden message does not count for turns,
+  so its author may write again.
+
+Answers `{ ok: true, message }`, or `404 not_found` for a message that is not there.
+
+#### `DELETE /v1/projects/:pid/posts/:id/messages/:mid` *(proof)*
+
+Takes your own last message back, under the same conditions as changing it.
+`{ ok: true }`.
 
 #### `POST /v1/projects/:pid/updates` *(proof, owner, 0.3.0)*
 
@@ -454,7 +519,7 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 |---|---|---|
 | 400 | `bad_request` | A field is missing, too long or the wrong type. |
 | 401 | `unauthorized` | No proof where one is needed, or the proof failed a check. |
-| 403 | `not_yours` | Deleting somebody else's post. |
+| 403 | `not_yours` | Deleting somebody else's post, or writing under a post you neither wrote nor own. |
 | 403 | `not_owner` | An owner route, called by a non-owner. |
 | 403 | `origin_not_allowed` | The request comes from an origin the project does not list. |
 | 404 | `no_project` | No such project. |
@@ -462,6 +527,8 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 | 404 | `no_update` | No such update. |
 | 409 | `duplicate` | A post, or an update, with this id exists. |
 | 409 | `reviewed` | This wallet has a review on this board already. |
+| 409 | `not_your_turn` | The conversation is not yours to write in now: wait for the app, or what you meant to change was answered already. |
+| 409 | `closed` | The post is done, not being done, or a review: its author no longer writes under it. |
 | 429 | `too_many` | The day's posts are used up. Carries `perDay`. |
 | 429 | `rate_limited` | Too many requests. Carries `retryAfter` in seconds. |
 | 404 | `not_found` | No such route. |
@@ -473,7 +540,7 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 |---|---|---|
 | Posts per wallet per rolling 24 hours | 5 | `rules.perDay` |
 | Post text | 200 chars | `rules.textMax` |
-| Owner reply | 300 chars | `rules.replyMax` |
+| A message under a post, either side | 300 chars | `rules.replyMax` |
 | Display name | 24 chars | `NAME_MAX` |
 | Context | 10 keys, 100 chars per value | `CONTEXT_MAX_KEYS`, `CONTEXT_VALUE_MAX` |
 | Review | 1 per wallet, 1 to 5 stars | `RATING_MIN`, `RATING_MAX` |

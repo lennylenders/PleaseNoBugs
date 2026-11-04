@@ -100,19 +100,35 @@ describe.each(STORES)('%s', (_name, make) => {
   it('patches only what it is given, and null removes', async () => {
     const s = make();
     await s.createPost(row({ context: { version: '1.0' } }));
-    await s.updatePost('p1', 'post1', { status: 'planned', reply: { text: 'soon', at: 5 }, answeredAt: 5 });
+    await s.updatePost('p1', 'post1', { status: 'planned', fix: { version: '1.0' }, answeredAt: 5 });
     let p = await s.getPost('p1', 'post1');
-    expect(p).toMatchObject({ status: 'planned', reply: { text: 'soon', at: 5 }, answeredAt: 5 });
+    expect(p).toMatchObject({ status: 'planned', fix: { version: '1.0' }, answeredAt: 5 });
     expect(p?.context).toEqual({ version: '1.0' });
 
-    await s.updatePost('p1', 'post1', { reply: null, hidden: true });
+    await s.updatePost('p1', 'post1', { fix: null, hidden: true });
     p = await s.getPost('p1', 'post1');
-    expect(p?.reply).toBeUndefined();
+    expect(p?.fix).toBeUndefined();
     expect(p?.hidden).toBe(true);
     expect(p?.status).toBe('planned');
 
     await s.updatePost('p1', 'post1', { hidden: false });
     expect((await s.getPost('p1', 'post1'))?.hidden).toBeUndefined();
+  });
+
+  it('changes a conversation only if it is still the one that was read', async () => {
+    const s = make();
+    await s.createPost(row());
+    const q = { id: 'm1', from: 'app' as const, text: 'Which phone?', at: 5 };
+    const a = { id: 'm2', from: 'author' as const, text: 'A Pixel', at: 6 };
+    expect(await s.setThread('p1', 'post1', [q], [])).toBe(true);
+    expect(await s.setThread('p1', 'post1', [q, a], [q])).toBe(true);
+    // A second answer to the same question, read before the first landed.
+    expect(await s.setThread('p1', 'post1', [q, { ...a, id: 'm3' }], [q])).toBe(false);
+    expect((await s.getPost('p1', 'post1'))?.thread).toEqual([q, a]);
+    expect((await s.posts('p1', null))[0].thread).toEqual([q, a]);
+    expect(await s.setThread('p1', 'post1', [], [q, a])).toBe(true);
+    expect((await s.getPost('p1', 'post1'))?.thread).toBeUndefined();
+    expect(await s.setThread('p1', 'nope', [q], [])).toBe(false);
   });
 
   it('keeps a post waiting until it is approved', async () => {
@@ -346,7 +362,7 @@ describe('SqliteStore, opening a file an older version wrote', () => {
     try {
       expect((await s.getProject('p1'))?.rules.kinds).toEqual(['bug', 'idea', 'review']);
       expect((await s.getProject('p2'))?.rules.kinds).toEqual(['bug']);
-      expect(await s.getMeta('schema')).toBe('5');
+      expect(await s.getMeta('schema')).toBe('6');
       expect((await s.posts('p1', null))[0]).toMatchObject({ id: 'old' });
       // Shown before anybody could ask for approval, so it stays shown.
       expect((await s.posts('p1', null))[0].pending).toBeUndefined();
@@ -390,10 +406,38 @@ describe('SqliteStore, opening a file an older version wrote', () => {
 
     const s = new SqliteStore(file);
     try {
-      expect(await s.getMeta('schema')).toBe('5');
+      expect(await s.getMeta('schema')).toBe('6');
       expect((await s.posts('p1', null))[0].shot).toBe('owners');
       await s.setShotOff('p1', 'b1', false);
       expect((await s.getShot('p1', 'b1'))?.for).toBe('owners');
+    } finally {
+      s.close();
+    }
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('turns a reply written before conversations into the app’s first message', async () => {
+    const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as typeof import('node:sqlite');
+    const dir = mkdtempSync(join(tmpdir(), 'pnb-'));
+    const file = join(dir, 'replies.db');
+    // Schema 5: one reply per post, in two columns.
+    const fresh = new SqliteStore(file);
+    await fresh.createPost(row({ id: 'r1' }));
+    await fresh.createPost(row({ id: 'r2' }));
+    fresh.close();
+    const old = new DatabaseSync(file);
+    old.exec(`
+      ALTER TABLE posts DROP COLUMN thread;
+      UPDATE posts SET reply_text = 'Soon', reply_at = 50 WHERE id = 'r1';
+      UPDATE meta SET value = '5' WHERE key = 'schema';
+    `);
+    old.close();
+
+    const s = new SqliteStore(file);
+    try {
+      expect(await s.getMeta('schema')).toBe('6');
+      expect((await s.getPost('p1', 'r1'))?.thread).toEqual([{ id: 'reply', from: 'app', text: 'Soon', at: 50 }]);
+      expect((await s.getPost('p1', 'r2'))?.thread).toBeUndefined();
     } finally {
       s.close();
     }

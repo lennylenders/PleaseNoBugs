@@ -10,6 +10,7 @@ import {
   type ErrorCode,
   type LoginProof,
   type Me,
+  type Message,
   type PostContext,
   type PostFix,
   type PostKind,
@@ -293,6 +294,27 @@ export function createClient(options: ClientOptions) {
       },
     ) =>
       request<{ ok: true }>('POST', `${post(id)}/manage`, { body: change, auth: 'required' }),
+
+    /**
+     * Write under a post: an owner for the app, whenever they like; its
+     * author only right after the app, on a bug or an idea that is not done
+     * (`not_your_turn`, `closed` otherwise). `message.id` is yours to mint.
+     */
+    say: (id: string, message: { id: string; text: string }) =>
+      request<{ ok: true; message: Message }>('POST', `${post(id)}/messages`, { body: message, auth: 'required' }),
+    /**
+     * Change your own last message before anybody answered it (`text`), or,
+     * as an owner, take an author's message off the board or put it back
+     * (`hidden`).
+     */
+    editMessage: (id: string, messageId: string, change: { text?: string; hidden?: boolean }) =>
+      request<{ ok: true; message: Message }>('PATCH', `${post(id)}/messages/${encodeURIComponent(messageId)}`, {
+        body: change,
+        auth: 'required',
+      }),
+    /** Take your own last message back, before anybody answered it. */
+    unsay: (id: string, messageId: string) =>
+      request<{ ok: true }>('DELETE', `${post(id)}/messages/${encodeURIComponent(messageId)}`, { auth: 'required' }),
 
     /** What changed in the app, newest first. Anybody's to read; never prompts. */
     updates: () => request<{ updates: Update[] }>('GET', at('/updates'), { auth: 'optional' }),

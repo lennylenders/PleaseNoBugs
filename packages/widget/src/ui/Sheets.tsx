@@ -4,12 +4,17 @@ import {
   VERSION_MAX,
   cleanCodeLink,
   cleanVersion,
+  lastWord,
+  type Message,
   type Post,
   type PostFix,
+  type PostKind,
   type PostStatus,
 } from '@pleasenobugs/core';
+import { NO_FILTER, type BoardFilter, type OwnFilter } from '../filter.js';
 import type { CopyKey, Translate } from '../i18n.js';
-import { Stars } from './PostCard.js';
+import { KIND, Stars } from './PostCard.js';
+import { Thread } from './Talk.js';
 import * as Icon from './icons.js';
 
 /**
@@ -136,7 +141,11 @@ const STATUSES: { status: PostStatus; label: CopyKey }[] = [
 /** What an owner's save sends. `shotOff` only for a screenshot its author put on the board. */
 export interface ManageChange {
   status: PostStatus;
-  reply: string;
+  /**
+   * What the app says under it, if anything: a new message, or with `edit`
+   * the id of the app's own last message, changed.
+   */
+  message?: { text: string; edit?: string };
   hidden: boolean;
   shotOff?: boolean;
   /** Only for a post waiting for approval: true lets it onto the board. */
@@ -162,25 +171,43 @@ export interface ManageChange {
  * github.com or gitlab.com, both optional, which the card then shows to everybody and the
  * author as news. A link anywhere else is said to be wrong right under it,
  * and Save waits, rather than the server refusing the whole answer.
+ *
+ * **The conversation is here whole**, newest last, with what the owner may
+ * do to it: take an author's message off the board or put it back (at once,
+ * like a switch), and change the app's own last message while nobody has
+ * answered it. The box under it is a new message, sent with Save. A review
+ * gets one answer from the app, so on a review the box is that answer.
  */
 export function ManageSheet({
   t,
   post,
+  appName,
   replyMax,
   loadShot,
   onSave,
+  onHideMessage,
   onClose,
 }: {
   t: Translate;
   post: Post;
+  appName: string;
   replyMax: number;
   /** Fetches the screenshot, for a post that has one. */
   loadShot: () => Promise<Blob | null>;
   onSave: (change: ManageChange) => void;
+  /** Takes an author's message off the board, or puts it back. */
+  onHideMessage: (m: Message, hidden: boolean) => void;
   onClose: () => void;
 }) {
   const [status, setStatus] = useState<PostStatus>(post.status);
-  const [reply, setReply] = useState(post.reply?.text ?? '');
+  const thread = post.thread ?? [];
+  const last = lastWord(thread);
+  // The app's own last word, which it may still change: on a review always,
+  // since that is its one answer; elsewhere only until the author answers.
+  const appLast = post.kind === 'review' ? thread.find((m) => m.from === 'app' && !m.hidden) : last?.from === 'app' ? last : undefined;
+  const [editing, setEditing] = useState<Message | null>(post.kind === 'review' ? (appLast ?? null) : null);
+  const [message, setMessage] = useState(editing?.text ?? '');
+  const who = post.who ?? t('talk.author');
   const [hidden, setHidden] = useState(!!post.hidden);
   const [shotOff, setShotOff] = useState(post.shotFor === 'off');
   const [approved, setApproved] = useState(false);
@@ -307,18 +334,53 @@ export function ManageSheet({
         </div>
       )}
 
+      {thread.length > 0 && (
+        <>
+          <span class="label" style={{ display: 'block', marginTop: '20px', marginBottom: '8px' }}>
+            {t('talk.label')}
+          </span>
+          <Thread
+            post={post}
+            thread={thread}
+            appName={appName}
+            t={t}
+            actions={(m) =>
+              m.from === 'author' ? (
+                <button type="button" class="link-btn" onClick={() => onHideMessage(m, !m.hidden)}>
+                  {t(m.hidden ? 'talk.unhide' : 'talk.hide')}
+                </button>
+              ) : m === appLast && post.kind !== 'review' ? (
+                <button
+                  type="button"
+                  class="link-btn"
+                  aria-pressed={editing === m}
+                  onClick={() => {
+                    const on = editing !== m;
+                    setEditing(on ? m : null);
+                    setMessage(on ? m.text : '');
+                  }}
+                >
+                  {t(editing === m ? 'board.cancel' : 'talk.edit')}
+                </button>
+              ) : null
+            }
+          />
+        </>
+      )}
+
       <span class="label" style={{ display: 'block', marginTop: '20px', marginBottom: '8px' }}>
-        {t('board.replyLabel')}
+        {t(editing && post.kind !== 'review' ? 'talk.changeLast' : 'board.replyLabel')}
       </span>
       <textarea
         class="field"
         style={{ minHeight: '96px' }}
-        value={reply}
+        value={message}
         maxLength={replyMax}
-        placeholder={t('board.replyPlaceholder')}
+        placeholder={post.mine ? t('board.replyPlaceholder') : t('talk.writeTo', { who })}
         aria-label={t('board.replyLabel')}
-        onInput={(e) => setReply((e.target as HTMLTextAreaElement).value)}
+        onInput={(e) => setMessage((e.target as HTMLTextAreaElement).value)}
       />
+      {post.kind !== 'review' && !post.mine && <p class="note">{t('talk.gets', { who: post.who ?? t('board.anon') })}</p>}
 
       {/* Approving comes first on a waiting post: it is what the post is waiting for. */}
       {post.pending && (
@@ -339,7 +401,11 @@ export function ManageSheet({
           onClick={() =>
             onSave({
               status,
-              reply: reply.trim(),
+              // Only what changes something: an empty box says nothing, and
+              // the same words again are not a new message.
+              ...(message.trim() && message.trim() !== editing?.text
+                ? { message: { text: message.trim(), ...(editing ? { edit: editing.id } : {}) } }
+                : {}),
               hidden,
               ...(switchable ? { shotOff } : {}),
               ...(post.pending && approved ? { approved: true } : {}),
@@ -350,6 +416,147 @@ export function ManageSheet({
           }
         >
           {t('board.save')}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
+/** The four states, as the Filter panel offers them. */
+const FILTER_STATUSES: PostStatus[] = ['open', 'planned', 'done', 'declined'];
+const STATUS_LABEL: Record<PostStatus, CopyKey> = {
+  open: 'board.statusOpen',
+  planned: 'board.statusPlanned',
+  done: 'board.statusDone',
+  declined: 'board.statusDeclined',
+};
+const OWN_LABEL: Record<OwnFilter, CopyKey> = {
+  waiting: 'filter.waiting',
+  hidden: 'board.hidden',
+  pending: 'board.waiting',
+};
+
+/** A chip's words, for the chips under the search field as well as here. */
+export function filterLabel(t: Translate, f: { kind?: PostKind; status?: PostStatus; own?: OwnFilter; mine?: true }): string {
+  if (f.kind) return t(KIND[f.kind].plural);
+  if (f.status) return t(STATUS_LABEL[f.status]);
+  if (f.own) return t(OWN_LABEL[f.own]);
+  return t('filter.mine');
+}
+
+/**
+ * Everything the board can be narrowed to, in one sheet so the board itself
+ * keeps one row for it. Choices are made here and land together with the
+ * button, which says how many posts that will be, so nobody filters their
+ * way to an empty board without seeing it coming. "All" turns a group off.
+ *
+ * `own` (Waiting on you, Off the board, Waiting for approval) is for owners
+ * only, and "Only my posts" for somebody signed in: nobody else has any.
+ */
+export function FilterSheet({
+  t,
+  kinds,
+  owners,
+  signedIn,
+  value,
+  count,
+  onApply,
+  onClose,
+}: {
+  t: Translate;
+  /** The kinds on this board. */
+  kinds: PostKind[];
+  /** What an owner may narrow to, or nothing for anybody else. */
+  owners: OwnFilter[];
+  signedIn: boolean;
+  value: BoardFilter;
+  /** How many posts a filter leaves. */
+  count: (f: BoardFilter) => number;
+  onApply: (f: BoardFilter) => void;
+  onClose: () => void;
+}) {
+  const [draft, setDraft] = useState<BoardFilter>(value);
+  const n = count(draft);
+  const toggle = <K extends 'kinds' | 'statuses' | 'own'>(key: K, item: BoardFilter[K][number]) =>
+    setDraft((d) => {
+      const list = d[key] as (typeof item)[];
+      return { ...d, [key]: list.includes(item) ? list.filter((x) => x !== item) : [...list, item] };
+    });
+
+  const group = <K extends 'kinds' | 'statuses' | 'own'>(
+    key: K,
+    title: CopyKey,
+    items: BoardFilter[K][number][],
+    label: (item: BoardFilter[K][number]) => string,
+    all = true,
+  ) => (
+    <div class="pick-group" role="group" aria-label={t(title)}>
+      <span class="label">{t(title)}</span>
+      <div class="states">
+        {all && (
+          <button
+            type="button"
+            class="chip-pick"
+            aria-pressed={!draft[key].length}
+            onClick={() => setDraft((d) => ({ ...d, [key]: [] }))}
+          >
+            {t('board.all')}
+          </button>
+        )}
+        {items.map((item) => (
+          <button
+            key={item}
+            type="button"
+            class="chip-pick"
+            aria-pressed={(draft[key] as (typeof item)[]).includes(item)}
+            onClick={() => toggle(key, item)}
+          >
+            {label(item)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <Sheet label={t('filter.title')} onClose={onClose}>
+      <div class="sheet__head">
+        <h2 class="sheet__title">{t('filter.title')}</h2>
+        <button type="button" class="icon-btn" aria-label={t('board.close')} onClick={onClose}>
+          <Icon.Close />
+        </button>
+      </div>
+
+      {kinds.length > 1 && group('kinds', 'filter.kind', kinds, (k) => filterLabel(t, { kind: k }))}
+      {group('statuses', 'filter.status', FILTER_STATUSES, (s) => filterLabel(t, { status: s }))}
+      {kinds.includes('review') && <p class="note">{t('filter.statusNote')}</p>}
+
+      {owners.length > 0 && (
+        <div class="pick-own">{group('own', 'filter.own', owners, (o) => filterLabel(t, { own: o }), false)}</div>
+      )}
+
+      {signedIn && (
+        <div class="switch-row switch-row--box">
+          <span class="switch-row__label" id="pnb-only-mine">
+            {t('filter.mine')}
+          </span>
+          <button
+            type="button"
+            role="switch"
+            class="switch"
+            aria-checked={draft.mine}
+            aria-labelledby="pnb-only-mine"
+            onClick={() => setDraft((d) => ({ ...d, mine: !d.mine }))}
+          />
+        </div>
+      )}
+
+      <div class="sheet__foot">
+        <button type="button" class="text-btn filter-reset" onClick={() => setDraft(NO_FILTER)}>
+          {t('filter.reset')}
+        </button>
+        <button type="button" class="btn" onClick={() => onApply(draft)}>
+          {n === 1 ? t('filter.showOne') : t('filter.show', { n })}
         </button>
       </div>
     </Sheet>

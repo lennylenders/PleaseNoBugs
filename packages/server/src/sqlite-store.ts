@@ -1,6 +1,16 @@
 import { createRequire } from 'node:module';
 import type { DatabaseSync as Database, SQLInputValue } from 'node:sqlite';
-import type { Answer, PostContext, PostFix, PostKind, PostStatus, Project, ShotType, Update } from '@pleasenobugs/core';
+import type {
+  Answer,
+  Message,
+  PostContext,
+  PostFix,
+  PostKind,
+  PostStatus,
+  Project,
+  ShotType,
+  Update,
+} from '@pleasenobugs/core';
 import { shotFor } from './store.js';
 import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Shot, Store, StoredShot, TelemetryRow } from './store.js';
 
@@ -167,6 +177,25 @@ export class SqliteStore implements Store {
       if (!cols.includes('fix_link')) this.db.exec('ALTER TABLE posts ADD COLUMN fix_link TEXT');
       this.run("UPDATE meta SET value = '5' WHERE key = 'schema'");
     }
+
+    // 6: conversations. The whole thread as JSON on the post, which is how it
+    // is always read: with the post, all of it, and short. A reply written
+    // before becomes the app's first message. The old reply columns stay as
+    // they were, unread, so a file taken back to an older server still has them.
+    if (schema() < 6) {
+      const cols = this.all('PRAGMA table_info(posts)').map((c) => String(c.name));
+      if (!cols.includes('thread')) this.db.exec('ALTER TABLE posts ADD COLUMN thread TEXT');
+      for (const r of this.all('SELECT project_id, id, reply_text, reply_at FROM posts WHERE reply_text IS NOT NULL')) {
+        const first: Message = { id: 'reply', from: 'app', text: String(r.reply_text), at: Number(r.reply_at) };
+        this.run(
+          'UPDATE posts SET thread = ? WHERE project_id = ? AND id = ?',
+          JSON.stringify([first]),
+          String(r.project_id),
+          String(r.id),
+        );
+      }
+      this.run("UPDATE meta SET value = '6' WHERE key = 'schema'");
+    }
   }
 
   /** Close the file. Tests use it; a server normally runs until it is killed. */
@@ -313,9 +342,9 @@ export class SqliteStore implements Store {
   async createPost(row: PostRow, shot?: Shot) {
     const inserted = this.run(
       `INSERT OR IGNORE INTO posts
-         (project_id, id, author, anon, kind, text, at, status, reply_text, reply_at, hidden, context, answered_at, rating, pending,
+         (project_id, id, author, anon, kind, text, at, status, thread, hidden, context, answered_at, rating, pending,
           fix_version, fix_link)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       row.projectId,
       row.id,
       row.author,
@@ -324,8 +353,7 @@ export class SqliteStore implements Store {
       row.text,
       row.at,
       row.status,
-      row.reply?.text ?? null,
-      row.reply?.at ?? null,
+      row.thread?.length ? JSON.stringify(row.thread) : null,
       row.hidden ? 1 : 0,
       row.context ? JSON.stringify(row.context) : null,
       row.answeredAt ?? null,
@@ -361,10 +389,6 @@ export class SqliteStore implements Store {
       sets.push('status = ?');
       params.push(patch.status);
     }
-    if (patch.reply !== undefined) {
-      sets.push('reply_text = ?', 'reply_at = ?');
-      params.push(patch.reply?.text ?? null, patch.reply?.at ?? null);
-    }
     if (patch.fix !== undefined) {
       sets.push('fix_version = ?', 'fix_link = ?');
       params.push(patch.fix?.version ?? null, patch.fix?.link ?? null);
@@ -383,6 +407,18 @@ export class SqliteStore implements Store {
     }
     if (!sets.length) return;
     this.run(`UPDATE posts SET ${sets.join(', ')} WHERE project_id = ? AND id = ?`, ...params, projectId, id);
+  }
+
+  /** Compared as the JSON it was written as, which is the same string for the same thread. */
+  async setThread(projectId: string, id: string, next: Message[], prev: Message[]) {
+    const changed = this.run(
+      `UPDATE posts SET thread = ? WHERE project_id = ? AND id = ? AND COALESCE(thread, '[]') = ?`,
+      next.length ? JSON.stringify(next) : null,
+      projectId,
+      id,
+      JSON.stringify(prev),
+    );
+    return Number(changed.changes) > 0;
   }
 
   async deletePost(projectId: string, id: string) {
@@ -577,9 +613,7 @@ function toRow(r: Record<string, unknown>): PostRow {
     at: Number(r.at),
     status: String(r.status) as PostStatus,
   };
-  if (r.reply_text !== null && r.reply_text !== undefined) {
-    row.reply = { text: String(r.reply_text), at: Number(r.reply_at) };
-  }
+  if (typeof r.thread === 'string') row.thread = JSON.parse(r.thread) as Message[];
   if (Number(r.hidden) === 1) row.hidden = true;
   if (Number(r.pending) === 1) row.pending = true;
   if (typeof r.context === 'string') row.context = JSON.parse(r.context) as PostContext;

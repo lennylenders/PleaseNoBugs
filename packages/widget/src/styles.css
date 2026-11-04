@@ -1620,3 +1620,396 @@ button {
     animation-duration: 1.6s;
   }
 }
+
+/* ---- Search and filter -------------------------------------------------- */
+
+/* One row instead of a row of chips: the search, and the button that opens
+   everything else. Still `.filters` too, which pages driving the widget
+   (the website's tour) know the board by. */
+.finder {
+  flex-wrap: nowrap;
+  align-items: center;
+  padding: 4px 16px 10px;
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 6px 0 12px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-surface);
+  border: 1px solid var(--pnb-line);
+  color: var(--pnb-text-quiet);
+}
+
+.search:focus-within {
+  border-color: var(--pnb-accent);
+}
+
+.search__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pnb-text);
+  font-size: 15px;
+  outline: none;
+}
+
+.search__input::placeholder {
+  color: var(--pnb-text-quiet);
+  opacity: 1;
+}
+
+/* Our own x, the same in every browser. */
+.search__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search__clear {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--pnb-text-quiet);
+}
+
+.filter-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-surface);
+  border: 1px solid var(--pnb-line);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.filter-btn[aria-pressed='true'] {
+  padding-right: 8px;
+  border-color: var(--pnb-accent);
+}
+
+.filter-btn__n {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--pnb-accent);
+  color: var(--pnb-on-accent);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* What is on, each with its own x, so a short board says why it is short. */
+.applied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px 10px;
+  flex-shrink: 0;
+}
+
+.applied__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px 5px 12px;
+  border-radius: 999px;
+  background: var(--pnb-surface);
+  border: 1px solid var(--pnb-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* A small action in words, in the accent: Clear all, Edit, Hide. */
+.link-btn {
+  padding: 4px 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pnb-accent);
+}
+
+.found-count {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--pnb-text-quiet);
+}
+
+/* A searched word, wherever it was found. */
+mark {
+  background: transparent;
+  color: var(--pnb-accent);
+  font-weight: 800;
+}
+
+.nothing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.nothing p {
+  margin: 0;
+}
+
+.nothing__title {
+  font-size: 16px;
+  color: var(--pnb-text);
+}
+
+.outline-btn {
+  margin-top: 4px;
+  padding: 10px 16px;
+  border-radius: var(--pnb-radius);
+  border: 1.5px solid var(--pnb-accent);
+  color: var(--pnb-accent);
+  font-weight: 700;
+}
+
+/* The owner's "answers wait for you", with its one button. */
+.news--owner {
+  padding-right: 8px;
+}
+
+.news__grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.news__link {
+  align-self: flex-start;
+  padding: 0;
+}
+
+.chip-btn {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--pnb-accent-fill);
+  color: var(--pnb-on-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.card__new {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pnb-accent);
+}
+
+.card__found {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--pnb-text-quiet);
+  overflow-wrap: anywhere;
+}
+
+/* How many messages: quieter than the vote, which is the card's one control for everybody. */
+.card__talk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: var(--pnb-text-quiet);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+button.card__talk:active {
+  background: var(--pnb-surface-2);
+}
+
+/* ---- The conversation --------------------------------------------------- */
+
+.talk .list {
+  margin-bottom: 12px;
+}
+
+.thread {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* The app's words keep the accent line its answer always had; an author's
+   sit on the surface colour, so who said what reads before the names do. */
+.msg {
+  padding: 10px 12px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-bg);
+  box-shadow: inset 0 0 0 1px var(--pnb-line);
+  border-left: 3px solid var(--pnb-accent);
+}
+
+.msg--author {
+  background: var(--pnb-surface-2);
+  box-shadow: none;
+  border-left-color: var(--pnb-line);
+}
+
+.msg--hidden {
+  opacity: 0.55;
+}
+
+.msg__who {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pnb-text-quiet);
+}
+
+.msg__text {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.msg__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--pnb-text-quiet);
+}
+
+.answer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.answer__field {
+  min-height: 96px;
+}
+
+.answer__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.answer__row .count {
+  flex: 1;
+  align-self: center;
+}
+
+.answer__send {
+  width: auto;
+  height: 36px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+.answer__cancel {
+  padding: 8px;
+}
+
+.talk__next {
+  margin-top: 12px;
+}
+
+/* ---- The filter panel --------------------------------------------------- */
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -10px -12px 0 0;
+}
+
+.pick-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* An owner's own group, boxed: nobody else has it. */
+.pick-own {
+  margin-top: 16px;
+  padding: 0 12px 12px;
+  border: 1px solid var(--pnb-line);
+  border-radius: var(--pnb-radius);
+}
+
+.pick-own .pick-group {
+  margin-top: 12px;
+}
+
+.switch-row--box {
+  padding: 12px 12px 12px 14px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-surface);
+}
+
+.sheet__foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.sheet__foot .btn {
+  flex: 1;
+}
+
+.filter-reset {
+  padding: 12px 4px;
+  color: var(--pnb-accent);
+}
+
+/* ---- Already on the board? ---------------------------------------------- */
+
+.alike__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alike__meta {
+  font-size: 12px;
+  color: var(--pnb-text-quiet);
+}
+
+.me-too {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--pnb-accent);
+  background: var(--pnb-surface-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.me-too:disabled {
+  border-color: var(--pnb-line);
+  color: var(--pnb-text-quiet);
+}

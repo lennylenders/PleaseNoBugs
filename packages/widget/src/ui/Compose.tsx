@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { NAME_MAX, SHOT_MAX_BYTES, takesShot, type Post, type PostKind, type ShotType } from '@pleasenobugs/core';
+import {
+  NAME_MAX,
+  SHOT_MAX_BYTES,
+  takesShot,
+  type Post,
+  type PostKind,
+  type PostStatus,
+  type ShotType,
+} from '@pleasenobugs/core';
 import type { CopyKey, Translate } from '../i18n.js';
-import { KIND, VoteButton } from './PostCard.js';
+import { KIND } from './PostCard.js';
 import * as Icon from './icons.js';
 
 /** A screenshot ready to send, plus a URL to show it with while you decide. */
@@ -38,7 +46,7 @@ export interface Draft {
  *
  * - **"Everyone can see this" sits above the field**, so it arrives before
  *   the typing rather than after.
- * - **Lookalikes appear while you type** and can be seconded from here. That is
+ * - **Lookalikes appear while you type**, and "Me too" seconds one and leaves. That is
  *   the only thing on the board that reduces its own input; the alternative is
  *   five copies of the best idea with one vote each. Not on a review, which is
  *   an opinion and not a request anybody else could second.
@@ -71,7 +79,7 @@ export function Compose({
   appName,
   screenshots,
   names = true,
-  onVote,
+  onMeToo,
   onSend,
 }: {
   t: Translate;
@@ -89,7 +97,8 @@ export function Compose({
   screenshots: Screenshots;
   /** Whether the writer may show a name; without it every post is anonymous. */
   names?: boolean;
-  onVote: (id: string, up: boolean) => void;
+  /** Seconding a lookalike instead of writing it: votes for it and leaves this screen. */
+  onMeToo: (id: string) => void;
   /**
    * Resolves null once it has landed, or what to say about a refusal. A
    * refusal with no key (the user declining the signature) keeps the screen
@@ -200,16 +209,32 @@ export function Compose({
 
       {alike.length > 0 && (
         <div class="alike">
-          <span class="label">{t('board.likeThis')}</span>
-          <p class="alike__note">{t('board.likeThisNote')}</p>
+          <span class="label">
+            {t('board.likeThis')} {t('board.likeThisNote')}
+          </span>
           <ul class="alike__list">
             {alike.map((post) => (
               <li key={post.id} class="alike__row">
-                <span class={`badge__dot badge__dot--${post.kind}`} aria-label={t(KIND[post.kind].label)}>
-                  {KIND[post.kind].icon()}
+                <span class="alike__body">
+                  <span class="alike__text">{post.text}</span>
+                  <span class="alike__meta">
+                    {[
+                      t(KIND[post.kind].label),
+                      ...(post.status !== 'open' ? [t(STATUS_LABEL[post.status])] : []),
+                      post.votes === 1 ? t('board.voteOne') : t('board.votes', { n: post.votes }),
+                    ].join(' · ')}
+                  </span>
                 </span>
-                <span class="alike__text">{post.text}</span>
-                <VoteButton votes={post.votes} voted={post.voted} onVote={(up) => onVote(post.id, up)} t={t} />
+                <button
+                  type="button"
+                  class="me-too"
+                  aria-pressed={post.voted}
+                  disabled={post.voted}
+                  onClick={() => onMeToo(post.id)}
+                >
+                  <Icon.Caret />
+                  {t(post.voted ? 'board.voted' : 'board.meToo')}
+                </button>
               </li>
             ))}
           </ul>
@@ -320,6 +345,14 @@ export function Compose({
     </div>
   );
 }
+
+/** Where a lookalike stands, said under it; open says nothing, as on a card. */
+const STATUS_LABEL: Record<PostStatus, CopyKey> = {
+  open: 'board.statusOpen',
+  planned: 'board.statusPlanned',
+  done: 'board.statusDone',
+  declined: 'board.statusDeclined',
+};
 
 /** The question in the empty field, one per kind. */
 const ASK: Record<PostKind, CopyKey> = {
