@@ -202,8 +202,10 @@ section + section { padding-top: 0; }
 .hero { padding-top: 24px; padding-bottom: 48px; }
 
 .tour { position: relative; padding: 12px; }
+/* At least 600px: room for the tour's board, its two bugs and the bar over
+   them, without scrolling. */
 .hero .screen--home {
-  height: clamp(560px, calc(100vh - 220px), 760px);
+  height: clamp(600px, calc(100vh - 220px), 760px);
   cursor: default;
 }
 
@@ -222,8 +224,8 @@ section + section { padding-top: 0; }
 .tour-start .btn { gap: 10px; min-height: 48px; padding: 0 22px; }
 .tour-start svg { flex: none; }
 /* "Watch demo" turns the page into the pretend app, "Your app" and its
-   skeleton, as in the configurator, for the choice of side and the tour;
-   the heading is back when it is over. */
+   skeleton, as in the configurator, for the tour; the heading is back when
+   it is over. */
 .tour-page,
 .tour--app .tour-app {
   opacity: 1;
@@ -238,43 +240,43 @@ section + section { padding-top: 0; }
   transition: opacity 240ms ease, visibility 0s 240ms;
 }
 
-/* The choice of side, in the middle of the pretend app. */
-.tour-pick {
+/* Whose side the tour is on next ("User perspective", "App owner
+   perspective") and how it ends ("Fixed!"): big, over the app dimmed, the
+   widget with it, for a moment. */
+.tour-title {
   position: absolute;
-  z-index: 1;
-  left: 50%;
-  top: 50%;
+  inset: 0;
+  z-index: 2147483646;
   display: grid;
-  justify-items: center;
-  gap: 16px;
-  width: min(360px, calc(100% - 32px));
-  padding: 28px 24px 20px;
-  border-radius: 16px;
-  background: var(--card);
-  box-shadow: 0 16px 48px rgba(10, 10, 30, 0.4);
+  place-items: center;
+  padding: 24px;
+  border-radius: inherit;
+  background: rgba(20, 20, 44, 0.72);
+  color: #fff;
   text-align: center;
-  transform: translate(-50%, -50%);
-  animation: tour-pick-in 240ms ease-out;
+  animation: tour-title-in 320ms ease-out;
+  transition: opacity 320ms ease;
 }
-.tour-pick[hidden] { display: none; }
-.tour-pick > b { font-size: 20px; font-weight: 900; }
-.tour-pick__ways { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-.tour-pick__ways .btn { min-width: 128px; min-height: 48px; }
-.tour-pick__back {
-  padding: 6px 10px;
-  border: 0;
-  background: none;
-  color: var(--sub);
-  font: inherit;
-  font-size: 14px;
-  text-decoration: underline;
-  cursor: pointer;
+.tour-title[hidden] { display: none; }
+.tour-title b {
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+  animation: tour-title-rise 420ms ease-out;
 }
-@keyframes tour-pick-in {
-  from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)); }
+.tour-title--away { opacity: 0; }
+/* The subtitle waits while the title says it. */
+.tour--title .tour-say { opacity: 0; }
+@keyframes tour-title-in {
+  from { opacity: 0; }
+}
+@keyframes tour-title-rise {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tour-pick { animation: none; }
+  .tour-title,
+  .tour-title b { animation: none; transition: none; }
   .tour-page,
   .tour-app { transition: none; }
 }

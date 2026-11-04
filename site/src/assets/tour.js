@@ -2,16 +2,21 @@
  * The home page's tour. The page is a pretend app: the heading, its line
  * and "Watch demo", and the real widget's round button in its corner, in
  * `demo` mode. "Watch demo" turns the page into the configurator's pretend
- * app ("Your app" and its skeleton) with a choice of side in its middle;
- * the side picked plays through on its own, once, then the heading is back:
+ * app ("Your app" and its skeleton) and plays one story through, once,
+ * then the heading is back. Big over the dimmed app, a title says whose
+ * side comes next:
  *
- * - **App user**, as a user meets it: tap the round button, pick Report a
- *   bug on the tiles, describe it, send it, and only then the board, with
- *   everybody else's feedback and the app's answers, where an idea gets a
- *   vote.
- * - **App owner** (`demo="owner"`): the board, a bug picked, marked fixed in
- *   a version with a link, answered, the card as everybody now sees it, and
- *   an update telling everyone what changed.
+ * - **User perspective**, as a user meets it: tap the round button, pick
+ *   Report a bug on the tiles, describe it, send it, and only then the
+ *   board, with their bug on it and one other.
+ * - **App owner perspective** (`demo="owner"`): the round button, the
+ *   board, that same bug picked, marked fixed in a version with a link,
+ *   answered, and the card as everybody now sees it.
+ * - **Fixed!** to end it.
+ *
+ * Both boards hold only that bug and one other (`samples`), so the story is
+ * all there is to look at. The owner's is a widget of its own, with the
+ * user's bug already on it, as the user sent it.
  *
  * A subtitle says what each step is (`USER`, `OWNER`), a ring shows each
  * tap, as in the configurator's step 1. A click on the box pauses it, a
@@ -30,7 +35,7 @@ const page = box?.querySelector('.tour-page');
 const subtitle = document.getElementById('tour-say');
 const pausedNote = document.getElementById('tour-paused');
 const watch = document.getElementById('tour-watch');
-const pick = document.getElementById('tour-pick');
+const titleCard = document.getElementById('tour-title');
 const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 /**
@@ -42,20 +47,27 @@ const USER = [
   'Picks what it is',
   'Describes the bug',
   'Sends it',
-  'Sees everyone’s feedback',
-  'Votes for an idea',
+  'Sees it on the board',
 ];
-const OWNER = ['You open your board', 'Pick a bug', 'Mark it fixed', 'Answer the user', 'See it on the board', 'Post an update'];
+const OWNER = ['You open your board', 'Pick the bug', 'Mark it fixed', 'Answer the user', 'See it on the board'];
 
 /** What the tour writes, typed out a letter at a time. */
 const BUG = 'The save button does nothing on my phone';
-/** The owner's: a sample bug of Sam's, fixed. */
-const SAMS_BUG = 'Amounts over 1,000';
+/** The owner's, fixing that same bug. */
 const VERSION = '1.4.3';
 const PULL = 'github.com/you/app/pull/42';
-const REPLY = 'Thanks Sam! Fixed, it is in the next version.';
-const UPDATE = 'Amounts fit on small phones';
-const RELEASE = 'github.com/you/app/releases';
+const REPLY = 'Thanks for reporting! Fixed, it is in the next version.';
+
+/**
+ * One story on a quiet board: the bug the user sends, and one other bug of
+ * somebody else's, still open. The user's board starts with that other bug
+ * alone; the owner's has the user's bug too, as the user sent it.
+ */
+const OTHER = { kind: 'bug', text: 'The send button does nothing after I switch accounts', votes: 4, ago: 20 * 3_600_000 };
+const SAMPLES = {
+  user: [OTHER],
+  owner: [{ kind: 'bug', text: BUG, votes: 1, ago: 3_600_000 }, OTHER],
+};
 
 /** The same settings as the configurator's widgets, and no screenshots: the tour never adds one. */
 function widget(pov) {
@@ -71,6 +83,7 @@ function widget(pov) {
   })) {
     el.setAttribute(k, v);
   }
+  el.samples = SAMPLES[pov === 'owner' ? 'owner' : 'user'];
   el.inert = true;
   el.setAttribute('aria-hidden', 'true');
   return el;
@@ -91,7 +104,12 @@ function fit(el) {
     el.shadowRoot.append(style);
   }
   const h = box.clientHeight - 48;
-  style.textContent = `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; } } .alike { display: none !important; }`;
+  // With the owner's sheet open over the board, as tall as the box allows,
+  // so the sheet is not squeezed out of view by a short board.
+  style.textContent =
+    `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; }` +
+    ` .overlay .app:has(.filters):has(.scrim) { height: ${h}px; } }` +
+    ` .alike { display: none !important; }`;
 }
 
 /** A fresh widget in the box, the old one and any ring gone. */
@@ -170,13 +188,6 @@ async function tap(target) {
   target.click();
 }
 
-/** Scroll the panel's list by `by` pixels, smoothly, and let it settle. */
-async function scroll(el, by) {
-  const list = el.shadowRoot.querySelector('.scroll');
-  list?.scrollBy({ top: by, behavior: still.matches ? 'auto' : 'smooth' });
-  await wait(900);
-}
-
 /** Scroll the panel, or the sheet over it, just enough to show `target`, so a tap on it is seen. */
 async function reveal(target) {
   const list = target.closest('.sheet, .scroll');
@@ -215,6 +226,33 @@ async function say(steps, n) {
   subtitle.classList.remove('tour-say--away');
 }
 
+/** `text` big over the dimmed app for a moment, then faded out; the subtitle waits meanwhile. */
+async function title(text) {
+  titleCard.querySelector('b').textContent = text;
+  titleCard.classList.remove('tour-title--away');
+  titleCard.hidden = false;
+  frame.classList.add('tour--title');
+  try {
+    await wait(1400);
+    titleCard.classList.add('tour-title--away');
+    await sleep(320);
+  } finally {
+    titleCard.hidden = true;
+    // The last side's subtitle stays out of sight until the next one says its first step.
+    subtitle.classList.add('tour-say--away');
+    frame.classList.remove('tour--title');
+  }
+}
+
+/** The whole story: the user sends a bug, the owner fixes it. */
+async function story() {
+  await title('User perspective');
+  await userRound();
+  await title('App owner perspective');
+  await ownerRound();
+  await title('Fixed!');
+}
+
 /** The app user's side. */
 async function userRound() {
   const el = mount('user');
@@ -241,29 +279,12 @@ async function userRound() {
   await find(el, '.sent');
   await say(USER, 4);
 
-  // Only now the board: everybody else's feedback and the app's answers.
-  // The widget goes there by itself after "Feedback sent!", as in an app.
-  await find(el, '.list', 100);
+  // Only now the board, with their bug on it. The widget goes there by
+  // itself after "Feedback sent!", as in an app.
+  await find(el, card(BUG), 100);
   await wait(600);
   await say(USER, 5);
-  await wait(2200);
-  await scroll(el, 280);
-  await wait(1200);
-  await scroll(el, 280);
-  await wait(1200);
-  await scroll(el, -560);
-
-  // An idea somebody else had: one more vote.
-  const vote = await find(el, (root) =>
-    [...root.querySelectorAll('.card')]
-      .find((c) => c.querySelector('.badge__dot--idea') && c.querySelector('.vote[aria-pressed="false"]'))
-      ?.querySelector('.vote'),
-  );
-  await say(USER, 6);
-  await reveal(vote);
-  await wait(1400);
-  await tap(vote);
-  await wait(2400);
+  await wait(3600);
 
   await tap(await find(el, barButton('Close')));
   await wait(900);
@@ -279,12 +300,12 @@ async function ownerRound() {
   await find(el, '.list');
   await wait(1600);
 
-  // Sam's bug: a tap on a card is the owner's way in.
-  const sams = await find(el, card(SAMS_BUG));
+  // The user's bug: a tap on a card is the owner's way in.
+  const bug = await find(el, card(BUG));
   await say(OWNER, 2);
-  await reveal(sams);
+  await reveal(bug);
   await wait(1400);
-  await tap(sams);
+  await tap(bug);
 
   // Done, with the version it is fixed in and the pull request.
   const done = await find(el, button('.sheet .states .chip-pick', 'Done'));
@@ -316,34 +337,11 @@ async function ownerRound() {
   await tap(save);
 
   // The card, as everybody sees it now.
-  const fixed = await find(el, (root) => !root.querySelector('.sheet') && card(SAMS_BUG)(root)?.querySelector('.fix') && card(SAMS_BUG)(root));
+  const fixed = await find(el, (root) => !root.querySelector('.sheet') && card(BUG)(root)?.querySelector('.fix') && card(BUG)(root));
   await say(OWNER, 5);
   await reveal(fixed);
   await wait(3000);
-
-  // And an update, for everyone who did not report it.
-  await say(OWNER, 6);
-  await tap(await find(el, barButton('Updates')));
-  await wait(1400);
-  await tap(await find(el, barButton('New update')));
-  const title = await find(el, '#pnb-update-title');
-  await wait(800);
-  await type(title, UPDATE);
-  await wait(300);
-  await type(await find(el, '#pnb-update-version'), VERSION);
-  await wait(300);
-  await type(await find(el, '#pnb-update-link'), RELEASE);
-  await wait(700);
-  const publish = await find(el, '.send .btn:not([disabled])');
-  await reveal(publish);
-  await tap(publish);
-  await find(el, (root) => root.querySelector('.update__title')?.textContent === UPDATE);
-  await wait(2800);
-
-  await tap(await find(el, barButton('Back')));
-  await wait(900);
-  await tap(await find(el, barButton('Close')));
-  await wait(900);
+  // "Fixed!" comes over the board, the fixed card still under it.
 }
 
 // ---- Playing, pausing, stopping -----------------------------------------
@@ -359,12 +357,11 @@ function pause(on) {
   frame.classList.toggle('tour--paused', on);
 }
 
-/** The pretend app with the choice of side in it, or the heading back. */
-function choose(on) {
+/** The pretend app for the tour, or the heading back. */
+function app(on) {
   frame.classList.toggle('tour--app', on);
   page.inert = on;
-  pick.hidden = !on;
-  if (on) pick.querySelector('[data-pov]').focus({ preventScroll: true });
+  if (on) subtitle.focus({ preventScroll: true });
   else if (!document.activeElement || document.activeElement === document.body || frame.contains(document.activeElement)) {
     // Back where the visitor came from, unless they went elsewhere meanwhile.
     watch.focus({ preventScroll: true });
@@ -375,20 +372,21 @@ function choose(on) {
 function rest() {
   pause(false);
   frame.classList.remove('tour--playing');
-  choose(false);
+  app(false);
   mount('user');
 }
 
-/** Play one side, once, then rest. */
-async function play(pov) {
+/** Play the story, once, then rest. */
+async function play() {
   const mine = ++current;
   await last;
   if (mine !== current) return;
   running = mine;
   pause(false);
-  pick.hidden = true;
+  subtitle.querySelector('.tour-say__title').textContent = '';
   frame.classList.add('tour--playing');
-  last = (pov === 'owner' ? ownerRound() : userRound())
+  app(true);
+  last = story()
     .catch((e) => {
       // A step that did not find its button ends the tour rather than hang it.
       if (e !== STOP) console.warn(e);
@@ -404,23 +402,16 @@ function stop() {
   rest();
 }
 
-if (box && frame && page && subtitle && pausedNote && watch && pick) {
+if (box && frame && page && subtitle && pausedNote && watch && titleCard) {
   await customElements.whenDefined('please-no-bugs');
   mount('user');
   watchSight();
 
-  watch.addEventListener('click', () => choose(true));
-  document.getElementById('tour-back')?.addEventListener('click', () => choose(false));
-  pick.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') choose(false);
+  watch.addEventListener('click', (e) => {
+    // Not also a click on the box, which would pause what just started.
+    e.stopPropagation();
+    void play();
   });
-  for (const side of pick.querySelectorAll('[data-pov]')) {
-    side.addEventListener('click', (e) => {
-      // Not also a click on the box, which would pause what just started.
-      e.stopPropagation();
-      void play(side.dataset.pov);
-    });
-  }
   document.getElementById('tour-stop')?.addEventListener('click', (e) => {
     e.stopPropagation();
     stop();
