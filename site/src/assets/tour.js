@@ -3,8 +3,14 @@
  * and "Watch demo", and the real widget's round button in its corner, in
  * `demo` mode. "Watch demo" turns the page into the configurator's pretend
  * app ("Your app" and its skeleton) and plays one story through, once,
- * then the heading is back. Big over the dimmed app, a title says whose
- * side comes next:
+ * then the heading is back.
+ *
+ * It starts with why PleaseNoBugs is there, in three short scenes drawn on
+ * the pretend app (`INTRO`; the drawing is site.css's): users leave without
+ * a word, what feedback there is is scattered, and the answer, one board
+ * everyone can see. "Skip intro" goes straight on. Then, big over the
+ * dimmed app under a small "How it works", a title says whose side comes
+ * next:
  *
  * - **User perspective**, as a user meets it: tap the round button, pick
  *   Report a bug on the tiles, describe it, send it, and only then the
@@ -36,7 +42,21 @@ const subtitle = document.getElementById('tour-say');
 const pausedNote = document.getElementById('tour-paused');
 const watch = document.getElementById('tour-watch');
 const titleCard = document.getElementById('tour-title');
+const intro = document.getElementById('tour-intro');
+const caption = intro?.querySelector('.ti-caption');
+const skip = document.getElementById('tour-skip');
 const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+/** The intro's scenes: what each says, and how long it stays (ms, as drawn in site.css). */
+const INTRO = [
+  { title: "Most apps don't die loudly.", line: 'Users just leave, and never tell you why.', ms: 5600 },
+  { title: 'The feedback you do get is scattered.', line: 'Buried in reviews, chats and DMs.', ms: 5000 },
+  {
+    title: 'PleaseNoBugs: an open source feedback widget.',
+    line: 'One button in your app. One board everyone can see.',
+    ms: 6400,
+  },
+];
 
 /**
  * The subtitles, one per step: about your user on one side, about you on
@@ -172,18 +192,23 @@ async function find(el, selector, tries = 40) {
   throw new Error(`Tour: no ${selector}`);
 }
 
-/** Show a tap on `target`, then tap it. */
-async function tap(target) {
+/** The tap's ring, once, over `target`. */
+function ring(target) {
   const b = box.getBoundingClientRect();
   const t = target.getBoundingClientRect();
-  const ring = document.createElement('span');
-  ring.className = 'tour-tap';
-  ring.style.left = `${t.left + t.width / 2 - b.left}px`;
-  ring.style.top = `${t.top + t.height / 2 - b.top}px`;
-  box.append(ring);
+  const el = document.createElement('span');
+  el.className = 'tour-tap';
+  el.style.left = `${t.left + t.width / 2 - b.left}px`;
+  el.style.top = `${t.top + t.height / 2 - b.top}px`;
+  box.append(el);
   // The next frame, so the ring starts from its resting state.
-  requestAnimationFrame(() => ring.classList.add('tour-tap--on'));
-  setTimeout(() => ring.remove(), 600);
+  requestAnimationFrame(() => el.classList.add('tour-tap--on'));
+  setTimeout(() => el.remove(), 600);
+}
+
+/** Show a tap on `target`, then tap it. */
+async function tap(target) {
+  ring(target);
   await sleep(160);
   target.click();
 }
@@ -226,13 +251,20 @@ async function say(steps, n) {
   subtitle.classList.remove('tour-say--away');
 }
 
-/** `text` big over the dimmed app for a moment, then faded out; the subtitle waits meanwhile. */
-async function title(text) {
+/**
+ * `text` big over the dimmed app for a moment, `kicker` small above it, then
+ * faded out; the subtitle waits meanwhile. `under` runs once it covers the
+ * app, to change what is under it unseen.
+ */
+async function title(text, kicker = '', under = () => {}) {
+  titleCard.querySelector('small').textContent = kicker;
   titleCard.querySelector('b').textContent = text;
   titleCard.classList.remove('tour-title--away');
   titleCard.hidden = false;
   frame.classList.add('tour--title');
   try {
+    await sleep(320);
+    under();
     await wait(1400);
     titleCard.classList.add('tour-title--away');
     await sleep(320);
@@ -244,11 +276,70 @@ async function title(text) {
   }
 }
 
-/** The whole story: the user sends a bug, the owner fixes it. */
+/** Whether "Skip intro" was clicked in this play. */
+let skipped = false;
+
+/** `ms` of the intro's time, as `sleep`, but over at once on "Skip intro". */
+async function hold(ms) {
+  let left = ms;
+  while (left > 0 && !skipped) {
+    await new Promise((r) => setTimeout(r, 50));
+    if (running !== current) throw STOP;
+    if (!paused && seen) left -= 50;
+  }
+}
+
+/** Put scene `n` (from 1) in the caption, the old one fading out first. */
+async function scene(n) {
+  caption.classList.add('ti-caption--away');
+  await hold(250);
+  if (skipped) return;
+  const { title: big, line } = INTRO[n - 1];
+  caption.querySelector('b').textContent = big;
+  caption.querySelector('span').textContent = line;
+  // The drawing starts with the words.
+  frame.dataset.intro = String(n);
+  caption.classList.remove('ti-caption--away');
+}
+
+/** Why PleaseNoBugs is there, in three scenes, unless skipped. */
+async function playIntro() {
+  skipped = false;
+  // No widget or subtitle from the start; the drawing waits for scene 1.
+  frame.dataset.intro = '0';
+  intro.hidden = false;
+  skip.hidden = false;
+  skip.focus({ preventScroll: true });
+  for (let n = 1; n <= INTRO.length && !skipped; n++) {
+    await scene(n);
+    if (n === 3) {
+      // The round button is there: shown as tapped.
+      await hold(400);
+      const fab = box.querySelector('please-no-bugs')?.shadowRoot?.querySelector('.fab');
+      if (fab && !skipped) ring(fab);
+      await hold(INTRO[n - 1].ms - 400);
+    } else {
+      await hold(INTRO[n - 1].ms);
+    }
+  }
+}
+
+/** The intro gone, the app and the widget as they were. */
+function endIntro() {
+  const hadFocus = skip.contains(document.activeElement);
+  delete frame.dataset.intro;
+  intro.hidden = true;
+  skip.hidden = true;
+  caption.classList.add('ti-caption--away');
+  if (hadFocus && frame.classList.contains('tour--playing')) subtitle.focus({ preventScroll: true });
+}
+
+/** The whole story: why, then the user sends a bug, and the owner fixes it. */
 async function story() {
-  await title('User perspective');
+  await playIntro();
+  await title('User perspective', 'How it works', endIntro);
   await userRound();
-  await title('App owner perspective');
+  await title('App owner perspective', 'How it works');
   await ownerRound();
   await title('Fixed!');
 }
@@ -372,6 +463,7 @@ function app(on) {
 function rest() {
   pause(false);
   frame.classList.remove('tour--playing');
+  endIntro();
   app(false);
   mount('user');
 }
@@ -402,7 +494,7 @@ function stop() {
   rest();
 }
 
-if (box && frame && page && subtitle && pausedNote && watch && titleCard) {
+if (box && frame && page && subtitle && pausedNote && watch && titleCard && intro && caption && skip) {
   await customElements.whenDefined('please-no-bugs');
   mount('user');
   watchSight();
@@ -411,6 +503,14 @@ if (box && frame && page && subtitle && pausedNote && watch && titleCard) {
     // Not also a click on the box, which would pause what just started.
     e.stopPropagation();
     void play();
+  });
+  skip.addEventListener('click', (e) => {
+    // Not a pause either.
+    e.stopPropagation();
+    skipped = true;
+    skip.hidden = true;
+    subtitle.focus({ preventScroll: true });
+    if (paused) pause(false);
   });
   document.getElementById('tour-stop')?.addEventListener('click', (e) => {
     e.stopPropagation();
