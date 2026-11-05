@@ -5,10 +5,11 @@
  * app ("Your app" and its skeleton) and plays one story through, once,
  * then the heading is back.
  *
- * It starts with why PleaseNoBugs is there, in three short scenes drawn on
- * the pretend app (`INTRO`; the drawing is site.css's): users leave without
- * a word, what feedback there is is scattered, and the answer, one board
- * everyone can see. "Skip intro" goes straight on. Then, big over the
+ * It starts with why PleaseNoBugs is there, in four short scenes drawn on
+ * the pretend app (`INTRO`; the drawing is site.css's), each with its big
+ * line typed out first: imagine this is your app, users leave without a
+ * word, what feedback there is is scattered, and the answer, a round button
+ * and one board everyone can see. "Skip intro" goes straight on. Then, big over the
  * dimmed app under a small "How it works", a title says whose side comes
  * next:
  *
@@ -47,14 +48,20 @@ const caption = intro?.querySelector('.ti-caption');
 const skip = document.getElementById('tour-skip');
 const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-/** The intro's scenes: what each says, and how long it stays (ms, as drawn in site.css). */
+const said = document.getElementById('ti-said');
+
+/**
+ * The intro's scenes: the big line, typed out; the small one under it; and
+ * how long the drawing then plays (ms, as drawn in site.css).
+ */
 const INTRO = [
-  { title: "Most apps don't die loudly.", line: 'Users just leave, and never tell you why.', ms: 5600 },
-  { title: 'The feedback you do get is scattered.', line: 'Buried in reviews, chats and DMs.', ms: 5000 },
+  { title: 'Imagine this is your app.', line: '', ms: 2800 },
+  { title: 'Your users just leave, and never tell you why.', line: "Most apps don't die loudly.", ms: 4600 },
+  { title: 'The feedback you do get is scattered.', line: 'Buried in reviews, chats and DMs.', ms: 3400 },
   {
-    title: 'PleaseNoBugs: an open source feedback widget.',
-    line: 'One button in your app. One board everyone can see.',
-    ms: 6400,
+    title: 'This open source feedback widget is the solution!',
+    line: 'PleaseNoBugs: one button in your app, one board everyone can see.',
+    ms: 5200,
   },
 ];
 
@@ -289,20 +296,57 @@ async function hold(ms) {
   }
 }
 
-/** Put scene `n` (from 1) in the caption, the old one fading out first. */
+/**
+ * Scene 4's round button: drawn where the real one sits, with its colours
+ * and icon, as the real one stays hidden until the intro is over.
+ */
+function drawFab() {
+  const fab = box.querySelector('please-no-bugs')?.shadowRoot?.querySelector('.fab');
+  const drawn = intro.querySelector('.ti-fab');
+  if (!fab) return;
+  const b = box.getBoundingClientRect();
+  const r = fab.getBoundingClientRect();
+  const look = getComputedStyle(fab);
+  Object.assign(drawn.style, {
+    left: `${r.left - b.left}px`,
+    top: `${r.top - b.top}px`,
+    width: `${r.width}px`,
+    height: `${r.height}px`,
+    background: look.backgroundColor,
+    color: look.color,
+  });
+  drawn.innerHTML = fab.querySelector('svg')?.outerHTML ?? '';
+}
+
+/**
+ * Scene `n` (from 1): the old words out, the big line typed, the small one
+ * after it, and then its drawing.
+ */
 async function scene(n) {
+  const { title: big, line } = INTRO[n - 1];
   caption.classList.add('ti-caption--away');
   await hold(250);
   if (skipped) return;
-  const { title: big, line } = INTRO[n - 1];
-  caption.querySelector('b').textContent = big;
+  const bigEl = caption.querySelector('b');
+  bigEl.textContent = '';
   caption.querySelector('span').textContent = line;
-  // The drawing starts with the words.
+  caption.classList.remove('ti-caption--away', 'ti-caption--line');
+  caption.classList.add('ti-caption--typing');
+  // Said whole for a screen reader; the letters are for the eye.
+  said.textContent = line ? `${big} ${line}` : big;
+  for (let i = 1; i <= big.length && !skipped; i++) {
+    bigEl.textContent = big.slice(0, i);
+    await hold(i === big.length ? 0 : 42);
+  }
+  bigEl.textContent = big;
+  await hold(300);
+  caption.classList.remove('ti-caption--typing');
+  caption.classList.add('ti-caption--line');
+  if (n === 4) drawFab();
   frame.dataset.intro = String(n);
-  caption.classList.remove('ti-caption--away');
 }
 
-/** Why PleaseNoBugs is there, in three scenes, unless skipped. */
+/** Why PleaseNoBugs is there, in four scenes, unless skipped. */
 async function playIntro() {
   skipped = false;
   // No widget or subtitle from the start; the drawing waits for scene 1.
@@ -312,15 +356,7 @@ async function playIntro() {
   skip.focus({ preventScroll: true });
   for (let n = 1; n <= INTRO.length && !skipped; n++) {
     await scene(n);
-    if (n === 3) {
-      // The round button is there: shown as tapped.
-      await hold(400);
-      const fab = box.querySelector('please-no-bugs')?.shadowRoot?.querySelector('.fab');
-      if (fab && !skipped) ring(fab);
-      await hold(INTRO[n - 1].ms - 400);
-    } else {
-      await hold(INTRO[n - 1].ms);
-    }
+    await hold(INTRO[n - 1].ms);
   }
 }
 
@@ -331,6 +367,8 @@ function endIntro() {
   intro.hidden = true;
   skip.hidden = true;
   caption.classList.add('ti-caption--away');
+  caption.classList.remove('ti-caption--typing', 'ti-caption--line');
+  said.textContent = '';
   if (hadFocus && frame.classList.contains('tour--playing')) subtitle.focus({ preventScroll: true });
 }
 
@@ -494,7 +532,7 @@ function stop() {
   rest();
 }
 
-if (box && frame && page && subtitle && pausedNote && watch && titleCard && intro && caption && skip) {
+if (box && frame && page && subtitle && pausedNote && watch && titleCard && intro && caption && skip && said) {
   await customElements.whenDefined('please-no-bugs');
   mount('user');
   watchSight();

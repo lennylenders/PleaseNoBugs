@@ -293,13 +293,15 @@ section + section { padding-top: 0; }
 }
 
 /*
- * The intro, before "How it works": why PleaseNoBugs is there, in three
- * scenes drawn on the pretend app (assets/tour.js sets `data-intro` on the
- * frame to 1, 2 or 3).
+ * The intro, before "How it works": why PleaseNoBugs is there, in four
+ * scenes drawn on the pretend app. assets/tour.js types each scene's words
+ * first, then sets `data-intro` on the frame to its number, which starts
+ * its drawing; until then the last one stays as it ended (0: nothing yet).
  *
- * 1. Users come by with a question, and leave without a word; the app greys.
- * 2. What feedback there is pops up all over: reviews, chats, DMs.
- * 3. The round button is there, a board opens over it, and every piece of
+ * 1. "Your app" pops up in its corner, an arrow pointing at it.
+ * 2. Users come by with a question, and leave without a word; the app greys.
+ * 3. What feedback there is pops up all over: reviews, chats, DMs.
+ * 4. The round button pops up, a board opens over it, and every piece of
  *    feedback lands on it as a bug or an idea; the app has its colour back.
  *
  * Each scene's movement is a CSS animation, so a pause holds it too.
@@ -312,12 +314,31 @@ section + section { padding-top: 0; }
   pointer-events: none;
 }
 .tour-intro[hidden] { display: none; }
-/* No subtitle, and no widget until scene 3 brings the round button. */
+/* No subtitle, and no widget: scene 4 draws its round button, and the real
+   one is back, under the title, once the intro is over. */
 .tour[data-intro] .tour-say { opacity: 0; pointer-events: none; }
 .tour[data-intro] please-no-bugs { opacity: 0; transition: opacity 400ms ease; }
-.tour[data-intro='3'] please-no-bugs { opacity: 1; }
 
-/* Scene 1: three users, each with a question, gone one after another. */
+/* Scene 1: "Your app", popped up, and an arrow nudging at it. */
+.tour[data-intro='0'] .tour-app b { opacity: 0; }
+.tour-app b { justify-self: start; transform-origin: 0 50%; }
+.tour[data-intro='1'] .tour-app b { animation: ti-pop-big 650ms cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+.ti-arrow {
+  position: absolute;
+  left: 128px;
+  top: 16px;
+  width: 64px;
+  height: 36px;
+  color: var(--button);
+  opacity: 0;
+}
+.tour[data-intro='1'] .ti-arrow {
+  animation:
+    ti-fade 250ms ease 450ms both,
+    ti-nudge 600ms ease-in-out 700ms 4 both;
+}
+
+/* Scene 2: three users, each with a question, gone one after another. */
 .ti-person {
   position: absolute;
   left: var(--x);
@@ -351,17 +372,17 @@ section + section { padding-top: 0; }
   font-weight: 900;
   opacity: 0;
 }
-.tour[data-intro='1'] .ti-person {
+.tour[data-intro='2'] .ti-person {
   animation:
     ti-pop 420ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(var(--i) * 160ms) both,
     ti-leave 700ms ease-in calc(2300ms + var(--i) * 420ms) forwards;
 }
-.tour[data-intro='1'] .ti-ask { animation: ti-pop 320ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(650ms + var(--i) * 220ms) both; }
-.tour[data-intro='1'] .tour-app { animation: ti-grey 1200ms ease 2700ms both; }
-.tour[data-intro='2'] .tour-app { filter: grayscale(1) opacity(0.4); }
-.tour[data-intro='3'] .tour-app { animation: ti-grey 900ms ease 300ms reverse both; }
+.tour[data-intro='2'] .ti-ask { animation: ti-pop 320ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(650ms + var(--i) * 220ms) both; }
+.tour[data-intro='2'] .tour-app { animation: ti-grey 1200ms ease 2700ms both; }
+.tour[data-intro='3'] .tour-app { filter: grayscale(1) opacity(0.4); }
+.tour[data-intro='4'] .tour-app { animation: ti-grey 900ms ease 1000ms reverse both; }
 
-/* Scene 2: feedback all over the place. Scene 3: each on the board, a row. */
+/* Scene 3: feedback all over the place. Scene 4: each on the board, a row. */
 .ti-bubble {
   position: absolute;
   /* Over the board they land on. */
@@ -399,10 +420,32 @@ section + section { padding-top: 0; }
 .ti-to { background: var(--button); color: #10123a; opacity: 0; }
 .ti-bubble i { display: block; height: 6px; border-radius: 3px; background: #d9d9e8; }
 .ti-bubble i + i { width: 60%; }
-.tour[data-intro='2'] .ti-bubble { animation: ti-pop 420ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(250ms + var(--i) * 320ms) both; }
-.tour[data-intro='3'] .ti-bubble { animation: ti-fly 800ms cubic-bezier(0.5, 0, 0.2, 1) calc(1100ms + var(--i) * 160ms) both; }
-.tour[data-intro='3'] .ti-from { animation: ti-fade 200ms ease calc(1700ms + var(--i) * 160ms) reverse both; }
-.tour[data-intro='3'] .ti-to { animation: ti-fade 200ms ease calc(1700ms + var(--i) * 160ms) both; }
+.tour[data-intro='3'] .ti-bubble { animation: ti-pop 420ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(250ms + var(--i) * 320ms) both; }
+.tour[data-intro='4'] .ti-bubble { animation: ti-fly 800ms cubic-bezier(0.5, 0, 0.2, 1) calc(1900ms + var(--i) * 160ms) both; }
+.tour[data-intro='4'] .ti-from { animation: ti-fade 200ms ease calc(2500ms + var(--i) * 160ms) reverse both; }
+.tour[data-intro='4'] .ti-to { animation: ti-fade 200ms ease calc(2500ms + var(--i) * 160ms) both; }
+
+/* Scene 4's round button: the widget's own look, copied in where the real
+   one sits (tour.js), popped up big, with a ring going out from it. */
+.ti-fab {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: 0 6px 18px rgba(10, 10, 30, 0.4);
+  opacity: 0;
+}
+.ti-fab svg { width: 55%; height: 55%; }
+.ti-fab::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 var(--button);
+}
+.tour[data-intro='4'] .ti-fab { animation: ti-pop-big 700ms cubic-bezier(0.3, 1.7, 0.5, 1) both; }
+.tour[data-intro='4'] .ti-fab::after { animation: ti-ping 900ms ease-out 500ms 2 both; }
 
 /* The board, opened from the round button in the corner. */
 .ti-board {
@@ -423,7 +466,7 @@ section + section { padding-top: 0; }
 }
 .ti-board b { font-size: 15px; font-weight: 900; }
 .ti-board span { color: var(--sub); font-size: 12px; }
-.tour[data-intro='3'] .ti-board { animation: ti-open 450ms cubic-bezier(0.3, 1.2, 0.5, 1) 500ms both; }
+.tour[data-intro='4'] .ti-board { animation: ti-open 450ms cubic-bezier(0.3, 1.2, 0.5, 1) 1300ms both; }
 
 /* What each scene says: big, in the app's bottom left. */
 .ti-caption {
@@ -438,8 +481,21 @@ section + section { padding-top: 0; }
   transition: opacity 250ms ease, transform 250ms ease;
 }
 .ti-caption b { font-size: clamp(26px, 3.6vw, 40px); font-weight: 900; line-height: 1.1; letter-spacing: -0.3px; }
-.ti-caption span { color: var(--sub); font-size: clamp(16px, 1.8vw, 19px); line-height: 1.45; }
+.ti-caption span { color: var(--sub); font-size: clamp(16px, 1.8vw, 19px); line-height: 1.45; opacity: 0; transition: opacity 400ms ease; }
 .ti-caption--away { opacity: 0; transform: translateY(8px); }
+/* The big line is typed out, a cursor after it; the small one comes after. */
+.ti-caption--typing b::after {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 0.9em;
+  margin-left: 3px;
+  border-radius: 2px;
+  background: var(--button);
+  vertical-align: -0.08em;
+  animation: ti-blink 900ms steps(1) infinite;
+}
+.ti-caption--line span { opacity: 1; }
 /* On a phone, clear of the round button in the corner. */
 @media (max-width: 639px) {
   .ti-caption { right: 68px; }
@@ -468,7 +524,9 @@ section + section { padding-top: 0; }
 .tour[data-intro] .ti-board { top: 58px; }
 
 .tour--paused .tour-intro *,
-.tour--paused .tour-app { animation-play-state: paused; }
+.tour--paused .tour-intro *::after,
+.tour--paused .tour-app,
+.tour--paused .tour-app b { animation-play-state: paused; }
 
 @keyframes ti-pop {
   from { opacity: 0; transform: rotate(var(--r, 0deg)) scale(0.5); }
@@ -507,6 +565,22 @@ section + section { padding-top: 0; }
 @keyframes ti-fade {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+@keyframes ti-pop-big {
+  0% { opacity: 0; transform: scale(0.3); }
+  60% { opacity: 1; transform: scale(1.25); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes ti-nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-10px); }
+}
+@keyframes ti-ping {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--button) 70%, transparent); }
+  to { box-shadow: 0 0 0 22px transparent; }
+}
+@keyframes ti-blink {
+  50% { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tour-intro *,
