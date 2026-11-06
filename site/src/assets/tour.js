@@ -418,10 +418,31 @@ function drawFab() {
   }
 }
 
+/**
+ * Scene 6's board: right above the round button it opens from, as the
+ * widget's own panel. Where the words would be under it (a phone, a narrow
+ * box), right above the words instead, still at the button's side. Never
+ * under "Skip intro".
+ */
+function placeBoard() {
+  const board = intro.querySelector('.ti-board');
+  const fab = intro.querySelector('.ti-fab').getBoundingClientRect();
+  const b = box.getBoundingClientRect();
+  const r = board.getBoundingClientRect();
+  // The words as they stand, not the box they may fill.
+  const words = document.createRange();
+  words.selectNodeContents(caption);
+  const w = words.getBoundingClientRect();
+  let bottom = fab.top - b.top - 12;
+  if (r.left < w.right && bottom > w.top - b.top - 12) bottom = w.top - b.top - 12;
+  intro.style.setProperty('--bt', `${Math.max(58, bottom - r.height)}px`);
+}
+
 /** Start scene `n`'s drawing. */
 function draw(n) {
   if (n === 1) placeArrow();
   if (n === 5) drawFab();
+  if (n === 6) placeBoard();
   frame.dataset.intro = String(n);
   // The round button, tapped: the board opens from it.
   if (n === 6) ring(intro.querySelector('.ti-fab'));

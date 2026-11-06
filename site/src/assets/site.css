@@ -303,11 +303,9 @@ section + section { padding-top: 0; }
  * 2. Its first users pop up, one here, one there.
  * 3. Beside each head a little of what they said: a review, a chat, a DM.
  * 4. They all leave, one after another, and what each said grows where they
- *    stood, all over the place; the app greys, and that feedback with it,
- *    as if it aged.
- * 5. The round button pops up, an arrow at it; the app has its colour back,
- *    the feedback is still grey.
- * 6. A tap on the button opens a board over it, and every piece of feedback
+ *    stood, all over the place, and greys there, as if it aged.
+ * 5. The round button pops up, an arrow at it; the feedback is still grey.
+ * 6. A tap on the button opens a board right over it, and every piece of feedback
  *    lights up as it goes to it, and lands on it as a bug or an idea.
  *
  * Each scene's movement is a CSS animation, which tour.js can set at its end.
@@ -378,8 +376,6 @@ section + section { padding-top: 0; }
 .tour[data-intro='2'] .ti-person { animation: ti-pop 500ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(250ms + var(--i) * 420ms) both; }
 .tour[data-intro='3'] .ti-person { opacity: 1; }
 .tour[data-intro='4'] .ti-person { animation: ti-leave 700ms ease-in calc(700ms + var(--i) * 450ms) both; }
-.tour[data-intro='4'] .tour-app { animation: ti-grey 1200ms ease 2600ms both; }
-.tour[data-intro='5'] .tour-app { animation: ti-grey 900ms ease 1000ms reverse both; }
 
 /* What each user said: small beside their head (scene 3), grown where they
    stood once they are gone (4), all over the place (5), and each on the
@@ -485,11 +481,12 @@ section + section { padding-top: 0; }
     ti-nudge-down 600ms ease-in-out 1050ms 3 both;
 }
 
-/* The board, opened from the round button in the corner. */
+/* The board, opened from the round button: right above it, or, where the
+   words are in the way, right above them (tour.js sets `--bt`, its top). */
 .ti-board {
   position: absolute;
   right: 16px;
-  top: 16px;
+  top: var(--bt, 58px);
   display: grid;
   align-content: start;
   gap: 2px;
@@ -558,8 +555,6 @@ section + section { padding-top: 0; }
 }
 .tour-skip:hover { background: var(--card-2); }
 .tour-skip[hidden] { display: none; }
-/* Room for "Skip intro" over the board. */
-.tour[data-intro] .ti-board { top: 58px; }
 
 @keyframes ti-pop {
   from { opacity: 0; transform: rotate(var(--r, 0deg)) scale(0.5); }
@@ -572,10 +567,6 @@ section + section { padding-top: 0; }
 @keyframes ti-age {
   from { filter: none; }
   to { filter: grayscale(1) brightness(0.72) opacity(0.65); }
-}
-@keyframes ti-grey {
-  from { filter: none; }
-  to { filter: grayscale(1) opacity(0.4); }
 }
 @keyframes ti-open {
   from { opacity: 0; transform: scale(0.4); }
@@ -600,7 +591,7 @@ section + section { padding-top: 0; }
   }
   to {
     left: calc(100% - 16px - var(--bw) + 10px);
-    top: calc(58px + 54px + var(--i) * 46px);
+    top: calc(var(--bt, 58px) + 54px + var(--i) * 46px);
     width: calc(var(--bw) - 20px);
     height: 40px;
     opacity: 1;
@@ -636,8 +627,7 @@ section + section { padding-top: 0; }
   50% { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tour-intro *,
-  .tour[data-intro] .tour-app {
+  .tour-intro * {
     animation-duration: 1ms !important;
     animation-delay: 0s !important;
   }
