@@ -303,8 +303,9 @@ section + section { padding-top: 0; }
  * 2. Its first users pop up, one here, one there.
  * 3. They all leave without a word, one after another; the app greys.
  * 4. What feedback there is pops up all over: reviews, chats, DMs.
- * 5. The round button pops up, a board opens over it, and every piece of
- *    feedback lands on it as a bug or an idea; the app has its colour back.
+ * 5. The round button pops up, an arrow at it; the app has its colour back.
+ * 6. A tap on the button opens a board over it, and every piece of feedback
+ *    lands on it as a bug or an idea.
  *
  * Each scene's movement is a CSS animation; a pause holds them (tour.js).
  */
@@ -430,9 +431,11 @@ section + section { padding-top: 0; }
 .ti-bubble i { display: block; height: 6px; border-radius: 3px; background: #d9d9e8; }
 .ti-bubble i + i { width: 60%; }
 .tour[data-intro='4'] .ti-bubble { animation: ti-pop 420ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(250ms + var(--i) * 320ms) both; }
-.tour[data-intro='5'] .ti-bubble { animation: ti-fly 800ms cubic-bezier(0.5, 0, 0.2, 1) calc(1900ms + var(--i) * 160ms) both; }
-.tour[data-intro='5'] .ti-from { animation: ti-fade 200ms ease calc(2500ms + var(--i) * 160ms) reverse both; }
-.tour[data-intro='5'] .ti-to { animation: ti-fade 200ms ease calc(2500ms + var(--i) * 160ms) both; }
+/* Still all over the place while the button pops up. */
+.tour[data-intro='5'] .ti-bubble { opacity: 1; }
+.tour[data-intro='6'] .ti-bubble { animation: ti-fly 800ms cubic-bezier(0.5, 0, 0.2, 1) calc(1000ms + var(--i) * 160ms) both; }
+.tour[data-intro='6'] .ti-from { animation: ti-fade 200ms ease calc(1600ms + var(--i) * 160ms) reverse both; }
+.tour[data-intro='6'] .ti-to { animation: ti-fade 200ms ease calc(1600ms + var(--i) * 160ms) both; }
 
 /* Scene 4's round button: the widget's own look, copied in where the real
    one sits (tour.js), popped up big, with a ring going out from it. */
@@ -455,6 +458,26 @@ section + section { padding-top: 0; }
 }
 .tour[data-intro='5'] .ti-fab { animation: ti-pop-big 700ms cubic-bezier(0.3, 1.7, 0.5, 1) both; }
 .tour[data-intro='5'] .ti-fab::after { animation: ti-ping 900ms ease-out 500ms 2 both; }
+.tour[data-intro='6'] .ti-fab { opacity: 1; }
+
+/* Scene 5's arrow: left of the round button, level with it, pointing at it
+   (tour.js places it); gone when scene 6 starts. */
+.ti-arrow--fab { z-index: 2; }
+.tour[data-intro='1'] .ti-arrow--fab,
+.tour[data-intro='2'] .ti-arrow--fab { animation: none; }
+.tour[data-intro='5'] .ti-arrow--fab {
+  animation:
+    ti-fade 250ms ease 800ms both,
+    ti-nudge-right 600ms ease-in-out 1050ms 3 both;
+}
+.tour[data-intro='6'] .ti-arrow--fab { animation: ti-fade 300ms ease reverse both; }
+/* On a phone, above the button, pointing down at it. */
+.ti-arrow--down { width: 24px; height: 56px; }
+.tour[data-intro='5'] .ti-arrow--down {
+  animation:
+    ti-fade 250ms ease 800ms both,
+    ti-nudge-down 600ms ease-in-out 1050ms 3 both;
+}
 
 /* The board, opened from the round button in the corner. */
 .ti-board {
@@ -475,7 +498,7 @@ section + section { padding-top: 0; }
 }
 .ti-board b { font-size: 15px; font-weight: 900; }
 .ti-board span { color: var(--sub); font-size: 12px; }
-.tour[data-intro='5'] .ti-board { animation: ti-open 450ms cubic-bezier(0.3, 1.2, 0.5, 1) 1300ms both; }
+.tour[data-intro='6'] .ti-board { animation: ti-open 450ms cubic-bezier(0.3, 1.2, 0.5, 1) 350ms both; }
 
 /* What each scene says: big, in the app's bottom left. */
 .ti-caption {
@@ -574,6 +597,14 @@ section + section { padding-top: 0; }
   0% { opacity: 0; transform: scale(0.3); }
   60% { opacity: 1; transform: scale(1.25); }
   100% { opacity: 1; transform: scale(1); }
+}
+@keyframes ti-nudge-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(10px); }
+}
+@keyframes ti-nudge-right {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(10px); }
 }
 @keyframes ti-nudge {
   0%, 100% { transform: translateX(0); }

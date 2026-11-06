@@ -6,11 +6,11 @@
  * app ("Your app" and its skeleton) and plays one story through, once,
  * then the heading is back.
  *
- * It starts with why PleaseNoBugs is there, in five short scenes drawn on
+ * It starts with why PleaseNoBugs is there, in six short scenes drawn on
  * the pretend app (`INTRO`; the drawing is site.css's), each with its big
  * line typed out: imagine this is your app, its first users, most of them
- * leaving without a word, what feedback there is scattered, and the answer,
- * a round button and one board everyone can see. "Skip intro" goes straight
+ * leaving without a word, what feedback there is scattered, the answer, a
+ * round button, and all that feedback on one board everyone can see. "Skip intro" goes straight
  * on. Until then the box shows no round button at all. Then, big over the
  * dimmed app under a small "How it works", a title says whose side comes
  * next:
@@ -69,9 +69,10 @@ const INTRO = [
   { title: 'The feedback you do get is scattered.', line: 'Buried in reviews, chats and DMs.', ms: 3400 },
   {
     title: 'This open source feedback widget is your solution!',
-    line: 'PleaseNoBugs: one button in your app, one board everyone can see.',
-    ms: 5200,
+    line: 'PleaseNoBugs: one button in your app.',
+    ms: 3000,
   },
+  { title: 'All your feedback in one place.', line: 'Visible to all your users.', ms: 3600 },
 ];
 
 /**
@@ -308,7 +309,7 @@ async function hold(ms) {
 /** Scene 1's arrow: just right of "Your app", level with it, pointing at it. */
 function placeArrow() {
   const label = box.querySelector('.tour-app b');
-  const arrow = intro.querySelector('.ti-arrow');
+  const arrow = intro.querySelector('.ti-arrow:not(.ti-arrow--fab)');
   if (!label || !arrow) return;
   const b = box.getBoundingClientRect();
   const r = label.getBoundingClientRect();
@@ -318,7 +319,8 @@ function placeArrow() {
 
 /**
  * Scene 5's round button: drawn where the real one sits, with its colours
- * and icon, as the real one stays hidden until the intro is over.
+ * and icon, as the real one stays hidden until the intro is over; and its
+ * arrow, just left of it, level with it, pointing at it.
  */
 function drawFab() {
   const fab = box.querySelector('please-no-bugs')?.shadowRoot?.querySelector('.fab');
@@ -336,6 +338,21 @@ function drawFab() {
     color: look.color,
   });
   drawn.innerHTML = fab.querySelector('svg')?.outerHTML ?? '';
+  // On a phone the words run up to the button: there it points down at it
+  // from above instead.
+  const arrow = intro.querySelector('.ti-arrow--fab');
+  const down = box.clientWidth < 640;
+  arrow.classList.toggle('ti-arrow--down', down);
+  arrow.setAttribute('viewBox', down ? '0 0 24 56' : '0 0 56 24');
+  arrow.querySelector('path').setAttribute('d', down ? 'M12 4V50M12 50l-8-9M12 50l8-9' : 'M4 12H50M50 12l-9-8M50 12l-9 8');
+  const a = arrow.getBoundingClientRect();
+  if (down) {
+    arrow.style.left = `${r.left + r.width / 2 - b.left - a.width / 2}px`;
+    arrow.style.top = `${r.top - b.top - 14 - a.height}px`;
+  } else {
+    arrow.style.left = `${r.left - b.left - 18 - a.width}px`;
+    arrow.style.top = `${r.top + r.height / 2 - b.top - a.height / 2}px`;
+  }
 }
 
 /** Start scene `n`'s drawing. */
@@ -343,6 +360,8 @@ function draw(n) {
   if (n === 1) placeArrow();
   if (n === 5) drawFab();
   frame.dataset.intro = String(n);
+  // The round button, tapped: the board opens from it.
+  if (n === 6) ring(intro.querySelector('.ti-fab'));
 }
 
 /**
@@ -373,7 +392,7 @@ async function scene(n) {
   if (!during && !skipped) draw(n);
 }
 
-/** Why PleaseNoBugs is there, in five scenes, unless skipped. */
+/** Why PleaseNoBugs is there, in six scenes, unless skipped. */
 async function playIntro() {
   skipped = false;
   // No widget or subtitle from the start; the drawing waits for scene 1.
