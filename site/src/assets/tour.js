@@ -90,7 +90,7 @@ const USER = [
   'Sends it',
   'Sees it on the board',
 ];
-const OWNER = ['You open your board', 'Pick the bug', 'Mark it fixed', 'Answer the user', 'See it on the board'];
+const OWNER = ['You open your board', 'Pick the bug you fixed', 'Mark it fixed', 'Answer the user', 'See it on the board'];
 
 /** What the tour writes, typed out a letter at a time. */
 const BUG = 'The save button does nothing on my phone';
