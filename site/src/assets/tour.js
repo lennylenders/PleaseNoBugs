@@ -15,10 +15,10 @@
  * dimmed app under a small "How it works", a title says whose side comes
  * next:
  *
- * - **User perspective**, as a user meets it: tap the round button, pick
+ * - **Your user's perspective**, as a user meets it: tap the round button, pick
  *   Report a bug on the tiles, describe it, send it, and only then the
  *   board, with their bug on it and one other.
- * - **App owner perspective** (`demo="owner"`): the round button, the
+ * - **Your perspective**, the owner's (`demo="owner"`): the round button, the
  *   board, that same bug picked, marked fixed in a version with a link,
  *   answered, and the card as everybody now sees it.
  * - **Fixed!** to end it.
@@ -28,11 +28,12 @@
  * user's bug already on it, as the user sent it.
  *
  * A subtitle says what each step is (`USER`, `OWNER`), a ring shows each
- * tap, as in the configurator's step 1. A click in the middle of the box
- * pauses it, a second goes on; paused, it can be stopped. A click on its
- * left third goes back to the start of the part before (an intro scene, the
- * user's side, the owner's), on its right third on to the next; so do the
- * arrow keys. Nothing shows this but the cursor.
+ * tap, as in the configurator's step 1; the subtitle is typed out before
+ * the step it says. It does not pause: a click on the box's left third goes
+ * back to the start of the part before (an intro scene, the user's side,
+ * the owner's), on its right third on to the next, and its middle does
+ * nothing; so do the arrow keys, and Esc stops it. Nothing shows this but
+ * the cursor.
  *
  * The widget is `inert`: a visitor watches, nothing in it takes a tap. The
  * taps here are the widget's own buttons, clicked from this script, so what
@@ -45,7 +46,6 @@ const box = document.getElementById('tour');
 const frame = document.getElementById('tour-frame');
 const page = box?.querySelector('.tour-page');
 const subtitle = document.getElementById('tour-say');
-const pausedNote = document.getElementById('tour-paused');
 const watch = document.getElementById('tour-watch');
 const titleCard = document.getElementById('tour-title');
 const intro = document.getElementById('tour-intro');
@@ -161,14 +161,13 @@ function mount(pov) {
   return el;
 }
 
-// ---- Time: it only runs while it plays, unpaused, where it can be seen ----
+// ---- Time: it only runs while it plays, where it can be seen ----------
 
 /** Thrown out of a tour that was stopped. */
 const STOP = Symbol('stop');
-/** Which tour is current, and which is running: one that is not current stops at its next pause. */
+/** Which tour is current, and which is running: one that is not current stops at its next wait. */
 let current = 0;
 let running = 0;
-let paused = false;
 let seen = true;
 
 /** How much longer every pause is than the numbers below say: time to take each step in. */
@@ -176,7 +175,7 @@ const PACE = 1.5;
 
 /**
  * `ms` of the tour's own time, counted in short steps: none passes while it
- * is paused or out of sight, and a stop ends it within a step.
+ * is out of sight, and a stop ends it within a step.
  */
 async function sleep(ms) {
   let left = ms;
@@ -184,7 +183,7 @@ async function sleep(ms) {
     const step = Math.min(left, 50);
     await new Promise((r) => setTimeout(r, step));
     if (running !== current) throw STOP;
-    if (!paused && seen) left -= step;
+    if (seen) left -= step;
   }
 }
 /** A pause between steps. Typing and taps keep their speed. */
@@ -286,12 +285,30 @@ const card = (text) => (root) =>
 const button = (selector, text) => (root) =>
   [...root.querySelectorAll(selector)].find((b) => b.textContent.trim() === text);
 
-/** Put step `n` (from 1) of `steps` in the subtitle, the old one fading out first. */
+/**
+ * Put step `n` (from 1) of `steps` in the subtitle, the old one fading out
+ * first, typed out as the intro's words are; the step waits for it. A
+ * screen reader hears it whole.
+ */
 async function say(steps, n) {
+  const text = steps[n - 1];
+  const shown = subtitle.querySelector('.tour-say__title');
   subtitle.classList.add('tour-say--away');
   await sleep(180);
-  subtitle.querySelector('.tour-say__title').textContent = steps[n - 1];
+  shown.textContent = '';
+  subtitle.querySelector('[role="status"]').textContent = text;
   subtitle.classList.remove('tour-say--away');
+  subtitle.classList.add('tour-say--typing');
+  try {
+    for (let i = 1; i <= text.length; i++) {
+      shown.textContent = text.slice(0, i);
+      await sleep(42);
+    }
+    await sleep(250);
+  } finally {
+    shown.textContent = text;
+    subtitle.classList.remove('tour-say--typing');
+  }
 }
 
 /**
@@ -328,7 +345,7 @@ async function hold(ms) {
   while (left > 0 && !skipped) {
     await new Promise((r) => setTimeout(r, 50));
     if (running !== current) throw STOP;
-    if (!paused && seen) left -= 50;
+    if (seen) left -= 50;
   }
 }
 
@@ -470,11 +487,11 @@ async function story(from = 0) {
   if (from < INTRO.length) await playIntro(from + 1);
   if (from <= USER_PART) {
     chapter = USER_PART;
-    await title('User perspective', 'How it works', endIntro);
+    await title("Your user's perspective", 'How it works', endIntro);
     await userRound();
   }
   chapter = OWNER_PART;
-  await title('App owner perspective', 'How it works', endIntro);
+  await title('Your perspective', 'How it works', endIntro);
   await ownerRound();
   await title('Fixed!');
 }
@@ -590,18 +607,6 @@ async function ownerRound() {
 /** The tour that is playing, so a new one starts only once it is out. */
 let last = Promise.resolve();
 
-/** Pause or go on. */
-function pause(on) {
-  paused = on;
-  pausedNote.hidden = !on;
-  subtitle.querySelector('.tour-say__hint').textContent = on ? 'Click to continue' : 'Click to pause';
-  frame.classList.toggle('tour--paused', on);
-  hush(on);
-}
-
-/** The movements a pause holds, to go on with after it. */
-let held = [];
-
 /** Whether `el` is in the box, or in the widget there. */
 function inFrame(el) {
   for (let node = el; node; ) {
@@ -610,22 +615,6 @@ function inFrame(el) {
     node = root instanceof ShadowRoot ? root.host : null;
   }
   return false;
-}
-
-/**
- * Hold every movement in the box where it is, or let it go on: the intro's
- * drawings, the titles, and the widget's own, in its shadow root.
- */
-function hush(on) {
-  if (!on) {
-    for (const a of held) a.play();
-    held = [];
-    return;
-  }
-  const all = new Set(document.getAnimations());
-  for (const el of box.querySelectorAll('please-no-bugs')) for (const a of el.shadowRoot?.getAnimations() ?? []) all.add(a);
-  held = [...all].filter((a) => a.playState === 'running' && inFrame(a.effect?.target));
-  for (const a of held) a.pause();
 }
 
 /** The pretend app for the tour, or the heading back. */
@@ -641,7 +630,6 @@ function app(on) {
 
 /** Back to the heading and "Watch demo", with a fresh widget, closed. */
 function rest() {
-  pause(false);
   frame.classList.remove('tour--playing');
   endIntro();
   app(false);
@@ -654,7 +642,6 @@ async function play(from = 0) {
   await last;
   if (mine !== current) return;
   running = mine;
-  pause(false);
   subtitle.querySelector('.tour-say__title').textContent = '';
   subtitle.classList.add('tour-say--away');
   frame.classList.add('tour--playing');
@@ -687,58 +674,56 @@ function jump(by) {
   void play(to);
 }
 
-/** Where on the box a click lands: its left third goes back, its right third on, between pauses. */
+/** Where on the box a click lands: its left third goes back, its right third on, the middle nowhere (0). */
 function side(e) {
   const r = box.getBoundingClientRect();
   const x = (e.clientX - r.left) / r.width;
   return x < 1 / 3 ? -1 : x > 2 / 3 ? 1 : 0;
 }
 
-if (box && frame && page && subtitle && pausedNote && watch && titleCard && intro && caption && skip && said) {
+if (box && frame && page && subtitle && watch && titleCard && intro && caption && skip && said) {
   await customElements.whenDefined('please-no-bugs');
   mount('user');
   watchSight();
 
   watch.addEventListener('click', (e) => {
-    // Not also a click on the box, which would pause what just started.
+    // Not also a click on the box, which would skip what just started.
     e.stopPropagation();
     void play();
   });
   skip.addEventListener('click', (e) => {
-    // Not a pause either.
+    // Not a skip either.
     e.stopPropagation();
     skipped = true;
     skip.hidden = true;
     subtitle.focus({ preventScroll: true });
-    if (paused) pause(false);
-  });
-  document.getElementById('tour-stop')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    stop();
   });
   // While it plays, a visitor's click on the box's left third goes a part
-  // back, on its right third a part on, and in between it pauses or goes on;
-  // the subtitle, which says so, always pauses. Nothing shows the thirds but
-  // the cursor over them. Not the tour's own taps, which bubble up here too.
+  // back, on its right third a part on; the middle does nothing. Nothing
+  // shows the thirds but the cursor over them. Not the tour's own taps,
+  // which bubble up here too.
   frame.addEventListener('click', (e) => {
     if (!e.isTrusted || !frame.classList.contains('tour--playing')) return;
-    const by = subtitle.contains(e.target) ? 0 : side(e);
+    const by = side(e);
     if (by) jump(by);
-    else pause(!paused);
   });
   frame.addEventListener('mousemove', (e) => {
-    const by = frame.classList.contains('tour--playing') && !subtitle.contains(e.target) ? side(e) : 0;
+    const by = frame.classList.contains('tour--playing') ? side(e) : 0;
     frame.classList.toggle('tour--at-back', by < 0);
     frame.classList.toggle('tour--at-next', by > 0);
   });
   frame.addEventListener('mouseleave', () => frame.classList.remove('tour--at-back', 'tour--at-next'));
-  // And with the arrow keys, while it plays, unless they are typing somewhere.
+  // And with the arrow keys, while it plays, unless they are typing
+  // somewhere; Esc stops it.
   document.addEventListener('keydown', (e) => {
     if (!frame.classList.contains('tour--playing') || e.altKey || e.ctrlKey || e.metaKey) return;
     if (e.target instanceof HTMLElement && e.target.closest('input, textarea, [contenteditable]')) return;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       e.preventDefault();
       jump(e.key === 'ArrowLeft' ? -1 : 1);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      stop();
     }
   });
 }

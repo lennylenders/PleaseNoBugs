@@ -69,17 +69,11 @@
               </div>
             </div>
             <div class="tour-title" id="tour-title" role="status" hidden><small></small><b></b></div>
-            <div class="tour-paused" id="tour-paused" hidden>
-              <span class="tour-paused__play"><svg width="22" height="22" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.5v11a.75.75 0 0 0 1.14.64l9-5.5a.75.75 0 0 0 0-1.28l-9-5.5A.75.75 0 0 0 3 1.5z"/></svg></span>
-              <b>Paused</b>
-              <span>Click to continue</span>
-              <button type="button" class="tour-paused__stop" id="tour-stop">Stop the demo</button>
-            </div>
           </div>
-          <button type="button" class="tour-say" id="tour-say">
-            <span class="tour-say__title"></span>
-            <span class="tour-say__hint">Click to pause</span>
-          </button>
+          <p class="tour-say" id="tour-say" tabindex="-1">
+            <span class="tour-say__title" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status"></span>
+          </p>
         </div>
         <div class="hero__below">
           <a class="btn" href="customize.html">Make it yours</a>

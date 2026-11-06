@@ -307,7 +307,7 @@ section + section { padding-top: 0; }
  * 6. A tap on the button opens a board over it, and every piece of feedback
  *    lands on it as a bug or an idea.
  *
- * Each scene's movement is a CSS animation; a pause holds them (tour.js).
+ * Each scene's movement is a CSS animation, which tour.js can set at its end.
  */
 .tour-intro {
   /* The board's width, and so the width of each row on it. */
@@ -626,23 +626,20 @@ section + section { padding-top: 0; }
   .ti-caption { transition: none; }
 }
 
-/* While the tour plays a click in the middle of the box pauses it; on its
-   left third it goes a part back, on its right third a part on (tour.js).
+/* While the tour plays a click on the left third of the box goes a part
+   back, on its right third a part on (tour.js); the middle does nothing.
    Nothing on screen says so: only the cursor turns into an arrow there. */
-.tour--playing .screen--home { cursor: pointer; }
-.tour--playing.tour--at-back .screen--home,
-.tour--playing.tour--at-back .tour-paused {
+.tour--playing.tour--at-back .screen--home {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%2312132b' fill-opacity='.75' stroke='white' stroke-width='2'/%3E%3Cpath d='M18 10l-6 6 6 6' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 16 16, w-resize;
 }
-.tour--playing.tour--at-next .screen--home,
-.tour--playing.tour--at-next .tour-paused {
+.tour--playing.tour--at-next .screen--home {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%2312132b' fill-opacity='.75' stroke='white' stroke-width='2'/%3E%3Cpath d='M14 10l6 6-6 6' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 16 16, e-resize;
 }
 
 .hero__below { display: flex; justify-content: center; margin-top: 24px; }
 
-/* What each step of the tour is, as a subtitle with how to pause it: in the
-   app's bottom left corner, beside the panel, from 640px; under the box on a
+/* What each step of the tour is, as a subtitle typed out: in the app's
+   bottom left corner, beside the panel, from 640px; under the box on a
    phone, where the widget fills it. Only while the tour plays. */
 .tour-say {
   display: grid;
@@ -656,12 +653,23 @@ section + section { padding-top: 0; }
   background: var(--card);
   color: var(--ink);
   text-align: left;
-  cursor: pointer;
   transition: opacity 180ms ease;
 }
-.tour-say__title { font-size: 16px; font-weight: 900; line-height: 1.3; }
-.tour-say__hint { color: var(--sub); font-size: 13px; }
+.tour-say:focus { outline: none; }
+.tour-say__title { min-height: 1.3em; font-size: 16px; font-weight: 900; line-height: 1.3; }
 .tour-say--away .tour-say__title { opacity: 0; }
+/* The intro's cursor while it types. */
+.tour-say--typing .tour-say__title::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  margin-left: 2px;
+  border-radius: 1px;
+  background: var(--button);
+  vertical-align: -0.1em;
+  animation: ti-blink 900ms steps(1) infinite;
+}
 .tour:not(.tour--playing) .tour-say { display: none; }
 @media (min-width: 640px) {
   .tour-say {
@@ -674,45 +682,6 @@ section + section { padding-top: 0; }
     margin: 0;
     box-shadow: 0 12px 32px rgba(10, 10, 30, 0.35);
   }
-}
-
-/* Paused: the app dimmed, and how to go on or stop. A click anywhere on the
-   box goes on. */
-.tour-paused {
-  position: absolute;
-  inset: 0;
-  z-index: 2147483647;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 10px;
-  background: rgba(20, 20, 44, 0.62);
-  color: var(--ink);
-  text-align: center;
-  cursor: pointer;
-}
-.tour-paused[hidden] { display: none; }
-.tour-paused__play {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--button);
-  color: #fff;
-}
-.tour-paused b { font-size: 20px; font-weight: 900; }
-.tour-paused span { color: var(--sub); font-size: 14px; }
-.tour-paused__stop {
-  margin-top: 6px;
-  padding: 6px 10px;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  text-decoration: underline;
-  cursor: pointer;
 }
 
 /* Where the tour taps: the configurator's ring, moved to each thing it taps. */
