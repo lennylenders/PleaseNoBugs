@@ -1346,7 +1346,8 @@ button {
   overflow-wrap: anywhere;
 }
 
-.sheet__actions {
+.sheet__actions,
+.manage__actions {
   display: flex;
   flex-direction: column;
   align-items: center;

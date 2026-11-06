@@ -183,7 +183,7 @@ export function VoteButton({
  * so where the name would be, because a blank reads as a name that failed to
  * load.
  *
- * The card is a target only for an owner, whose tap opens the sheet that
+ * The card is a target only for an owner, whose tap opens the page that
  * answers it. Shitti hid the bin behind a swipe; here it is a visible button,
  * because a gesture nobody can discover is a feature nobody has, and a widget
  * in somebody else's app cannot teach its own gestures.
@@ -192,7 +192,7 @@ export function VoteButton({
  * means is plain at a glance; a tap opens it whole. It loads only once the
  * card scrolls near, so a long board does not fetch every picture on it. An
  * owner sees a screenshot that is not on the board as a small mark instead,
- * and opens it from the manage sheet.
+ * and opens it from the page where they answer it.
  *
  * **The conversation under it is a count, not text**: however long it gets,
  * the card stays the size of a card, and the count opens it on a page of its

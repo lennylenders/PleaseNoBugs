@@ -20,7 +20,8 @@ import type { CopyKey, Translate } from '../i18n.js';
 import { Choose, Sent } from './Choose.js';
 import { Compose, type Draft, type Screenshots } from './Compose.js';
 import { Badge, CodeLink, PostCard, Stars } from './PostCard.js';
-import { DeleteSheet, FilterSheet, ManageSheet, ShotSheet, filterLabel, type ManageChange } from './Sheets.js';
+import { Manage, type ManageChange } from './Manage.js';
+import { DeleteSheet, FilterSheet, ShotSheet, filterLabel } from './Sheets.js';
 import { Talk } from './Talk.js';
 import { Updates, type UpdateDraft } from './Updates.js';
 import * as Icon from './icons.js';
@@ -30,7 +31,7 @@ const PER_PAGE = 15;
 /**
  * Whether a post's screenshot is on the board, so it can be shown as a plain
  * image. An owner hears about every screenshot, but reads one that is not on
- * the board through the manage sheet, with their proof; nor is one under a
+ * the board through the page where they answer it, with their proof; nor is one under a
  * post they hid.
  */
 const onBoard = (p: Post) => !!p.shot && (p.shotFor ?? 'board') === 'board' && !p.hidden;
@@ -77,18 +78,17 @@ export interface AppProps {
   onPosted?: (post: { id: string; kind: PostKind }) => void;
 }
 
-export type View = 'board' | 'choose' | 'compose' | 'sent' | 'updates' | 'talk';
+export type View = 'board' | 'choose' | 'compose' | 'sent' | 'updates' | 'talk' | 'manage';
 
 /** Whatever is over the board, as one value so two can never be up at once. */
 type Over =
   | { kind: 'delete'; post: Post }
-  | { kind: 'manage'; post: Post }
   | { kind: 'shot'; post: Post }
   | { kind: 'filter' }
   | null;
 
 /**
- * The whole board: the list, writing one, and the two sheets.
+ * The whole board: the list, writing one, the pages under it, and the sheets over it.
  *
  * **It owns its data and fetches it when it opens**, then again after anything
  * it did. A feedback board is a page people open now and then; polling it
@@ -129,6 +129,8 @@ export function App({
   const [query, setQueryNow] = useState('');
   // The post whose conversation is open, on its own page.
   const [talking, setTalking] = useState<string | null>(null);
+  // The post an owner is answering, on its own page.
+  const [managing, setManaging] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [over, setOver] = useState<Over>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -323,6 +325,12 @@ export function App({
     setView('talk');
   };
 
+  /** An owner's way into a post: its page for answering it. */
+  const openManage = (post: Post) => {
+    setManaging(post.id);
+    setView('manage');
+  };
+
   // An owner always, to write the first one; anybody else once there is one.
   const hasUpdates = !!rules && (owner || (read?.updates ?? 0) > 0);
 
@@ -420,7 +428,8 @@ export function App({
   };
 
   const manage = async (post: Post, change: ManageChange) => {
-    setOver(null);
+    // Saved: back to the board, where the card shows what changed.
+    setView('board');
     const { message, ...rest } = change;
     patch(post.id, {
       status: rest.status,
@@ -480,13 +489,11 @@ export function App({
     await pull();
     return true;
   };
-  /** An owner taking an author's message off the board, or back: at once, and the sheet follows. */
+  /** An owner taking an author's message off the board, or back: at once, and the page follows the board. */
   const hideMessage = async (post: Post, m: Message, hidden: boolean) => {
     const res = await client.editMessage(post.id, m.id, { hidden });
     if (!res.ok) return refusedInTalk(res.error);
-    const board = await pull();
-    const fresh = board?.posts.find((p) => p.id === post.id);
-    if (fresh) setOver((o) => (o?.kind === 'manage' && o.post.id === post.id ? { ...o, post: fresh } : o));
+    await pull();
   };
 
   /** Seconding a lookalike instead of writing it again: the vote, and back to the board. */
@@ -547,6 +554,30 @@ export function App({
           onBack={toBoard}
           onPublish={publish}
           onFail={sayRefusal}
+        />
+        {toast && <div class="toast" role="status">{toast}</div>}
+      </div>
+    );
+  }
+
+  const managed = view === 'manage' && owner ? posts.find((p) => p.id === managing) : undefined;
+  if (managed && rules) {
+    return (
+      <div class="app">
+        <Manage
+          key={managed.id}
+          t={t}
+          post={managed}
+          appName={name}
+          locale={locale}
+          replyMax={rules.replyMax}
+          loadShot={async () => {
+            const res = await client.shot(managed.id);
+            return res.ok ? res.data : null;
+          }}
+          onSave={(change) => void manage(managed, change)}
+          onHideMessage={(m, hidden) => void hideMessage(managed, m, hidden)}
+          onBack={toBoard}
         />
         {toast && <div class="toast" role="status">{toast}</div>}
       </div>
@@ -873,9 +904,9 @@ export function App({
                 locale={locale}
                 onVote={readonly ? undefined : (up) => void vote(post.id, up)}
                 onDelete={post.mine || owner ? () => setOver({ kind: 'delete', post }) : undefined}
-                onManage={owner ? () => setOver({ kind: 'manage', post }) : undefined}
-                // An owner answers in the sheet, which holds the conversation.
-                onTalk={owner ? () => setOver({ kind: 'manage', post }) : () => openTalk(post)}
+                onManage={owner ? () => openManage(post) : undefined}
+                // An owner answers on the manage page, which holds the conversation.
+                onTalk={owner ? () => openManage(post) : () => openTalk(post)}
                 shotUrl={onBoard(post) ? client.shotUrl(post.id) : undefined}
                 onShot={() => setOver({ kind: 'shot', post })}
                 fresh={owner && !post.hidden && waitingOnApp(post)}
@@ -964,22 +995,6 @@ export function App({
       )}
       {over?.kind === 'shot' && (
         <ShotSheet t={t} src={client.shotUrl(over.post.id)} onClose={() => setOver(null)} />
-      )}
-      {over?.kind === 'manage' && rules && (
-        <ManageSheet
-          key={over.post.id}
-          t={t}
-          post={over.post}
-          appName={name}
-          replyMax={rules.replyMax}
-          loadShot={async () => {
-            const res = await client.shot(over.post.id);
-            return res.ok ? res.data : null;
-          }}
-          onSave={(change) => void manage(over.post, change)}
-          onHideMessage={(m, hidden) => void hideMessage(over.post, m, hidden)}
-          onClose={() => setOver(null)}
-        />
       )}
     </div>
   );

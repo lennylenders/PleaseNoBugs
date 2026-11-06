@@ -76,7 +76,7 @@ name; after picking, **nothing is sent until they tick "I checked it: everyone
 may see this screenshot"** under the picture. The widget redraws it as a JPEG
 before sending, which leaves the photo's location and camera details behind.
 
-You see every screenshot in the sheet where you answer a post, and can **take
+You see every screenshot on the page where you answer a post, and can **take
 one off the board** there while the post stays up, or hide the whole post. A
 screenshot is deleted by itself when you mark the post Done or Not doing, or
 when the post is thrown away. Taking one off stops it being shown; it cannot
@@ -85,7 +85,7 @@ take it back from anybody who already saved it.
 **Approving first.** On a project made with `PNB_PROJECT_APPROVE=on`, a new
 post waits until an owner approves it. Its author sees it on the board marked
 "Waiting for approval", and "Feedback sent!" says it shows once approved;
-nobody else sees it yet. Owners see it too, and approve it in the sheet where
+nobody else sees it yet. Owners see it too, and approve it on the page where
 they answer it. Your own posts as an owner never wait.
 
 With `screenshots="owners"` they stay yours alone, never the board and not
@@ -97,7 +97,7 @@ If your page has a Content Security Policy, screenshots on the board load as
 plain images from your server, so `img-src` needs your server next to
 `connect-src`.
 
-**Fixed, and where.** When you mark a bug or an idea **Done**, the sheet asks
+**Fixed, and where.** When you mark a bug or an idea **Done**, the page asks
 for the version it shipped in and a link to the fix, a commit, a pull request
 or a release. Both are optional; only github.com and gitlab.com links are
 accepted. The card then says "Fixed in 1.4.2 · View on GitHub" (or GitLab)
