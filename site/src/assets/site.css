@@ -719,6 +719,17 @@ section + section { padding-top: 0; }
   opacity: 0;
 }
 .tour-tap--on { animation: tour-tap 520ms ease-out; }
+
+/* Before the round button is tapped, at the start of each side: two rings
+   going out from it, as when it popped up in the intro (tour.js). Under
+   the button, so only the ring around it shows. */
+.tour-pulse {
+  position: absolute;
+  z-index: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ti-ping 900ms ease-out 2 both;
+}
 @keyframes tour-tap {
   0% { opacity: 0; transform: scale(0.6); }
   30% { opacity: 1; transform: scale(1); }

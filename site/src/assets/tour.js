@@ -209,6 +209,29 @@ async function find(el, selector, tries = 40) {
   throw new Error(`Tour: no ${selector}`);
 }
 
+/**
+ * Two rings going out from `target`, the round button, as it popped up in
+ * the intro: here it is, before it is tapped.
+ */
+async function pulse(target) {
+  const b = box.getBoundingClientRect();
+  const t = target.getBoundingClientRect();
+  const el = document.createElement('span');
+  el.className = 'tour-pulse';
+  Object.assign(el.style, {
+    left: `${t.left - b.left}px`,
+    top: `${t.top - b.top}px`,
+    width: `${t.width}px`,
+    height: `${t.height}px`,
+  });
+  box.append(el);
+  try {
+    await sleep(1900);
+  } finally {
+    el.remove();
+  }
+}
+
 /** The tap's ring, once, over `target`. */
 function ring(target) {
   const b = box.getBoundingClientRect();
@@ -432,9 +455,12 @@ async function story() {
 async function userRound() {
   const el = mount('user');
 
+  const fab = await find(el, '.fab');
   await say(USER, 1);
-  await wait(2200);
-  await tap(await find(el, '.fab'));
+  await wait(300);
+  await pulse(fab);
+  await wait(300);
+  await tap(fab);
 
   // The tiles: a bug.
   const tile = await find(el, '.tile--bug');
@@ -469,9 +495,12 @@ async function userRound() {
 async function ownerRound() {
   const el = mount('owner');
 
+  const fab = await find(el, '.fab');
   await say(OWNER, 1);
-  await wait(2000);
-  await tap(await find(el, '.fab'));
+  await wait(300);
+  await pulse(fab);
+  await wait(300);
+  await tap(fab);
   await find(el, '.list');
   await wait(1600);
 
