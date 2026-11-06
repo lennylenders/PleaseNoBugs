@@ -1,15 +1,17 @@
 /**
  * The home page's tour. The page is a pretend app: the heading, its line
- * and "Watch demo", and the real widget's round button in its corner, in
- * `demo` mode. "Watch demo" turns the page into the configurator's pretend
+ * and "Watch demo", and the real widget in `demo` mode, its round button
+ * kept out of sight until the tour needs it (site.css). "Watch demo" turns
+ * the page into the configurator's pretend
  * app ("Your app" and its skeleton) and plays one story through, once,
  * then the heading is back.
  *
- * It starts with why PleaseNoBugs is there, in four short scenes drawn on
+ * It starts with why PleaseNoBugs is there, in five short scenes drawn on
  * the pretend app (`INTRO`; the drawing is site.css's), each with its big
- * line typed out first: imagine this is your app, users leave without a
- * word, what feedback there is is scattered, and the answer, a round button
- * and one board everyone can see. "Skip intro" goes straight on. Then, big over the
+ * line typed out: imagine this is your app, its first users, most of them
+ * leaving without a word, what feedback there is scattered, and the answer,
+ * a round button and one board everyone can see. "Skip intro" goes straight
+ * on. Until then the box shows no round button at all. Then, big over the
  * dimmed app under a small "How it works", a title says whose side comes
  * next:
  *
@@ -51,15 +53,22 @@ const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 const said = document.getElementById('ti-said');
 
 /**
- * The intro's scenes: the big line, typed out; the small one under it; and
- * how long the drawing then plays (ms, as drawn in site.css).
+ * The intro's scenes: the big line, typed out; the small one under it;
+ * whether the drawing plays `during` the typing or after it; and how long
+ * it plays on once the words are all there (ms, as drawn in site.css).
  */
 const INTRO = [
-  { title: 'Imagine this is your app.', line: '', ms: 2800 },
-  { title: 'Your users just leave, and never tell you why.', line: "Most apps don't die loudly.", ms: 4600 },
+  { title: 'Imagine this is your app.', line: '', ms: 3000 },
+  { title: 'You gained your first users!', line: '', during: true, ms: 2000 },
+  {
+    title: 'And then most of them just leave, and never tell you why.',
+    line: "Most apps don't die loudly.",
+    during: true,
+    ms: 2600,
+  },
   { title: 'The feedback you do get is scattered.', line: 'Buried in reviews, chats and DMs.', ms: 3400 },
   {
-    title: 'This open source feedback widget is the solution!',
+    title: 'This open source feedback widget is your solution!',
     line: 'PleaseNoBugs: one button in your app, one board everyone can see.',
     ms: 5200,
   },
@@ -296,8 +305,19 @@ async function hold(ms) {
   }
 }
 
+/** Scene 1's arrow: just right of "Your app", level with it, pointing at it. */
+function placeArrow() {
+  const label = box.querySelector('.tour-app b');
+  const arrow = intro.querySelector('.ti-arrow');
+  if (!label || !arrow) return;
+  const b = box.getBoundingClientRect();
+  const r = label.getBoundingClientRect();
+  arrow.style.left = `${r.right - b.left + 18}px`;
+  arrow.style.top = `${r.top + r.height / 2 - b.top - arrow.getBoundingClientRect().height / 2}px`;
+}
+
 /**
- * Scene 4's round button: drawn where the real one sits, with its colours
+ * Scene 5's round button: drawn where the real one sits, with its colours
  * and icon, as the real one stays hidden until the intro is over.
  */
 function drawFab() {
@@ -318,15 +338,23 @@ function drawFab() {
   drawn.innerHTML = fab.querySelector('svg')?.outerHTML ?? '';
 }
 
+/** Start scene `n`'s drawing. */
+function draw(n) {
+  if (n === 1) placeArrow();
+  if (n === 5) drawFab();
+  frame.dataset.intro = String(n);
+}
+
 /**
  * Scene `n` (from 1): the old words out, the big line typed, the small one
- * after it, and then its drawing.
+ * after it; its drawing while it is typed, or after.
  */
 async function scene(n) {
-  const { title: big, line } = INTRO[n - 1];
+  const { title: big, line, during } = INTRO[n - 1];
   caption.classList.add('ti-caption--away');
   await hold(250);
   if (skipped) return;
+  if (during) draw(n);
   const bigEl = caption.querySelector('b');
   bigEl.textContent = '';
   caption.querySelector('span').textContent = line;
@@ -342,11 +370,10 @@ async function scene(n) {
   await hold(300);
   caption.classList.remove('ti-caption--typing');
   caption.classList.add('ti-caption--line');
-  if (n === 4) drawFab();
-  frame.dataset.intro = String(n);
+  if (!during && !skipped) draw(n);
 }
 
-/** Why PleaseNoBugs is there, in four scenes, unless skipped. */
+/** Why PleaseNoBugs is there, in five scenes, unless skipped. */
 async function playIntro() {
   skipped = false;
   // No widget or subtitle from the start; the drawing waits for scene 1.
@@ -484,6 +511,36 @@ function pause(on) {
   pausedNote.hidden = !on;
   subtitle.querySelector('.tour-say__hint').textContent = on ? 'Click to continue' : 'Click to pause';
   frame.classList.toggle('tour--paused', on);
+  hush(on);
+}
+
+/** The movements a pause holds, to go on with after it. */
+let held = [];
+
+/** Whether `el` is in the box, or in the widget there. */
+function inFrame(el) {
+  for (let node = el; node; ) {
+    if (frame.contains(node)) return true;
+    const root = node.getRootNode();
+    node = root instanceof ShadowRoot ? root.host : null;
+  }
+  return false;
+}
+
+/**
+ * Hold every movement in the box where it is, or let it go on: the intro's
+ * drawings, the titles, and the widget's own, in its shadow root.
+ */
+function hush(on) {
+  if (!on) {
+    for (const a of held) a.play();
+    held = [];
+    return;
+  }
+  const all = new Set(document.getAnimations());
+  for (const el of box.querySelectorAll('please-no-bugs')) for (const a of el.shadowRoot?.getAnimations() ?? []) all.add(a);
+  held = [...all].filter((a) => a.playState === 'running' && inFrame(a.effect?.target));
+  for (const a of held) a.pause();
 }
 
 /** The pretend app for the tour, or the heading back. */
