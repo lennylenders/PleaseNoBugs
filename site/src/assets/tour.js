@@ -22,7 +22,8 @@
  * - **Your perspective**, the owner's (`demo="owner"`): the round button, the
  *   board, that same bug picked, marked fixed in a version with a link,
  *   answered, and the card as everybody now sees it.
- * - **Fixed!** to end it.
+ * - An end that stays: the whole story in three steps ("Your users speak.
+ *   You fix. Everyone sees."), with "Make it yours" and "Watch again".
  *
  * Both boards hold only that bug and one other (`samples`), so the story is
  * all there is to look at. The owner's is a widget of its own, with the
@@ -49,6 +50,8 @@ const page = box?.querySelector('.tour-page');
 const subtitle = document.getElementById('tour-say');
 const watch = document.getElementById('tour-watch');
 const titleCard = document.getElementById('tour-title');
+const endCard = document.getElementById('tour-end');
+const again = document.getElementById('tour-again');
 const intro = document.getElementById('tour-intro');
 const caption = intro?.querySelector('.ti-caption');
 const skip = document.getElementById('tour-skip');
@@ -88,7 +91,7 @@ const USER = [
   'Picks what it is',
   'Describes the bug',
   'Sends it',
-  'Sees it on the board',
+  'Visible to everyone',
 ];
 const OWNER = ['You open your board', 'Pick the bug you fixed', 'Mark it fixed', 'Answer the user', 'See it on the board'];
 
@@ -542,12 +545,11 @@ async function story(from = 0) {
   chapter = OWNER_PART;
   await title('Your perspective', 'How it works', endIntro);
   await ownerRound();
-  await title('Fixed!');
 }
 
 /**
  * The story's parts, to go back or on by: the intro's scenes (0 to 5), the
- * user's side, and the owner's with "Fixed!" after it.
+ * user's side, and the owner's. On from the owner's is the end.
  */
 const USER_PART = INTRO.length;
 const OWNER_PART = INTRO.length + 1;
@@ -648,7 +650,7 @@ async function ownerRound() {
   await say(OWNER, 5);
   await reveal(fixed);
   await wait(3000);
-  // "Fixed!" comes over the board, the fixed card still under it.
+  // The end comes over the board, the fixed card still under it.
 }
 
 // ---- Playing, pausing, stopping -----------------------------------------
@@ -679,7 +681,8 @@ function app(on) {
 
 /** Back to the heading and "Watch demo", with a fresh widget, closed. */
 function rest() {
-  frame.classList.remove('tour--playing');
+  frame.classList.remove('tour--playing', 'tour--end');
+  endCard.hidden = true;
   endIntro();
   app(false);
   mount('user');
@@ -691,6 +694,8 @@ async function play(from = 0) {
   await last;
   if (mine !== current) return;
   running = mine;
+  endCard.hidden = true;
+  frame.classList.remove('tour--end');
   subtitle.querySelector('.tour-say__title').textContent = '';
   subtitle.classList.add('tour-say--away');
   frame.classList.add('tour--playing');
@@ -701,8 +706,20 @@ async function play(from = 0) {
       if (e !== STOP) console.warn(e);
     })
     .then(() => {
-      if (mine === current) rest();
+      if (mine === current) end();
     });
+}
+
+/**
+ * The end, over the board as the story left it: the whole story in three
+ * steps, and where to go next. It stays until the visitor picks, or Esc.
+ */
+function end() {
+  frame.classList.remove('tour--playing');
+  frame.classList.add('tour--end');
+  endIntro();
+  endCard.hidden = false;
+  again.focus({ preventScroll: true });
 }
 
 /** Stop wherever it is: the tour ends at its next step. */
@@ -718,7 +735,11 @@ function stop() {
 function jump(by) {
   if (!frame.classList.contains('tour--playing')) return;
   const to = Math.max(0, chapter + by);
-  if (to > OWNER_PART) return stop();
+  if (to > OWNER_PART) {
+    // The story stops where it is, and its end comes over it.
+    current += 1;
+    return end();
+  }
   chapter = to;
   void play(to);
 }
@@ -730,7 +751,7 @@ function side(e) {
   return x < 1 / 3 ? -1 : x > 2 / 3 ? 1 : 0;
 }
 
-if (box && frame && page && subtitle && watch && titleCard && intro && caption && skip && said) {
+if (box && frame && page && subtitle && watch && titleCard && endCard && again && intro && caption && skip && said) {
   await customElements.whenDefined('please-no-bugs');
   mount('user');
   watchSight();
@@ -764,8 +785,18 @@ if (box && frame && page && subtitle && watch && titleCard && intro && caption &
   frame.addEventListener('mouseleave', () => frame.classList.remove('tour--at-back', 'tour--at-next'));
   // And with the arrow keys, while it plays, unless they are typing
   // somewhere; Esc stops it.
+  again.addEventListener('click', (e) => {
+    e.stopPropagation();
+    void play();
+  });
   document.addEventListener('keydown', (e) => {
-    if (!frame.classList.contains('tour--playing') || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    // At the end, Esc goes back to the heading.
+    if (e.key === 'Escape' && !endCard.hidden) {
+      e.preventDefault();
+      return rest();
+    }
+    if (!frame.classList.contains('tour--playing')) return;
     if (e.target instanceof HTMLElement && e.target.closest('input, textarea, [contenteditable]')) return;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       e.preventDefault();

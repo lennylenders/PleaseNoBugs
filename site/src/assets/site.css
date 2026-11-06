@@ -240,9 +240,9 @@ section + section { padding-top: 0; }
   transition: opacity 240ms ease, visibility 0s 240ms;
 }
 
-/* Whose side the tour is on next ("User perspective", "App owner
-   perspective") and how it ends ("Fixed!"): big, over the app dimmed, the
-   widget with it, for a moment. */
+/* Whose side the tour is on next ("Your user's perspective", "Your
+   perspective"): big, over the app dimmed, the widget with it, for a
+   moment. And how it ends (`.tour-end`), which stays, with where to go next. */
 .tour-title {
   position: absolute;
   inset: 0;
@@ -276,6 +276,21 @@ section + section { padding-top: 0; }
   animation: tour-title-rise 420ms ease-out;
 }
 .tour-title--away { opacity: 0; }
+/* The end: the whole story in three steps, and on to making it yours, or
+   watching it again. The board stays in view under it. */
+.tour-end b { max-width: 13em; font-size: clamp(30px, 5vw, 60px); }
+/* A line breaks between the three steps, never inside one. */
+.tour-end b span { white-space: nowrap; }
+.tour-end__ways {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+  animation: tour-title-rise 520ms ease-out;
+}
+.tour-end__ways .btn { min-height: 48px; padding: 0 22px; }
+.tour.tour--end:not(.tour--playing) please-no-bugs { opacity: 1; visibility: visible; }
 /* The subtitle waits while the title says it. */
 .tour--title .tour-say { opacity: 0; }
 @keyframes tour-title-in {
@@ -287,7 +302,8 @@ section + section { padding-top: 0; }
 @media (prefers-reduced-motion: reduce) {
   .tour-title,
   .tour-title small,
-  .tour-title b { animation: none; transition: none; }
+  .tour-title b,
+  .tour-end__ways { animation: none; transition: none; }
   .tour-page,
   .tour-app { transition: none; }
 }
