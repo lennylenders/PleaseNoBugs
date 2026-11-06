@@ -301,8 +301,9 @@ section + section { padding-top: 0; }
  *
  * 1. The app lifts up, "Your app" pops up in its corner, an arrow at it.
  * 2. Its first users pop up, one here, one there.
- * 3. They all leave without a word, one after another; the app greys.
- * 4. What feedback there is pops up all over: reviews, chats, DMs.
+ * 3. Beside each head a little of what they said: a review, a chat, a DM.
+ * 4. They all leave, one after another, and what each said grows where they
+ *    stood, all over the place; the app greys.
  * 5. The round button pops up, an arrow at it; the app has its colour back.
  * 6. A tap on the button opens a board over it, and every piece of feedback
  *    lands on it as a bug or an idea.
@@ -312,6 +313,8 @@ section + section { padding-top: 0; }
 .tour-intro {
   /* The board's width, and so the width of each row on it. */
   --bw: clamp(168px, 36%, 280px);
+  /* A piece of feedback's width, grown. */
+  --bw0: clamp(110px, 24%, 168px);
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -349,8 +352,8 @@ section + section { padding-top: 0; }
 }
 .tour[data-intro='2'] .ti-arrow { animation: ti-fade 300ms ease reverse both; }
 
-/* Scenes 2 and 3: five users pop up, one here, one there; then each
-   asks something, and goes, one after another. */
+/* Scenes 2 to 4: five users pop up, one here, one there; stay while they
+   say something; then go, one after another. */
 .ti-person {
   position: absolute;
   left: var(--x);
@@ -369,36 +372,25 @@ section + section { padding-top: 0; }
   box-shadow: 0 8px 20px rgba(10, 10, 30, 0.35);
 }
 .ti-tile svg { width: 44px; height: 44px; margin-bottom: -1px; }
-.ti-ask {
-  position: absolute;
-  left: 38px;
-  top: -12px;
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50% 50% 50% 4px;
-  background: var(--button);
-  color: #10123a;
-  font-size: 15px;
-  font-weight: 900;
-  opacity: 0;
-}
 .ti-person--mirrored .ti-tile svg { transform: scaleX(-1); }
 .tour[data-intro='2'] .ti-person { animation: ti-pop 500ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(250ms + var(--i) * 420ms) both; }
-.tour[data-intro='3'] .ti-person { animation: ti-leave 700ms ease-in calc(700ms + var(--i) * 450ms) both; }
-.tour[data-intro='3'] .ti-ask { animation: ti-pop 320ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(150ms + var(--i) * 150ms) both; }
-.tour[data-intro='3'] .tour-app { animation: ti-grey 1200ms ease 2600ms both; }
-.tour[data-intro='4'] .tour-app { filter: grayscale(1) opacity(0.4); }
+.tour[data-intro='3'] .ti-person { opacity: 1; }
+.tour[data-intro='4'] .ti-person { animation: ti-leave 700ms ease-in calc(700ms + var(--i) * 450ms) both; }
+.tour[data-intro='4'] .tour-app { animation: ti-grey 1200ms ease 2600ms both; }
 .tour[data-intro='5'] .tour-app { animation: ti-grey 900ms ease 1000ms reverse both; }
 
-/* Scene 4: feedback all over the place. Scene 5: each on the board, a row. */
+/* What each user said: small beside their head (scene 3), grown where they
+   stood once they are gone (4), all over the place (5), and each on the
+   board as a row (6). `--sx`/`--sy` is where it starts, small, beside the
+   head; `--x`/`--y` where it grows to. It grows from its bottom corner by
+   the head: its left one, or its right one for a bubble left of the head. */
 .ti-bubble {
   position: absolute;
   /* Over the board they land on. */
   z-index: 1;
   left: var(--x);
   top: var(--y);
+  transform-origin: 0 100%;
   display: grid;
   grid-template-columns: auto 1fr;
   align-content: center;
@@ -430,7 +422,9 @@ section + section { padding-top: 0; }
 .ti-to { background: var(--button); color: #10123a; opacity: 0; }
 .ti-bubble i { display: block; height: 6px; border-radius: 3px; background: #d9d9e8; }
 .ti-bubble i + i { width: 60%; }
-.tour[data-intro='4'] .ti-bubble { animation: ti-pop 420ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(250ms + var(--i) * 320ms) both; }
+.ti-bubble--left { transform-origin: 100% 100%; }
+.tour[data-intro='3'] .ti-bubble { animation: ti-say 450ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(250ms + var(--i) * 350ms) both; }
+.tour[data-intro='4'] .ti-bubble { animation: ti-grow 650ms cubic-bezier(0.3, 1.2, 0.5, 1) calc(900ms + var(--i) * 450ms) both; }
 /* Still all over the place while the button pops up. */
 .tour[data-intro='5'] .ti-bubble { opacity: 1; }
 .tour[data-intro='6'] .ti-bubble { animation: ti-fly 800ms cubic-bezier(0.5, 0, 0.2, 1) calc(1000ms + var(--i) * 160ms) both; }
@@ -570,6 +564,14 @@ section + section { padding-top: 0; }
 @keyframes ti-open {
   from { opacity: 0; transform: scale(0.4); }
   to { opacity: 1; transform: none; }
+}
+@keyframes ti-say {
+  from { left: var(--sx); top: var(--sy); opacity: 0; transform: rotate(0deg) scale(0.2); }
+  to { left: var(--sx); top: var(--sy); opacity: 1; transform: rotate(0deg) scale(0.55); }
+}
+@keyframes ti-grow {
+  from { left: var(--sx); top: var(--sy); opacity: 1; transform: rotate(0deg) scale(0.55); }
+  to { left: var(--x); top: var(--y); opacity: 1; transform: rotate(var(--r)) scale(1); }
 }
 @keyframes ti-fly {
   from {

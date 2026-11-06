@@ -8,10 +8,11 @@
  *
  * It starts with why PleaseNoBugs is there, in six short scenes drawn on
  * the pretend app (`INTRO`; the drawing is site.css's), each with its big
- * line typed out: imagine this is your app, its first users, most of them
- * leaving without a word, what feedback there is scattered, the answer, a
- * round button, and all that feedback on one board everyone can see. "Skip intro" goes straight
- * on. Until then the box shows no round button at all. Then, big over the
+ * line typed out: imagine this is your app, its first users, what each
+ * says, scattered, most of them leaving without a word and what they said
+ * left all over the place, the answer, a round button, and all that
+ * feedback on one board everyone can see. "Skip intro" goes straight on.
+ * Until then the box shows no round button at all. Then, big over the
  * dimmed app under a small "How it works", a title says whose side comes
  * next:
  *
@@ -63,13 +64,13 @@ const said = document.getElementById('ti-said');
 const INTRO = [
   { title: 'Imagine this is your app.', line: '', ms: 3000 },
   { title: 'You gained your first users!', line: '', during: true, ms: 2000 },
+  { title: 'They give feedback, all over the place.', line: 'In reviews, chats and DMs.', during: true, ms: 2000 },
   {
-    title: 'And then most of them just leave, and never tell you why.',
+    title: 'And then most of your users leave, and never tell you why.',
     line: "Most apps don't die loudly.",
     during: true,
-    ms: 2600,
+    ms: 2800,
   },
-  { title: 'The feedback you do get is scattered.', line: 'Buried in reviews, chats and DMs.', ms: 3400 },
   {
     title: 'This open source feedback widget is your solution!',
     line: 'PleaseNoBugs: one button in your app.',
