@@ -135,7 +135,8 @@ function widget(pov) {
  * the box is shorter: without this its top would be cut off. As `fitPanel`
  * in customize.js, put in from here rather than in the widget. And no
  * "Said already, maybe?" while the bug is typed: the sample board has one
- * like it, and in a tour it is one thing too many.
+ * like it, and in a tour it is one thing too many. And what the tour taps
+ * comes forward (`lift`): a little bigger, a deeper shadow.
  */
 function fit(el) {
   let style = el.shadowRoot.querySelector('style[data-site]');
@@ -150,7 +151,11 @@ function fit(el) {
   style.textContent =
     `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; }` +
     ` .overlay .app:has(.manage) { height: ${h}px; } }` +
-    ` .alike { display: none !important; }`;
+    ` .alike { display: none !important; }` +
+    ` [data-tour-lift] { z-index: 1; transform: translateY(-2px) scale(1.08) !important;` +
+    ` box-shadow: 0 12px 28px rgba(10, 10, 30, 0.45) !important;` +
+    ` transition: transform 220ms cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 220ms ease !important; }` +
+    ` @media (prefers-reduced-motion: reduce) { [data-tour-lift] { transition: none !important; } }`;
 }
 
 /** A fresh widget in the box, the old one and any ring gone. */
@@ -249,8 +254,22 @@ function ring(target) {
   setTimeout(() => el.remove(), 600);
 }
 
-/** Show a tap on `target`, then tap it. */
+/**
+ * Bring `target`, in the widget, forward, and the one before it back. It
+ * stays forward until the next tap, or until the widget moves on and it is
+ * gone. An attribute rather than a class, which the widget leaves alone when
+ * it draws the element again.
+ */
+function lift(target) {
+  const root = target.getRootNode();
+  for (const old of root.querySelectorAll?.('[data-tour-lift]') ?? []) old.removeAttribute('data-tour-lift');
+  target.setAttribute('data-tour-lift', '');
+}
+
+/** Show a tap on `target`, brought forward first, then tap it. */
 async function tap(target) {
+  lift(target);
+  await sleep(280);
   ring(target);
   await sleep(160);
   target.click();
