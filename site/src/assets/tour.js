@@ -28,8 +28,11 @@
  * user's bug already on it, as the user sent it.
  *
  * A subtitle says what each step is (`USER`, `OWNER`), a ring shows each
- * tap, as in the configurator's step 1. A click on the box pauses it, a
- * second goes on; paused, it can be stopped.
+ * tap, as in the configurator's step 1. A click in the middle of the box
+ * pauses it, a second goes on; paused, it can be stopped. A click on its
+ * left third goes back to the start of the part before (an intro scene, the
+ * user's side, the owner's), on its right third on to the next; so do the
+ * arrow keys. Nothing shows this but the cursor.
  *
  * The widget is `inert`: a visitor watches, nothing in it takes a tap. The
  * taps here are the widget's own buttons, clicked from this script, so what
@@ -141,11 +144,11 @@ function fit(el) {
     el.shadowRoot.append(style);
   }
   const h = box.clientHeight - 48;
-  // With the owner's sheet open over the board, as tall as the box allows,
-  // so the sheet is not squeezed out of view by a short board.
+  // The owner's page for answering a post, as tall as the box allows, so
+  // what they fill in is not squeezed into a short panel.
   style.textContent =
     `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; }` +
-    ` .overlay .app:has(.filters):has(.scrim) { height: ${h}px; } }` +
+    ` .overlay .app:has(.manage) { height: ${h}px; } }` +
     ` .alike { display: none !important; }`;
 }
 
@@ -253,9 +256,9 @@ async function tap(target) {
   target.click();
 }
 
-/** Scroll the panel, or the sheet over it, just enough to show `target`, so a tap on it is seen. */
+/** Scroll the panel, or the page in it, just enough to show `target`, so a tap on it is seen. */
 async function reveal(target) {
-  const list = target.closest('.sheet, .scroll');
+  const list = target.closest('.scroll');
   if (!list) return;
   const l = list.getBoundingClientRect();
   const t = target.getBoundingClientRect();
@@ -416,16 +419,37 @@ async function scene(n) {
 }
 
 /** Why PleaseNoBugs is there, in six scenes, unless skipped. */
-async function playIntro() {
+async function playIntro(from = 1) {
   skipped = false;
-  // No widget or subtitle from the start; the drawing waits for scene 1.
-  frame.dataset.intro = '0';
+  // A fresh widget, closed, whatever a later part left open: scene 5 draws
+  // its round button where this one's sits.
+  const el = mount('user');
   intro.hidden = false;
   skip.hidden = false;
   skip.focus({ preventScroll: true });
-  for (let n = 1; n <= INTRO.length && !skipped; n++) {
+  // No widget or subtitle from the start; the drawing waits for scene 1. A
+  // later scene starts where the one before it ended.
+  frame.dataset.intro = '0';
+  if (from > 1) {
+    await find(el, '.fab');
+    settle(from - 1);
+  }
+  for (let n = from; n <= INTRO.length && !skipped; n++) {
+    chapter = n - 1;
     await scene(n);
     await hold(INTRO[n - 1].ms);
+  }
+}
+
+/** The intro drawn as scene `n` (from 1) left it, at once: for starting at the scene after it. */
+function settle(n) {
+  if (n === 1) placeArrow();
+  if (n === 5) drawFab();
+  frame.dataset.intro = String(n);
+  // Every movement of that scene at its end. Not the cursor, which blinks
+  // for ever and has no end.
+  for (const a of document.getAnimations()) {
+    if (inFrame(a.effect?.target) && a.effect?.getComputedTiming().endTime !== Infinity) a.finish();
   }
 }
 
@@ -442,14 +466,27 @@ function endIntro() {
 }
 
 /** The whole story: why, then the user sends a bug, and the owner fixes it. */
-async function story() {
-  await playIntro();
-  await title('User perspective', 'How it works', endIntro);
-  await userRound();
-  await title('App owner perspective', 'How it works');
+async function story(from = 0) {
+  if (from < INTRO.length) await playIntro(from + 1);
+  if (from <= USER_PART) {
+    chapter = USER_PART;
+    await title('User perspective', 'How it works', endIntro);
+    await userRound();
+  }
+  chapter = OWNER_PART;
+  await title('App owner perspective', 'How it works', endIntro);
   await ownerRound();
   await title('Fixed!');
 }
+
+/**
+ * The story's parts, to go back or on by: the intro's scenes (0 to 5), the
+ * user's side, and the owner's with "Fixed!" after it.
+ */
+const USER_PART = INTRO.length;
+const OWNER_PART = INTRO.length + 1;
+/** The part playing now. */
+let chapter = 0;
 
 /** The app user's side. */
 async function userRound() {
@@ -504,7 +541,7 @@ async function ownerRound() {
   await find(el, '.list');
   await wait(1600);
 
-  // The user's bug: a tap on a card is the owner's way in.
+  // The user's bug: a tap on a card opens the owner's page for it.
   const bug = await find(el, card(BUG));
   await say(OWNER, 2);
   await reveal(bug);
@@ -512,7 +549,7 @@ async function ownerRound() {
   await tap(bug);
 
   // Done, with the version it is fixed in and the pull request.
-  const done = await find(el, button('.sheet .states .chip-pick', 'Done'));
+  const done = await find(el, button('.manage .states .chip-pick', 'Done'));
   await say(OWNER, 3);
   await wait(1200);
   await reveal(done);
@@ -530,18 +567,18 @@ async function ownerRound() {
   await wait(900);
 
   // A word to the person who reported it.
-  const reply = await find(el, '.sheet textarea.field');
+  const reply = await find(el, '.manage textarea.field');
   await say(OWNER, 4);
   await reveal(reply);
   await wait(600);
   await type(reply, REPLY);
   await wait(800);
-  const save = await find(el, '.sheet__actions .btn:not([disabled])');
+  const save = await find(el, '.manage__actions .btn:not([disabled])');
   await reveal(save);
   await tap(save);
 
   // The card, as everybody sees it now.
-  const fixed = await find(el, (root) => !root.querySelector('.sheet') && card(BUG)(root)?.querySelector('.fix') && card(BUG)(root));
+  const fixed = await find(el, (root) => !root.querySelector('.manage') && card(BUG)(root)?.querySelector('.fix') && card(BUG)(root));
   await say(OWNER, 5);
   await reveal(fixed);
   await wait(3000);
@@ -612,16 +649,17 @@ function rest() {
 }
 
 /** Play the story, once, then rest. */
-async function play() {
+async function play(from = 0) {
   const mine = ++current;
   await last;
   if (mine !== current) return;
   running = mine;
   pause(false);
   subtitle.querySelector('.tour-say__title').textContent = '';
+  subtitle.classList.add('tour-say--away');
   frame.classList.add('tour--playing');
   app(true);
-  last = story()
+  last = story(from)
     .catch((e) => {
       // A step that did not find its button ends the tour rather than hang it.
       if (e !== STOP) console.warn(e);
@@ -635,6 +673,25 @@ async function play() {
 function stop() {
   current += 1;
   rest();
+}
+
+/**
+ * Back to the start of the part before this one (`by` -1), or on to the next
+ * (1). Back from the first starts it over; on from the last ends the tour.
+ */
+function jump(by) {
+  if (!frame.classList.contains('tour--playing')) return;
+  const to = Math.max(0, chapter + by);
+  if (to > OWNER_PART) return stop();
+  chapter = to;
+  void play(to);
+}
+
+/** Where on the box a click lands: its left third goes back, its right third on, between pauses. */
+function side(e) {
+  const r = box.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width;
+  return x < 1 / 3 ? -1 : x > 2 / 3 ? 1 : 0;
 }
 
 if (box && frame && page && subtitle && pausedNote && watch && titleCard && intro && caption && skip && said) {
@@ -659,9 +716,29 @@ if (box && frame && page && subtitle && pausedNote && watch && titleCard && intr
     e.stopPropagation();
     stop();
   });
-  // While it plays, a visitor's click anywhere on the box, the subtitle with
-  // it, pauses or goes on. Not the tour's own taps, which bubble up here too.
+  // While it plays, a visitor's click on the box's left third goes a part
+  // back, on its right third a part on, and in between it pauses or goes on;
+  // the subtitle, which says so, always pauses. Nothing shows the thirds but
+  // the cursor over them. Not the tour's own taps, which bubble up here too.
   frame.addEventListener('click', (e) => {
-    if (e.isTrusted && frame.classList.contains('tour--playing')) pause(!paused);
+    if (!e.isTrusted || !frame.classList.contains('tour--playing')) return;
+    const by = subtitle.contains(e.target) ? 0 : side(e);
+    if (by) jump(by);
+    else pause(!paused);
+  });
+  frame.addEventListener('mousemove', (e) => {
+    const by = frame.classList.contains('tour--playing') && !subtitle.contains(e.target) ? side(e) : 0;
+    frame.classList.toggle('tour--at-back', by < 0);
+    frame.classList.toggle('tour--at-next', by > 0);
+  });
+  frame.addEventListener('mouseleave', () => frame.classList.remove('tour--at-back', 'tour--at-next'));
+  // And with the arrow keys, while it plays, unless they are typing somewhere.
+  document.addEventListener('keydown', (e) => {
+    if (!frame.classList.contains('tour--playing') || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.target instanceof HTMLElement && e.target.closest('input, textarea, [contenteditable]')) return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      jump(e.key === 'ArrowLeft' ? -1 : 1);
+    }
   });
 }
