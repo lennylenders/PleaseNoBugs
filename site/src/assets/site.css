@@ -305,10 +305,10 @@ section + section { padding-top: 0; }
  * 4. They all leave, one after another, and what each said grows where they
  *    stood, all over the place; the app greys, and that feedback with it,
  *    as if it aged.
- * 5. The round button pops up, an arrow at it; the app and the feedback
- *    have their colour back.
+ * 5. The round button pops up, an arrow at it; the app has its colour back,
+ *    the feedback is still grey.
  * 6. A tap on the button opens a board over it, and every piece of feedback
- *    lands on it as a bug or an idea.
+ *    lights up as it goes to it, and lands on it as a bug or an idea.
  *
  * Each scene's movement is a CSS animation, which tour.js can set at its end.
  */
@@ -432,10 +432,14 @@ section + section { padding-top: 0; }
     ti-grow 650ms cubic-bezier(0.3, 1.2, 0.5, 1) calc(900ms + var(--i) * 450ms) both,
     ti-age 1200ms ease 2600ms both;
 }
-/* Still all over the place while the button pops up, and alight again with
-   the app, as the button brings it to life. */
-.tour[data-intro='5'] .ti-bubble { opacity: 1; animation: ti-age 900ms ease 1000ms reverse both; }
-.tour[data-intro='6'] .ti-bubble { animation: ti-fly 800ms cubic-bezier(0.5, 0, 0.2, 1) calc(1000ms + var(--i) * 160ms) both; }
+/* Still all over the place, and still grey, while the button pops up; each
+   lights up again only as it goes to the board. */
+.tour[data-intro='5'] .ti-bubble { opacity: 1; filter: grayscale(1) brightness(0.72) opacity(0.65); }
+.tour[data-intro='6'] .ti-bubble {
+  animation:
+    ti-fly 800ms cubic-bezier(0.5, 0, 0.2, 1) calc(1000ms + var(--i) * 160ms) both,
+    ti-age 800ms ease calc(1000ms + var(--i) * 160ms) reverse both;
+}
 .tour[data-intro='6'] .ti-from { animation: ti-fade 200ms ease calc(1600ms + var(--i) * 160ms) reverse both; }
 .tour[data-intro='6'] .ti-to { animation: ti-fade 200ms ease calc(1600ms + var(--i) * 160ms) both; }
 
