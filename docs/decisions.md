@@ -1075,10 +1075,15 @@ Built straight in the site, without Figma first.
   "Behind sent": before, its Text, Quiet text and Done changed the whole
   widget without saying so. In apps they work from the next release (0.3.0);
   0.2.0 ignores them and keeps the shared colours.
-- **A start card before step 1**, every visit (nothing is remembered):
-  "Make it yours", three lines (six short steps, every change live, the code
-  or a prompt for your AI agent) and "Start building". The steps' count
-  starts after it.
+- **A start card before step 1**, every visit (nothing is remembered): a
+  reason, not a manual. "Make it look like yours." / "A feedback button that
+  fits your app is one people actually tap." / "Make it mine", and small
+  under it "Free and open source. About two minutes, then copy the code or
+  hand it to your AI agent." Not just "free": the board needs a server of
+  your own. The steps' count starts after it. A first version listed what
+  was coming in three lines; it was too long, gave no reason, and said
+  things that are not always true (six steps, a round button, "your app's
+  screen").
 - **Beside it a sketch, in the style of What is it?'s drawings**: abstract
   (bars for words) but in the widget's own shape and place, the tiles screen
   as it opens, 24px from the corner (the whole app on a phone). The round

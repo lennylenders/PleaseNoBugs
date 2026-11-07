@@ -27,15 +27,15 @@ const VERSION = '%VERSION%';
  * colour and word on every screen before taking the code.
  */
 const STEPS = [
-  // Before the steps, and not one of them: what is coming, while the widget
-  // puts itself together beside it (`PLAYS.*.intro`). Every visit, as
-  // nothing here is remembered; "Start building" goes on.
+  // Before the steps, and not one of them: why to make it yours, while a
+  // sketch of the widget is made someone's beside it (`PLAYS.*.intro`).
+  // Every visit, as nothing here is remembered; "Make it mine" goes on.
   {
     id: 'intro',
-    name: 'Make it yours',
+    name: 'Make it look like yours.',
     intro: true,
     screen: '',
-    hint: "Build your feedback widget right here, in your app's screen.",
+    hint: 'A feedback button that fits your app is one people actually tap.',
   },
   { id: 'opens', name: 'How it opens', screen: 'tiles', hint: 'How people get to it in your app. The screen plays it.' },
   {
