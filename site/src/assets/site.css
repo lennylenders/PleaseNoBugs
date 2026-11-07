@@ -148,6 +148,14 @@ code, pre, kbd { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace
   z-index: 10;
   background: color-mix(in srgb, var(--page) 90%, transparent);
   backdrop-filter: blur(10px);
+  transition: background-color 250ms ease, backdrop-filter 250ms ease;
+}
+/* On the home page, at the top, the bar lets the background's glyphs show
+   through; scrolled, it is solid again, so nothing runs under the links
+   (pattern.js says which). */
+.page--home.top-clear .top:not(.top--scrolled) {
+  background-color: transparent;
+  backdrop-filter: none;
 }
 
 .top__inner {
