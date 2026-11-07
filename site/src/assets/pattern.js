@@ -18,7 +18,7 @@ const NS = 'http://www.w3.org/2000/svg';
 /** How near the cursor a glyph lights up, and how far: a little bigger, a lot brighter. */
 const REACH = 100;
 const REST = 0.04;
-const LIT = 0.25;
+const LIT = 0.6;
 const GROW = 0.3;
 
 const body = document.body;
