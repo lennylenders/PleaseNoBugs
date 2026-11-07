@@ -616,8 +616,8 @@ async function ownerRound() {
   await wait(1400);
   await tap(bug);
 
-  // Done, with the version it is fixed in and the pull request.
-  const done = await find(el, button('.manage .states .chip-pick', 'Done'));
+  // Fixed, with the version it is fixed in and the pull request.
+  const done = await find(el, button('.manage .states .chip-pick', 'Fixed'));
   await say(OWNER, 3);
   await wait(1200);
   await reveal(done);
