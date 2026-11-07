@@ -81,8 +81,13 @@ body > main { flex: 1 0 auto; }
  * almost away, drifting slowly on the slant, as a chat app's wallpaper. It
  * dresses the page and asks nothing of the eye. Still for whoever asked
  * for less motion.
+ *
+ * With a mouse, assets/pattern.js lays the same glyphs out one by one
+ * (`.page-pattern`) so those near the cursor can grow and light up; this
+ * tile is what shows until then, or without it.
  */
-.page--home::before {
+.page--home::before,
+.page-pattern {
   content: '';
   position: fixed;
   /* One tile larger all round than the window, so the drift never shows an edge. */
@@ -93,11 +98,27 @@ body > main { flex: 1 0 auto; }
   pointer-events: none;
   animation: page-drift 160s linear infinite;
 }
+.page-pattern {
+  left: -420px;
+  top: -420px;
+  background: none;
+  opacity: 1;
+}
+.page--home.has-pattern::before { display: none; }
+/* Each glyph at rest as faint as the tile; lit, pattern.js sets it brighter
+   and bigger, around its own middle (its group's origin). */
+.page-pattern use {
+  fill: #fff;
+  opacity: 0.04;
+  transform-origin: 0 0;
+  transition: opacity 260ms ease, transform 260ms ease;
+}
 @keyframes page-drift {
   to { transform: translate(420px, 420px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .page--home::before { animation: none; }
+  .page--home::before,
+  .page-pattern { animation: none; }
 }
 
 /* The one pager: the hero sits in the middle of what the bars leave. */
