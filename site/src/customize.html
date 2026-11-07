@@ -10,8 +10,9 @@
     <link rel="stylesheet" href="assets/customize.css" />
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/customize.js" defer></script>
+    <script src="assets/pattern.js" type="module"></script>
   </head>
-  <body>
+  <body class="page--pattern">
     <header class="top">
       <div class="wrap top__inner">
         <a class="brand" href="./">
@@ -50,11 +51,20 @@
             </div>
 
             <div class="deck__body" id="deck-body">
-              <h1 class="deck__name" id="step-name">How it opens</h1>
-              <p class="deck__hint" id="hint">Pick a way: the screen shows how it opens.</p>
+              <h1 class="deck__name" id="step-name">Make it yours</h1>
+              <p class="deck__hint" id="hint">Build your feedback widget right here, in your app's screen.</p>
 
               <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
-                <div class="edit__step" data-step="opens">
+                <div class="edit__step intro" data-step="intro">
+                  <ul class="intro__list">
+                    <li style="--i: 0"><span class="intro__tick" aria-hidden="true"></span><span><b>Six short steps</b>, from the round button to the board.</span></li>
+                    <li style="--i: 1"><span class="intro__tick" aria-hidden="true"></span><span><b>Every change shows live</b> in the widget as you make it.</span></li>
+                    <li style="--i: 2"><span class="intro__tick" aria-hidden="true"></span><span><b>Take it along</b>: the code to paste, or a prompt for your AI agent.</span></li>
+                  </ul>
+                  <button type="button" class="btn intro__start" id="start">Start building</button>
+                </div>
+
+                <div class="edit__step" data-step="opens" hidden>
                   <fieldset class="field">
                     <legend>Shown as</legend>
                     <div class="seg">

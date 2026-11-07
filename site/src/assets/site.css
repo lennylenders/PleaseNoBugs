@@ -76,17 +76,17 @@ body {
 body > main { flex: 1 0 auto; }
 
 /*
- * The home page's background: the widget's bug, idea and review glyphs,
- * scattered (assets/pattern.svg, one tile that repeats), white and faded
- * almost away, drifting slowly on the slant, as a chat app's wallpaper. It
- * dresses the page and asks nothing of the eye. Still for whoever asked
- * for less motion.
+ * The home and Customize pages' background (`.page--pattern`): the
+ * widget's bug, idea and review glyphs, scattered (assets/pattern.svg, one
+ * tile that repeats), white and faded almost away, drifting slowly on the
+ * slant, as a chat app's wallpaper. It dresses the page and asks nothing of
+ * the eye. Still for whoever asked for less motion.
  *
  * With a mouse, assets/pattern.js lays the same glyphs out one by one
  * (`.page-pattern`) so those near the cursor can grow and light up; this
  * tile is what shows until then, or without it.
  */
-.page--home::before,
+.page--pattern::before,
 .page-pattern {
   content: '';
   position: fixed;
@@ -104,7 +104,7 @@ body > main { flex: 1 0 auto; }
   background: none;
   opacity: 1;
 }
-.page--home.has-pattern::before { display: none; }
+.page--pattern.has-pattern::before { display: none; }
 /* Each glyph at rest as faint as the tile; lit, pattern.js sets it brighter
    and bigger, around its own middle (its group's origin). */
 .page-pattern use {
@@ -117,7 +117,7 @@ body > main { flex: 1 0 auto; }
   to { transform: translate(420px, 420px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .page--home::before,
+  .page--pattern::before,
   .page-pattern { animation: none; }
 }
 
@@ -153,7 +153,7 @@ code, pre, kbd { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace
 /* On the home page, at the top, the bar lets the background's glyphs show
    through; scrolled, it is solid again, so nothing runs under the links
    (pattern.js says which). */
-.page--home.top-clear .top:not(.top--scrolled) {
+.page--pattern.top-clear .top:not(.top--scrolled) {
   background-color: transparent;
   backdrop-filter: none;
 }

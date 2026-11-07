@@ -1,13 +1,14 @@
 /**
- * The home page's background, made of separate glyphs so they can answer the
- * cursor: those within a small circle of it grow a little and light up, the
- * nearest most, as a torch passing over the wallpaper.
+ * The background of the home and Customize pages (`.page--pattern`), made
+ * of separate glyphs so they can answer the cursor: those within a small
+ * circle of it grow a little and light up, the nearest most, as a torch
+ * passing over the wallpaper.
  *
  * The glyphs and where they sit come from `pattern.svg`, the one tile the
  * stylesheet repeats: read once, and laid out here as often as the window
  * needs, in one SVG behind the page that drifts as the tile did. Until it
  * is there, and wherever this does not run, the stylesheet's tile shows
- * instead (`.page--home::before`), so the page never goes bare.
+ * instead (`.page--pattern::before`), so the page never goes bare.
  *
  * It also clears the bar at the top while the page is at its top.
  *
@@ -139,7 +140,7 @@ function clearBar() {
   body.classList.add('top-clear');
 }
 
-if (body.classList.contains('page--home')) {
+if (body.classList.contains('page--pattern')) {
   clearBar();
   try {
     const tile = await readTile();

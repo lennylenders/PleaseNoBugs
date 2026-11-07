@@ -115,6 +115,260 @@
 .field:has(input[value='inline']:checked) .field__about[data-mode='inline'],
 .field:has(input[value='overlay']:checked) .field__about[data-mode='overlay'] { display: block; }
 
+/* ---- Before the steps: what is coming ----------------------------------- */
+
+/* No count, no bars, no Back / Next: one way on, "Start building". */
+.deck--intro .deck__head,
+.deck--intro .deck__foot { display: none; }
+.deck--intro .deck__body { padding-top: 24px; padding-bottom: 22px; }
+.deck--intro .deck__name { font-size: 34px; letter-spacing: -0.5px; }
+
+/* The three lines come in one by one, then the button. */
+.intro__list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.intro__list li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  animation: intro-line 420ms cubic-bezier(0.3, 1.3, 0.5, 1) calc(300ms + var(--i) * 420ms) both;
+}
+.intro__list b { color: var(--ink); }
+.intro__tick {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--button);
+}
+/* A tick drawn as two sides of a box, turned. */
+.intro__tick::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 5px;
+  width: 6px;
+  height: 11px;
+  border: solid #12132b;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+.intro__start {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 24px;
+  animation: intro-line 420ms cubic-bezier(0.3, 1.3, 0.5, 1) 1600ms both;
+}
+@keyframes intro-line {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+/*
+ * Beside it the intro's sketch (`playSketch` in customize.js): the widget in
+ * grey, in its own shape and place, made yours by a cursor. The script says
+ * when; everything here is a transition, and with less motion it stands
+ * still at its end.
+ *
+ * The sizes are the widget's tiles screen as it opens from 640px: a panel
+ * 375 wide and at most 468 high, 24px from the corner; a bar of 56 with its
+ * X, the question, the Bug tile the full width, Idea and Review side by side
+ * (132 high each when there is room), "See the board". Below 640px it is
+ * the whole app, as the widget is there.
+ */
+.play--intro .pl-dim { opacity: 0; transition: opacity 400ms ease; }
+.play--intro:has(.sketch.is-open) .pl-dim { opacity: 1; }
+
+.sketch {
+  position: absolute;
+  inset: 0;
+  /* The sketch's greys, before a colour is picked. */
+  --sk-bg: #4a4b60;
+  --sk-part: #6c6d84;
+  --sk-ink: rgba(255, 255, 255, 0.4);
+  transition: opacity 400ms ease;
+}
+.sketch.is-away { opacity: 0; }
+/* Back to the start while it cannot be seen. */
+.sk--reset,
+.sk--reset * { transition: none !important; animation: none !important; }
+
+.sk-panel {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  width: 375px;
+  height: min(468px, calc(100% - 48px));
+  padding: 0 16px;
+  border-radius: 16px;
+  background: var(--sk-bg);
+  overflow: hidden;
+  /* Closed: no more than the round button it grows from. */
+  opacity: 0;
+  clip-path: inset(calc(100% - 40px) 0 0 calc(100% - 40px) round 20px);
+  transition: clip-path 450ms cubic-bezier(0.3, 0.9, 0.3, 1), background-color 300ms ease;
+}
+.play--phone .sk-panel {
+  inset: 0;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  clip-path: inset(calc(100% - 56px) 16px 16px calc(100% - 56px) round 20px);
+}
+.sketch.is-open .sk-panel { opacity: 1; clip-path: inset(0 0 0 0 round 0); }
+
+.sk-bar { position: relative; flex: none; height: 56px; }
+/* Its X. */
+.sk-x { position: absolute; right: 4px; top: 50%; width: 16px; height: 16px; margin-top: -8px; }
+.sk-x::before,
+.sk-x::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 7px;
+  width: 20px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--sk-ink);
+  transform: rotate(45deg);
+}
+.sk-x::after { transform: rotate(-45deg); }
+.sk-title { display: block; flex: none; width: 62%; height: 12px; margin: 16px auto 0; border-radius: 6px; background: var(--sk-ink); }
+
+.sk-tile {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  min-height: 48px;
+  border-radius: 8px;
+  background: var(--sk-part);
+  transition: background-color 300ms ease;
+}
+.sk-panel > .sk-tile { flex: 1 1 132px; margin-top: 24px; }
+.sk-row { display: grid; flex: 1 1 132px; grid-template-columns: 1fr 1fr; gap: 11px; min-height: 48px; margin-top: 12px; }
+/* What is on a tile: its glyph and its words. */
+.sk-icon { width: 22px; height: 22px; border-radius: 50%; background: var(--sk-ink); }
+.sk-word { width: 72px; height: 8px; border-radius: 4px; background: var(--sk-ink); }
+.sk-link { display: block; flex: none; width: 96px; height: 8px; margin: 34px auto 42px; border-radius: 4px; background: var(--sk-ink); }
+
+.sk-fab {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--sk-part);
+  color: rgba(255, 255, 255, 0.45);
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 380ms cubic-bezier(0.3, 1.6, 0.5, 1), opacity 200ms ease, background-color 300ms ease, color 300ms ease;
+}
+.sk-fab svg { width: 18px; height: 18px; }
+.play--phone .sk-fab { right: 16px; bottom: 16px; }
+.sketch.is-fab .sk-fab { opacity: 1; transform: none; }
+.sketch.is-open .sk-fab { opacity: 0; transform: scale(0.6); }
+
+/* A part takes the colour picked for it. */
+[data-sk].is-painted { background: var(--c); }
+.sk-tile.is-painted,
+.sk-fab.is-painted { animation: sk-splat 380ms cubic-bezier(0.3, 1.6, 0.5, 1); }
+.sk-tile.is-painted .sk-icon,
+.sk-tile.is-painted .sk-word { background: rgba(255, 255, 255, 0.95); }
+.sk-fab.is-painted { color: #fff; }
+@keyframes sk-splat {
+  40% { transform: scale(1.06); }
+}
+
+/* The configurator's line around the part, with its name. */
+.sk-mark {
+  position: absolute;
+  z-index: 2;
+  border: 2px solid var(--button);
+  border-radius: 14px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.sk-mark.on { opacity: 1; }
+.sk-mark__tag {
+  position: absolute;
+  left: 10px;
+  bottom: -12px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--button);
+  color: #12132b;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sk-mark--in .sk-mark__tag { bottom: 8px; }
+
+/* The colours to pick from. */
+.sk-pick {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: 0 12px 28px rgba(10, 10, 30, 0.4);
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.sk-pick.on { opacity: 1; transform: none; }
+.sk-pick i {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+.sk-pick i.chosen { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px #fff; transform: scale(1.12); }
+
+/* The cursor, its tip on the spot it is sent to, and the ring of a tap.
+   On a phone only the ring, as a finger. */
+.sk-cursor {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  z-index: 4;
+  opacity: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  transition: transform 380ms cubic-bezier(0.45, 0, 0.25, 1), opacity 250ms ease;
+}
+.sk-cursor svg { display: block; transform-origin: 2px 2px; transition: transform 120ms ease; }
+.sk-cursor.down svg { transform: scale(0.85); }
+.sketch.is-cursor .sk-cursor { opacity: 1; }
+.play--phone .sk-cursor { display: none; }
+.sk-tap {
+  position: absolute;
+  z-index: 4;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  opacity: 0;
+  pointer-events: none;
+}
+.sk-tap.on { animation: sk-tap 450ms ease-out; }
+@keyframes sk-tap {
+  from { opacity: 1; transform: scale(0.5); }
+  to { opacity: 0; transform: scale(1.3); }
+}
+
 /* ---- The last step: as the end of the demo ------------------------------ */
 
 .deck--ready .deck__name { font-size: 34px; letter-spacing: -0.5px; }
@@ -206,4 +460,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .deck__chevron { transition: none; }
+  .intro__list li,
+  .intro__start { animation: none; }
 }

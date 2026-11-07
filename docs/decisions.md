@@ -1065,6 +1065,32 @@ Built straight in the site, without Figma first.
   in one step make tapping a part unclear); screenshots in the Tiles step
   (you would no longer see the screenshot box change).
 
+## 2026-11-07: "Feedback sent!" gets its own colours, and Customize a start card
+
+- **The Sent screen's own colours**: `--pnb-sent-title`, `--pnb-sent-note`
+  (the line and "Back to the board") and `--pnb-sent-check` (the disc behind
+  the tick). They default to the text, quiet text and Done colours, so
+  nothing looks different; Nimiq's painted "sent" now sets them instead of
+  overriding the styles. The configurator's Sent step offers only these and
+  "Behind sent": before, its Text, Quiet text and Done changed the whole
+  widget without saying so. In apps they work from the next release (0.3.0);
+  0.2.0 ignores them and keeps the shared colours.
+- **A start card before step 1**, every visit (nothing is remembered):
+  "Make it yours", three lines (six short steps, every change live, the code
+  or a prompt for your AI agent) and "Start building". The steps' count
+  starts after it.
+- **Beside it a sketch, in the style of What is it?'s drawings**: abstract
+  (bars for words) but in the widget's own shape and place, the tiles screen
+  as it opens, 24px from the corner (the whole app on a phone). The round
+  button pops up, a cursor taps it, the configurator's line and name come
+  up, a row of colours opens, the cursor picks one and the button takes it;
+  the button opens, and the Bug, Idea and Review tiles and the background
+  are coloured the same way. Then a pause, and again. A first version played
+  the real widget, a second painted a made-up shape with flying dots; both
+  were replaced as not abstract enough and not the widget's shape.
+- **The home page's floating glyphs are on Customize too**, lighting up
+  under the cursor; the class is `page--pattern` now.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

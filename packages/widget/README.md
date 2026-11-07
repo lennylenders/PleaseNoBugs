@@ -142,6 +142,9 @@ please-no-bugs {
   --pnb-tile-review: var(--pnb-review);
   --pnb-tile-ink: #fff;                  /* the words on them */
   --pnb-sent: var(--pnb-bg);             /* behind "Feedback sent!" */
+  --pnb-sent-title: var(--pnb-text);     /* its title, */
+  --pnb-sent-note: var(--pnb-text-quiet); /* its small words and "Back to the board", */
+  --pnb-sent-check: var(--pnb-done);     /* and the disc behind its tick */
   --pnb-fab: var(--pnb-accent-fill);     /* the round floating button */
   --pnb-on-fab: var(--pnb-on-accent);    /* its glyph */
   --pnb-radius-panel: 16px;              /* the panel on a wide screen */
