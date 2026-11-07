@@ -1,8 +1,12 @@
 /**
- * The configurator, in steps: the real widget in `demo` mode on top, one card
- * under it for the part being changed, and Back / Preview / Next. Tapping a
- * part of the widget opens its colour or its words, in the step you are on.
- * The last step is the code.
+ * The configurator, in steps, as one screen like the home page's demo: the
+ * pretend app with the real widget in `demo` mode at its own place in it, and
+ * a card inside the screen with the step, its choices and Back / Next
+ * (customize.css places it: on the left from 980px, a panel along the bottom
+ * that folds below that). Tapping a part of the widget opens its colour or
+ * its words, in the step you are on. The steps follow the way a user goes,
+ * as the demo does: the way in, the tiles, writing, sent, the board. The last
+ * step is the widget working, and the code and the prompt to take along.
  *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
  * `localStorage`: the copied code is the only place a choice ends up.
@@ -13,26 +17,54 @@
  *  somebody's app without them choosing to. */
 const VERSION = '%VERSION%';
 
-/** What the line under the heading says where a part of the widget can be tapped. */
-const TAP = 'Tap a part of the widget to change it.';
-
 /**
- * The steps, in order. `screen` is the widget's `screen` attribute that puts
- * the part in view; `mark` finds that part in the widget's shadow root, to
- * draw a line around it; `name` is the page's heading and `hint` the line
- * under it, saying what to do. The last step is
+ * The steps, in the order a user meets the widget. `screen` is the widget's
+ * `screen` attribute that puts the part in view; `mark` finds that part in
+ * the widget's shadow root, to draw a line around it; `name` is the card's
+ * heading and `hint` the line under it, saying what to do. The round button's
+ * colours are in the first step, with the way that has one. The last step is
  * `live`: the widget is itself there, every tap its own, to check every
  * colour and word on every screen before taking the code.
  */
 const STEPS = [
-  { id: 'settings', name: 'Settings', screen: 'tiles', hint: 'Pick a way: the box shows how it opens.' },
-  { id: 'button', name: 'Feedback button', screen: 'button', mark: (r) => [r.querySelector('.fab')], floatingOnly: true, hint: TAP },
-  { id: 'tiles', name: 'Tiles', screen: 'tiles', mark: (r) => [...r.querySelectorAll('.tile')], hint: TAP },
-  { id: 'board', name: 'Board', screen: 'board', mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')], hint: TAP },
-  { id: 'shots', name: 'Screenshots', screen: 'write', mark: (r) => [r.querySelector('.shot')], shotsOnly: true, hint: 'Pick who sees them: the widget shows what changes.' },
-  { id: 'sent', name: 'Feedback sent!', screen: 'sent', mark: (r) => [r.querySelector('.sent')], hint: TAP },
-  { id: 'code', name: 'Code', screen: '', live: true, hint: 'Check your colours and words in the box: it works now. Then take the code.' },
+  { id: 'opens', name: 'How it opens', screen: 'tiles', hint: 'How people get to it in your app. The screen plays it.' },
+  {
+    id: 'tiles',
+    name: 'Tiles',
+    screen: 'tiles',
+    mark: (r) => [...r.querySelectorAll('.tile')],
+    hint: 'What people pick from when they open it. Tap a part of the widget, or a colour, to change it.',
+  },
+  {
+    id: 'writing',
+    name: 'Writing',
+    screen: 'write',
+    mark: (r) => [r.querySelector('.shot')],
+    shotsOnly: true,
+    hint: 'A bug or an idea can carry a screenshot. Pick who sees it: the widget shows what changes.',
+  },
+  {
+    id: 'sent',
+    name: 'Feedback sent!',
+    screen: 'sent',
+    mark: (r) => [r.querySelector('.sent')],
+    hint: 'What people see right after they send. Tap a part to change it.',
+  },
+  {
+    id: 'board',
+    name: 'Board',
+    screen: 'board',
+    mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')],
+    hint: 'The posts people read and vote on, with your answers. Tap a part to change it.',
+  },
+  { id: 'ready', name: "You're ready!", screen: '', live: true },
 ];
+
+/** The last step's line: where the widget is depends on where the card is. */
+const READY_HINT = {
+  side: 'It works now: try it on the right. Then take it along.',
+  under: 'It works now: try it above. Then take it along.',
+};
 
 /**
  * The colour families. Each is one custom property, and every part of the
@@ -70,7 +102,7 @@ const FAMILIES = {
  * is the same colour in each.
  */
 const COLOURS = {
-  button: { main: ['accent', '--pnb-on-fab'] },
+  opens: { main: ['accent', '--pnb-on-fab'] },
   tiles: {
     main: ['--pnb-bug', '--pnb-idea', '--pnb-review', '--pnb-bg'],
     more: ['--pnb-tile-ink', '--pnb-text', '--pnb-text-quiet'],
@@ -103,7 +135,6 @@ const COLOURS = {
  */
 const OUTSIDE = ['.backdrop', {}];
 const PARTS = {
-  button: [['.fab', 'accent']],
   tiles: [
     OUTSIDE,
     ['.tile--bug', '--pnb-bug'],
@@ -198,10 +229,16 @@ const STRINGS = {
 
 const form = document.getElementById('settings');
 const screen = document.getElementById('screen');
+const deck = document.getElementById('deck');
+const deckBody = document.getElementById('deck-body');
+const foldBtn = document.getElementById('fold');
 const mark = document.getElementById('mark');
 const backBtn = document.getElementById('back');
 const nextBtn = document.getElementById('next');
 const copyBtn = document.getElementById('copy');
+
+/** Whether the card stands beside the widget (from 980px, as in customize.css) or lies along the bottom. */
+const beside = window.matchMedia('(min-width: 980px)');
 
 /**
  * The widget has other themes, but the configurator offers one: PleaseNoBugs'
@@ -221,21 +258,14 @@ const state = {
 };
 
 /** The step on screen, by id, and whether the widget is being tried out. */
-let at = 'settings';
+let at = 'opens';
 let previewing = false;
 
 /** The widget in the box. */
 let board = null;
 
-/**
- * The steps there are for the current choices: no round button unless it is
- * one, and no screenshots without a bug or an idea to put them on.
- */
-const route = () =>
-  STEPS.filter(
-    (s) =>
-      (!s.floatingOnly || state.mode === 'floating') && (!s.shotsOnly || state.kinds.some((k) => k !== 'review')),
-  );
+/** The steps there are for the current choices: no screenshots without a bug or an idea to put them on. */
+const route = () => STEPS.filter((s) => !s.shotsOnly || state.kinds.some((k) => k !== 'review'));
 const step = () => STEPS.find((s) => s.id === at);
 
 // ---- The widget ----------------------------------------------------------
@@ -265,7 +295,8 @@ function apply(el, mode = state.mode, held = previewing ? '' : step().screen) {
 /**
  * Where an inline widget sits after step 1: in the app's Feedback page, as
  * step 1's animation left it. The menu beside it on a wide screen, the
- * page's bar over it on a narrow one (site.css picks).
+ * page's bar over it on a narrow one (site.css picks), and beside the card
+ * when the card is on the left (customize.css).
  */
 const INLINE_FRAME = `<div class="inline-frame" aria-hidden="true">
     <nav class="dk-menu"><b>Your app</b><span>Home</span><span>Settings</span><span class="dk-menu__pick">Feedback</span><span>About</span></nav>
@@ -375,7 +406,7 @@ const PLAYS = {
 };
 
 function paintDevice() {
-  const mode = at === 'settings' && !previewing ? state.mode : null;
+  const mode = at === 'opens' && !previewing ? state.mode : null;
   const kind = wide.matches ? 'desk' : 'phone';
   screen.classList.toggle('screen--device', !!mode);
   // The app's own background behind every way, inline too.
@@ -414,6 +445,7 @@ function paintDevice() {
 
 function update() {
   for (const input of form.querySelectorAll('[data-string]')) input.hidden = offKind(input.dataset.string);
+  paintOnly();
   if (board) apply(board);
   paintDevice();
   // Kinds can take the screenshots step away, or bring it back.
@@ -425,13 +457,14 @@ function update() {
 // ---- Steps ---------------------------------------------------------------
 
 function go(id) {
-  if (!route().some((s) => s.id === id)) id = 'settings';
-  const changed = id !== at;
+  if (!route().some((s) => s.id === id)) id = 'opens';
   const forward = route().findIndex((s) => s.id === id) > route().findIndex((s) => s.id === at);
   at = id;
   revealed = null;
   for (const el of form.querySelectorAll('[data-step]')) el.hidden = el.dataset.step !== at;
   paintSteps();
+  // Each step starts at its top.
+  deckBody.scrollTop = 0;
   // Into the last step and out of it, a fresh widget, as it starts in an app.
   const live = !!step().live;
   if (live !== previewing) {
@@ -442,26 +475,63 @@ function go(id) {
   } else if (board) apply(board);
   paintDevice();
   watch();
-  // On a phone the card is under the widget: bring it into view.
-  if (changed && window.matchMedia('(max-width: 639px)').matches) {
-    form.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
 }
 
 function paintSteps() {
   const steps = route();
   const i = steps.findIndex((s) => s.id === at);
   document.getElementById('count').textContent = `Step ${i + 1} of ${steps.length}`;
+  document.getElementById('short').textContent = `· ${step().name}`;
   document.getElementById('step-name').textContent = step().name;
   document.getElementById('bars').innerHTML = steps
     .map((s, n) => `<i class="${n < i ? 'done' : n === i ? 'now' : ''}"></i>`)
     .join('');
-  document.getElementById('hint').textContent = step().hint;
+  document.getElementById('hint').textContent = step().live
+    ? READY_HINT[beside.matches ? 'side' : 'under']
+    : step().hint;
+  deck.classList.toggle('deck--ready', !!step().live);
   backBtn.hidden = i === 0;
   const last = i === steps.length - 1;
   nextBtn.hidden = last;
   if (!last) nextBtn.textContent = `Next: ${steps[i + 1].name}`;
 }
+
+/** What is only there for one way of showing it: the round button's colours. */
+function paintOnly() {
+  for (const el of form.querySelectorAll('[data-only]')) el.hidden = el.dataset.only !== state.mode;
+}
+
+// ---- The card, beside the widget or folding along the bottom --------------
+
+/** Whether the panel along the bottom is folded down to its one line. */
+let folded = false;
+
+function fold(down) {
+  folded = down && !beside.matches;
+  deck.classList.toggle('deck--folded', folded);
+  foldBtn.setAttribute('aria-expanded', String(!folded));
+  document.getElementById('fold-label').textContent = folded ? 'Show the steps' : 'Fold the steps away';
+}
+
+foldBtn.addEventListener('click', () => fold(!folded));
+
+/**
+ * Along the bottom, the card takes its height off the app, so the widget is
+ * always whole above it (`--deck-h`, customize.css); beside, it takes none.
+ * The widget's panel and the line around its part follow.
+ */
+function measureDeck() {
+  foldBtn.disabled = beside.matches;
+  screen.style.setProperty('--deck-h', beside.matches ? '0px' : `${deck.offsetHeight}px`);
+  fitPanel();
+  watch();
+}
+new ResizeObserver(measureDeck).observe(deck);
+beside.addEventListener('change', () => {
+  fold(false);
+  measureDeck();
+  paintSteps();
+});
 
 // ---- You're ready --------------------------------------------------------
 
@@ -551,7 +621,10 @@ screen.addEventListener(
     if (!hit) return;
     const what = typeof hit[1] === 'string' ? { colour: hit[1] } : hit[1];
     if (what.colour) pickColour(what.colour);
-    else if (what.text) form.querySelector(`[data-step="${at}"] [data-string="${what.text}"]`)?.focus();
+    else if (what.text) {
+      if (folded) fold(false);
+      form.querySelector(`[data-step="${at}"] [data-string="${what.text}"]`)?.focus();
+    }
   },
   true,
 );
@@ -561,6 +634,8 @@ function pickColour(name) {
   const card = form.querySelector(`[data-step="${at}"]`);
   const input = card.querySelector(`[data-colour="${name}"]`);
   if (!input) return;
+  // A folded panel opens first: its picker is in it.
+  if (folded) fold(false);
   const more = input.closest('details');
   if (more) more.open = true;
   const row = input.closest('[data-row]');
@@ -670,8 +745,8 @@ form.addEventListener('input', (e) => {
     state.kinds = on;
   } else if (t.name === 'mode') {
     state.mode = t.value;
-    if (!route().some((s) => s.id === at)) at = 'settings';
     mount();
+    paintOnly();
     paintSteps();
     paintSwatches();
     writeCode();
@@ -721,10 +796,12 @@ function swatchRow(name) {
 
 for (const box of form.querySelectorAll('[data-colours]')) {
   const { main, more } = COLOURS[box.dataset.colours];
+  // In the first step the widget is a film, not a thing to tap.
+  const film = box.dataset.colours === 'opens';
   box.className = 'field';
-  box.innerHTML = `<span>Colours</span>
+  box.innerHTML = `<span>${film ? 'The round button' : 'Colours'}</span>
     <div class="dots">${main.map(dot).join('')}</div>
-    <p class="colour-about" aria-live="polite">Tap a colour, or a part of the widget, to change it.</p>
+    <p class="colour-about" aria-live="polite">${film ? 'Tap a colour to change it.' : 'Tap a colour, or a part of the widget, to change it.'}</p>
     ${more ? `<details class="more-colours"><summary>More colours</summary><div class="swatches">${more.map(swatchRow).join('')}</div></details>` : ''}`;
 }
 
@@ -938,7 +1015,7 @@ feedBtn.addEventListener('click', async () => {
     await navigator.clipboard.writeText(`${prompt()}\n`);
   } catch {
     // Blocked: the prompt is in the page, to select by hand.
-    document.querySelector('.feed__peek').open = true;
+    document.querySelector('.peek').open = true;
     return toast('Copying was blocked: select the prompt below instead');
   }
   toast("Nom nom. Now paste it into your agent's chat.");
@@ -967,7 +1044,9 @@ copyBtn.addEventListener('click', async () => {
     await navigator.clipboard.writeText(text);
     toast('Code copied');
   } catch {
-    toast('Copying was blocked: select the code above instead');
+    // Blocked: the code is in the page, to select by hand.
+    document.querySelectorAll('.peek')[1].open = true;
+    toast('Copying was blocked: select the code below instead');
   }
 });
 
@@ -981,6 +1060,8 @@ function toast(text) {
 }
 
 mount();
+paintOnly();
 paintSteps();
 paintSwatches();
 writeCode();
+measureDeck();

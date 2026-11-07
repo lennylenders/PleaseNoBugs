@@ -1035,6 +1035,36 @@ From the Figma design "Widget · Search and filter":
 - The row keeps the class `.filters`, which the website's tour finds the
   board by.
 
+## 2026-11-07: The configurator is one screen, like the home page's demo
+
+The Customize page no longer has steps beside a small preview: it is one
+screen in the demo's style ("Your app" with its grey bars, as wide and tall as
+the home page's), and everything happens in it. The demo itself is unchanged.
+Built straight in the site, without Figma first.
+
+- **Six steps, in the order a user meets the widget**, as the demo tells it:
+  How it opens → Tiles → Writing → Feedback sent! → Board → You're ready!
+  The round button's two colours moved into the first step (shown when
+  Button is picked); its own step is gone. Writing is still skipped when only
+  reviews are on.
+- **The card is inside the screen.** From 980px it stands on the left, under
+  "Your app", and the widget is free at its own place on the right. Inline
+  moves the app, its menu and its Feedback page, to the right of the card, so
+  step 1's menu film is never under it.
+- **Below 980px the card is a panel along the bottom** that folds to one line
+  ("Step 2 of 6 · Tiles"). The app is what is left above it, so the widget is
+  always whole; folded, it has the whole screen. Tapping a part opens a folded
+  panel. There the screen is as tall as the device allows, taller than the
+  home page's, so the widget keeps room.
+- **The last step looks like the demo's end**: "You're ready!" (with the
+  confetti), "Feed it to your AI agent" and "Copy code" as two big buttons,
+  "Peek at the prompt" and "See the code" folded under them.
+- **Nothing above the screen**, as on the home page: the step's name on the
+  card is the page's heading.
+- Considered and not done: Writing and Sent as one step (two widget screens
+  in one step make tapping a part unclear); screenshots in the Tiles step
+  (you would no longer see the screenshot box change).
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

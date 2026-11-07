@@ -7,6 +7,7 @@
     <meta name="description" content="Make the PleaseNoBugs widget yours in a few short steps, see it live, and copy the code into your app." />
     <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="assets/site.css" />
+    <link rel="stylesheet" href="assets/customize.css" />
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/customize.js" defer></script>
   </head>
@@ -25,123 +26,123 @@
       </div>
     </header>
 
-    <main class="wrap steps">
-      <h1 id="step-name">Settings</h1>
-      <p class="lead" id="hint">Pick a way: the box shows how it opens.</p>
-
-      <div class="studio">
-      <div class="progress">
-        <p class="progress__step" aria-live="polite">
-          <span class="progress__count" id="count">Step 1 of 7</span>
-        </p>
-        <div class="progress__bars" id="bars" aria-hidden="true"></div>
-      </div>
-
-      <div class="editor">
+    <main class="wrap make">
+      <!-- One screen, as the home page's demo: the pretend app, the widget at
+           its own place in it, and the steps on a card inside it. -->
+      <div class="editor desk">
         <div class="viewport">
-          <div class="screen" id="screen">
+          <div class="screen screen--make" id="screen">
             <div class="screen__app" aria-hidden="true">
               <b>Your app</b>
               <i></i><i></i><i></i><i></i>
             </div>
           </div>
-          <div class="mark" id="mark" hidden><span class="mark__tag" id="mark-tag"></span></div>
-        </div>
-      </div>
 
-        <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
-          <div class="edit__step" data-step="settings">
-            <p class="edit__hint">How the widget shows up in your app.</p>
-            <fieldset class="field">
-              <legend>Shown as</legend>
-              <div class="seg">
-                <label><input type="radio" name="mode" value="floating" checked /><span>Button</span></label>
-                <label><input type="radio" name="mode" value="inline" /><span>Inline</span></label>
-                <label><input type="radio" name="mode" value="overlay" /><span>Overlay</span></label>
-              </div>
-            </fieldset>
-          </div>
-
-          <div class="edit__step" data-step="button" hidden>
-            <p class="edit__hint">The button in the corner that opens the feedback feature.</p>
-            <div data-colours="button"></div>
-          </div>
-
-          <div class="edit__step" data-step="tiles" hidden>
-            <p class="edit__hint">The buttons people pick from when they tap Feedback. These are PleaseNoBugs' own colours: tap one to change it.</p>
-            <div data-colours="tiles"></div>
-            <fieldset class="field">
-              <legend>Which ones</legend>
-              <div class="checks">
-                <label class="check"><input type="checkbox" name="kinds" value="bug" checked />Bugs</label>
-                <label class="check"><input type="checkbox" name="kinds" value="idea" checked />Ideas</label>
-                <label class="check"><input type="checkbox" name="kinds" value="review" checked />Reviews</label>
-              </div>
-            </fieldset>
-            <div data-strings="tiles"></div>
-          </div>
-
-          <div class="edit__step" data-step="board" hidden>
-            <p class="edit__hint">The list of posts people read and vote on, with your answers under them.</p>
-            <div data-strings="board"></div>
-            <div data-colours="board"></div>
-          </div>
-
-          <div class="edit__step" data-step="shots" hidden>
-            <p class="edit__hint">A bug or an idea can carry a screenshot. Who may see it?</p>
-            <fieldset class="field">
-              <legend>Screenshots on bugs and ideas</legend>
-              <div class="seg">
-                <label><input type="radio" name="screenshots" value="board" checked /><span>Everyone</span></label>
-                <label><input type="radio" name="screenshots" value="owners" /><span>Only you</span></label>
-                <label><input type="radio" name="screenshots" value="off" /><span>Off</span></label>
-              </div>
-              <p class="field__about" data-for="board">On the board, once the user ticks that everyone may see it.</p>
-              <p class="field__about" data-for="owners">Only you see them, never the board.</p>
-              <p class="field__about" data-for="off">No screenshots.</p>
-            </fieldset>
-          </div>
-
-          <div class="edit__step" data-step="sent" hidden>
-            <p class="edit__hint">What people see right after they send.</p>
-            <div data-strings="sent"></div>
-            <div data-colours="sent"></div>
-          </div>
-
-          <div class="edit__step" data-step="code" hidden>
-            <section class="feed" aria-labelledby="feed-title">
-              <h3 id="feed-title">Building with AI? Feed it this.</h3>
-              <p class="feed__about">
-                One prompt with everything your agent needs: your settings, the code, where it goes in your kind of
-                app, and how to get a server running. It asks you for what only you know, like your wallet address.
-              </p>
-              <button type="button" class="btn feed__btn" id="feed">Feed it to your AI agent</button>
-              <details class="feed__peek">
-                <summary>Peek at the prompt</summary>
-                <pre class="code"><code id="prompt"></code></pre>
-              </details>
-            </section>
-            <p class="or"><span>or paste it yourself</span></p>
-            <p class="edit__hint">
-              Paste this into your app. Swap <code>YOUR_PROJECT_ID</code> and <code>YOUR_SERVER</code> for what your
-              server printed when it started. <a href="https://github.com/lennylenders/PleaseNoBugs#readme">No server yet?</a>
-            </p>
-            <div class="code-head">
-              <div class="tabs" role="tablist" aria-label="Code">
-                <button type="button" role="tab" aria-selected="true" aria-controls="code-html" id="tab-html">HTML</button>
-                <button type="button" role="tab" aria-selected="false" aria-controls="code-css" id="tab-css">CSS</button>
-              </div>
-              <button type="button" class="btn btn--small btn--grey" id="copy">Copy code</button>
+          <section class="deck" id="deck" aria-labelledby="step-name">
+            <div class="deck__head">
+              <button type="button" class="deck__fold" id="fold" aria-expanded="true" aria-controls="deck-body">
+                <span class="deck__count" id="count" aria-live="polite">Step 1 of 6</span>
+                <span class="deck__short" id="short" aria-hidden="true"></span>
+                <svg class="deck__chevron" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 9l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="visually-hidden" id="fold-label">Fold the steps away</span>
+              </button>
+              <div class="deck__bars" id="bars" aria-hidden="true"></div>
             </div>
-            <pre class="code" id="code-html" role="tabpanel" aria-labelledby="tab-html"><code></code></pre>
-            <pre class="code" id="code-css" role="tabpanel" aria-labelledby="tab-css" hidden><code></code></pre>
-          </div>
-        </form>
 
-        <div class="actions">
-          <button type="button" class="btn btn--small btn--grey" id="back">Back</button>
-          <span class="spacer"></span>
-          <button type="button" class="btn btn--small" id="next">Next</button>
+            <div class="deck__body" id="deck-body">
+              <h1 class="deck__name" id="step-name">How it opens</h1>
+              <p class="deck__hint" id="hint">Pick a way: the screen shows how it opens.</p>
+
+              <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
+                <div class="edit__step" data-step="opens">
+                  <fieldset class="field">
+                    <legend>Shown as</legend>
+                    <div class="seg">
+                      <label><input type="radio" name="mode" value="floating" checked /><span>Button</span></label>
+                      <label><input type="radio" name="mode" value="inline" /><span>Inline</span></label>
+                      <label><input type="radio" name="mode" value="overlay" /><span>Overlay</span></label>
+                    </div>
+                    <p class="field__about" data-mode="floating">A round button in the corner of every screen.</p>
+                    <p class="field__about" data-mode="inline">A page of its own in your app, for example behind Feedback in its menu.</p>
+                    <p class="field__about" data-mode="overlay">Over your app, opened from a button or menu item of yours.</p>
+                  </fieldset>
+                  <div data-colours="opens" data-only="floating"></div>
+                </div>
+
+                <div class="edit__step" data-step="tiles" hidden>
+                  <div data-colours="tiles"></div>
+                  <fieldset class="field">
+                    <legend>Which ones</legend>
+                    <div class="checks">
+                      <label class="check"><input type="checkbox" name="kinds" value="bug" checked />Bugs</label>
+                      <label class="check"><input type="checkbox" name="kinds" value="idea" checked />Ideas</label>
+                      <label class="check"><input type="checkbox" name="kinds" value="review" checked />Reviews</label>
+                    </div>
+                  </fieldset>
+                  <div data-strings="tiles"></div>
+                </div>
+
+                <div class="edit__step" data-step="writing" hidden>
+                  <fieldset class="field">
+                    <legend>Screenshots on bugs and ideas</legend>
+                    <div class="seg">
+                      <label><input type="radio" name="screenshots" value="board" checked /><span>Everyone</span></label>
+                      <label><input type="radio" name="screenshots" value="owners" /><span>Only you</span></label>
+                      <label><input type="radio" name="screenshots" value="off" /><span>Off</span></label>
+                    </div>
+                    <p class="field__about" data-for="board">On the board, once the user ticks that everyone may see it.</p>
+                    <p class="field__about" data-for="owners">Only you see them, never the board.</p>
+                    <p class="field__about" data-for="off">No screenshots.</p>
+                  </fieldset>
+                </div>
+
+                <div class="edit__step" data-step="sent" hidden>
+                  <div data-strings="sent"></div>
+                  <div data-colours="sent"></div>
+                </div>
+
+                <div class="edit__step" data-step="board" hidden>
+                  <div data-strings="board"></div>
+                  <div data-colours="board"></div>
+                </div>
+
+                <div class="edit__step ready" data-step="ready" hidden>
+                  <div class="ready__ways">
+                    <button type="button" class="btn ready__btn" id="feed">Feed it to your AI agent</button>
+                    <button type="button" class="btn btn--quiet ready__btn" id="copy">Copy code</button>
+                  </div>
+                  <p class="ready__about">
+                    The prompt holds your settings, the code, where it goes in your kind of app and how to get a
+                    server running. Your agent asks you for what only you know, like your wallet address.
+                  </p>
+                  <details class="peek">
+                    <summary>Peek at the prompt</summary>
+                    <pre class="code"><code id="prompt"></code></pre>
+                  </details>
+                  <details class="peek">
+                    <summary>See the code</summary>
+                    <p class="ready__about">
+                      Swap <code>YOUR_PROJECT_ID</code> and <code>YOUR_SERVER</code> for what your server printed
+                      when it started. <a href="https://github.com/lennylenders/PleaseNoBugs#readme">No server yet?</a>
+                    </p>
+                    <div class="tabs" role="tablist" aria-label="Code">
+                      <button type="button" role="tab" aria-selected="true" aria-controls="code-html" id="tab-html">HTML</button>
+                      <button type="button" role="tab" aria-selected="false" aria-controls="code-css" id="tab-css">CSS</button>
+                    </div>
+                    <pre class="code" id="code-html" role="tabpanel" aria-labelledby="tab-html"><code></code></pre>
+                    <pre class="code" id="code-css" role="tabpanel" aria-labelledby="tab-css" hidden><code></code></pre>
+                  </details>
+                </div>
+              </form>
+            </div>
+
+            <div class="deck__foot">
+              <button type="button" class="btn btn--small btn--grey" id="back">Back</button>
+              <span class="spacer"></span>
+              <button type="button" class="btn btn--small" id="next">Next</button>
+            </div>
+          </section>
+          <div class="mark" id="mark" hidden><span class="mark__tag" id="mark-tag"></span></div>
         </div>
       </div>
     </main>

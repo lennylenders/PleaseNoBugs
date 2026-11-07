@@ -1443,52 +1443,11 @@ section + section { padding-top: 0; }
 .foot .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
 .foot a { color: var(--ink); }
 
-/* ---- The configurator, in steps ---------------------------------------- */
+/* ---- The screen, and the configurator's fields -------------------------- */
 
-/* On a wide screen the steps on the left and the widget on the right, where
-   it stays while the left scrolls, so nothing is ever a scroll away from what
-   it changes. On a phone one column, the widget above its card, after the
-   design. */
-.steps { padding-top: 24px; padding-bottom: 56px; }
-.steps .lead { margin-top: 12px; }
-
-.studio {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-  margin-top: 24px;
-}
-
-@media (min-width: 900px) {
-  .studio {
-    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
-    grid-template-rows: auto auto 1fr;
-    grid-template-areas:
-      'progress preview'
-      'edit preview'
-      'actions preview';
-    gap: 16px 32px;
-  }
-  .progress { grid-area: progress; }
-  .edit { grid-area: edit; }
-  .actions { grid-area: actions; align-self: start; }
-  .studio .editor { grid-area: preview; align-self: start; position: sticky; top: 88px; }
-}
-
-.progress { margin: 0; }
-.progress__step { display: flex; align-items: baseline; gap: 8px; margin: 0 0 10px; font-size: 15px; }
-.progress__count {
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-.progress__bars { display: flex; gap: 6px; }
-.progress__bars i { flex: 1; height: 4px; border-radius: 2px; background: var(--card-2); }
-.progress__bars i.done { background: color-mix(in srgb, var(--button) 55%, var(--card-2)); }
-.progress__bars i.now { background: var(--button); }
-
+/* The frame and the pretend app the home page's demo plays in, and the
+   configurator's screen too; customize.css lays out the configurator's card
+   in it. */
 .editor {
   background: var(--row);
   border: 1.5px solid var(--line);
@@ -1520,9 +1479,6 @@ section + section { padding-top: 0; }
 }
 .mark--right .mark__tag { left: auto; right: 10px; }
 
-.edit { background: var(--card); border-radius: 12px; padding: 20px; }
-.edit__hint { margin: 4px 0 18px; font-size: 14px; line-height: 1.5; color: var(--sub); }
-.edit__hint code { font-size: 13px; }
 .edit .field { margin-bottom: 18px; }
 .edit__step > :last-child,
 .edit__step > :last-child > .field:last-child { margin-bottom: 0; }
@@ -1536,9 +1492,6 @@ section + section { padding-top: 0; }
 .field:has(input[value='off']:checked) .field__about[data-for='off'] { display: block; }
 .edit .tabs { margin: 0 0 10px; }
 .edit .tabs button[aria-selected='true'] { background: var(--row); }
-
-.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.actions .spacer { flex: 1; }
 
 .field { display: grid; gap: 6px; margin-bottom: 14px; }
 .field:last-child { margin-bottom: 0; }
@@ -2054,59 +2007,9 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
   .play * { animation: none !important; }
 }
 
-/* Beside the steps it can be as tall as the window leaves. */
-@media (min-width: 900px) {
-  .screen { height: clamp(480px, calc(100vh - 140px), 680px); }
-}
-
 @media (max-width: 639px) {
   .editor { padding: 10px; }
-  .edit { padding: 16px; }
-  .screen { height: 640px; }
 }
-
-/* The last step's first route: a prompt for the developer's AI agent. In
-   the accent's outline, as the one thing on the step to do first. */
-.feed {
-  display: grid;
-  gap: 12px;
-  margin: 12px 0 0;
-  padding: 18px;
-  border-radius: 12px;
-  background: var(--page);
-  border: 1.5px solid var(--button);
-}
-.feed h3 { margin: 0; font-size: 17px; font-weight: 900; }
-.feed__about { margin: 0; font-size: 14px; line-height: 1.5; color: var(--sub); }
-.feed__btn { width: 100%; }
-.feed__peek summary {
-  width: max-content;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--button);
-  cursor: pointer;
-}
-.feed__peek .code {
-  margin-top: 10px;
-  max-height: 320px;
-  overflow: auto;
-  padding: 14px 16px;
-  font-size: 12px;
-  line-height: 1.55;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-/* "or paste it yourself", between two lines. */
-.or { display: flex; align-items: center; gap: 10px; margin: 20px 0 6px; font-size: 13px; font-weight: 700; color: var(--quiet); }
-.or::before,
-.or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-
-/* The tabs, and beside them the quiet way to copy: the step has one big
-   button, and it is the agent's. */
-.code-head { display: flex; align-items: center; gap: 8px; margin: 24px 0 10px; }
-.code-head .tabs { margin: 0; }
-.code-head #copy { margin-left: auto; }
 
 /*
  * "You're ready!" on reaching the last step (see `cheer` in customize.js):

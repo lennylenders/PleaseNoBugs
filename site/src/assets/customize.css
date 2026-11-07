@@ -1,0 +1,209 @@
+/*
+ * The configurator as one screen, the home page's demo screen (`.tour`,
+ * `.screen--home` in site.css): the pretend app, the real widget at its own
+ * place in it, and the steps on a card inside it (assets/customize.js).
+ *
+ * The box (`.viewport`) is the screen you see. In it lie the pretend app
+ * (`.screen`, the widget's own room: its transform makes it the box the
+ * widget's fixed button and panel are placed in) and the card (`.deck`).
+ *
+ * - From 980px the card stands on the left, over the app, under its name;
+ *   the widget is free on the right. An inline widget's app, its menu and
+ *   its Feedback page, moves over to the right of the card.
+ * - Below that the card is a panel along the bottom that folds down to one
+ *   line, and the app is what is left above it, so the widget is always
+ *   whole: folded, it has the whole screen.
+ */
+
+.make { padding-top: 24px; padding-bottom: 48px; }
+
+/* The frame around the screen is the home page's (`.editor`). */
+.desk .viewport {
+  /* As tall as the home page's screen. */
+  height: clamp(600px, calc(100vh - 220px), 760px);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--page);
+  box-shadow: 0 1px 3px rgba(10, 10, 30, 0.3);
+  /* The card's width, and where the app starts beside it (inline). */
+  --deck-w: clamp(300px, 32%, 360px);
+  --app-x: calc(var(--deck-w) + 48px);
+  --menu-w: 200px;
+}
+
+.screen--make {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--deck-h, 0px);
+  height: auto;
+  border-radius: 0;
+  box-shadow: none;
+  /* No easing on `bottom`: the widget's panel is fitted to the app's
+     height (`fitPanel`), which has to be the final one when it is read. */
+  cursor: default;
+}
+/* What can be tapped to change it. */
+.screen--make:not(.screen--live) > please-no-bugs { cursor: pointer; }
+
+/* The widget's button and panel ride on the top of everything in the page
+   (z-index in the millions); kept in the app's own layer here, so the card
+   and the mark lie over it. */
+.screen--make:not(.screen--inline) > please-no-bugs { position: relative; z-index: 1; }
+.screen--make.screen--inline > please-no-bugs { z-index: 1; }
+
+/* ---- The card ------------------------------------------------------------ */
+
+.deck {
+  position: absolute;
+  z-index: 3;
+  /* Not a page section's padding: a card's. */
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  box-shadow: 0 12px 32px rgba(10, 10, 30, 0.35);
+  overflow: hidden;
+}
+
+.deck__head { padding: 18px 20px 0; }
+.deck__fold {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.deck__fold:disabled { cursor: default; }
+.deck__count {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.deck__short { display: none; font-size: 15px; font-weight: 900; color: var(--ink); }
+.deck__chevron { display: none; margin-left: auto; color: var(--ink); transition: transform 200ms ease; }
+
+.deck__bars { display: flex; gap: 6px; margin-top: 10px; }
+.deck__bars i { flex: 1; height: 4px; border-radius: 2px; background: var(--card-2); }
+.deck__bars i.done { background: color-mix(in srgb, var(--button) 55%, var(--card-2)); }
+.deck__bars i.now { background: var(--button); }
+
+.deck__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 20px 4px;
+  overscroll-behavior: contain;
+}
+.deck__name { margin: 0; font-size: 26px; line-height: 1.15; letter-spacing: -0.3px; }
+.deck__hint { margin: 6px 0 18px; font-size: 14px; line-height: 1.5; color: var(--sub); }
+
+.deck__foot { display: flex; align-items: center; gap: 10px; padding: 14px 20px 18px; }
+.deck__foot .spacer { flex: 1; }
+
+/* What each way of showing it means, under the choice: only the picked one. */
+.field__about[data-mode] { display: none; }
+.field:has(input[value='floating']:checked) .field__about[data-mode='floating'],
+.field:has(input[value='inline']:checked) .field__about[data-mode='inline'],
+.field:has(input[value='overlay']:checked) .field__about[data-mode='overlay'] { display: block; }
+
+/* ---- The last step: as the end of the demo ------------------------------ */
+
+.deck--ready .deck__name { font-size: 34px; letter-spacing: -0.5px; }
+.ready__ways { display: grid; gap: 10px; }
+.ready__btn { width: 100%; min-height: 48px; }
+.ready__about { margin: 14px 0 0; font-size: 13px; line-height: 1.5; color: var(--sub); }
+.ready__about code { font-size: 12px; }
+.peek { margin-top: 14px; }
+.peek > summary {
+  width: max-content;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--button);
+  cursor: pointer;
+}
+.peek .tabs { margin: 12px 0 8px; }
+.peek .code {
+  margin-top: 10px;
+  max-height: 280px;
+  overflow: auto;
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.peek .tabs + .code { margin-top: 0; }
+
+/* ---- Wide: the card on the left, inside the screen ---------------------- */
+
+@media (min-width: 980px) {
+  .deck {
+    left: 24px;
+    top: 72px;
+    width: var(--deck-w);
+    max-height: calc(100% - 96px);
+    border-radius: var(--radius-lg);
+  }
+
+  /* Inline: the app, its menu and its Feedback page, beside the card. In
+     step 1's film too, so the menu that slides in is never under it. */
+  .screen--make.screen--inline > .inline-frame .dk-menu { left: var(--app-x); width: var(--menu-w); }
+  .screen--make.screen--inline > please-no-bugs { left: calc(var(--app-x) + var(--menu-w)); }
+  .screen--make .play--desk.play--inline { left: var(--app-x); }
+  .screen--make .play--desk.play--inline .dk-menu { width: var(--menu-w); }
+  .screen--make .play--desk.play--inline .dk-feed { left: var(--menu-w); }
+}
+
+/* ---- Narrower: a panel along the bottom that folds ---------------------- */
+
+@media (max-width: 979px) {
+  /* The panel takes its share of the screen: taller, as far as the device
+     allows, so the app above it keeps room for the widget. */
+  .desk .viewport { height: clamp(600px, calc(100svh - 140px), 900px); }
+  .deck {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: min(58%, 420px);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -8px 24px rgba(10, 10, 30, 0.3);
+  }
+  .deck__head { padding: 0; }
+  .deck__fold { min-height: 48px; padding: 12px 20px 0; cursor: pointer; }
+  .deck__chevron { display: block; transform: rotate(180deg); }
+  .deck__bars { padding: 0 20px; }
+
+  .deck--folded { max-height: none; }
+  .deck--folded .deck__fold { padding-bottom: 12px; }
+  .deck--folded .deck__short { display: inline; }
+  .deck--folded .deck__chevron { transform: none; }
+  .deck--folded .deck__bars,
+  .deck--folded .deck__body,
+  .deck--folded .deck__foot { display: none; }
+
+  .deck__name { font-size: 22px; }
+  .deck--ready .deck__name { font-size: 28px; }
+}
+
+@media (max-width: 639px) {
+  /* As much of the phone as the bar above leaves; the panel a little less of it. */
+  .desk .viewport { height: clamp(600px, calc(100svh - 120px), 820px); }
+  .deck { max-height: 54%; }
+  .deck__body { padding: 14px 16px 4px; }
+  .deck__fold { padding-left: 16px; padding-right: 16px; }
+  .deck__bars { padding: 0 16px; }
+  .deck__foot { padding: 12px 16px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck__chevron { transition: none; }
+}
