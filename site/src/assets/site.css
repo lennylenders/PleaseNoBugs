@@ -75,6 +75,31 @@ body {
 
 body > main { flex: 1 0 auto; }
 
+/*
+ * The home page's background: the widget's bug, idea and review glyphs,
+ * scattered (assets/pattern.svg, one tile that repeats), white and faded
+ * almost away, drifting slowly on the slant, as a chat app's wallpaper. It
+ * dresses the page and asks nothing of the eye. Still for whoever asked
+ * for less motion.
+ */
+.page--home::before {
+  content: '';
+  position: fixed;
+  /* One tile larger all round than the window, so the drift never shows an edge. */
+  inset: -420px;
+  z-index: -1;
+  background: url('pattern.svg') 0 0 / 420px 420px repeat;
+  opacity: 0.04;
+  pointer-events: none;
+  animation: page-drift 160s linear infinite;
+}
+@keyframes page-drift {
+  to { transform: translate(420px, 420px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page--home::before { animation: none; }
+}
+
 /* The one pager: the hero sits in the middle of what the bars leave. */
 main.one { display: flex; align-items: center; }
 main.one .hero { flex: 1; }
