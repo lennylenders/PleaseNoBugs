@@ -716,35 +716,33 @@ section + section { padding-top: 0; }
 
 .hero__below { display: flex; justify-content: center; margin-top: 24px; }
 
-/* What each step of the tour is, as a subtitle typed out: from 640px as the
-   intro's words are, big, in the app's bottom left corner, clear of the
-   widget's panel; on a phone in a box under the screen, where the widget
-   fills it. Only while the tour plays. */
+/* What each step of the tour is, as a subtitle typed out as big as the
+   intro's words: from 640px in the app's bottom left corner, clear of the
+   widget's panel; on a phone under the screen, where the widget fills it.
+   Only while the tour plays. */
 .tour-say {
   display: grid;
   gap: 2px;
   width: 100%;
   margin: 12px 0 0;
-  padding: 12px 14px;
+  padding: 6px 4px 0;
   border: 0;
-  border-radius: 12px;
   font: inherit;
-  background: var(--card);
   color: var(--ink);
   text-align: left;
   transition: opacity 180ms ease;
 }
 .tour-say:focus { outline: none; }
-.tour-say__title { min-height: 1.3em; font-size: 16px; font-weight: 900; line-height: 1.3; }
+.tour-say__title { min-height: 1.15em; font-size: 26px; font-weight: 900; line-height: 1.15; letter-spacing: -0.3px; }
 .tour-say--away .tour-say__title { opacity: 0; }
 /* The intro's cursor while it types. */
 .tour-say--typing .tour-say__title::after {
   content: "";
   display: inline-block;
-  width: 2px;
+  width: 3px;
   height: 0.95em;
-  margin-left: 2px;
-  border-radius: 1px;
+  margin-left: 3px;
+  border-radius: 2px;
   background: var(--button);
   vertical-align: -0.1em;
   animation: ti-blink 900ms steps(1) infinite;
@@ -763,19 +761,9 @@ section + section { padding-top: 0; }
     max-width: 560px;
     margin: 0;
     padding: 0;
-    border-radius: 0;
-    background: none;
     pointer-events: none;
   }
-  .tour-say__title { font-size: clamp(26px, 3.6vw, 40px); line-height: 1.1; letter-spacing: -0.3px; }
-  .tour-say--typing .tour-say__title::after { width: 3px; margin-left: 3px; border-radius: 2px; }
-}
-/* A trial, to compare on a phone (?subtitle=plain, tour.js): the words
-   under the screen without their box, as big as the intro's. */
-@media (max-width: 639px) {
-  .tour--say-plain .tour-say { padding: 6px 4px 0; background: none; }
-  .tour--say-plain .tour-say__title { font-size: 26px; line-height: 1.15; letter-spacing: -0.3px; }
-  .tour--say-plain .tour-say--typing .tour-say__title::after { width: 3px; }
+  .tour-say__title { font-size: clamp(26px, 3.6vw, 40px); line-height: 1.1; }
 }
 
 /* Where the tour taps: the configurator's ring, moved to each thing it taps. */

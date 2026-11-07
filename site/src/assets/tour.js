@@ -753,9 +753,6 @@ function side(e) {
 
 if (box && frame && page && subtitle && watch && titleCard && endCard && again && intro && caption && skip && said) {
   await customElements.whenDefined('please-no-bugs');
-  // A trial, to compare on a phone: ?subtitle=plain shows the subtitle there
-  // without its box, as on a wide screen (site.css).
-  if (new URLSearchParams(location.search).get('subtitle') === 'plain') frame.classList.add('tour--say-plain');
   mount('user');
   watchSight();
 
