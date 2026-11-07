@@ -13,7 +13,7 @@ import {
 import type { Client } from '../client.js';
 import type { CopyKey, Translate } from '../i18n.js';
 import { whenLabel } from '../when.js';
-import { Badge, KIND, SiteMark } from './PostCard.js';
+import { Badge, KIND, SiteMark, doneLabel } from './PostCard.js';
 import { DeleteSheet } from './Sheets.js';
 import * as Icon from './icons.js';
 
@@ -182,6 +182,16 @@ function fixedLabel(update: Update, posts: Post[], t: Translate): string | null 
   return parts.length ? t('updates.fromBoard', { list: parts.join(', ') }) : null;
 }
 
+/**
+ * What the posts an update closed are called: Fixed when they are bugs, Done
+ * when they are ideas, "Fixed & done" when it closed some of each.
+ */
+function closedLabel(update: Update, posts: Post[]): CopyKey {
+  const named = new Set(update.posts);
+  const kinds = new Set(posts.filter((p) => named.has(p.id)).map((p) => p.kind));
+  return kinds.has('bug') && kinds.has('idea') ? 'board.statusFixedAndDone' : doneLabel([...kinds]);
+}
+
 function UpdateCard({
   update,
   posts,
@@ -197,6 +207,7 @@ function UpdateCard({
 }) {
   const when = whenLabel(update.at, locale);
   const fixed = fixedLabel(update, posts, t);
+  const closed = closedLabel(update, posts);
   // Checked again here, whatever the server sent: a card that is a link has
   // to go where it says.
   const href = cleanCodeLink(update.link);
@@ -211,7 +222,7 @@ function UpdateCard({
       {update.text && <p class="update__text">{update.text}</p>}
       {fixed && (
         <div class="update__fixed">
-          <Badge tone="done" icon={() => <Icon.Done />} label={t('board.statusDone')} />
+          <Badge tone="done" icon={() => <Icon.Done />} label={t(closed)} />
           <span>{fixed}</span>
         </div>
       )}

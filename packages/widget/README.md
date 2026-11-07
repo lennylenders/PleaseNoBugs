@@ -78,7 +78,7 @@ before sending, which leaves the photo's location and camera details behind.
 
 You see every screenshot on the page where you answer a post, and can **take
 one off the board** there while the post stays up, or hide the whole post. A
-screenshot is deleted by itself when you mark the post Done or Not doing, or
+screenshot is deleted by itself when you mark the post Fixed, Done or Not doing, or
 when the post is thrown away. Taking one off stops it being shown; it cannot
 take it back from anybody who already saved it.
 
@@ -97,7 +97,7 @@ If your page has a Content Security Policy, screenshots on the board load as
 plain images from your server, so `img-src` needs your server next to
 `connect-src`.
 
-**Fixed, and where.** When you mark a bug or an idea **Done**, the page asks
+**Fixed, and where.** When you mark a bug **Fixed** or an idea **Done**, the page asks
 for the version it shipped in and a link to the fix, a commit, a pull request
 or a release. Both are optional; only github.com and gitlab.com links are
 accepted. The card then says "Fixed in 1.4.2 · View on GitHub" (or GitLab)
@@ -111,7 +111,7 @@ what changed in your app, newest first, each one opening its page on GitHub
 or GitLab.
 Anybody can read it, signed in or not. You write one with **+** there: a
 title, a version, a GitHub or GitLab link, a few lines, and which open bugs and ideas
-it fixes. Those you tick go to Done with that version and link, and their
+it fixes. Those you tick are marked Fixed (bugs) or Done (ideas) with that version and link, and their
 authors get the note. Until you write the first one, only you see the button.
 
 ## Theming

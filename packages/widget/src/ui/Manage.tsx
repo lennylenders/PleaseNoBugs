@@ -11,7 +11,7 @@ import {
   type PostStatus,
 } from '@pleasenobugs/core';
 import type { CopyKey, Translate } from '../i18n.js';
-import { PostCard } from './PostCard.js';
+import { PostCard, statusLabel } from './PostCard.js';
 import { Thread } from './Talk.js';
 import * as Icon from './icons.js';
 
@@ -205,7 +205,7 @@ export function Manage({
                   class="chip-pick"
                   onClick={() => setStatus(s.status)}
                 >
-                  {t(s.label)}
+                  {t(statusLabel({ kind: post.kind, status: s.status }, s.label))}
                 </button>
               ))}
             </div>

@@ -80,6 +80,24 @@ const STATUS: Partial<Record<PostStatus, { icon: () => preact.JSX.Element; label
   declined: { icon: () => <Icon.Declined />, label: 'board.statusDeclined' },
 };
 
+/**
+ * What `done` is called for posts of these kinds: a bug is **Fixed**,
+ * something was made; an idea is **Done**, nothing broke, it was carried
+ * out. For both at once, "Fixed or done". The status itself stays `done`,
+ * on the server and in the API; only the word differs.
+ */
+export function doneLabel(kinds: readonly PostKind[]): CopyKey {
+  const some = new Set(kinds.filter((k) => k !== 'review'));
+  if (some.size === 1 && some.has('bug')) return 'board.statusFixed';
+  if (some.size === 1 && some.has('idea')) return 'board.statusDone';
+  return 'board.statusFixedOrDone';
+}
+
+/** A status as the words say it for one post: `done` by its kind. */
+export function statusLabel(post: Pick<Post, 'kind' | 'status'>, label: CopyKey): CopyKey {
+  return post.status === 'done' ? doneLabel([post.kind]) : label;
+}
+
 export function Badge({ tone, icon, label }: { tone: string; icon: () => preact.JSX.Element; label: string }) {
   return (
     <span class="badge">
@@ -266,7 +284,7 @@ export function PostCard({
     >
       <div class="card__head">
         <Badge tone={post.kind} icon={kind.icon} label={t(kind.label)} />
-        {status && <Badge tone={post.status} icon={status.icon} label={t(status.label)} />}
+        {status && <Badge tone={post.status} icon={status.icon} label={t(statusLabel(post, status.label))} />}
         {post.rating !== undefined && <Stars n={post.rating} t={t} />}
         {post.shot && !shotUrl && (
           <span class="card__shot" title={t('board.shot')} aria-label={t('board.shot')}>

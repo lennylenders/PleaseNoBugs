@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import type { PostKind, PostStatus } from '@pleasenobugs/core';
 import { NO_FILTER, type BoardFilter, type OwnFilter } from '../filter.js';
 import type { CopyKey, Translate } from '../i18n.js';
-import { KIND } from './PostCard.js';
+import { KIND, doneLabel } from './PostCard.js';
 import * as Icon from './icons.js';
 
 /**
@@ -108,9 +108,13 @@ const OWN_LABEL: Record<OwnFilter, CopyKey> = {
 };
 
 /** A chip's words, for the chips under the search field as well as here. */
-export function filterLabel(t: Translate, f: { kind?: PostKind; status?: PostStatus; own?: OwnFilter; mine?: true }): string {
+export function filterLabel(
+  t: Translate,
+  f: { kind?: PostKind; status?: PostStatus; kinds?: readonly PostKind[]; own?: OwnFilter; mine?: true },
+): string {
   if (f.kind) return t(KIND[f.kind].plural);
-  if (f.status) return t(STATUS_LABEL[f.status]);
+  // Done is Fixed for bugs, Done for ideas, and both when both are in view (`kinds`).
+  if (f.status) return t(f.status === 'done' && f.kinds ? doneLabel(f.kinds) : STATUS_LABEL[f.status]);
   if (f.own) return t(OWN_LABEL[f.own]);
   return t('filter.mine');
 }
@@ -199,7 +203,7 @@ export function FilterSheet({
       </div>
 
       {kinds.length > 1 && group('kinds', 'filter.kind', kinds, (k) => filterLabel(t, { kind: k }))}
-      {group('statuses', 'filter.status', FILTER_STATUSES, (s) => filterLabel(t, { status: s }))}
+      {group('statuses', 'filter.status', FILTER_STATUSES, (s) => filterLabel(t, { status: s, kinds: draft.kinds.length ? draft.kinds : kinds }))}
       {kinds.includes('review') && <p class="note">{t('filter.statusNote')}</p>}
 
       {owners.length > 0 && (

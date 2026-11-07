@@ -32,6 +32,10 @@ const COPY = {
   'board.statusOpen': { en: 'Open', nl: 'Open', de: 'Offen' },
   'board.statusPlanned': { en: 'Planned', nl: 'Gepland', de: 'Geplant' },
   'board.statusDone': { en: 'Done', nl: 'Klaar', de: 'Fertig' },
+  // A bug is fixed, an idea done: 'done' says which by the kind (doneLabel in PostCard).
+  'board.statusFixed': { en: 'Fixed', nl: 'Opgelost', de: 'Behoben' },
+  'board.statusFixedOrDone': { en: 'Fixed or done', nl: 'Opgelost of klaar', de: 'Behoben oder fertig' },
+  'board.statusFixedAndDone': { en: 'Fixed & done', nl: 'Opgelost & klaar', de: 'Behoben & fertig' },
   'board.statusDeclined': { en: 'Not doing', nl: 'Doen we niet', de: 'Machen wir nicht' },
   'board.anon': { en: 'Anonymous', nl: 'Anoniem', de: 'Anonym' },
   'board.byYou': { en: 'You', nl: 'Jij', de: 'Du' },

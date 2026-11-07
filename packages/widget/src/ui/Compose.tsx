@@ -9,7 +9,7 @@ import {
   type ShotType,
 } from '@pleasenobugs/core';
 import type { CopyKey, Translate } from '../i18n.js';
-import { KIND } from './PostCard.js';
+import { KIND, statusLabel } from './PostCard.js';
 import * as Icon from './icons.js';
 
 /** A screenshot ready to send, plus a URL to show it with while you decide. */
@@ -220,7 +220,7 @@ export function Compose({
                   <span class="alike__meta">
                     {[
                       t(KIND[post.kind].label),
-                      ...(post.status !== 'open' ? [t(STATUS_LABEL[post.status])] : []),
+                      ...(post.status !== 'open' ? [t(statusLabel(post, STATUS_LABEL[post.status]))] : []),
                       post.votes === 1 ? t('board.voteOne') : t('board.votes', { n: post.votes }),
                     ].join(' · ')}
                   </span>

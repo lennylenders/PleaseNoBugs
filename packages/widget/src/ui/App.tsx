@@ -19,7 +19,7 @@ import { insideNimiqPay } from '../signer.js';
 import type { CopyKey, Translate } from '../i18n.js';
 import { Choose, Sent } from './Choose.js';
 import { Compose, type Draft, type Screenshots } from './Compose.js';
-import { Badge, CodeLink, PostCard, Stars } from './PostCard.js';
+import { Badge, CodeLink, PostCard, Stars, doneLabel } from './PostCard.js';
 import { Manage, type ManageChange } from './Manage.js';
 import { DeleteSheet, FilterSheet, ShotSheet, filterLabel } from './Sheets.js';
 import { Talk } from './Talk.js';
@@ -764,7 +764,7 @@ export function App({
           {[
             ...filter.kinds.map((k) => ({ label: filterLabel(t, { kind: k }), off: { ...filter, kinds: filter.kinds.filter((x) => x !== k) } })),
             ...filter.statuses.map((s) => ({
-              label: filterLabel(t, { status: s }),
+              label: filterLabel(t, { status: s, kinds: filter.kinds.length ? filter.kinds : kinds }),
               off: { ...filter, statuses: filter.statuses.filter((x) => x !== s) },
             })),
             ...filter.own.map((o) => ({ label: filterLabel(t, { own: o }), off: { ...filter, own: filter.own.filter((x) => x !== o) } })),
@@ -792,7 +792,7 @@ export function App({
             you close it, whichever filter is on. */}
         {news && (
           <div class="news" role="status">
-            <Badge tone="done" icon={() => <Icon.Done />} label={t('board.statusDone')} />
+            <Badge tone="done" icon={() => <Icon.Done />} label={t(doneLabel([news.kind]))} />
             <div class="news__text">
               <strong class="news__title">
                 {news.fix?.version
