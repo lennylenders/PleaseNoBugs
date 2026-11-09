@@ -207,9 +207,13 @@ menuItem.onclick = () =&gt; open({ project, server });</code></pre>
 
     <footer class="foot">
       <div class="wrap">
-        <span class="foot__nimiq"><img src="assets/nimiq/hexagon.svg" alt="" width="16" height="14" /><b>For everyone building on Nimiq.</b> <a href="https://nimiq.dev/">Nimiq developer docs</a> &middot; <a href="https://nimiq.dev/mini-apps/">Mini apps in Nimiq Pay</a></span>
-        <span>PleaseNoBugs is open source, MIT licensed.</span>
-        <span>No tracking. <a href="https://github.com/lennylenders/PleaseNoBugs">Source on GitHub</a></span>
+        <div class="foot__row">
+          <p class="foot__who"><img src="assets/nimiq/hexagon.svg" alt="" width="16" height="14" /><b>For everyone building on Nimiq.</b> <span>Free and open source.</span></p>
+          <nav class="foot__links" aria-label="Links">
+            <a href="https://nimiq.dev/">Nimiq docs</a><span aria-hidden="true">&middot;</span><a href="https://nimiq.dev/mini-apps/">Mini apps</a><span aria-hidden="true">&middot;</span><a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
+          </nav>
+        </div>
+        <p class="foot__note">No tracking.</p>
       </div>
     </footer>
   </body>

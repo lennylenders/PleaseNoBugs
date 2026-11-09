@@ -1112,14 +1112,18 @@ build web apps for the desktop browser). It names no kinds of apps.
   would over-promise, as the board needs a server of your own.
 - **A label above What is it?'s heading**: Nimiq's hexagon and "For Nimiq
   developers".
-- **A block under the home page's demo**: "Built for builders on [Nimiq's
-  wordmark]", "Building on Nimiq? This feedback board is made for you, from
-  the wallet that signs to the server you own.", three reasons in cards (No
-  account, no password; Your data, your server; Open source, a few lines)
-  and one link, to Nimiq's developer docs (nimiq.dev). The first reason says
-  only "their Nimiq wallet", not how it signs where.
-- **A first line in every page's footer**: "For everyone building on Nimiq."
-  with both doc links, nimiq.dev and nimiq.dev/mini-apps.
+- **No block under the home page's demo** (removed 2026-11-09): a "Built
+  for builders on [Nimiq's wordmark]" block with three reason cards and a
+  docs link was built, then taken out. The home page is the demo again,
+  with Nimiq in the line under its heading and in the footer.
+- **The footer is one tidy row on every page**: the hexagon, "For everyone
+  building on Nimiq." and "Free and open source." on the left; "Nimiq docs ·
+  Mini apps · GitHub" on the right (nimiq.dev, nimiq.dev/mini-apps, the
+  repo), under it on a phone. Under a thin line one short privacy line: on
+  the home page "No tracking. Posts from the round button go to our own
+  server, without a name, once approved.", elsewhere "No tracking." It
+  replaces three loose lines whose long privacy sentence broke "Source on
+  GitHub" in two.
 - **What is it?** opens with "made for everyone building on Nimiq", asks
   "Why should Nimiq developers use it?", and puts the three reasons first;
   "Your feedback, no sign-up" went into the first two.
