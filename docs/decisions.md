@@ -1111,6 +1111,12 @@ build web apps for the desktop browser). It names no kinds of apps.
   would over-promise, as the board needs a server of your own.
 - **No "For Nimiq developers" label** (removed 2026-11-09): it sat above
   What is it?'s heading, and earlier the home page's, and was taken out.
+- **The AI prompt lets the developer pick a server, neutrally**
+  (2026-11-09): without one yet, the agent shows all four ways side by side
+  (Railway; the app's own Node backend; Docker on a rented server; own
+  hardware), what each depends on and asks, without picking one, and only
+  then walks through the chosen way. Before, Railway came first and most
+  worked out, which read as the advice, and own hardware was missing.
 - **No server price anywhere** (2026-11-09): "about $1 a month" is gone from
   the site, the AI prompt, the README and this log. What a server costs
   depends on where it runs and how much it is used.
