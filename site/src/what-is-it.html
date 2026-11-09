@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>What is PleaseNoBugs?</title>
-    <meta name="description" content="What the PleaseNoBugs widget is about, what it does for you as an app developer, and how to add it to your app in a few lines." />
+    <meta name="description" content="What the PleaseNoBugs widget is about, what it does for you as a Nimiq developer, and how to add it to your app in a few lines." />
     <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="assets/site.css" />
     <script src="assets/how.js" type="module"></script>
@@ -44,8 +44,9 @@
     <main>
       <section class="how-intro">
         <div class="wrap">
+          <p class="nimiq-label"><img src="assets/nimiq/hexagon.svg" alt="" width="18" height="16" />For Nimiq developers</p>
           <h1>What is it?</h1>
-          <p class="lead">PleaseNoBugs is an open-source feedback widget that sits on top of your Nimiq mini app. Your users tell you what is broken and what they miss without leaving your app, and you answer where everyone can see it.</p>
+          <p class="lead">PleaseNoBugs is an open-source feedback widget made for everyone building on Nimiq. Your users tell you what is broken and what they miss without leaving your app, and you answer where everyone can see it.</p>
         </div>
       </section>
 
@@ -98,13 +99,15 @@
       <section class="how how--flip" aria-labelledby="why-title">
         <div class="wrap how__row">
           <div class="how__text">
-            <h2 id="why-title">Why should app developers use it?</h2>
+            <h2 id="why-title">Why should Nimiq developers use it?</h2>
             <ul class="how__points">
+              <li><b>No account, no password.</b> Your users sign with their Nimiq wallet. No email, no sign-up form.</li>
+              <li><b>Your data, your server.</b> The posts live on a server you run, about $1 a month. Nobody else holds them.</li>
+              <li><b>Open source, a few lines.</b> Free and MIT licensed. A script and one tag, and your app has a feedback board.</li>
               <li><b>Know what your users really want.</b> Votes put the most wanted ideas and the most annoying bugs on top, so you know what to build next.</li>
               <li><b>Fewer duplicates.</b> While someone writes, similar posts show up under "Said already, maybe?", and they vote for that one instead.</li>
               <li><b>One place to answer.</b> Your reply, the status and the version that fixed it sit under the post, for everyone to see. No inbox, no email threads.</li>
               <li><b>It looks like your app.</b> Your colours and your words, in English, Dutch or German, and only the kinds of feedback you want. <a href="customize.html">Try it in the configurator</a>.</li>
-              <li><b>Your feedback, no sign-up.</b> The posts live on a server you run, so nobody else holds them. Inside Nimiq Pay your users post with the wallet they already have: no account, no password.</li>
             </ul>
           </div>
 
@@ -204,6 +207,7 @@ menuItem.onclick = () =&gt; open({ project, server });</code></pre>
 
     <footer class="foot">
       <div class="wrap">
+        <span class="foot__nimiq"><img src="assets/nimiq/hexagon.svg" alt="" width="16" height="14" /><b>For everyone building on Nimiq.</b> <a href="https://nimiq.dev/">Nimiq developer docs</a> &middot; <a href="https://nimiq.dev/mini-apps/">Mini apps in Nimiq Pay</a></span>
         <span>PleaseNoBugs is open source, MIT licensed.</span>
         <span>No tracking. <a href="https://github.com/lennylenders/PleaseNoBugs">Source on GitHub</a></span>
       </div>

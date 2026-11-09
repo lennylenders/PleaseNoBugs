@@ -122,8 +122,9 @@ body > main { flex: 1 0 auto; }
 }
 
 /* The one pager: the hero sits in the middle of what the bars leave. */
-main.one { display: flex; align-items: center; }
-main.one .hero { flex: 1; }
+/* The home page: the demo, centred when the window is tall, then the block
+   for Nimiq developers under it. */
+main.one { display: flex; flex-direction: column; justify-content: center; }
 
 a { color: inherit; }
 
@@ -244,6 +245,56 @@ section + section { padding-top: 0; }
 
 .section-head { max-width: 640px; margin-bottom: 28px; }
 .section-head p { color: var(--sub); margin: 10px 0 0; line-height: 1.55; }
+
+/*
+ * "For Nimiq developers": a small label above What is it?'s heading, with
+ * Nimiq's hexagon (assets/nimiq/, Nimiq's own files, used
+ * with their permission), so anyone building on Nimiq sees it is for them.
+ */
+.nimiq-label {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 6px 14px 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(233, 178, 19, 0.55);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.nimiq-label img { flex: none; width: 18px; height: 16px; }
+
+/* The home page's block for everyone building on Nimiq: three reasons in
+   cards, side by side from 760px, and the way to Nimiq's docs. */
+.builders { padding: 72px 0 96px; }
+.builders .section-head { max-width: 680px; margin-bottom: 36px; }
+.builders .section-head p { font-size: 18px; }
+.builders h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.3em; font-size: clamp(30px, 4vw, 44px); }
+.builders__logo { flex: none; width: auto; height: 0.9em; color: var(--ink); }
+.builders__cards { display: grid; gap: 20px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 760px) {
+  .builders__cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+}
+.builders__card { padding: 28px; border-radius: 20px; background: var(--card); }
+.builders__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: var(--button);
+  color: #fff;
+}
+.builders__icon svg { width: 24px; height: 24px; }
+.builders__card h3 { font-size: 21px; }
+.builders__card p { margin: 10px 0 0; color: rgba(255, 255, 255, 0.8); line-height: 1.55; }
+.builders__more { margin: 32px 0 0; color: var(--sub); }
+.builders__more a { color: var(--button); font-weight: 700; }
 
 /* ---- The one pager: what it is, and the widget to try ----------------- */
 
@@ -1442,6 +1493,10 @@ section + section { padding-top: 0; }
 }
 .foot .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
 .foot a { color: var(--ink); }
+/* Its first line, on every page: who it is for, and Nimiq's docs. */
+.foot__nimiq { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--ink); }
+.foot__nimiq img { flex: none; width: 16px; height: 14px; }
+.foot__nimiq b { font-weight: 700; }
 
 /* ---- The screen, and the configurator's fields -------------------------- */
 

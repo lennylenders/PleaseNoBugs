@@ -1096,6 +1096,44 @@ Built straight in the site, without Figma first.
 - **The home page's floating glyphs are on Customize too**, lighting up
   under the cursor; the class is `page--pattern` now.
 
+## 2026-11-08: The site says it is for everyone building on Nimiq
+
+The site barely said who the widget is for: "Nimiq" was in the home page's
+tab title and one line of What is it?. Now it says so in four places, for
+everyone building on the Nimiq network, not only Nimiq Pay's mini apps (some
+build web apps for the desktop browser). It names no kinds of apps.
+
+- **The home page's line under its heading names Nimiq**: "Stop guessing
+  what your users want." stays, under it now, short: "Free, open-source
+  feedback for Nimiq builders. Live in minutes." Not "one tag": it also
+  takes a script line and a server. A label above the heading was tried and dropped as saying it
+  twice. "Free" is in that line, not on a "Get it free" button: free alone
+  would over-promise, as the board needs a server of your own.
+- **A label above What is it?'s heading**: Nimiq's hexagon and "For Nimiq
+  developers".
+- **A block under the home page's demo**: "Built for builders on [Nimiq's
+  wordmark]", "Building on Nimiq? This feedback board is made for you, from
+  the wallet that signs to the server you own.", three reasons in cards (No
+  account, no password; Your data, your server; Open source, a few lines)
+  and one link, to Nimiq's developer docs (nimiq.dev). The first reason says
+  only "their Nimiq wallet", not how it signs where.
+- **A first line in every page's footer**: "For everyone building on Nimiq."
+  with both doc links, nimiq.dev and nimiq.dev/mini-apps.
+- **What is it?** opens with "made for everyone building on Nimiq", asks
+  "Why should Nimiq developers use it?", and puts the three reasons first;
+  "Your feedback, no sign-up" went into the first two.
+- **The AI prompt on Customize asks where the app runs**: inside Nimiq Pay
+  nothing is added; anywhere else the agent gives the element a Nimiq Hub
+  signer, or reuses the app's own wallet login. The pages' own steps stay
+  short.
+- **Nimiq's logo**, used with the Nimiq team's permission (the owner has it):
+  Nimiq's own SVGs from github.com/nimiq/developer-center, in
+  `site/src/assets/nimiq/`. The wordmark in the block is inline, with a white
+  word, so it reads on the dark page.
+- Designed first in Figma, Page 3, "Site · Nimiq for developers
+  (2026-11-08)"; a first round said "Nimiq mini apps" everywhere and was
+  widened.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
