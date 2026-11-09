@@ -1105,7 +1105,8 @@ build web apps for the desktop browser). It names no kinds of apps.
 
 - **The home page's line under its heading names Nimiq**: "Stop guessing
   what your users want." stays, under it now, short: "Free, open-source
-  feedback for Nimiq builders. Live in minutes." Not "one tag": it also
+  feedback for Nimiq builders. Live in minutes. And let users drive your
+  roadmap." Not "one tag": it also
   takes a script line and a server. A label above the heading was tried and dropped as saying it
   twice. "Free" is in that line, not on a "Get it free" button: free alone
   would over-promise, as the board needs a server of your own.
