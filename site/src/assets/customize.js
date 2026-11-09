@@ -1178,7 +1178,7 @@ function prompt() {
     '',
     '1. The server',
     'The widget talks to a PleaseNoBugs server that I run myself, so nobody else holds the feedback. First ask me whether I have one. If I do, ask me for its project id and its address: it prints both in its log every time it starts. If not, help me pick one of these and walk me through it:',
-    '- Railway, no command line, about $1 a month: I open https://railway.com/deploy/PdvdtB, sign in and fill in three fields. Tell me what goes in them: PNB_PROJECT_NAME (what users call this app), PNB_PROJECT_ORIGINS (where it runs, comma-separated, the local dev address too, like https://my.app,http://localhost:5173) and PNB_PROJECT_OWNER (my NQ... wallet address, which answers posts). Then I paste you what Deploy Logs says.',
+    '- Railway, no command line: I open https://railway.com/deploy/PdvdtB, sign in and fill in three fields. Tell me what goes in them: PNB_PROJECT_NAME (what users call this app), PNB_PROJECT_ORIGINS (where it runs, comma-separated, the local dev address too, like https://my.app,http://localhost:5173) and PNB_PROJECT_OWNER (my NQ... wallet address, which answers posts). Then I paste you what Deploy Logs says.',
     `- This app's own Node backend (Node 22.13 or newer): npx @pleasenobugs/server create-project --name "..." --origin https://... --owner "NQ...", then npx @pleasenobugs/server. Or mount it in Express: ${REPO}/tree/main/packages/server`,
     '- Docker on a machine I rent: docker-compose.yml from the repo, a .env with PNB_DOMAIN and the same three fields, then docker compose up -d; the project id is in docker compose logs pleasenobugs.',
     'Never make up my wallet address, the project id or the server address: ask me.',

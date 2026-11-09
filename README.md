@@ -101,9 +101,9 @@ you like and move by copying that file.
 
 | Where | What you depend on | Good for |
 |---|---|---|
-| **Railway**, as above | Railway | No command line. About $1 to $1.50 a month. |
+| **Railway**, as above | Railway | No command line. |
 | **A backend you already have** | Nothing new | Apps with a Node server: `npx @pleasenobugs/server`, or mount it into Express. See [packages/server](packages/server). |
-| **Your own server** with Docker (a VPS, or Coolify on one) | Whoever rents you the machine, and you can switch | A few euros a month for a small VPS, with room for other things. |
+| **Your own server** with Docker (a VPS, or Coolify on one) | Whoever rents you the machine, and you can switch | A small VPS, with room for other things. |
 | **Your own hardware** (a Raspberry Pi, a NAS) | Your internet connection and a domain name | Depending on as little as possible, if you can keep it switched on. |
 
 ### With Docker

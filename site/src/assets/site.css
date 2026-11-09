@@ -245,27 +245,6 @@ section + section { padding-top: 0; }
 .section-head { max-width: 640px; margin-bottom: 28px; }
 .section-head p { color: var(--sub); margin: 10px 0 0; line-height: 1.55; }
 
-/*
- * "For Nimiq developers": a small label above What is it?'s heading, with
- * Nimiq's hexagon (assets/nimiq/, Nimiq's own files, used
- * with their permission), so anyone building on Nimiq sees it is for them.
- */
-.nimiq-label {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  gap: 8px;
-  margin: 0 0 20px;
-  padding: 6px 14px 6px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(233, 178, 19, 0.55);
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-.nimiq-label img { flex: none; width: 18px; height: 16px; }
 
 /* ---- The one pager: what it is, and the widget to try ----------------- */
 

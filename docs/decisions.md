@@ -170,7 +170,7 @@ hosting attractive, that many mini apps have no backend, is answered by a
 "Deploy on Railway" button and by the server making its first project from
 three environment variables (`PNB_PROJECT_*`), so there is no command line
 between clicking and pasting a project id. Cost to the developer: their own
-small Railway bill, about $1 to $1.50 a month at this size.
+small Railway bill; what it comes to depends on their host and their use.
 
 Shitti runs its own server like anybody else, and that server is also where the
 counts arrive.
@@ -572,8 +572,7 @@ that lives in the page" of 2026-10-28.
 
 - **Its own server**, a Railway service in a project of its own, not
   Shitti's. A public page draws spam, and Shitti's service is also the
-  telemetry address, which nothing may put at risk. About $1 to $1.50 a
-  month. The site reads it from `site/board.json`, filled in once the server
+  telemetry address, which nothing may put at risk. The site reads it from `site/board.json`, filled in once the server
   exists; `site/build.mjs` refuses to build without it, so the site cannot go
   out with a board that is not there. On this machine the home page talks to
   `site/board.mjs` instead (`npm run site:board`): the same rules, in memory.
@@ -1110,8 +1109,11 @@ build web apps for the desktop browser). It names no kinds of apps.
   takes a script line and a server. A label above the heading was tried and dropped as saying it
   twice. "Free" is in that line, not on a "Get it free" button: free alone
   would over-promise, as the board needs a server of your own.
-- **A label above What is it?'s heading**: Nimiq's hexagon and "For Nimiq
-  developers".
+- **No "For Nimiq developers" label** (removed 2026-11-09): it sat above
+  What is it?'s heading, and earlier the home page's, and was taken out.
+- **No server price anywhere** (2026-11-09): "about $1 a month" is gone from
+  the site, the AI prompt, the README and this log. What a server costs
+  depends on where it runs and how much it is used.
 - **No block under the home page's demo** (removed 2026-11-09): a "Built
   for builders on [Nimiq's wordmark]" block with three reason cards and a
   docs link was built, then taken out. The home page is the demo again,
