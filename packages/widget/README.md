@@ -41,7 +41,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `mode` | `inline`, `floating` or `overlay`. |
 | `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board. |
 | `lang` | `en`, `nl`, `de`, or any code you supply `strings` for. Defaults to Nimiq Pay's language, then the page's. |
-| `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (gradient tiles and buttons, light only). Every theme has the same shapes: painted tiles with a white glyph, the same badges; only the colours differ. `shitti` is the old name of `pleasenobugs` and still works. |
+| `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (the Nimiq Foundation's calm look: navy and flat gold, quiet tiles, smaller corners), `nimiq-dark` (the same on navy). The other themes share one shape, painted tiles with a white glyph; the Nimiq ones tint the tiles and draw the glyph in the words' colour, without a disc. Before 0.3, `nimiq` was the wallet's bright gradients. `shitti` is the old name of `pleasenobugs` and still works. |
 | `accent` | One colour, e.g. `#e84a5f`. The text on it picks black or white by itself. |
 | `app-name` | What answers are signed with ("Shitti says"). Defaults to the project's name. |
 | `name` | A display name you already know, offered when the user chooses to show theirs. |
@@ -59,6 +59,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `context` | Sent with every bug report, to owners only: `{ version: '1.4.0' }`. |
 | `noise` | Words common in your app, so "said already?" ignores them: `['nim', 'wallet']`. |
 | `strings` | Override any text: `{ 'board.title': 'Ideas box' }`. Keys are in `src/i18n.ts`. |
+| `samples` | With `demo` only: the posts the demo board starts with, instead of its own, and no updates: `[{ kind: 'idea', text: 'Pin my contacts', votes: 12 }]`. |
 
 Events: `pleasenobugs:posted` (`detail: { id, kind }`) and `pleasenobugs:close`.
 
@@ -134,6 +135,8 @@ please-no-bugs {
   --pnb-danger: #d23b2f;
   --pnb-bug: #e5484d;  --pnb-idea: #8b5cf6;  --pnb-review: #e9a00b;
   --pnb-planned: #8a8fb8;  --pnb-done: #21bca5;  --pnb-declined: #8a8fb8;
+  --pnb-on-dot: #fff;                    /* the glyph on a chip's dot; or per kind and status: */
+  --pnb-on-bug: var(--pnb-on-dot);       /* --pnb-on-idea, -review, -planned, -done, -declined */
   --pnb-star: #f5a524;
   --pnb-filter: var(--pnb-text);         /* the chosen filter, and the chosen status in your answer sheet */
   --pnb-on-filter: var(--pnb-bg);        /* its words: set both, as they are not picked for you */
@@ -141,15 +144,22 @@ please-no-bugs {
   --pnb-tile-idea: var(--pnb-idea);
   --pnb-tile-review: var(--pnb-review);
   --pnb-tile-ink: #fff;                  /* the words on them */
+  --pnb-tile-dot-bug: transparent;       /* a disc behind each tile's glyph (-idea, -review too) */
+  --pnb-tile-glyph-bug: var(--pnb-tile-ink); /* and the glyph's colour (-idea, -review too) */
+  --pnb-tile-icon: 44px;                 /* the box the glyph sits in */
+  --pnb-order-on: var(--pnb-surface);    /* the chosen half of Top/New, */
+  --pnb-on-order: var(--pnb-text);       /* and its words */
   --pnb-sent: var(--pnb-bg);             /* behind "Feedback sent!" */
   --pnb-sent-title: var(--pnb-text);     /* its title, */
   --pnb-sent-note: var(--pnb-text-quiet); /* its small words and "Back to the board", */
   --pnb-sent-check: var(--pnb-done);     /* and the disc behind its tick */
+  --pnb-on-sent-check: #fff;            /* the tick itself */
   --pnb-fab: var(--pnb-accent-fill);     /* the round floating button */
   --pnb-on-fab: var(--pnb-on-accent);    /* its glyph */
   --pnb-radius-panel: 16px;              /* the panel on a wide screen */
   --pnb-radius: 8px;
   --pnb-radius-sheet: 16px;
+  --pnb-radius-pill: 999px;  /* filters, chips, votes, Top/New, buttons */
   --pnb-font: inherit;       /* your app's font */
   --pnb-z: 2147483000;       /* overlay and floating button */
   --pnb-inset-top: env(safe-area-inset-top, 0px);       /* what covers the screen's top */

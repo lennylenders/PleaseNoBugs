@@ -6,11 +6,14 @@
     <title>PleaseNoBugs: a feedback board for everyone building on Nimiq</title>
     <meta name="description" content="Bugs, ideas and reviews, straight from your users, in one tag. For everyone building on Nimiq. No email, no tracking." />
     <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <script src="assets/style.js"></script>
     <link rel="stylesheet" href="assets/site.css" />
+    <link rel="stylesheet" href="assets/nimiq.css" />
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/board.js" type="module"></script>
     <script src="assets/tour.js" type="module"></script>
     <script src="assets/pattern.js" type="module"></script>
+    <script src="assets/hexes.js" type="module"></script>
   </head>
   <body class="page--home page--pattern">
     <svg width="0" height="0" style="position: absolute" aria-hidden="true">
@@ -31,6 +34,10 @@
           <a href="customize.html">Customize</a>
           <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
         </nav>
+        <button type="button" class="style-switch" data-style-switch hidden>
+          <svg width="16" height="15" viewBox="0 0 20 18" aria-hidden="true"><path d="M10 1H5.5L1 9l4.5 8H10z" fill="#ffb700"/><path d="M5.5 1h9L19 9l-4.5 8h-9L1 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <span class="style-switch__text">Nimiq style</span>
+        </button>
       </div>
     </header>
 
@@ -38,6 +45,7 @@
       <div class="wrap hero">
         <div class="editor tour" id="tour-frame">
           <div class="screen screen--home" id="tour">
+            <div class="hexes-bg" data-hexes="left right"></div>
             <div class="screen__app tour-app" aria-hidden="true">
               <b>Your app</b>
               <i></i><i></i><i></i><i></i>
@@ -62,6 +70,7 @@
             </div>
             <button type="button" class="tour-skip" id="tour-skip" hidden>Skip intro</button>
             <div class="tour-page">
+              <p class="tour-tag"><svg width="18" height="16" viewBox="0 0 20 18" aria-hidden="true"><path fill="#ffb700" d="M19.734 8.156 15.576.844A1.66 1.66 0 0014.135 0H5.819C5.226 0 4.677.32 4.38.844L.222 8.156a1.71 1.71 0 000 1.688l4.158 7.312c.297.523.846.844 1.439.844h8.316c.593 0 1.142-.32 1.438-.844l4.158-7.312c.3-.523.3-1.165.003-1.688"/></svg>For Nimiq builders</p>
               <h1>Stop guessing what your users want.</h1>
               <p class="lead">Free, open-source feedback for Nimiq builders. Live in minutes. And let users drive your roadmap.</p>
               <div class="tour-start">

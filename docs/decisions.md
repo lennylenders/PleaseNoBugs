@@ -1147,6 +1147,58 @@ build web apps for the desktop browser). It names no kinds of apps.
   (2026-11-08)"; a first round said "Nimiq mini apps" everywhere and was
   widened.
 
+## 2026-11-10: A second look, Nimiq's, behind a switch; `nimiq` gets the Foundation's style
+
+The Nimiq Foundation is refreshing its brand (Overnice, late 2026): calmer and
+more informative, to set the Foundation apart from the playful wallet app.
+Deep navy `#040724`, a flat gold `#FFB700` whose darker shades lean red,
+Manrope for text, JetBrains Mono for labels and data, and a key visual of the
+logo's hexagon in layers. The owner tried it in Figma (page "Nimiq refresh")
+and wants it, without giving up PleaseNoBugs' own purple.
+
+- **The site has two looks and a switch.** A button with words at the end of
+  the header ("Nimiq style" / "Classic style", the look it switches to; on a
+  phone only its half-gold hexagon) flips the whole site, like a dark/light
+  switch. `assets/style.js` sets `data-style="nimiq"` on `<html>` before the
+  page is drawn and keeps the choice in this browser's `localStorage`
+  (`pnb-style`), nowhere else. New visitors get the purple, the owner's
+  choice. `assets/nimiq.css` holds the whole second look, scoped to that
+  attribute: site.css's tokens turned navy-on-white, gold hexagons for
+  bullets and step numbers.
+- **The key visual turns, after Sören's prototype**
+  (nimiq.github.io/brand-update-exploration): ten layers of the logo's
+  hexagon per group, each turning once in four minutes, plain CSS on SVGs
+  that `assets/hexes.js` writes into any `[data-hexes]`. On Home the demo's
+  card is navy with two groups (top left, bottom right), its words in the
+  middle under a "For Nimiq builders" label with the gold hexagon, and no
+  gold glow; on What is it? one light group at the top right. Customize
+  stays still, to work in. Standing still for
+  whoever asked for less motion. The Nimiq look gets no dark mode of its own: one switch.
+- **Buttons as in the prototype too**: in the Nimiq look every button on the
+  site (and the style switch) is an outline, not a fill: a 2px line in navy
+  10% (`#E6E6E9`), fully round, Manrope 14px semibold, 42px high. Navy words
+  on white, white on the navy card.
+- **Manrope and JetBrains Mono are served from the site** (`assets/fonts/`,
+  latin, variable, from Fontsource's npm packages), under the SIL Open Font
+  License, its text next to them. A browser fetches them only in the Nimiq look.
+- **The widgets on the site follow the look**: `pleasenobugs` in the purple,
+  `nimiq` in Nimiq's. The configurator does too, and so does the code it
+  hands out (`theme="nimiq"`).
+- **`theme="nimiq"` now is the Foundation's look, and `nimiq-dark` is new.**
+  The owner chose to replace the wallet's bright gradients rather than keep
+  them beside it, knowing that apps using `theme="nimiq"` change look when
+  they update. Cards work as before (a count of replies, a line only when
+  fixed); corners are smaller (`--pnb-radius-pill: 8px`), tiles are tinted
+  and their glyph is drawn in the words' colour, no disc, close over its
+  name. New tokens made that possible without a
+  literal colour below the first block: `--pnb-on-dot` and one per kind and
+  status, `--pnb-tile-dot-*`, `--pnb-tile-glyph-*` and `--pnb-tile-icon`, `--pnb-order-on` /
+  `--pnb-on-order`, `--pnb-on-sent-check`, `--pnb-radius-pill`. Every other
+  theme looks as it did.
+- **Before the site goes out with this**, the widget needs a release: the
+  code the site hands out loads the npm version, and on 0.2.0 `nimiq` is
+  still the gradients.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

@@ -1,0 +1,281 @@
+/*
+ * The site's second look: the Nimiq Foundation's, from its brand refresh by
+ * Overnice (late 2026). Calm and informative where the purple is playful:
+ * white pages, deep navy words and buttons, a flat gold, Manrope for text
+ * and JetBrains Mono for labels and code, and the key visual (the logo's
+ * hexagon in layers, turning slowly, after Sören's prototype) in the home
+ * page's demo and at the top of What is it?.
+ *
+ * Only ever on with `data-style="nimiq"` on <html>, set by assets/style.js
+ * from the header's switch. Everything here is scoped to it, so the purple
+ * look is site.css alone. The fonts load only when this look is on.
+ *
+ * Both fonts are under the SIL Open Font License (fonts/*-OFL.txt), served
+ * from this site like Museo Sans Rounded, so a visit tells nobody.
+ */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('fonts/manrope.woff2') format('woff2-variations'), url('fonts/manrope.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url('fonts/jetbrains-mono.woff2') format('woff2-variations'), url('fonts/jetbrains-mono.woff2') format('woff2');
+}
+
+:root[data-style='nimiq'] {
+  color-scheme: light;
+  --navy: #040724;
+  --gold: #ffb700;
+  --page: #ffffff;
+  --card: #fafafb;
+  --card-2: #f2f2f4;
+  --row: #f2f2f4;
+  --line: #e6e6e9;
+  --ink: #040724;
+  --ink-2: #36395b;
+  --quiet: #36395b;
+  --sub: #68697c;
+  --faint: #9b9ca7;
+  --button: #040724;
+  --button-hover: #1a1d3d;
+  --band: #fafafb;
+  --device: #040724;
+  --scrim: #040724;
+  --shadow: 0 12px 32px rgba(4, 7, 36, 0.08);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --font: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
+
+[data-style='nimiq'] body { font-weight: 400; }
+
+[data-style='nimiq'] code,
+[data-style='nimiq'] pre,
+[data-style='nimiq'] kbd { font-family: var(--mono); }
+
+/* Headings: Manrope Medium, set close, as in the Foundation's pages. */
+[data-style='nimiq'] h1,
+[data-style='nimiq'] h2 { font-weight: 500; letter-spacing: -0.03em; }
+[data-style='nimiq'] h3 { font-weight: 600; }
+[data-style='nimiq'] .tour-page h1 { letter-spacing: -0.035em; }
+
+/* No scattered glyphs behind the pages: the calm is the point. */
+[data-style='nimiq'] .page--pattern::before,
+[data-style='nimiq'] .page-pattern { display: none; }
+
+/* ---- The bar ---------------------------------------------------------- */
+
+[data-style='nimiq'] .top { background: color-mix(in srgb, #fff 92%, transparent); }
+[data-style='nimiq'] .page--pattern.top-clear .top:not(.top--scrolled) {
+  background-color: color-mix(in srgb, #fff 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+[data-style='nimiq'] .brand { font-weight: 700; letter-spacing: -0.02em; }
+[data-style='nimiq'] .nav a { font-weight: 500; color: #36395b; }
+[data-style='nimiq'] .nav a:hover { background: var(--row); color: var(--ink); }
+[data-style='nimiq'] .nav a[aria-current='page'] { background: transparent; color: var(--ink); font-weight: 700; }
+/* ---- Buttons ------------------------------------------------------------ */
+
+/* Every button as in Sören's prototype: no fill, a 2px line in navy 10%,
+   fully round, Manrope 14px semibold, 12px by 24px. Navy words on white,
+   white words on navy, the same line on both. Filled only while pointed at,
+   faintly, so it shows it can be pressed. */
+[data-style='nimiq'] .btn,
+[data-style='nimiq'] .btn--quiet,
+[data-style='nimiq'] .btn--grey,
+[data-style='nimiq'] .style-switch,
+[data-style='nimiq'] .tour-start .btn {
+  min-height: 42px;
+  padding: 0 24px;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px #e6e6e9;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+[data-style='nimiq'] .btn:hover,
+[data-style='nimiq'] .style-switch:hover { background: rgba(4, 7, 36, 0.04); }
+[data-style='nimiq'] .btn--small { min-height: 34px; padding: 0 16px; }
+[data-style='nimiq'] .style-switch { min-height: 36px; padding: 0 16px 0 14px; }
+@media (max-width: 560px) {
+  [data-style='nimiq'] .style-switch { padding: 0; }
+}
+
+/* ---- Home: the demo's page is a navy card with the key visual ----------- */
+
+[data-style='nimiq'] .editor { background: transparent; border: 0; padding: 0; }
+[data-style='nimiq'] .tour { padding: 0; }
+[data-style='nimiq'] .screen { box-shadow: 0 0 0 1px var(--line); }
+[data-style='nimiq'] .tour:not(.tour--app) .screen--home {
+  background: var(--navy);
+  box-shadow: none;
+  border-radius: 24px;
+}
+/* The words in the middle, as in Sören's prototype, under a small label. */
+[data-style='nimiq'] .tour-page { align-items: center; text-align: center; }
+[data-style='nimiq'] .tour-start { justify-content: center; }
+[data-style='nimiq'] .tour-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+[data-style='nimiq'] .tour:not(.tour--app) .tour-page { color: #fff; }
+[data-style='nimiq'] .tour:not(.tour--app) .tour-page .lead { color: rgba(255, 255, 255, 0.72); }
+[data-style='nimiq'] .tour:not(.tour--app) .tour-start .btn { color: #fff; }
+[data-style='nimiq'] .tour:not(.tour--app) .tour-start .btn:hover { background: rgba(255, 255, 255, 0.08); }
+
+/* ---- The drawings on What is it?: the widget's Nimiq colours ------------ */
+
+[data-style='nimiq'] .stage {
+  --s-bg: #ffffff;
+  --s-card: #fafafb;
+  --s-chip: #f2f2f4;
+  --s-sunken: #f2f2f4;
+  --s-line: #e6e6e9;
+  --s-ink: #040724;
+  --s-quiet: #68697c;
+  --s-accent: #040724;
+  --s-on-accent: #ffffff;
+}
+
+/* The kinds' colours in the drawings, as the widget's Nimiq theme has them. */
+[data-style='nimiq'] .badge__dot--bug,
+[data-style='nimiq'] .miniboard i::before { background: #c80013; }
+[data-style='nimiq'] .badge__dot--idea,
+[data-style='nimiq'] .miniboard i:nth-of-type(2)::before { background: #36395b; }
+[data-style='nimiq'] .badge__dot--review,
+[data-style='nimiq'] .miniboard i:nth-of-type(3)::before { background: var(--gold); }
+[data-style='nimiq'] .badge__dot--done { background: var(--navy); }
+
+/* ---- The key visual, turning (assets/hexes.js) ------------------------- */
+
+/* Two groups in the home page's card, navy, as in Sören's prototype's dark
+   mode; one behind the top of What is it?, light. Each group is ten layers
+   of the logo's hexagon, a step apart and a few degrees turned, each turning
+   once in four minutes. The sizes are the prototype's, in --hx (the group's
+   width, 1.57 times its box's height) instead of the window's. */
+[data-style='nimiq'] .hexes-bg {
+  display: block;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: #686a7c;
+}
+[data-style='nimiq'] .tour--app .hexes-bg { display: none; }
+[data-style='nimiq'] .hexes { position: absolute; width: var(--hx); height: var(--hx); }
+[data-style='nimiq'] .hexes--left { right: 60%; top: -65%; rotate: 180deg; }
+[data-style='nimiq'] .hexes--right { left: 60%; top: 10%; }
+[data-style='nimiq'] .hexes__layer {
+  position: absolute;
+  left: calc(var(--i) * var(--hx) * 0.02006 * (1 + var(--i) * 0.04));
+  top: calc(var(--i) * var(--hx) * -0.00382);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hx);
+  height: var(--hx);
+  animation: hex-turn 240s linear infinite;
+}
+[data-style='nimiq'] .hexes__layer svg {
+  width: var(--hx);
+  height: auto;
+  overflow: visible;
+  rotate: calc((var(--i) - 2) * 3deg);
+}
+[data-style='nimiq'] .hexes__layer path {
+  fill: #fff;
+  stroke: currentColor;
+  stroke-width: 0.02;
+  stroke-opacity: calc(1 - (9 - var(--i)) * 0.04);
+}
+@keyframes hex-turn {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-style='nimiq'] .hexes__layer { animation: none; }
+}
+
+/* Dark, in the card: white layers, fuller towards the front. */
+[data-style='nimiq'] .screen--home .hexes__layer path { stroke: #fff; stroke-width: 0.04; stroke-opacity: 0.2; }
+[data-style='nimiq'] .screen--home .hexes__layer:nth-child(1) path { fill-opacity: 0.01; stroke-opacity: 0.05; }
+[data-style='nimiq'] .screen--home .hexes__layer:nth-child(2) path { fill-opacity: 0.02; stroke-opacity: 0.1; }
+[data-style='nimiq'] .screen--home .hexes__layer:nth-child(3) path { fill-opacity: 0.03; stroke-opacity: 0.15; }
+[data-style='nimiq'] .screen--home .hexes__layer:nth-child(4) path { fill-opacity: 0.05; }
+[data-style='nimiq'] .screen--home .hexes__layer:nth-child(5) path { fill-opacity: 0.1; }
+[data-style='nimiq'] .screen--home .hexes__layer:nth-child(6) path { fill-opacity: 0.15; }
+[data-style='nimiq'] .screen--home .hexes__layer:nth-child(7) path { fill-opacity: 0.2; }
+[data-style='nimiq'] .screen--home .hexes__layer:nth-child(8) path { fill-opacity: 0.3; }
+[data-style='nimiq'] .screen--home .hexes__layer:nth-child(9) path { fill-opacity: 0.4; }
+[data-style='nimiq'] .screen--home .hexes__layer:nth-child(10) path { fill-opacity: 0.5; }
+
+/* What is it?: one light group behind the top right of the page, fading
+   out before the first section. */
+[data-style='nimiq'] .hexes-bg--page {
+  bottom: auto;
+  height: 600px;
+  z-index: -1;
+  -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 40%, transparent 92%);
+}
+[data-style='nimiq'] .hexes-bg--page .hexes--right { left: 62%; top: -45%; }
+
+/* Gold hexagons where the purple look has turquoise dots. */
+[data-style='nimiq'] .how__points li::before {
+  top: 0.5em;
+  width: 11px;
+  height: 10px;
+  border-radius: 0;
+  background: var(--gold);
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+[data-style='nimiq'] .how__text a,
+[data-style='nimiq'] .steps-list p a:not(.btn) { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+/* The steps: white cards with a line, numbered on a gold hexagon. */
+[data-style='nimiq'] .steps-list > li { background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
+[data-style='nimiq'] .steps-list > li::before {
+  width: 34px;
+  height: 30px;
+  border-radius: 0;
+  background: var(--gold);
+  color: var(--navy);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 14px;
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+[data-style='nimiq'] .steps-list p code,
+[data-style='nimiq'] .modes code { background: var(--row); color: var(--ink); }
+
+/* Code on navy, in the brand's colours. */
+[data-style='nimiq'] .code { color: #e6e6e9; }
+[data-style='nimiq'] .code .t { color: #ffffff; }
+[data-style='nimiq'] .code .a { color: #ffc758; }
+[data-style='nimiq'] .code .s { color: #ffd785; }
+[data-style='nimiq'] .code .c { color: #9b9ca7; }
+
+/* Words on a navy fill are white here, not the purple look's dark ink. */
+[data-style='nimiq'] .ti-to,
+[data-style='nimiq'] .mark__tag { color: #fff; }
+
+/* ---- Footer ------------------------------------------------------------- */
+
+[data-style='nimiq'] .foot { border-top-width: 1px; }
+[data-style='nimiq'] .foot__note { border-top-color: var(--line); font-family: var(--mono); font-size: 12px; }
+[data-style='nimiq'] .foot__who img { content: url('nimiq/hexagon-flat.svg'); }

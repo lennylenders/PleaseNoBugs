@@ -6,6 +6,7 @@ import type { Signer } from './signer.js';
 export * from './client.js';
 export { PleaseNoBugsElement, readableOn } from './element.js';
 export type { Strings, CopyKey } from './i18n.js';
+export type { DemoSample } from './demo.js';
 
 // Importing the package is what makes `<please-no-bugs>` work.
 define();
@@ -14,7 +15,7 @@ export interface OpenOptions {
   project: string;
   server: string;
   lang?: string;
-  theme?: 'auto' | 'light' | 'dark' | 'pleasenobugs' | 'nimiq' | 'shitti';
+  theme?: 'auto' | 'light' | 'dark' | 'pleasenobugs' | 'nimiq' | 'nimiq-dark' | 'shitti';
   accent?: string;
   appName?: string;
   /** A display name to suggest when the user chooses to show theirs. */

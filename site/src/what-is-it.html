@@ -6,8 +6,11 @@
     <title>What is PleaseNoBugs?</title>
     <meta name="description" content="What the PleaseNoBugs widget is about, what it does for you as a Nimiq developer, and how to add it to your app in a few lines." />
     <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <script src="assets/style.js"></script>
     <link rel="stylesheet" href="assets/site.css" />
+    <link rel="stylesheet" href="assets/nimiq.css" />
     <script src="assets/how.js" type="module"></script>
+    <script src="assets/hexes.js" type="module"></script>
   </head>
   <body>
     <!-- The widget's own glyphs, path for path from packages/widget/src/ui/icons.tsx, used by everything below. -->
@@ -38,10 +41,15 @@
           <a href="customize.html">Customize</a>
           <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
         </nav>
+        <button type="button" class="style-switch" data-style-switch hidden>
+          <svg width="16" height="15" viewBox="0 0 20 18" aria-hidden="true"><path d="M10 1H5.5L1 9l4.5 8H10z" fill="#ffb700"/><path d="M5.5 1h9L19 9l-4.5 8h-9L1 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <span class="style-switch__text">Nimiq style</span>
+        </button>
       </div>
     </header>
 
     <main>
+      <div class="hexes-bg hexes-bg--page" data-hexes="right"></div>
       <section class="how-intro">
         <div class="wrap">
           <h1>What is it?</h1>

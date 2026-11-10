@@ -6,6 +6,7 @@ import { pickLang, translator, type Strings } from './i18n.js';
 import type { Signer } from './signer.js';
 import { App, type View } from './ui/App.js';
 import type { Screenshots } from './ui/Compose.js';
+import type { DemoSample } from './demo.js';
 import * as Icon from './ui/icons.js';
 import css from './styles.css?inline';
 
@@ -26,7 +27,7 @@ export const TAG = 'please-no-bugs';
  * under them; `start="board"` opens on the board instead.
  *
  * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
- * `start` (`tiles` or `board`), `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq`), `accent`
+ * `start` (`tiles` or `board`), `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq` | `nimiq-dark`), `accent`
  * (a colour), `app-name`, `name` (a display name to suggest), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
  * the board, for the app's owners only; `off` to leave them out), `names`
@@ -38,7 +39,7 @@ export const TAG = 'please-no-bugs';
  * configurator).
  *
  * Properties, for things an attribute cannot carry: `signer`, `appLogin`,
- * `context`, `noise`, `strings`.
+ * `context`, `noise`, `strings` and, with `demo`, `samples`.
  *
  * Events: `pleasenobugs:posted` (`detail: { id, kind }`) and
  * `pleasenobugs:close`.
@@ -76,6 +77,7 @@ export class PleaseNoBugsElement extends HTMLElement {
   #noise?: string[];
   #strings?: Strings;
   #warnLater?: ReturnType<typeof setTimeout>;
+  #samples?: DemoSample[];
   /** The demo board's code, fetched the first time `demo` is set. */
   #demo?: typeof import('./demo.js');
 
@@ -128,6 +130,20 @@ export class PleaseNoBugsElement extends HTMLElement {
   }
   set strings(v: Strings | undefined) {
     this.#strings = v;
+    this.#render();
+  }
+
+  /**
+   * With `demo` only: the posts the demo board starts with, instead of its
+   * own, and no updates: `[{ kind: 'idea', text: 'Pin my contacts', votes: 12 }]`.
+   */
+  get samples() {
+    return this.#samples;
+  }
+  set samples(v: DemoSample[] | undefined) {
+    this.#samples = v;
+    // A fresh board, starting from these.
+    this.#clientKey = '';
     this.#render();
   }
 
@@ -190,7 +206,7 @@ export class PleaseNoBugsElement extends HTMLElement {
       const owner = this.getAttribute('demo') === 'owner';
       const key = `demo|${lang}|${owner}`;
       if (!this.#client || this.#clientKey !== key) {
-        this.#client = this.#demo.createDemoClient(lang, { owner });
+        this.#client = this.#demo.createDemoClient(lang, { owner, samples: this.#samples });
         this.#clientKey = key;
       }
       this.#show(this.#client, lang);

@@ -255,11 +255,12 @@ const copyBtn = document.getElementById('copy');
 const beside = window.matchMedia('(min-width: 980px)');
 
 /**
- * The widget has other themes, but the configurator offers one: PleaseNoBugs'
- * own colours, each of which can be changed. The code still names it, so an
- * app gets these colours and not the widget's light default.
+ * The widget has other themes, but the configurator offers the one the site
+ * wears: PleaseNoBugs' own colours, or Nimiq's with the header's style
+ * switch (assets/style.js). Each colour can be changed. The code still names
+ * it, so an app gets these colours and not the widget's light default.
  */
-const THEME = 'pleasenobugs';
+const theme = () => window.PNBStyle?.theme() ?? 'pleasenobugs';
 
 const state = {
   mode: 'floating',
@@ -292,7 +293,7 @@ function apply(el, mode = state.mode, held = previewing ? '' : step().screen) {
   const set = (name, value) => (value ? el.setAttribute(name, value) : el.removeAttribute(name));
   el.setAttribute('demo', '');
   el.setAttribute('mode', mode);
-  set('theme', THEME);
+  set('theme', theme());
   set('lang', 'en');
   set('accent', state.accent);
   set('kinds', state.kinds.length === 3 ? '' : state.kinds.join(','));
@@ -630,6 +631,9 @@ function paintDevice() {
     device.style.setProperty(mine, css.getPropertyValue(theirs).trim());
   }
 }
+
+// The header's style switch: the widgets and the code take the other theme.
+document.addEventListener('pnb:style', () => update());
 
 function update() {
   for (const input of form.querySelectorAll('[data-string]')) input.hidden = offKind(input.dataset.string);
@@ -1089,7 +1093,7 @@ function html() {
     ['project', 'YOUR_PROJECT_ID'],
     ['server', 'https://YOUR_SERVER'],
     state.mode !== 'inline' && ['mode', state.mode],
-    ['theme', THEME],
+    ['theme', theme()],
     state.accent && ['accent', state.accent],
     state.kinds.length < 3 && ['kinds', state.kinds.join(',')],
     state.screenshots !== 'board' && ['screenshots', state.screenshots],

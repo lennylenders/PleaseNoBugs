@@ -10,6 +10,14 @@ describe('createDemoClient', () => {
     expect(res.data.me).toMatchObject({ owner: false, left: 5 });
   });
 
+  it('starts from samples of its own, with no updates, when given them', async () => {
+    const c = createDemoClient('en', { samples: [{ kind: 'idea', text: 'Pin my contacts', votes: 12 }] });
+    const res = await c.board();
+    if (!res.ok) throw new Error('no board');
+    expect(res.data.posts.map((p) => [p.kind, p.text, p.votes, p.status])).toEqual([['idea', 'Pin my contacts', 12, 'open']]);
+    expect(res.data.updates).toBe(0);
+  });
+
   it('falls back to English for a language it has no posts in', async () => {
     const res = await createDemoClient('fr').board();
     expect(res.ok && res.data.posts[0].text).toMatch(/dark mode/);

@@ -6,8 +6,10 @@
     <title>Customize PleaseNoBugs</title>
     <meta name="description" content="Make the PleaseNoBugs widget yours in a few short steps, see it live, and copy the code into your app." />
     <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <script src="assets/style.js"></script>
     <link rel="stylesheet" href="assets/site.css" />
     <link rel="stylesheet" href="assets/customize.css" />
+    <link rel="stylesheet" href="assets/nimiq.css" />
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/customize.js" defer></script>
     <script src="assets/pattern.js" type="module"></script>
@@ -24,6 +26,10 @@
           <a href="customize.html" aria-current="page">Customize</a>
           <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
         </nav>
+        <button type="button" class="style-switch" data-style-switch hidden>
+          <svg width="16" height="15" viewBox="0 0 20 18" aria-hidden="true"><path d="M10 1H5.5L1 9l4.5 8H10z" fill="#ffb700"/><path d="M5.5 1h9L19 9l-4.5 8h-9L1 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <span class="style-switch__text">Nimiq style</span>
+        </button>
       </div>
     </header>
 

@@ -119,7 +119,7 @@ function widget(pov) {
   for (const [k, v] of Object.entries({
     demo: pov === 'owner' ? 'owner' : '',
     mode: 'floating',
-    theme: 'pleasenobugs',
+    theme: window.PNBStyle?.theme() ?? 'pleasenobugs',
     lang: 'en',
     screenshots: 'off',
     // An owner comes for the board; a user, as in an app, to the tiles.
