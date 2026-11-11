@@ -422,6 +422,10 @@ section + section { padding-top: 0; }
   pointer-events: none;
 }
 .tour-intro[hidden] { display: none; }
+/* The Nimiq look's own drawing, only there (nimiq.css). */
+.tn,
+.tn-row,
+.tn-public { display: none; }
 /* No subtitle, and no widget: scene 5 draws its round button, and the real
    one is there, under the title, once the intro is over. Before the demo
    neither: the home page is the app without PleaseNoBugs yet. */

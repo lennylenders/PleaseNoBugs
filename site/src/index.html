@@ -62,7 +62,19 @@
               <span class="ti-bubble ti-bubble--left" style="--i: 2; --x: 64%; --y: 13%; --r: -3deg; --sx: calc(80% + 8px - var(--bw0)); --sy: calc(14% - 44px)" aria-hidden="true"><b><span class="ti-from">DM</span><span class="ti-to">Bug</span></b><i></i><i></i></span>
               <span class="ti-bubble ti-bubble--left" style="--i: 3; --x: 58%; --y: 36%; --r: 7deg; --sx: calc(68% + 8px - var(--bw0)); --sy: calc(38% - 44px)" aria-hidden="true"><b><span class="ti-from">Review</span><span class="ti-to">Idea</span></b><i></i><i></i></span>
               <span class="ti-bubble" style="--i: 4; --x: 20%; --y: 23%; --r: 4deg; --sx: calc(28% + 44px); --sy: calc(24% - 44px)" aria-hidden="true"><b><span class="ti-from">Chat</span><span class="ti-to">Bug</span></b><i></i><i></i></span>
-              <span class="ti-board" aria-hidden="true"><b>Feedback</b><span>Everyone can see it</span></span>
+              <!-- The Nimiq look's drawing (nimiq.css), in its place: Nimiq identicons, the channels they write in and the lines between them (tour.js draws the lines). Not shown in the classic look. Identicon shapes: Nimiq's, MIT (assets/nimiq/identicons-LICENSE.txt). -->
+              <div class="tn" aria-hidden="true">
+                <svg class="tn-lines"><g class="tn-lines__ch"></g><g class="tn-lines__fab"></g></svg>
+                <span class="tn-ch" style="--i: 0">Reviews</span>
+                <span class="tn-ch" style="--i: 1">Chats</span>
+                <span class="tn-ch" style="--i: 2">DMs</span>
+                <span class="tn-user" style="--i: 0; --y: 50%" data-ch="0"><img src="assets/nimiq/identicon-1.svg" alt="" width="48" height="48" /></span>
+                <span class="tn-user" style="--i: 1; --y: 60%" data-ch="1"><img src="assets/nimiq/identicon-2.svg" alt="" width="48" height="48" /></span>
+                <span class="tn-user tn-user--stays" style="--i: 2; --y: 46%" data-ch="0"><img src="assets/nimiq/identicon-3.svg" alt="" width="48" height="48" /></span>
+                <span class="tn-user" style="--i: 3; --y: 57%" data-ch="2"><img src="assets/nimiq/identicon-4.svg" alt="" width="48" height="48" /></span>
+                <span class="tn-user" style="--i: 4; --y: 49%" data-ch="1"><img src="assets/nimiq/identicon-5.svg" alt="" width="48" height="48" /></span>
+              </div>
+              <span class="ti-board" aria-hidden="true"><b>Feedback</b><span>Everyone can see it</span><i class="tn-public">Public</i><i class="tn-row tn-row--bug" style="--i: 0"><em>Bug</em></i><i class="tn-row tn-row--idea" style="--i: 1"><em>Idea</em></i><i class="tn-row tn-row--bug" style="--i: 2"><em>Bug</em></i><i class="tn-row tn-row--idea" style="--i: 3"><em>Idea</em></i><i class="tn-row tn-row--bug" style="--i: 4"><em>Bug</em></i></span>
               <span class="ti-fab" aria-hidden="true"></span>
               <svg class="ti-arrow ti-arrow--fab" viewBox="0 0 56 24" aria-hidden="true"><path d="M4 12H50M50 12l-9-8M50 12l-9 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
               <p class="ti-caption" aria-hidden="true"><b></b><span></span></p>

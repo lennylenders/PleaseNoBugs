@@ -6,6 +6,11 @@
  * app ("Your app" and its skeleton) and plays one story through, once,
  * then the heading is back.
  *
+ * In the Nimiq look (`calm`) the same story is told more quietly: the
+ * pretend app is a white window on the navy and its turning hexagons, the
+ * users are Nimiq identicons with thin lines to where they wrote, the words
+ * fade in whole rather than typed, and the intro's lines are plainer.
+ *
  * It starts with why PleaseNoBugs is there, in six short scenes drawn on
  * the pretend app (`INTRO`; the drawing is site.css's), each with its big
  * line typed out: imagine this is your app, its first users, what each
@@ -65,22 +70,52 @@ const said = document.getElementById('ti-said');
  * it plays on once the words are all there (ms, as drawn in site.css).
  */
 const INTRO = [
-  { title: 'Imagine this is your app.', line: '', ms: 3000 },
-  { title: 'You gained your first users!', line: '', during: true, ms: 2000 },
-  { title: 'They give feedback, all over the place.', line: 'In reviews, chats and DMs.', during: true, ms: 2000 },
+  { title: 'Imagine this is your app.', line: '', ms: 3000, calm: ['This is your app.', ''] },
+  { title: 'You gained your first users!', line: '', during: true, ms: 2000, calm: ['Your first users arrive.', ''] },
+  {
+    title: 'They give feedback, all over the place.',
+    line: 'In reviews, chats and DMs.',
+    during: true,
+    ms: 2000,
+    calm: ['They give feedback wherever they can.', 'In reviews, chats and DMs.'],
+  },
   {
     title: 'And then most of your users leave, and never tell you why.',
     line: "Most apps don't die loudly.",
     during: true,
     ms: 2800,
+    calm: ['Most of them leave without saying why.', 'And what they did say is scattered.'],
   },
   {
     title: 'This open source feedback widget is your solution!',
     line: 'PleaseNoBugs: one button in your app.',
     ms: 3000,
+    calm: ['PleaseNoBugs adds one button to your app.', 'An open-source feedback widget.'],
   },
-  { title: 'All your feedback in one place.', line: 'Visible to all your users.', ms: 3600 },
+  {
+    title: 'All your feedback in one place.',
+    line: 'Visible to all your users.',
+    ms: 3600,
+    calm: ['All feedback in one place.', 'Every report, from every user, on one board.'],
+  },
+  {
+    // The Nimiq look only: the board in the middle, every user around it.
+    calmOnly: true,
+    ms: 3600,
+    calm: ['Visible to everyone.', 'Every user sees what was asked, and what you did with it.'],
+  },
 ];
+
+/** The intro's scenes in the look the site wears: the Nimiq look has one more. */
+const scenes = () => INTRO.filter((s) => !s.calmOnly || calm());
+
+/**
+ * Whether the site wears the Nimiq look (assets/style.js). There the tour is
+ * calmer: the words fade in whole instead of being typed, the intro has its
+ * own, plainer lines (`calm`) and its own drawing (nimiq.css), and the app
+ * is a white window on the navy, the widget inside it.
+ */
+const calm = () => document.documentElement.dataset.style === 'nimiq';
 
 /**
  * The subtitles, one per step: about your user on one side, about you on
@@ -149,10 +184,20 @@ function fit(el) {
     style.dataset.site = '';
     el.shadowRoot.append(style);
   }
-  const h = box.clientHeight - 48;
+  // In the Nimiq look the app is a window inset in the navy box: the round
+  // button, the panel and what dims behind it stay inside that window.
+  const w = calm() ? (box.querySelector('.tour-app')?.offsetTop ?? 0) : 0;
+  const h = box.clientHeight - 48 - 2 * w;
+  const inset = w
+    ? ` .fab { right: ${16 + w}px; bottom: ${16 + w}px; }` +
+      ` .overlay { inset: ${w}px; border-radius: 14px; overflow: hidden; }` +
+      ` @media (min-width: 640px) { .overlay { inset: auto ${24 + w}px ${24 + w}px auto; }` +
+      ` .backdrop { inset: ${w}px; border-radius: 14px; } }`
+    : '';
   // The owner's page for answering a post, as tall as the box allows, so
   // what they fill in is not squeezed into a short panel.
   style.textContent =
+    inset +
     `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; }` +
     ` .overlay .app:has(.manage) { height: ${h}px; } }` +
     ` .alike { display: none !important; }` +
@@ -328,6 +373,15 @@ async function say(steps, n) {
   await sleep(180);
   shown.textContent = '';
   subtitle.querySelector('[role="status"]').textContent = text;
+  // Which step of how many, shown small above it in the Nimiq look.
+  subtitle.dataset.step = `${String(n).padStart(2, '0')} / ${String(steps.length).padStart(2, '0')}`;
+  if (calm()) {
+    // Whole, faded in (nimiq.css), and a moment to read it.
+    shown.textContent = text;
+    subtitle.classList.remove('tour-say--away');
+    await sleep(700);
+    return;
+  }
   subtitle.classList.remove('tour-say--away');
   subtitle.classList.add('tour-say--typing');
   try {
@@ -449,11 +503,113 @@ function placeBoard() {
   intro.style.setProperty('--bt', `${Math.max(58, bottom - r.height)}px`);
 }
 
+/** A curve from (x1, y1) up or down to (x2, y2), leaving and arriving upright. */
+function curve(x1, y1, x2, y2) {
+  return `M${x1} ${y1}C${x1} ${(y1 + y2) / 2} ${x2} ${(y1 + y2) / 2} ${x2} ${y2}`;
+}
+
+/**
+ * Level from (x1, y1) to the right, then round the corner and down to
+ * (x2, y2): clear of the words in the bottom left on its way to the button.
+ */
+function elbow(x1, y1, x2, y2) {
+  const r = Math.max(0, Math.min(20, x2 - x1, y2 - y1));
+  return `M${x1} ${y1}H${x2 - r}Q${x2} ${y1} ${x2} ${y1 + r}V${y2}`;
+}
+
+/**
+ * The Nimiq look's lines (nimiq.css draws them): from each user up to the
+ * channel they wrote in, and, once the round button is there, from each
+ * user to it. Made once, then only moved, so a line being drawn goes on.
+ */
+function placeLines() {
+  const tn = intro.querySelector('.tn');
+  if (!tn || !calm()) return;
+  const o = tn.getBoundingClientRect();
+  const fab = intro.querySelector('.ti-fab').getBoundingClientRect();
+  const channels = [...tn.querySelectorAll('.tn-ch')].map((c) => c.getBoundingClientRect());
+  const groups = { ch: tn.querySelector('.tn-lines__ch'), fab: tn.querySelector('.tn-lines__fab') };
+  tn.querySelectorAll('.tn-user').forEach((user, i) => {
+    const u = user.getBoundingClientRect();
+    const c = channels[Number(user.dataset.ch)];
+    const x = u.left + u.width / 2 - o.left;
+    const to = {
+      ch: curve(x, u.top - o.top, c.left + c.width / 2 - o.left, c.bottom - o.top),
+      fab: fab.width ? elbow(u.right - o.left, u.top + u.height / 2 - o.top, fab.left + fab.width / 2 - o.left, fab.top - o.top) : '',
+    };
+    for (const [kind, g] of Object.entries(groups)) {
+      let path = g.children[i];
+      if (!path) {
+        path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('pathLength', '1');
+        path.style.setProperty('--i', String(i));
+        if (user.classList.contains('tn-user--stays')) path.classList.add('tn-stays');
+        g.append(path);
+      }
+      if (to[kind]) path.setAttribute('d', to[kind]);
+    }
+  });
+}
+
+/**
+ * Scene 7, the Nimiq look's last: the board to the middle of the room above
+ * the words, as big as fits there, and every user around it, left, above and
+ * right, as if all looking at it. Set as offsets from where each stands
+ * (`--bdx`/`--bdy`/`--bs` for the board, `--udx`/`--udy` for each user),
+ * which nimiq.css moves them by. Measured by layout, so a move under way
+ * does not count.
+ */
+function placeCenter() {
+  const tn = intro.querySelector('.tn');
+  if (!tn || !calm()) return;
+  const board = intro.querySelector('.ti-board');
+  const users = [...tn.querySelectorAll('.tn-user')];
+  const words = document.createRange();
+  words.selectNodeContents(caption);
+  const w = words.getBoundingClientRect();
+  const i = intro.getBoundingClientRect();
+  const us = users[0].offsetWidth;
+  const gap = 28;
+  // The room: inside the window, under "Skip intro", over the words.
+  const left = tn.offsetLeft + 16;
+  const right = tn.offsetLeft + tn.offsetWidth - 16;
+  const top = tn.offsetTop + 56;
+  const bottom = (w.height ? w.top - i.top : tn.offsetTop + tn.offsetHeight) - 20;
+  const bw = board.offsetWidth;
+  const bh = board.offsetHeight;
+  const s = Math.max(0.6, Math.min(1.15, (right - left - 2 * (gap + us)) / bw, (bottom - top - gap - us) / bh));
+  const hw = (s * bw) / 2;
+  const hh = (s * bh) / 2;
+  const cx = (left + right) / 2;
+  const cy = top + (bottom - top - (2 * hh + gap + us)) / 2 + gap + us + hh;
+  intro.style.setProperty('--bdx', `${cx - (board.offsetLeft + bw / 2)}px`);
+  intro.style.setProperty('--bdy', `${cy - (board.offsetTop + bh / 2)}px`);
+  intro.style.setProperty('--bs', String(s));
+  // Left, above at the left, above, above at the right, right: in the order
+  // they stand, so no two cross on the way.
+  const side = hw + gap + us / 2;
+  const up = hh + gap + us / 2;
+  const spots = [
+    [-side, 0],
+    [-hw * 0.6, -up],
+    [0, -up],
+    [hw * 0.6, -up],
+    [side, 0],
+  ];
+  users.forEach((user, n) => {
+    const [x, y] = spots[n] ?? [0, -up];
+    user.style.setProperty('--udx', `${cx + x - (tn.offsetLeft + user.offsetLeft + us / 2)}px`);
+    user.style.setProperty('--udy', `${cy + y - (tn.offsetTop + user.offsetTop + us / 2)}px`);
+  });
+}
+
 /** Start scene `n`'s drawing. */
 function draw(n) {
   if (n === 1) placeArrow();
   if (n === 5) drawFab();
   if (n === 6) placeBoard();
+  if (n === 7) placeCenter();
+  placeLines();
   frame.dataset.intro = String(n);
   // The round button, tapped: the board opens from it.
   if (n === 6) ring(intro.querySelector('.ti-fab'));
@@ -464,14 +620,28 @@ function draw(n) {
  * after it; its drawing while it is typed, or after.
  */
 async function scene(n) {
-  const { title: big, line, during } = INTRO[n - 1];
+  const { during, calm: plain, title: t, line: l } = scenes()[n - 1];
+  const [big, line] = calm() ? plain : [t, l];
   caption.classList.add('ti-caption--away');
-  await hold(250);
+  await hold(calm() ? 450 : 250);
   if (skipped) return;
-  if (during) draw(n);
+  if (during && !calm()) draw(n);
   const bigEl = caption.querySelector('b');
   bigEl.textContent = '';
   caption.querySelector('span').textContent = line;
+  if (calm()) {
+    // The Nimiq look: the big line fades in whole as its drawing starts (the
+    // words in first, so the drawing can keep clear of them), the small one
+    // after it, and as long to read as typing it would have taken.
+    bigEl.textContent = big;
+    draw(n);
+    caption.classList.remove('ti-caption--away', 'ti-caption--line');
+    said.textContent = line ? `${big} ${line}` : big;
+    await hold(700);
+    caption.classList.add('ti-caption--line');
+    await hold(Math.min(1400, big.length * 22));
+    return;
+  }
   caption.classList.remove('ti-caption--away', 'ti-caption--line');
   caption.classList.add('ti-caption--typing');
   // Said whole for a screen reader; the letters are for the eye.
@@ -487,7 +657,7 @@ async function scene(n) {
   if (!during && !skipped) draw(n);
 }
 
-/** Why PleaseNoBugs is there, in six scenes, unless skipped. */
+/** Why PleaseNoBugs is there, in six scenes (seven in the Nimiq look), unless skipped. */
 async function playIntro(from = 1) {
   skipped = false;
   // A fresh widget, closed, whatever a later part left open: scene 5 draws
@@ -503,17 +673,20 @@ async function playIntro(from = 1) {
     await find(el, '.fab');
     settle(from - 1);
   }
-  for (let n = from; n <= INTRO.length && !skipped; n++) {
+  for (let n = from; n <= scenes().length && !skipped; n++) {
     chapter = n - 1;
     await scene(n);
-    await hold(INTRO[n - 1].ms);
+    await hold(scenes()[n - 1].ms);
   }
 }
 
 /** The intro drawn as scene `n` (from 1) left it, at once: for starting at the scene after it. */
 function settle(n) {
   if (n === 1) placeArrow();
-  if (n === 5) drawFab();
+  // From scene 5 on the round button is there, from 6 on the board too.
+  if (n >= 5) drawFab();
+  if (n >= 6) placeBoard();
+  placeLines();
   frame.dataset.intro = String(n);
   // Every movement of that scene at its end. Not the cursor, which blinks
   // for ever and has no end.
@@ -536,23 +709,24 @@ function endIntro() {
 
 /** The whole story: why, then the user sends a bug, and the owner fixes it. */
 async function story(from = 0) {
-  if (from < INTRO.length) await playIntro(from + 1);
-  if (from <= USER_PART) {
-    chapter = USER_PART;
+  if (from < scenes().length) await playIntro(from + 1);
+  if (from <= userPart()) {
+    chapter = userPart();
     await title("Your user's perspective", 'How it works', endIntro);
     await userRound();
   }
-  chapter = OWNER_PART;
+  chapter = ownerPart();
   await title('Your perspective', 'How it works', endIntro);
   await ownerRound();
 }
 
 /**
- * The story's parts, to go back or on by: the intro's scenes (0 to 5), the
+ * The story's parts, to go back or on by: the intro's scenes (0 to 5, or 6
+ * in the Nimiq look), the
  * user's side, and the owner's. On from the owner's is the end.
  */
-const USER_PART = INTRO.length;
-const OWNER_PART = INTRO.length + 1;
+const userPart = () => scenes().length;
+const ownerPart = () => scenes().length + 1;
 /** The part playing now. */
 let chapter = 0;
 
@@ -735,7 +909,7 @@ function stop() {
 function jump(by) {
   if (!frame.classList.contains('tour--playing')) return;
   const to = Math.max(0, chapter + by);
-  if (to > OWNER_PART) {
+  if (to > ownerPart()) {
     // The story stops where it is, and its end comes over it.
     current += 1;
     return end();
@@ -755,6 +929,19 @@ if (box && frame && page && subtitle && watch && titleCard && endCard && again &
   await customElements.whenDefined('please-no-bugs');
   mount('user');
   watchSight();
+  // The other look: the widget in or out of the Nimiq look's app window.
+  document.addEventListener('pnb:style', () => {
+    const el = box.querySelector('please-no-bugs');
+    if (el) fit(el);
+  });
+  // The drawing's lines and round button follow the box as it changes size.
+  new ResizeObserver(() => {
+    const n = Number(frame.dataset.intro ?? 0);
+    if (!n) return;
+    if (n >= 5) drawFab();
+    if (n >= 7) placeCenter();
+    placeLines();
+  }).observe(box);
 
   watch.addEventListener('click', (e) => {
     // Not also a click on the box, which would skip what just started.

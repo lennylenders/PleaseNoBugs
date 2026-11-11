@@ -116,7 +116,9 @@
 [data-style='nimiq'] .editor { background: transparent; border: 0; padding: 0; }
 [data-style='nimiq'] .tour { padding: 0; }
 [data-style='nimiq'] .screen { box-shadow: 0 0 0 1px var(--line); }
-[data-style='nimiq'] .tour:not(.tour--app) .screen--home {
+/* Navy before the demo and all through it: there the app is a white window
+   on it (below). */
+[data-style='nimiq'] .tour .screen--home {
   background: var(--navy);
   box-shadow: none;
   border-radius: 24px;
@@ -176,7 +178,6 @@
   pointer-events: none;
   color: #686a7c;
 }
-[data-style='nimiq'] .tour--app .hexes-bg { display: none; }
 [data-style='nimiq'] .hexes { position: absolute; width: var(--hx); height: var(--hx); }
 [data-style='nimiq'] .hexes--left { right: 60%; top: -65%; rotate: 180deg; }
 [data-style='nimiq'] .hexes--right { left: 60%; top: 10%; }
@@ -273,6 +274,402 @@
 /* Words on a navy fill are white here, not the purple look's dark ink. */
 [data-style='nimiq'] .ti-to,
 [data-style='nimiq'] .mark__tag { color: #fff; }
+
+/* ---- Home: the demo ----------------------------------------------------- */
+
+/*
+ * The purple look's story, told quietly (tour.js `calm`). The box stays navy
+ * with its hexagons; the pretend app is a white window inset in it (`--win`),
+ * and the widget stays inside that window. The intro is a schema: Nimiq
+ * identicons, the channels they write in, thin lines between them; then one
+ * button, gold lines to it, one board. Words fade in whole, nothing bounces
+ * or tilts, labels are in mono.
+ *
+ * 1. The window rises in, "Your app" on it.
+ * 2. Five users (identicons) come in, one after another.
+ * 3. Three channels at the top, a line from each user up to theirs.
+ * 4. Most users leave (a dashed outline where they were), their lines
+ *    break up, the channels dim.
+ * 5. The round button comes in, two gold rings out from it.
+ * 6. The old lines go, the users are back, a gold line from each to the
+ *    button, and the board opens above it, a row for each.
+ * 7. Only in this look: the board to the middle, "Public" on it, and every
+ *    user around it: what is on it, everyone sees.
+ */
+[data-style='nimiq'] .tour { --win: clamp(10px, 1.6vw, 18px); }
+
+/* The app: a white window, "Your app" as a mono label on a gold hexagon,
+   its skeleton thin and light. */
+[data-style='nimiq'] .tour-app {
+  position: absolute;
+  inset: var(--win);
+  gap: 10px;
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: 14px;
+  background: #fff;
+}
+[data-style='nimiq'] .tour-app b {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--sub);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+[data-style='nimiq'] .tour-app b::before,
+[data-style='nimiq'] .tour-title small::before {
+  content: '';
+  width: 11px;
+  height: 10px;
+  background: var(--gold);
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+[data-style='nimiq'] .tour-app i { height: 10px; border-radius: 3px; background: var(--row); transition: opacity 600ms ease; }
+[data-style='nimiq'] .tour-app i:nth-of-type(3) { height: 120px; border-radius: 10px; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); }
+/* Quieter while the intro draws on it. */
+[data-style='nimiq'] .tour[data-intro]:not([data-intro='0']):not([data-intro='1']) .tour-app i { opacity: 0.45; }
+
+/* Scene 1: no lift, the window rises in and its label after it. */
+[data-style='nimiq'] .tour[data-intro='1'] .screen--home { transform: none; box-shadow: none; }
+[data-style='nimiq'] .tour[data-intro='1'] .tour-app { animation: tn-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+[data-style='nimiq'] .tour[data-intro='1'] .tour-app b { animation: tn-in 600ms ease 400ms both; }
+
+/* The purple look's drawing is not drawn here; this one is. */
+[data-style='nimiq'] .ti-person,
+[data-style='nimiq'] .ti-bubble,
+[data-style='nimiq'] .ti-arrow { display: none; }
+[data-style='nimiq'] .tn { display: block; position: absolute; inset: var(--win); }
+
+/* The lines (tour.js sets their path, `pathLength` 1): drawn by their dash. */
+[data-style='nimiq'] .tn-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+[data-style='nimiq'] .tn-lines path {
+  fill: none;
+  stroke: var(--navy);
+  stroke-opacity: 0.3;
+  stroke-width: 1.5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+[data-style='nimiq'] .tn-lines__fab path { stroke: var(--gold); stroke-opacity: 1; stroke-width: 2; }
+
+/* Where feedback goes without PleaseNoBugs: three channels along the top. */
+[data-style='nimiq'] .tn-ch {
+  position: absolute;
+  left: calc(6% + var(--i) * 20%);
+  top: 22%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px 9px 12px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--line), 0 4px 12px rgba(4, 7, 36, 0.06);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+[data-style='nimiq'] .tn-ch::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
+
+/* The users: Nimiq identicons, a dashed outline where one has left. */
+[data-style='nimiq'] .tn-user {
+  position: absolute;
+  left: calc(7% + var(--i) * 11%);
+  top: var(--y);
+  width: 48px;
+  height: 48px;
+  opacity: 0;
+}
+[data-style='nimiq'] .tn-user img { display: block; width: 100%; height: 100%; }
+[data-style='nimiq'] .tn-user::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cpath d='M4 80 42 13h76l38 67-38 67H42z' fill='none' stroke='%239b9ca7' stroke-width='4' stroke-dasharray='10 8' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  opacity: 0;
+}
+
+/* 2: they come in. */
+[data-style='nimiq'] .tour[data-intro='2'] .tn-user { animation: tn-in 500ms ease calc(200ms + var(--i) * 260ms) both; }
+[data-style='nimiq'] .tour[data-intro='3'] .tn-user,
+[data-style='nimiq'] .tour[data-intro='4'] .tn-user,
+[data-style='nimiq'] .tour[data-intro='5'] .tn-user,
+[data-style='nimiq'] .tour[data-intro='6'] .tn-user { opacity: 1; }
+
+/* 3: the channels, then a line from each user up to theirs. */
+[data-style='nimiq'] .tour[data-intro='3'] .tn-ch { animation: tn-in 450ms ease calc(var(--i) * 200ms) both; }
+[data-style='nimiq'] .tour[data-intro='3'] .tn-lines__ch path { animation: tn-draw 700ms ease-in-out calc(700ms + var(--i) * 220ms) both; }
+
+/* 4: most leave; their lines break up, the channels dim. */
+[data-style='nimiq'] .tour[data-intro='4'] .tn-ch { opacity: 1; animation: tn-dim 800ms ease 2000ms both; }
+[data-style='nimiq'] .tour[data-intro='4'] .tn-lines__ch path { stroke-dashoffset: 0; }
+[data-style='nimiq'] .tour[data-intro='4'] .tn-lines__ch path:not(.tn-stays) { animation: tn-cut 600ms ease calc(600ms + var(--i) * 300ms) both; }
+[data-style='nimiq'] .tour[data-intro='4'] .tn-user:not(.tn-user--stays) img { animation: tn-leave 600ms ease calc(500ms + var(--i) * 300ms) both; }
+[data-style='nimiq'] .tour[data-intro='4'] .tn-user:not(.tn-user--stays)::before { animation: tn-fade 400ms ease calc(800ms + var(--i) * 300ms) both; }
+
+/* 5: as 4 left it; the button comes in. */
+[data-style='nimiq'] .tour[data-intro='5'] .tn-ch,
+[data-style='nimiq'] .tour[data-intro='6'] .tn-ch { opacity: 0.5; }
+[data-style='nimiq'] .tour[data-intro='5'] .tn-lines__ch path,
+[data-style='nimiq'] .tour[data-intro='6'] .tn-lines__ch path { stroke-dashoffset: 0; }
+[data-style='nimiq'] .tour[data-intro='5'] .tn-lines__ch path:not(.tn-stays),
+[data-style='nimiq'] .tour[data-intro='6'] .tn-lines__ch path:not(.tn-stays) { stroke-opacity: 0.14; stroke-dasharray: 0.012 0.01; }
+[data-style='nimiq'] .tour[data-intro='5'] .tn-user:not(.tn-user--stays) img { opacity: 0; }
+[data-style='nimiq'] .tour[data-intro='5'] .tn-user:not(.tn-user--stays)::before { opacity: 1; }
+
+[data-style='nimiq'] .ti-fab { box-shadow: 0 6px 18px rgba(4, 7, 36, 0.22); }
+[data-style='nimiq'] .tour[data-intro='5'] .ti-fab { animation: tn-pop 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+[data-style='nimiq'] .tour[data-intro='5'] .ti-fab::after { animation: tn-ping 1100ms ease-out 500ms 2 both; }
+
+/* 6: the old lines and channels go, the users are back, a gold line from
+   each to the button, and the board opens above it, a row as each lands. */
+[data-style='nimiq'] .tour[data-intro='6'] .tn-ch,
+[data-style='nimiq'] .tour[data-intro='6'] .tn-lines__ch path { animation: tn-out 500ms ease both; }
+[data-style='nimiq'] .tour[data-intro='6'] .tn-user:not(.tn-user--stays) img { animation: tn-fade 500ms ease calc(200ms + var(--i) * 120ms) both; }
+[data-style='nimiq'] .tour[data-intro='6'] .tn-user:not(.tn-user--stays)::before { opacity: 1; animation: tn-out 300ms ease calc(200ms + var(--i) * 120ms) both; }
+[data-style='nimiq'] .tour[data-intro='6'] .tn-lines__fab path { animation: tn-draw 800ms ease-in-out calc(700ms + var(--i) * 180ms) both; }
+
+[data-style='nimiq'] .ti-board {
+  right: calc(var(--win) + 16px);
+  z-index: 1;
+  gap: 6px;
+  height: auto;
+  padding: 14px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--line), 0 16px 40px rgba(4, 7, 36, 0.16);
+}
+[data-style='nimiq'] .ti-board b { font-size: 15px; font-weight: 600; }
+[data-style='nimiq'] .ti-board > span {
+  margin-bottom: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+[data-style='nimiq'] .tn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-style: normal;
+  opacity: 0;
+}
+[data-style='nimiq'] .tn-row em {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 52px;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+[data-style='nimiq'] .tn-row em::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #c80013; }
+[data-style='nimiq'] .tn-row--idea em::before { background: #36395b; }
+[data-style='nimiq'] .tn-row::after { content: ''; flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+[data-style='nimiq'] .tour[data-intro='6'] .ti-board { animation: tn-open 500ms cubic-bezier(0.2, 0.8, 0.2, 1) 900ms both; }
+[data-style='nimiq'] .tour[data-intro='6'] .tn-row { animation: tn-in 400ms ease calc(1500ms + var(--i) * 180ms) both; }
+
+/* 7: visible to everyone. The gold lines go, the board moves to the middle
+   and grows (tour.js works out where and how big), a gold "Public" on it and
+   a gold edge, and the users gather around it, left, above and right. */
+/* "Public" as a tab on the middle of the board's gold top edge, clear of its
+   heading at any width. */
+[data-style='nimiq'] .tn-public {
+  position: absolute;
+  top: -11px;
+  left: 0;
+  right: 0;
+  width: max-content;
+  margin: 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px 4px 7px;
+  border-radius: 9999px;
+  background: var(--gold);
+  color: var(--navy);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+/* An open eye. */
+[data-style='nimiq'] .tn-public::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 5C6.5 5 2.7 9.2 1.5 12c1.2 2.8 5 7 10.5 7s9.3-4.2 10.5-7C21.3 9.2 17.5 5 12 5zm0 11a4 4 0 110-8 4 4 0 010 8z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 5C6.5 5 2.7 9.2 1.5 12c1.2 2.8 5 7 10.5 7s9.3-4.2 10.5-7C21.3 9.2 17.5 5 12 5zm0 11a4 4 0 110-8 4 4 0 010 8z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+[data-style='nimiq'] .tour[data-intro='7'] .tn-user { opacity: 1; animation: tn-gather 900ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(500ms + var(--i) * 80ms) both; }
+[data-style='nimiq'] .tour[data-intro='7'] .tn-ch,
+[data-style='nimiq'] .tour[data-intro='7'] .tn-lines__ch path { opacity: 0; }
+[data-style='nimiq'] .tour[data-intro='7'] .tn-lines__fab path { stroke-dashoffset: 0; animation: tn-out 400ms ease both; }
+[data-style='nimiq'] .tour[data-intro='7'] .ti-fab,
+[data-style='nimiq'] .tour[data-intro='7'] .tn-row { opacity: 1; }
+[data-style='nimiq'] .tour[data-intro='7'] .ti-board {
+  opacity: 1;
+  transform-origin: 50% 50%;
+  box-shadow: 0 0 0 2px var(--gold), 0 20px 50px rgba(4, 7, 36, 0.18);
+  transition: box-shadow 500ms ease 1300ms;
+  animation: tn-center 900ms cubic-bezier(0.2, 0.8, 0.2, 1) 300ms both;
+}
+[data-style='nimiq'] .tour[data-intro='7'] .tn-public { animation: tn-in 400ms ease 1300ms both; }
+@keyframes tn-center {
+  to { transform: translate(var(--bdx, 0px), var(--bdy, 0px)) scale(var(--bs, 1)); }
+}
+@keyframes tn-gather {
+  to { transform: translate(var(--udx, 0px), var(--udy, 0px)); }
+}
+
+/* What each scene says: navy on the window, faded in whole. */
+[data-style='nimiq'] .ti-caption {
+  left: calc(var(--win) + clamp(20px, 4vw, 36px));
+  right: calc(var(--win) + clamp(20px, 4vw, 36px));
+  bottom: calc(var(--win) + clamp(20px, 3.5vw, 32px));
+  transition: opacity 500ms ease, transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+[data-style='nimiq'] .ti-caption b { font-weight: 500; line-height: 1.12; letter-spacing: -0.03em; }
+[data-style='nimiq'] .ti-caption span { transition-duration: 500ms; }
+[data-style='nimiq'] .ti-caption--away { transform: translateY(12px); }
+@media (max-width: 639px) {
+  [data-style='nimiq'] .ti-caption { right: calc(var(--win) + 60px); }
+}
+
+[data-style='nimiq'] .tour-skip {
+  top: calc(var(--win) + 12px);
+  right: calc(var(--win) + 12px);
+  padding: 8px 16px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+[data-style='nimiq'] .tour-skip:hover { background: var(--row); }
+
+/* Each step's subtitle: faded in whole, its number above it in mono. */
+[data-style='nimiq'] .tour-say__title {
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  transition: opacity 450ms ease, transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+[data-style='nimiq'] .tour-say--away .tour-say__title { transform: translateY(8px); }
+[data-style='nimiq'] .tour-say[data-step]::before {
+  content: attr(data-step);
+  margin-bottom: 6px;
+  color: var(--ink-2);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  transition: opacity 450ms ease;
+}
+[data-style='nimiq'] .tour-say--away::before { opacity: 0; }
+@media (min-width: 640px) {
+  [data-style='nimiq'] .tour-say {
+    left: calc(var(--win) + clamp(20px, 4vw, 36px));
+    bottom: calc(var(--win) + clamp(20px, 3.5vw, 32px));
+    right: calc(var(--win) + 24px + 375px + 24px);
+  }
+}
+
+/* Whose side is next: on the navy and its hexagons, the window and the
+   widget faded out under it. */
+[data-style='nimiq'] .tour-title { background: transparent; }
+[data-style='nimiq'] .tour--title .tour-app,
+[data-style='nimiq'] .tour--title .tour-intro,
+[data-style='nimiq'] .tour--title please-no-bugs { opacity: 0; transition: opacity 300ms ease; }
+[data-style='nimiq'] .tour-title small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.64);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  animation-name: tn-in;
+}
+[data-style='nimiq'] .tour-title small:empty { display: none; }
+[data-style='nimiq'] .tour-title b { font-weight: 500; letter-spacing: -0.035em; animation: tn-in 500ms ease both; }
+/* The end: over the board, nearly navy, white outline buttons. */
+[data-style='nimiq'] .tour-end { background: rgba(4, 7, 36, 0.9); }
+[data-style='nimiq'] .tour-end__ways { animation-name: tn-in; }
+[data-style='nimiq'] .tour-end .btn { color: #fff; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2); }
+[data-style='nimiq'] .tour-end .btn:hover { background: rgba(255, 255, 255, 0.08); }
+
+/* The taps: a gold ring, not a white one. */
+[data-style='nimiq'] .tour-tap { background: rgba(255, 183, 0, 0.16); border-color: var(--gold); }
+[data-style='nimiq'] .tour-pulse { animation-name: tn-ping; animation-duration: 1100ms; }
+
+@keyframes tn-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes tn-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tn-out {
+  to { opacity: 0; }
+}
+@keyframes tn-dim {
+  to { opacity: 0.5; }
+}
+@keyframes tn-leave {
+  to { opacity: 0; transform: scale(0.85); }
+}
+@keyframes tn-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes tn-cut {
+  to { stroke-opacity: 0.14; stroke-dasharray: 0.012 0.01; }
+}
+@keyframes tn-pop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes tn-open {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes tn-ping {
+  from { box-shadow: 0 0 0 0 rgba(255, 183, 0, 0.75); }
+  to { box-shadow: 0 0 0 18px rgba(255, 183, 0, 0); }
+}
+
+@media (max-width: 639px) {
+  [data-style='nimiq'] .tn-ch { left: calc(3% + var(--i) * 33%); padding: 7px 10px; font-size: 11px; }
+  [data-style='nimiq'] .tn-user { left: calc(5% + var(--i) * 18.5%); width: 40px; height: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-style='nimiq'] .tour-app,
+  [data-style='nimiq'] .tour-app b,
+  [data-style='nimiq'] .tour-title b,
+  [data-style='nimiq'] .tour-title small { animation: none; }
+  [data-style='nimiq'] .ti-caption,
+  [data-style='nimiq'] .tour-say__title { transition: none; }
+}
 
 /* ---- Footer ------------------------------------------------------------- */
 

@@ -1199,6 +1199,43 @@ and wants it, without giving up PleaseNoBugs' own purple.
   code the site hands out loads the npm version, and on 0.2.0 `nimiq` is
   still the gradients.
 
+## 2026-11-10: The home demo, told quietly in the Nimiq look
+
+The owner found the intro's drawing (cartoon heads, tilted speech bubbles,
+drawn arrows, things popping up) too playful for the Nimiq look. The whole
+demo gets a calmer telling there; the purple look keeps its own, unchanged.
+
+- **Same story, same steps, same controls** (thirds, arrow keys, Esc, Skip
+  intro). Only how it looks and moves changes, chosen by `data-style`
+  (`calm()` in `assets/tour.js`).
+- **The box stays navy with its turning hexagons all the way**; the pretend
+  app is a white window inset in it (`--win`), and the widget, its panel and
+  its dimming stay inside that window (put in from tour.js, as `fit` already
+  sized the panel).
+- **The intro is a schema.** Users are Nimiq identicons (five, composed from
+  the shapes in `@nimiq/identicons`, MIT, as plain SVG files in
+  `assets/nimiq/`; nothing of its code runs). Thin navy lines run from each
+  up to the channel they wrote in (Reviews, Chats, DMs); most then leave, a
+  dashed outline where they stood, their lines broken up. The round button
+  comes in with gold rings; then gold lines run from every user to it and the
+  board opens above it, a mono-labelled row for each.
+- **Words fade in whole**, never typed, and the intro's lines are plainer:
+  "This is your app.", "Your first users arrive.", "They give feedback
+  wherever they can.", "Most of them leave without saying why.", "PleaseNoBugs
+  adds one button to your app.", "All feedback in one place." Each step's
+  subtitle has its number above it in mono ("02 / 05").
+- **A seventh scene, in this look only: "Visible to everyone."** (2026-11-11)
+  The owner wanted it said plainly that the board is public. The gold lines
+  go, the board moves to the middle of the room above the words and grows
+  as far as fits, a gold edge and a gold "Public" tab with an eye on it, and
+  the five users gather around it, left, above and right. Scene 6's small
+  line became "Every report, from every user, on one board." so the point is
+  made once. The purple look keeps its six scenes; skipping counts the
+  scenes of the look being shown.
+- **Title cards sit on the navy and its hexagons**, the window faded out
+  under them; the end is nearly navy over the board, outline buttons. Taps
+  show a gold ring.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
