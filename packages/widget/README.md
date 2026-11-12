@@ -154,8 +154,14 @@ please-no-bugs {
   --pnb-sent-note: var(--pnb-text-quiet); /* its small words and "Back to the board", */
   --pnb-sent-check: var(--pnb-done);     /* and the disc behind its tick */
   --pnb-on-sent-check: #fff;            /* the tick itself */
+  --pnb-raise: none;                     /* a filled button's shadow; `pleasenobugs` raises it */
+  --pnb-raise-pressed: none;             /* its shadow while pressed */
+  --pnb-raise-sink: 0px;                 /* how far it sinks when pressed */
   --pnb-fab: var(--pnb-accent-fill);     /* the round floating button */
   --pnb-on-fab: var(--pnb-on-accent);    /* its glyph */
+  --pnb-fab-shadow: var(--pnb-shadow);   /* its shadow, */
+  --pnb-fab-shadow-pressed: var(--pnb-fab-shadow); /* pressed, */
+  --pnb-fab-squeeze: 0.94;               /* and how small it gets pressed */
   --pnb-radius-panel: 16px;              /* the panel on a wide screen */
   --pnb-radius: 8px;
   --pnb-radius-sheet: 16px;

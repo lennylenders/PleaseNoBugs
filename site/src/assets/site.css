@@ -260,6 +260,34 @@ code, pre, kbd { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace
 
 .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
 
+/* In this look, not Nimiq's: every button raised. Its own colour at the top,
+   a little darker at the bottom, a light edge along the top, a dark one
+   along the bottom, and a soft glow in its colour underneath. Pressed, it
+   sinks a pixel and the light goes inside. Each kind only names its colour
+   (and the quiet one its line); the raise is the same for all. */
+.btn { --btn-fill: var(--button); --btn-line: transparent; }
+.btn:hover { --btn-fill: var(--button-hover); }
+.btn--quiet { --btn-fill: var(--card); --btn-line: var(--line); }
+.btn--quiet:hover { --btn-fill: #6060b8; }
+.btn--grey { --btn-fill: var(--card-2); }
+.btn--grey:hover { --btn-fill: #50519a; }
+
+:root:not([data-style='nimiq']) .btn {
+  background: linear-gradient(var(--btn-fill), color-mix(in srgb, var(--btn-fill), #000 18%));
+  box-shadow:
+    inset 0 0 0 1.5px var(--btn-line),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 8px 24px -6px color-mix(in srgb, var(--btn-fill) 60%, transparent);
+  transition: translate 120ms ease, box-shadow 120ms ease;
+}
+:root:not([data-style='nimiq']) .btn:active:not([disabled]) {
+  transform: none;
+  translate: 0 1px;
+  box-shadow: inset 0 0 0 1.5px var(--btn-line), inset 0 2px 4px rgba(0, 0, 0, 0.27);
+}
+
 /* ---- Headings and text ------------------------------------------------- */
 
 h1, h2, h3 { margin: 0; line-height: 1.15; }
