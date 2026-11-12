@@ -245,11 +245,11 @@
   --pnb-accent: #1fc7d4;
   --pnb-on-accent: #12132b;
   /* Raised, as on the website: the turquoise going a little darker, a light
-     top edge, a dark bottom one and a turquoise glow; pressed, it sinks a
+     top edge, a dark bottom one and a small dark shadow; pressed, it sinks a
      pixel and the light goes inside. */
   --pnb-accent-fill: linear-gradient(var(--pnb-accent), color-mix(in srgb, var(--pnb-accent), #000 18%));
   --pnb-raise: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -6px color-mix(in srgb, var(--pnb-accent) 60%, transparent);
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 10px -4px rgba(0, 0, 0, 0.35);
   --pnb-raise-pressed: inset 0 2px 4px rgba(0, 0, 0, 0.27);
   --pnb-raise-sink: 1px;
   --pnb-fab-shadow: var(--pnb-raise), var(--pnb-shadow);

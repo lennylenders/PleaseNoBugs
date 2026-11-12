@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>What is PleaseNoBugs?</title>
+    <title>Why PleaseNoBugs</title>
     <meta name="description" content="What the PleaseNoBugs widget is about, what it does for you as a Nimiq developer, and how to add it to your app in a few lines." />
     <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
     <script src="assets/style.js"></script>
@@ -37,7 +37,7 @@
           <span>PleaseNoBugs</span>
         </a>
         <nav class="nav" aria-label="Main">
-          <a href="what-is-it.html" aria-current="page">What is it?</a>
+          <a href="what-is-it.html" aria-current="page">Why PleaseNoBugs</a>
           <a href="customize.html">Customize</a>
           <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
         </nav>
@@ -52,8 +52,8 @@
       <div class="hexes-bg hexes-bg--page" data-hexes="right"></div>
       <section class="how-intro">
         <div class="wrap">
-          <h1>What is it?</h1>
-          <p class="lead">PleaseNoBugs is an open-source feedback widget made for everyone building on Nimiq. Your users tell you what is broken and what they miss without leaving your app, and you answer where everyone can see it.</p>
+          <h1>Your users talk. You answer. <span class="nowrap">Everyone sees it.</span></h1>
+          <p class="lead">A free, open-source feedback widget for apps built on Nimiq. Bugs, ideas and reviews, right inside your app.</p>
         </div>
       </section>
 
@@ -61,9 +61,9 @@
       <section class="how" aria-labelledby="about-title">
         <div class="wrap how__row">
           <div class="how__text">
-            <h2 id="about-title">What is the widget about?</h2>
-            <p>Your users know best what is broken and what they miss. But they rarely tell you, and when they do, it gets lost in a chat or an inbox.</p>
-            <p>The widget gives users one place in your app to say it: a bug, an idea or a review. It is all on an open board, so others read along and vote, and you answer right under it. Feedback becomes a conversation with your users instead of a black hole.</p>
+            <h2 id="about-title">Feedback without the black hole</h2>
+            <p>Your users know what's broken and what's missing. They rarely tell you, and when they do, it vanishes in a chat or an inbox.</p>
+            <p>With the widget they say it where they already are: in your app, logged in with their wallet. Others vote. You answer underneath, in public.</p>
           </div>
 
           <div class="how__show">
@@ -106,16 +106,14 @@
       <section class="how how--flip" aria-labelledby="why-title">
         <div class="wrap how__row">
           <div class="how__text">
-            <h2 id="why-title">Why should Nimiq developers use it?</h2>
+            <h2 id="why-title">Why Nimiq developers use it</h2>
             <ul class="how__points">
-              <li><b>No account, no password.</b> Your users sign with their Nimiq wallet. No email, no sign-up form.</li>
-              <li><b>Your data, your server.</b> The posts live on a server you run. Nobody else holds them.</li>
-              <li><b>Open source, a few lines.</b> Free and MIT licensed. A script and one tag, and your app has a feedback board.</li>
-              <li><b>Know what your users really want.</b> Votes put the most wanted ideas and the most annoying bugs on top, so you know what to build next.</li>
-              <li><b>Fewer duplicates.</b> While someone writes, similar posts show up under "Said already, maybe?", and they vote for that one instead.</li>
-              <li><b>One place to answer.</b> Your reply, the status and the version that fixed it sit under the post, for everyone to see. No inbox, no email threads.</li>
-              <li><b>It looks like your app.</b> Your colours and your words, in English, Dutch or German, and only the kinds of feedback you want. <a href="customize.html">Try it in the configurator</a>.</li>
+              <li><b>Your data, your server.</b> Feedback lives on a server you run. PleaseNoBugs collects nothing.</li>
+              <li><b>No sign-up.</b> Users sign with their Nimiq wallet. No email, no password.</li>
+              <li><b>Votes show what matters.</b> The most wanted ideas and the most annoying bugs rise to the top. Duplicates get caught while typing.</li>
+              <li><b>You own the board.</b> Your wallet address is the owner. Your answer, the status and the fix version sit under the post.</li>
             </ul>
+            <p>Free, MIT licensed, and it looks like your app. <a href="customize.html">Try it in the configurator &rarr;</a></p>
           </div>
 
           <div class="how__show">
@@ -146,11 +144,18 @@
         </div>
       </section>
 
+      <!-- The goal in one line. -->
+      <section class="pull" aria-label="The goal">
+        <div class="wrap">
+          <blockquote class="pull__quote"><p>Make feedback effortless for users and actionable for developers.</p></blockquote>
+        </div>
+      </section>
+
       <!-- 3. How to add it. The drawing types the tag, then plays the three ways. -->
       <section class="how how--add" aria-labelledby="add-title">
         <div class="wrap">
           <div class="section-head">
-            <h2 id="add-title">How to add it</h2>
+            <h2 id="add-title">Add it in 3 steps</h2>
             <p>A server, a script and one tag. Paste it in, and your app has a feedback board.</p>
           </div>
 
@@ -168,43 +173,25 @@
             </div>
           </div>
 
-          <ol class="steps-list">
+          <ol class="steps-list steps-list--three">
             <li>
               <h3>Start your server</h3>
-              <p>The board lives on a PleaseNoBugs server of your own. On Railway that is a button and three fields, no command line; Node and Docker work too. When it starts, it prints your project id and its address.</p>
+              <p>Your board lives on a server of your own. On Railway that is one button and three fields; Node and Docker work too. It prints your project id and address.</p>
               <p><a href="https://github.com/lennylenders/PleaseNoBugs#get-it-running">Set up a server</a></p>
             </li>
             <li>
-              <h3>Load the script</h3>
-              <pre class="code"><code><span class="t">&lt;script</span> <span class="a">src</span>=<span class="s">"https://unpkg.com/pleasenobugs@%VERSION%"</span><span class="t">&gt;</span><span class="t">&lt;/script</span><span class="t">&gt;</span></code></pre>
-              <p>With a bundler: <code>npm install pleasenobugs</code>, then <code>import 'pleasenobugs'</code> once.</p>
-            </li>
-            <li>
-              <h3>Add the tag</h3>
-              <pre class="code"><code><span class="t">&lt;please-no-bugs</span>
+              <h3>Paste the script and the tag</h3>
+              <pre class="code"><code><span class="t">&lt;script</span> <span class="a">src</span>=<span class="s">"https://unpkg.com/pleasenobugs@%VERSION%"</span><span class="t">&gt;</span><span class="t">&lt;/script</span><span class="t">&gt;</span>
+<span class="t">&lt;please-no-bugs</span>
   <span class="a">project</span>=<span class="s">"YOUR_PROJECT_ID"</span>
   <span class="a">server</span>=<span class="s">"https://YOUR_SERVER"</span>
   <span class="a">mode</span>=<span class="s">"floating"</span>
 <span class="t">&gt;</span><span class="t">&lt;/please-no-bugs</span><span class="t">&gt;</span></code></pre>
-              <p>Use the project id and address your server printed.</p>
-            </li>
-            <li>
-              <h3>Pick how it shows</h3>
-              <dl class="modes">
-                <dt><code>mode="floating"</code> Button</dt>
-                <dd>A round button in the corner that opens the board. The one to start with.</dd>
-                <dt><code>mode="inline"</code> Inline</dt>
-                <dd>The board inside a page of your own. Give it a height.</dd>
-                <dt><code>mode="overlay"</code> Overlay</dt>
-                <dd>Over your page, straight away. Or open it from a menu item you already have:</dd>
-              </dl>
-              <pre class="code"><code><span class="t">import</span> { open } <span class="t">from</span> <span class="s">'pleasenobugs'</span>;
-menuItem.onclick = () =&gt; open({ project, server });</code></pre>
-              <p>On a phone it covers the screen; on a wider screen it is a panel in the corner.</p>
+              <p>With a bundler: <code>npm install pleasenobugs</code>, then <code>import 'pleasenobugs'</code> once.</p>
             </li>
             <li>
               <h3>Make it yours</h3>
-              <p>Pick your colours, words and kinds in the configurator. It writes this code for you, or a prompt for your AI agent.</p>
+              <p>A button in the corner (<code>floating</code>), on a page of your own (<code>inline</code>), or over your page (<code>overlay</code>). Pick that, your colours and your words in the configurator. It writes the code for you, or a prompt for your AI agent.</p>
               <p><a class="btn btn--small" href="customize.html">Customize it</a></p>
             </li>
           </ol>

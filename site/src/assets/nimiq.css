@@ -4,7 +4,7 @@
  * white pages, deep navy words and buttons, a flat gold, Manrope for text
  * and JetBrains Mono for labels and code, and the key visual (the logo's
  * hexagon in layers, turning slowly, after Sören's prototype) in the home
- * page's demo and at the top of What is it?.
+ * page's demo and at the top of Why PleaseNoBugs.
  *
  * Only ever on with `data-style="nimiq"` on <html>, set by assets/style.js
  * from the header's switch. Everything here is scoped to it, so the purple
@@ -140,7 +140,7 @@
 [data-style='nimiq'] .tour:not(.tour--app) .tour-start .btn { color: #fff; }
 [data-style='nimiq'] .tour:not(.tour--app) .tour-start .btn:hover { background: rgba(255, 255, 255, 0.08); }
 
-/* ---- The drawings on What is it?: the widget's Nimiq colours ------------ */
+/* ---- The drawings on Why PleaseNoBugs: the widget's Nimiq colours ------------ */
 
 [data-style='nimiq'] .stage {
   --s-bg: #ffffff;
@@ -166,7 +166,7 @@
 /* ---- The key visual, turning (assets/hexes.js) ------------------------- */
 
 /* Two groups in the home page's card, navy, as in Sören's prototype's dark
-   mode; one behind the top of What is it?, light. Each group is ten layers
+   mode; one behind the top of Why PleaseNoBugs, light. Each group is ten layers
    of the logo's hexagon, a step apart and a few degrees turned, each turning
    once in four minutes. The sizes are the prototype's, in --hx (the group's
    width, 1.57 times its box's height) instead of the window's. */
@@ -225,7 +225,7 @@
 [data-style='nimiq'] .screen--home .hexes__layer:nth-child(9) path { fill-opacity: 0.4; }
 [data-style='nimiq'] .screen--home .hexes__layer:nth-child(10) path { fill-opacity: 0.5; }
 
-/* What is it?: one light group behind the top right of the page, fading
+/* Why PleaseNoBugs: one light group behind the top right of the page, fading
    out before the first section. */
 [data-style='nimiq'] .hexes-bg--page {
   bottom: auto;

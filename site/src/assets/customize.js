@@ -421,7 +421,7 @@ const PLAYS = {
 };
 
 /**
- * The intro's drawing, in the style of What is it?'s: a sketch of the widget
+ * The intro's drawing, in the style of the Why PleaseNoBugs page's: a sketch of the widget
  * in grey, in its real shape and at its real place, and a cursor that makes
  * it yours as the steps after it do. The round button pops up in the corner;
  * the cursor taps it, the line around a part comes up with its name, a row

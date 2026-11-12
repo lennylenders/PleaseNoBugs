@@ -1,5 +1,5 @@
 /**
- * The drawings on What is it?, one per part. Each is HTML in the widget's
+ * The drawings on Why PleaseNoBugs, one per part. Each is HTML in the widget's
  * colours and glyphs (what-is-it.html, site.css), not the widget: this script plays it
  * by putting classes on its `.stage` and the things in it, and site.css moves
  * them there.
