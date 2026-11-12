@@ -27,7 +27,7 @@ export const TAG = 'please-no-bugs';
  * under them; `start="board"` opens on the board instead.
  *
  * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
- * `start` (`tiles` or `board`), `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq` | `nimiq-dark`), `accent`
+ * `start` (`tiles` or `board`), `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq`), `accent`
  * (a colour), `app-name`, `name` (a display name to suggest), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
  * the board, for the app's owners only; `off` to leave them out), `names`

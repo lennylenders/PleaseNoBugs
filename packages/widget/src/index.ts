@@ -15,7 +15,7 @@ export interface OpenOptions {
   project: string;
   server: string;
   lang?: string;
-  theme?: 'auto' | 'light' | 'dark' | 'pleasenobugs' | 'nimiq' | 'nimiq-dark' | 'shitti';
+  theme?: 'auto' | 'light' | 'dark' | 'pleasenobugs' | 'nimiq' | 'shitti';
   accent?: string;
   appName?: string;
   /** A display name to suggest when the user chooses to show theirs. */

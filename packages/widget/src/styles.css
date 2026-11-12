@@ -156,78 +156,44 @@
   --pnb-scrim: rgba(0, 0, 0, 0.6);
 }
 
-/* Nimiq, in the Foundation's look of late 2026: calm and informative. Deep
-   navy for words and buttons, a flat gold for stars and the round button,
-   quiet tinted tiles with the kind's colour on a disc, and smaller corners.
-   `nimiq` is light, `nimiq-dark` the same on navy. (Until 0.3 `nimiq` was
-   the wallet's bright gradients.) */
-:host([theme='nimiq']),
-:host([theme='nimiq-dark']) {
+/* Nimiq: bright and light, the colours of the Nimiq wallet feedback design
+   this widget's tiles came from. Painted tiles, a gradient on the buttons,
+   and a green "sent". (For a few days before 0.3 it was the Foundation's
+   late-2026 rebrand instead; that look is parked in Figma.) */
+:host([theme='nimiq']) {
   --pnb-bg: #ffffff;
-  --pnb-surface: #fafafb;
-  --pnb-surface-2: #f2f2f4;
-  --pnb-sunken: #f2f2f4;
-  --pnb-line: #e6e6e9;
-  --pnb-text: #040724;
-  --pnb-text-quiet: #68697c;
-  --pnb-accent: #040724;
+  --pnb-surface: #f5f5f8;
+  --pnb-surface-2: #e9e9f0;
+  --pnb-sunken: #e9e9f0;
+  --pnb-line: #dedee7;
+  --pnb-text: #1f2348;
+  --pnb-text-quiet: #5c5f7a;
+  --pnb-accent: #0582ca;
+  --pnb-accent-fill: linear-gradient(274deg, #265dd7 0%, #0582ca 100%);
   --pnb-on-accent: #ffffff;
-  --pnb-danger: #c80013;
-  --pnb-bug: #c80013;
-  --pnb-idea: #36395b;
-  --pnb-review: #ffb700;
-  --pnb-planned: #9b9ca7;
-  --pnb-done: #040724;
-  --pnb-declined: #9b9ca7;
-  --pnb-on-review: #040724;
-  --pnb-on-done: #ffb700;
-  --pnb-star: #ffb700;
-  --pnb-tile-bug: #fcebec;
-  --pnb-tile-idea: #f2f2f4;
-  --pnb-tile-review: #fff8e4;
-  --pnb-tile-ink: #040724;
-  /* No disc: the glyph in the words' colour, close over its name. */
-  --pnb-tile-icon: 28px;
-  --pnb-order-on: var(--pnb-accent);
-  --pnb-on-order: var(--pnb-on-accent);
-  --pnb-sent-check: #ffb700;
-  --pnb-on-sent-check: #040724;
-  --pnb-fab: #040724;
-  --pnb-on-fab: #ffb700;
-  --pnb-radius: 8px;
-  --pnb-radius-sheet: 12px;
-  --pnb-radius-panel: 12px;
-  --pnb-radius-pill: 8px;
-  --pnb-shadow: 0 12px 32px rgba(4, 7, 36, 0.12);
-  --pnb-scrim: rgba(4, 7, 36, 0.5);
-}
-
-:host([theme='nimiq-dark']) {
-  --pnb-bg: #040724;
-  --pnb-surface: #0d1030;
-  --pnb-surface-2: #1a1d3d;
-  --pnb-sunken: #1a1d3d;
-  --pnb-line: #262946;
-  --pnb-text: #ffffff;
-  --pnb-text-quiet: #9b9ca7;
-  --pnb-accent: #ffffff;
-  --pnb-on-accent: #040724;
-  --pnb-danger: #ff6b4d;
-  --pnb-bug: #e93700;
-  --pnb-idea: #c3c3d3;
-  --pnb-on-idea: #040724;
-  --pnb-planned: #68697c;
-  --pnb-done: #ffb700;
-  --pnb-declined: #68697c;
-  --pnb-on-done: #040724;
-  --pnb-tile-bug: #240e1f;
-  --pnb-tile-idea: #1a1d3d;
-  --pnb-tile-review: #27201f;
-  --pnb-tile-ink: #ffffff;
-  --pnb-fab: #ffb700;
-  --pnb-on-fab: #040724;
-  --pnb-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-  --pnb-scrim: rgba(1, 2, 15, 0.65);
+  --pnb-danger: #d94432;
+  --pnb-bug: #d94432;
+  --pnb-idea: #21bca5;
+  --pnb-review: #e9a113;
+  --pnb-planned: #0582ca;
+  --pnb-done: #21bca5;
+  --pnb-declined: #8b8d98;
+  --pnb-star: #e9a113;
+  --pnb-tile-bug: linear-gradient(274deg, #cc3047 0%, #e9564a 100%);
+  --pnb-tile-idea: linear-gradient(274deg, #41a38e 0%, #21bca5 100%);
+  --pnb-tile-review: linear-gradient(274deg, #ec991c 0%, #e9b213 100%);
+  --pnb-sent: linear-gradient(274deg, #41a38e 0%, #21bca5 100%);
+  /* On the painted "sent" the words go white and the tick needs no disc. */
+  --pnb-sent-title: #ffffff;
+  --pnb-sent-note: rgba(255, 255, 255, 0.9);
+  --pnb-sent-check: transparent;
+  --pnb-fab: #1f2348;
+  --pnb-on-fab: #ffffff;
+  --pnb-radius: 10px;
+  --pnb-radius-sheet: 20px;
+  --pnb-radius-panel: 10px;
+  --pnb-shadow: 0 8px 24px rgba(31, 35, 72, 0.16);
+  --pnb-scrim: rgba(31, 35, 72, 0.5);
 }
 
 /* PleaseNoBugs' own colours, the same as its website. They started as

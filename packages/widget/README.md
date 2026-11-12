@@ -41,7 +41,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `mode` | `inline`, `floating` or `overlay`. |
 | `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board. |
 | `lang` | `en`, `nl`, `de`, or any code you supply `strings` for. Defaults to Nimiq Pay's language, then the page's. |
-| `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (the Nimiq Foundation's calm look: navy and flat gold, quiet tiles, smaller corners), `nimiq-dark` (the same on navy). The other themes share one shape, painted tiles with a white glyph; the Nimiq ones tint the tiles and draw the glyph in the words' colour, without a disc. Before 0.3, `nimiq` was the wallet's bright gradients. `shitti` is the old name of `pleasenobugs` and still works. |
+| `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (the Nimiq wallet's gradient tiles and buttons, light only). Every theme has the same shapes: painted tiles with a white glyph, the same badges; only the colours differ. `shitti` is the old name of `pleasenobugs` and still works. |
 | `accent` | One colour, e.g. `#e84a5f`. The text on it picks black or white by itself. |
 | `app-name` | What answers are signed with ("Shitti says"). Defaults to the project's name. |
 | `name` | A display name you already know, offered when the user chooses to show theirs. |
