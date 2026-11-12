@@ -10,12 +10,18 @@
  * The widgets on the page follow: `pleasenobugs` in the one look, `nimiq` in
  * the other. Scripts that make widgets ask `PNBStyle.theme()`, and hear
  * `pnb:style` when it changes.
+ *
+ * Parked for the first version: everyone sees the classic look, the header
+ * button stays hidden, and a Nimiq choice made earlier is not read. The
+ * Nimiq look itself stays in the repo; set PARKED to false to bring it back.
  */
 (function () {
+  var PARKED = true;
   var KEY = 'pnb-style';
   var root = document.documentElement;
 
   function read() {
+    if (PARKED) return 'classic';
     try {
       return localStorage.getItem(KEY) === 'nimiq' ? 'nimiq' : 'classic';
     } catch (e) {
@@ -70,6 +76,7 @@
   };
 
   function wire() {
+    if (PARKED) return;
     var buttons = document.querySelectorAll('[data-style-switch]');
     for (var i = 0; i < buttons.length; i++) {
       var btn = buttons[i];
