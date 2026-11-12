@@ -1236,6 +1236,38 @@ demo gets a calmer telling there; the purple look keeps its own, unchanged.
   under them; the end is nearly navy over the board, outline buttons. Taps
   show a gold ring.
 
+## 2026-11-12: One look for the site, and ready-made designs in Customize
+
+- **The site's Nimiq look is parked.** The first version shows only the
+  purple: the header's style switch stays hidden and an earlier Nimiq choice
+  is not read (`PARKED` in `assets/style.js` brings it back). `nimiq.css`,
+  the calm demo and the rest stay in the repo.
+- **The Nimiq hexagon drifts with the background glyphs**, five per tile in
+  `assets/pattern.svg`, as faint and as white as bug, idea and review.
+- **`theme="nimiq"` is the wallet's gradients again**, as on npm 0.2.0: the
+  owner wants the old Nimiq look, not the Foundation's late-2026 rebrand.
+  The rebrand widget is parked in Figma only (page "Nimiq refresh"), out of
+  the code; `nimiq-dark` is gone (it was never released). The newer tokens
+  from that change (`--pnb-on-dot`, `--pnb-tile-icon`, `--pnb-radius-pill`,
+  ...) stay: every theme still looks as before with them. With this, the
+  release that the site's Nimiq look needed is no longer needed for `nimiq`.
+- **Customize starts with a choice** (Figma: Page 3, "Site · Customize ·
+  Ready-made designs (2026-11-12)"). The start card holds two ready-made
+  designs, Nimiq and PleaseNoBugs, each showing three of its screens small
+  (real widgets in `demo` mode, held still), and "Customize it myself".
+  - A design card opens the design big: the real widget on the right, the
+    card flips it through Button, Tiles, Writing, Sent and Board (chips, a
+    tap on the widget, or the arrow keys), and "Next" goes round the two.
+    "Use this design" takes it as it is (its colours and words, all three
+    kinds, screenshots for everyone) straight to "You're ready!".
+  - There a ready-made design gets "Shown as" (Button / Inline / Overlay,
+    the same choice as step 1) and "Customize from here", which runs the
+    steps starting from that design. Back goes to the design, big.
+  - "Customize it myself" first asks which design to start from ("Start
+    from"); the steps then work on that theme, and the code names it.
+  - The intro's sketch of a widget being coloured in is gone; the cards
+    took its place.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

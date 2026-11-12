@@ -58,12 +58,73 @@
 
             <div class="deck__body" id="deck-body">
               <h1 class="deck__name" id="step-name">Make it look like yours.</h1>
-              <p class="deck__hint" id="hint">A feedback button that fits your app is one people actually tap.</p>
+              <p class="deck__hint" id="hint">Take a ready-made design and you're done, or make your own. Then copy the code or hand it to your AI agent.</p>
 
               <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
+                <!-- Before the steps: a ready-made design, or your own. Each
+                     design card shows three real screens of the widget
+                     (customize.js puts them in) and opens the design big. -->
                 <div class="edit__step intro" data-step="intro">
-                  <button type="button" class="btn intro__start" id="start">Make it mine</button>
-                  <p class="intro__small">Free and open source. About two minutes, then copy the code or hand it to your AI agent.</p>
+                  <div class="designs">
+                    <div class="design" data-design="nimiq">
+                      <div class="design__shots" aria-hidden="true"></div>
+                      <h2 class="design__name">
+                        <button type="button" class="design__open" data-look="nimiq">Nimiq</button>
+                        <small class="design__tag">Light</small>
+                      </h2>
+                      <p class="design__line"></p>
+                      <span class="design__more" aria-hidden="true">See it big &rarr;</span>
+                    </div>
+                    <div class="design" data-design="pleasenobugs">
+                      <div class="design__shots" aria-hidden="true"></div>
+                      <h2 class="design__name">
+                        <button type="button" class="design__open" data-look="pleasenobugs">PleaseNoBugs</button>
+                        <small class="design__tag">Purple</small>
+                      </h2>
+                      <p class="design__line"></p>
+                      <span class="design__more" aria-hidden="true">See it big &rarr;</span>
+                    </div>
+                    <div class="design design--own">
+                      <span class="design__dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                      <h2 class="design__name">Customize it myself</h2>
+                      <p class="design__line">Your colours, your words, and how it opens. About two minutes.</p>
+                      <button type="button" class="btn intro__start" id="start">Make it mine</button>
+                    </div>
+                  </div>
+                  <p class="intro__small">Free and open source. Nothing you pick is saved: the code you copy is the only place it ends up.</p>
+                </div>
+
+                <!-- A ready-made design, big: the real widget, screen by screen. -->
+                <div class="edit__step look" data-step="look" hidden>
+                  <fieldset class="field">
+                    <legend>Screens</legend>
+                    <div class="chips" id="look-screens"></div>
+                    <p class="field__about">Tap the widget, or use &larr; and &rarr;, for the next one.</p>
+                  </fieldset>
+                  <button type="button" class="btn look__use" id="use">Use this design</button>
+                  <div class="look__foot">
+                    <button type="button" class="btn btn--small btn--grey" id="look-back">Back</button>
+                    <button type="button" class="look__next" id="look-next"></button>
+                  </div>
+                </div>
+
+                <!-- Customize it myself: first the design to start from. -->
+                <div class="edit__step" data-step="base" hidden>
+                  <fieldset class="field">
+                    <legend class="visually-hidden">Start from</legend>
+                    <div class="bases">
+                      <label class="base">
+                        <input type="radio" name="base" value="pleasenobugs" checked />
+                        <span class="base__dots" aria-hidden="true"><i style="--c: #2b2c5a"></i><i style="--c: #e5484d"></i><i style="--c: #8b5cf6"></i><i style="--c: #e9a00b"></i></span>
+                        <span class="base__text"><b>PleaseNoBugs</b><small>Playful purple</small></span>
+                      </label>
+                      <label class="base">
+                        <input type="radio" name="base" value="nimiq" />
+                        <span class="base__dots" aria-hidden="true"><i style="--c: #ffffff"></i><i style="--c: #e9564a"></i><i style="--c: #21bca5"></i><i style="--c: #e9b213"></i></span>
+                        <span class="base__text"><b>Nimiq</b><small>Light, with gradients</small></span>
+                      </label>
+                    </div>
+                  </fieldset>
                 </div>
 
                 <div class="edit__step" data-step="opens" hidden>
@@ -119,6 +180,18 @@
                 </div>
 
                 <div class="edit__step ready" data-step="ready" hidden>
+                  <!-- A ready-made design went through no steps: how it opens is chosen here. -->
+                  <fieldset class="field ready__mode" id="ready-mode" hidden>
+                    <legend>Shown as</legend>
+                    <div class="seg">
+                      <label><input type="radio" name="ready-mode" value="floating" checked /><span>Button</span></label>
+                      <label><input type="radio" name="ready-mode" value="inline" /><span>Inline</span></label>
+                      <label><input type="radio" name="ready-mode" value="overlay" /><span>Overlay</span></label>
+                    </div>
+                    <p class="field__about" data-mode="floating">A round button in the corner of every screen.</p>
+                    <p class="field__about" data-mode="inline">A page of its own in your app, for example behind Feedback in its menu.</p>
+                    <p class="field__about" data-mode="overlay">Over your app, opened from a button or menu item of yours.</p>
+                  </fieldset>
                   <div class="ready__ways">
                     <button type="button" class="btn ready__btn" id="feed">Feed it to your AI agent</button>
                     <button type="button" class="btn btn--quiet ready__btn" id="copy">Copy code</button>
@@ -151,6 +224,7 @@
             <div class="deck__foot">
               <button type="button" class="btn btn--small btn--grey" id="back">Back</button>
               <span class="spacer"></span>
+              <button type="button" class="btn btn--small btn--quiet" id="tweak" hidden>Customize from here</button>
               <button type="button" class="btn btn--small" id="next">Next</button>
             </div>
           </section>
