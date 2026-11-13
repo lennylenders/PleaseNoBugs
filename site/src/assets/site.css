@@ -425,6 +425,281 @@ section + section { padding-top: 0; }
 }
 
 /*
+ * "Build your own widget." (assets/tour.js): one real widget in the middle
+ * of the dimmed app, grey, coloured in by a cursor with Customize's line and
+ * row of colours, a glow of its accent behind it; then it goes back among
+ * the others, and grey copies all around are coloured in by small cursors
+ * of their own (`--copies`). Then a big round button pops up in the middle
+ * (`--button`), gulps them all (`--eat`), squashes, stretches and pops
+ * (`--pop`), and purple sparks and rings go out from it over everything
+ * (`--bang`), the end coming out of it.
+ */
+@property --glow {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #1fc7d4;
+}
+.tour-build {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  background: rgba(14, 14, 34, 0.78);
+  animation: tour-title-in 320ms ease-out;
+}
+.tour-build[hidden] { display: none; }
+
+/* The widget in the middle, and each copy: the same size, placed from the
+   middle of the box and scaled. */
+.tb-main,
+.tb-copy {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 300px;
+  height: 440px;
+}
+.tb-main {
+  z-index: 2;
+  transform: translate(-50%, -50%) scale(var(--k, 1));
+  transition: --glow 300ms ease;
+}
+/* The glow of its accent behind it, changing with it; gone once it is back among the others. */
+.tb-main::before {
+  content: '';
+  position: absolute;
+  inset: -18%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--glow), transparent 45%), transparent);
+  filter: blur(18px);
+  transition: opacity 400ms ease;
+}
+.tb-main.is-back::before { opacity: 0; }
+.tb-main please-no-bugs,
+.tb-copy {
+  display: block;
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.tb-main please-no-bugs { height: 100%; }
+.tb-copy { z-index: 1; }
+/* The first widget's round button at its corner, as in an app, grey until
+   the cursor colours it. */
+.tb-fab {
+  position: absolute;
+  right: -30px;
+  bottom: -30px;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 0 rgba(0, 0, 0, 0.2), 0 8px 18px rgba(0, 0, 0, 0.4);
+  transition: background-color 200ms ease, color 200ms ease;
+}
+.tb-fab svg { width: 24px; height: 24px; }
+/* The board and "Feedback sent!", drawn once out of sight to be copied. */
+.tb-away {
+  position: absolute;
+  left: -2000px;
+  top: 0;
+  width: 300px;
+  height: 440px;
+  visibility: hidden;
+}
+
+/* Customize's line round a part, with its name, and its row of colours. */
+.tb-mark {
+  position: absolute;
+  z-index: 4;
+  border: 2px solid var(--button);
+  border-radius: 14px;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.tb-mark.on { opacity: 1; }
+.tb-mark span {
+  position: absolute;
+  left: 10px;
+  bottom: -12px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--button);
+  color: #12132b;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tb-mark--in span { bottom: 8px; }
+.tb-pick {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: 0 12px 28px rgba(10, 10, 30, 0.4);
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.tb-pick.on { opacity: 1; transform: none; }
+.tb-pick i {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+.tb-pick i.chosen { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px #fff; transform: scale(1.12); }
+.tb-pick .tb-own { background: conic-gradient(#e5484d, #e9a00b, #f5e663, #21bca5, #1fc7d4, #3b82f6, #8b5cf6, #e5484d); }
+
+/* The cursor, its tip on the spot it is sent to, and the ring of a tap.
+   The copies' cursors are smaller. */
+.tb-cursor {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  z-index: 6;
+  opacity: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  transition: transform 400ms cubic-bezier(0.45, 0, 0.25, 1), opacity 250ms ease;
+}
+.tb-cursor.on { opacity: 1; }
+.tb-cursor svg { display: block; transform-origin: 2px 2px; transition: transform 120ms ease; }
+.tb-cursor.down svg { transform: scale(0.85); }
+.tb-cursor--small { z-index: 2; }
+.tb-cursor--small svg { width: 16px; height: 19px; }
+.tb-tap {
+  position: absolute;
+  z-index: 5;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  animation: tb-tap 450ms ease-out forwards;
+}
+.tb-tap--small { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+@keyframes tb-tap {
+  from { opacity: 1; transform: scale(0.5); }
+  to { opacity: 0; transform: scale(1.3); }
+}
+
+/* The round button of the end: big, raised as the site's own buttons, in
+   the site's turquoise, its thumbs white. It pops up, gulps, then squashes,
+   stretches and pops. */
+.tb-button {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: var(--btn, 96px);
+  height: var(--btn, 96px);
+  margin: calc(var(--btn, 96px) / -2) 0 0 calc(var(--btn, 96px) / -2);
+  border-radius: 50%;
+  background: linear-gradient(#1fc7d4, #1aa3ae);
+  color: #fff;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.22),
+    0 0 0 6px rgba(31, 199, 212, 0.18),
+    0 0 40px 8px rgba(31, 199, 212, 0.45),
+    0 14px 30px rgba(0, 0, 0, 0.45);
+  scale: 0;
+}
+.tb-button svg { width: 44%; height: 44%; }
+.tour-build--button .tb-button { animation: tb-button-in 420ms cubic-bezier(0.25, 1.6, 0.45, 1) forwards; }
+.tour-build--eat .tb-button { scale: 1; animation: tb-gulp 180ms ease-in-out infinite alternate; }
+.tour-build--pop .tb-button { scale: 1; animation: tb-button-pop 480ms cubic-bezier(0.4, 0, 0.6, 1) forwards; }
+@keyframes tb-button-in {
+  from { scale: 0; }
+  to { scale: 1; }
+}
+@keyframes tb-gulp {
+  from { scale: 1; }
+  to { scale: 1.1 0.94; }
+}
+@keyframes tb-button-pop {
+  0% { scale: 1; opacity: 1; }
+  30% { scale: 1.3 0.78; }
+  55% { scale: 0.84 1.22; }
+  75% { scale: 1.25; opacity: 1; }
+  100% { scale: 2.2; opacity: 0; }
+}
+
+/* The pop: rings and sparks over everything, the end card too, a moment. */
+.tour-build--bang { z-index: 2147483647; background: transparent; }
+.tb-bang { position: absolute; inset: 0; }
+.tb-wave,
+.tb-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  opacity: 0;
+}
+.tb-wave {
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border-radius: 50%;
+  border: 3px solid #1fc7d4;
+  box-shadow: 0 0 18px #1fc7d4;
+}
+.tb-wave--2 { border-color: #c4b5fd; box-shadow: 0 0 14px #c4b5fd; }
+.tb-spark {
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 10px var(--c);
+}
+.tour-build--bang .tb-wave { animation: tb-wave 800ms cubic-bezier(0.1, 0.7, 0.3, 1) forwards; }
+.tour-build--bang .tb-wave--2 { animation-delay: 100ms; }
+.tour-build--bang .tb-spark { animation: tb-spark 750ms cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+@keyframes tb-wave {
+  0% { opacity: 1; transform: scale(0.5); }
+  100% { opacity: 0; transform: scale(9); }
+}
+@keyframes tb-spark {
+  0% { opacity: 1; transform: rotate(var(--a)) translateX(0) scale(1.3); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(var(--d)) scale(0.3); }
+}
+
+/* The end, out of the pop: its three steps burst out one after another,
+   then the small word above and the ways on. Its dimming fades in behind. */
+.tour-end--burst { animation: tour-title-in 700ms ease-out; }
+.tour-end--burst b span { display: inline-block; animation: tour-end-burst 680ms cubic-bezier(0.18, 1.5, 0.35, 1) both; }
+.tour-end--burst b span:nth-child(2) { animation-delay: 100ms; }
+.tour-end--burst b span:nth-child(3) { animation-delay: 200ms; }
+.tour-end--burst small { animation: tour-title-rise 420ms ease-out 380ms both; }
+.tour-end--burst .tour-end__ways { animation: tour-title-rise 520ms ease-out 500ms both; }
+@keyframes tour-end-burst {
+  0% { opacity: 0; transform: scale(0.05); filter: blur(10px); }
+  55% { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-build,
+  .tb-main,
+  .tb-cursor { animation: none; transition: none; }
+  .tour-end--burst,
+  .tour-end--burst b span,
+  .tour-end--burst small,
+  .tour-end--burst .tour-end__ways { animation: none; }
+}
+
+/*
  * The intro, before "How it works": why PleaseNoBugs is there, in five
  * scenes drawn on the pretend app. assets/tour.js types each scene's words
  * and sets `data-intro` on the frame to its number, which starts its

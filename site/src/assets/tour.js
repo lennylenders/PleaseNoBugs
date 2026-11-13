@@ -27,6 +27,17 @@
  * - **Your perspective**, the owner's (`demo="owner"`): the round button, the
  *   board, that same bug picked, marked fixed in a version with a link,
  *   answered, and the card as everybody now sees it.
+ * - **Build your own widget.**, under a small "Make it yours": one real
+ *   widget in the middle, all grey, as on Customize, and a cursor that
+ *   colours it in as Customize's sketch does: a tap on a part, the line round
+ *   it with its name, a row of colours, a pick: its round button, then the
+ *   Bug tile, then Idea and Review, quicker. Only then the widget goes back
+ *   among the others, top left, smaller, where the cursor picks its
+ *   background and taps the rest in, while grey copies pop up all around, on its tiles, board and "Feedback sent!", each
+ *   coloured in by a little cursor of its own, more and more, faster and
+ *   faster, each a look of the same purple family. Then a big round button
+ *   pops up in the middle and gulps them all, squashes, stretches, pops, and
+ *   the end bursts out of it.
  * - An end that stays: the whole story in three steps ("Your users speak.
  *   You fix. Everyone sees."), with "Make it yours" and "Watch again".
  *
@@ -60,6 +71,7 @@ const again = document.getElementById('tour-again');
 const intro = document.getElementById('tour-intro');
 const caption = intro?.querySelector('.ti-caption');
 const skip = document.getElementById('tour-skip');
+const build = document.getElementById('tour-build');
 const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 const said = document.getElementById('ti-said');
@@ -715,18 +727,27 @@ async function story(from = 0) {
     await title("Your user's perspective", 'How it works', endIntro);
     await userRound();
   }
-  chapter = ownerPart();
-  await title('Your perspective', 'How it works', endIntro);
-  await ownerRound();
+  if (from <= ownerPart()) {
+    chapter = ownerPart();
+    await title('Your perspective', 'How it works', endIntro);
+    await ownerRound();
+  }
+  chapter = buildPart();
+  await title('Build your own widget.', 'Make it yours', () => {
+    endIntro();
+    stage();
+  });
+  await buildRound();
 }
 
 /**
  * The story's parts, to go back or on by: the intro's scenes (0 to 5, or 6
- * in the Nimiq look), the
- * user's side, and the owner's. On from the owner's is the end.
+ * in the Nimiq look), the user's side, the owner's, and "Build your own
+ * widget.". On from that is the end.
  */
 const userPart = () => scenes().length;
 const ownerPart = () => scenes().length + 1;
+const buildPart = () => scenes().length + 2;
 /** The part playing now. */
 let chapter = 0;
 
@@ -824,7 +845,662 @@ async function ownerRound() {
   await say(OWNER, 5);
   await reveal(fixed);
   await wait(3000);
-  // The end comes over the board, the fixed card still under it.
+}
+
+// ---- Build your own widget ----------------------------------------------
+
+/** Its subtitles: what the cursor does, then the switch, then everyone else's. */
+const BUILD = ['Tap a part, pick its colour', 'Everyone builds their own'];
+
+/** The widget's colours, by a short name. */
+const VAR = {
+  bg: '--pnb-bg',
+  surface: '--pnb-surface',
+  surface2: '--pnb-surface-2',
+  sunken: '--pnb-sunken',
+  line: '--pnb-line',
+  text: '--pnb-text',
+  quiet: '--pnb-text-quiet',
+  accent: '--pnb-accent',
+  fill: '--pnb-accent-fill',
+  onAccent: '--pnb-on-accent',
+  raise: '--pnb-raise',
+  fab: '--pnb-fab',
+  onFab: '--pnb-on-fab',
+  bug: '--pnb-bug',
+  idea: '--pnb-idea',
+  review: '--pnb-review',
+  done: '--pnb-done',
+  sent: '--pnb-sent',
+  sentTitle: '--pnb-sent-title',
+  sentNote: '--pnb-sent-note',
+  radius: '--pnb-radius',
+  pill: '--pnb-radius-pill',
+  inkBug: '--pnb-tile-ink-bug',
+  inkIdea: '--pnb-tile-ink-idea',
+  inkReview: '--pnb-tile-ink-review',
+  tileBug: '--pnb-tile-bug',
+  tileIdea: '--pnb-tile-idea',
+  tileReview: '--pnb-tile-review',
+};
+
+/**
+ * A whole look, every colour above set, the rest following from the few
+ * given. A tile is painted in its kind's colour unless the look paints it
+ * otherwise (a gradient, say).
+ */
+function look(o) {
+  const all = {
+    sunken: o.surface2,
+    fill: o.accent,
+    raise: 'none',
+    fab: o.accent,
+    onFab: o.onAccent,
+    bug: '#e5484d',
+    idea: '#8b5cf6',
+    review: '#e9a00b',
+    done: '#21bca5',
+    sent: o.bg,
+    sentTitle: o.text,
+    sentNote: o.quiet,
+    radius: '8px',
+    pill: '999px',
+    inkBug: '#ffffff',
+    inkIdea: '#ffffff',
+    inkReview: '#ffffff',
+    ...o,
+  };
+  all.tileBug ??= all.bug;
+  all.tileIdea ??= all.idea;
+  all.tileReview ??= all.review;
+  return Object.fromEntries(Object.entries(all).map(([k, v]) => [VAR[k], v]));
+}
+
+/**
+ * Looks one could make, as different as apps are: dark ones in many
+ * colours and styles (teal, charcoal and amber, forest, wine, neon, mono,
+ * PleaseNoBugs' own, the widget's dark theme, grape) and light ones
+ * (pastel lavender, mint, paper, sky, peach), with tiles of their own:
+ * warm, pastel, neon, grey, earthy, in gradients. Dark and light take
+ * turns, so no two side by side look alike.
+ */
+const LOOKS = [
+  // Midnight teal, round.
+  look({ bg: '#0f2a2e', surface: '#173d42', surface2: '#1f4d53', sunken: '#091c1f', line: '#2b6168', text: '#e6fbfa', quiet: '#9cc9c6', accent: '#2dd4bf', onAccent: '#062b27', bug: '#f87171', idea: '#38bdf8', review: '#fbbf24', inkReview: '#3a2a00', radius: '14px' }),
+  // Pastel lavender: soft tiles, dark words on them.
+  look({ bg: '#f5f3ff', surface: '#ebe7fe', surface2: '#ddd6fe', line: '#c4b5fd', text: '#2e1065', quiet: '#6d5aa8', accent: '#7c3aed', onAccent: '#ffffff', bug: '#fda4af', idea: '#c4b5fd', review: '#fcd34d', inkBug: '#881337', inkIdea: '#4c1d95', inkReview: '#78350f', radius: '16px' }),
+  // Charcoal and amber, square: warm tiles.
+  look({ bg: '#18181b', surface: '#27272a', surface2: '#3f3f46', sunken: '#09090b', line: '#3f3f46', text: '#fafafa', quiet: '#a1a1aa', accent: '#f59e0b', onAccent: '#18181b', bug: '#dc2626', idea: '#ea580c', review: '#ca8a04', radius: '3px', pill: '4px' }),
+  // Mint.
+  look({ bg: '#f0fdf8', surface: '#dcfce9', surface2: '#c7f5dc', line: '#a7e8c5', text: '#0b3a26', quiet: '#3f6b57', accent: '#10b981', onAccent: '#ffffff', bug: '#fb7185', idea: '#14b8a6', review: '#f59e0b', radius: '18px' }),
+  // Forest, with tiles in gradients.
+  look({
+    bg: '#10241a',
+    surface: '#1b3a2a',
+    surface2: '#24503a',
+    sunken: '#08140e',
+    line: '#2f6b4c',
+    text: '#ecfdf3',
+    quiet: '#a7c9b5',
+    accent: '#4ade80',
+    onAccent: '#0b1f14',
+    bug: '#f43f5e',
+    idea: '#22c55e',
+    review: '#f59e0b',
+    tileBug: 'linear-gradient(135deg, #f43f5e, #fb923c)',
+    tileIdea: 'linear-gradient(135deg, #16a34a, #4ade80)',
+    tileReview: 'linear-gradient(135deg, #d97706, #facc15)',
+    radius: '12px',
+  }),
+  // Paper: earthy tiles, sharp corners.
+  look({ bg: '#f7f3ea', surface: '#ece5d6', surface2: '#e0d7c3', line: '#d3c7ad', text: '#2b2520', quiet: '#6b6157', accent: '#2b2520', onAccent: '#f7f3ea', bug: '#b4532a', idea: '#5b7c4a', review: '#c58b2b', radius: '2px', pill: '4px' }),
+  // PleaseNoBugs' own: navy, purples, turquoise, raised.
+  look({
+    bg: '#292a56',
+    surface: '#5656ac',
+    surface2: '#454689',
+    sunken: '#1a1a32',
+    line: '#6d6dc5',
+    text: '#ffffff',
+    quiet: 'rgba(255, 255, 255, 0.78)',
+    accent: '#1fc7d4',
+    fill: 'linear-gradient(#1fc7d4, #1aa3ae)',
+    onAccent: '#12132b',
+    onFab: '#ffffff',
+    raise: 'inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.4)',
+  }),
+  // Sky, with tiles in gradients.
+  look({
+    bg: '#f0f7ff',
+    surface: '#e0edff',
+    surface2: '#cfe2ff',
+    line: '#b6d2fb',
+    text: '#0f2a4a',
+    quiet: '#4a6688',
+    accent: '#2563eb',
+    onAccent: '#ffffff',
+    bug: '#ef4444',
+    idea: '#6366f1',
+    review: '#f59e0b',
+    tileBug: 'linear-gradient(135deg, #ef4444, #f97316)',
+    tileIdea: 'linear-gradient(135deg, #6366f1, #22d3ee)',
+    tileReview: 'linear-gradient(135deg, #f59e0b, #fde047)',
+    inkReview: '#3b2a00',
+    radius: '10px',
+  }),
+  // Wine.
+  look({ bg: '#2a0f1a', surface: '#451a2b', surface2: '#5a2238', sunken: '#1a0910', line: '#6d2a44', text: '#fff0f5', quiet: '#e0aac0', accent: '#fb7185', onAccent: '#2a0f1a', bug: '#e11d48', idea: '#c026d3', review: '#f97316', radius: '10px' }),
+  // Peach.
+  look({ bg: '#fff5ee', surface: '#ffe8d9', surface2: '#ffd9c2', line: '#fcc5a5', text: '#4a2311', quiet: '#8a5a43', accent: '#f97316', onAccent: '#ffffff', bug: '#e11d48', idea: '#a855f7', review: '#0ea5e9', radius: '14px' }),
+  // Neon on ink-blue.
+  look({ bg: '#0b1026', surface: '#141c3d', surface2: '#1d2752', sunken: '#060918', line: '#2a3670', text: '#e0e7ff', quiet: '#94a3d8', accent: '#22d3ee', onAccent: '#0b1026', bug: '#ff2e63', idea: '#7c3aed', review: '#00c896', radius: '6px' }),
+  // The widget's own dark theme.
+  look({ bg: '#15151c', surface: '#22222c', surface2: '#2e2e3a', sunken: '#0d0d12', line: '#383846', text: '#f2f2f7', quiet: '#a9a9ba', accent: '#6b93ff', onAccent: '#0b0b12' }),
+  // Mono: black, white and greys, square.
+  look({ bg: '#0c0c0c', surface: '#1c1c1c', surface2: '#2a2a2a', sunken: '#000000', line: '#333333', text: '#ffffff', quiet: '#9a9a9a', accent: '#ffffff', onAccent: '#0c0c0c', bug: '#3a3a3a', idea: '#2b2b2b', review: '#4a4a4a', done: '#ffffff', radius: '2px', pill: '2px' }),
+  // Grape.
+  look({ bg: '#2e1065', surface: '#4c1d95', surface2: '#3e1780', sunken: '#1e0a45', line: '#6d28d9', text: '#ffffff', quiet: '#d6c8fb', accent: '#ddd6fe', onAccent: '#2e1065', bug: '#f43f5e', idea: '#a78bfa', review: '#f59e0b' }),
+];
+
+/**
+ * Every colour before it is picked: Customize's greys, so the widget is a
+ * sketch until it is somebody's.
+ */
+const GREY = Object.fromEntries(
+  Object.entries({
+    bg: '#4a4b60',
+    surface: '#5d5e75',
+    surface2: '#56576d',
+    sunken: '#3d3e50',
+    line: '#6c6d84',
+    text: '#d4d5e0',
+    quiet: '#a3a4b6',
+    accent: '#7d7e95',
+    fill: '#7d7e95',
+    onAccent: '#ffffff',
+    raise: 'none',
+    fab: '#6c6d84',
+    onFab: 'rgba(255, 255, 255, 0.6)',
+    bug: '#6c6d84',
+    idea: '#6c6d84',
+    review: '#6c6d84',
+    tileBug: '#6c6d84',
+    tileIdea: '#6c6d84',
+    tileReview: '#6c6d84',
+    done: '#7d7e95',
+    sent: '#4a4b60',
+    sentTitle: '#d4d5e0',
+    sentNote: '#a3a4b6',
+    radius: '8px',
+    pill: '999px',
+    inkBug: 'rgba(255, 255, 255, 0.55)',
+    inkIdea: 'rgba(255, 255, 255, 0.55)',
+    inkReview: 'rgba(255, 255, 255, 0.55)',
+  }).map(([k, v]) => [VAR[k], v]),
+);
+
+/**
+ * The look the first widget gets: PleaseNoBugs' own, navy and purples, its
+ * round button turquoise as on the site, the tiles in their kinds' colours.
+ */
+const MINE_LOOK = look({
+  bg: '#292a56',
+  surface: '#5656ac',
+  surface2: '#454689',
+  sunken: '#1a1a32',
+  line: '#6d6dc5',
+  text: '#ffffff',
+  quiet: 'rgba(255, 255, 255, 0.78)',
+  accent: '#1fc7d4',
+  fill: 'linear-gradient(#1fc7d4, #1aa3ae)',
+  onAccent: '#12132b',
+  fab: '#1fc7d4',
+  onFab: '#ffffff',
+});
+
+/** The rows of colours the cursor picks from, as on Customize: six that suit the part, and any colour at all. */
+const ROWS = {
+  bright: ['#1fc7d4', '#e5484d', '#8b5cf6', '#e9a00b', '#21bca5', '#6d6dc5'],
+  ground: ['#292a56', '#1e1640', '#0f2a2e', '#18181b', '#f5f3ff', '#ffffff'],
+};
+
+/**
+ * A widget is coloured in a few taps: its ground, its tiles, its buttons and
+ * shape. The first widget's round button, tiles and ground are picked from
+ * a row of colours, as on Customize; the rest, and every copy, just tapped.
+ */
+const COPY_PARTS = [
+  ['bg', 'sunken', 'sent', 'surface', 'surface2', 'line', 'text', 'quiet', 'sentTitle', 'sentNote'],
+  ['bug', 'idea', 'review', 'tileBug', 'tileIdea', 'tileReview', 'inkBug', 'inkIdea', 'inkReview'],
+  ['accent', 'fill', 'onAccent', 'raise', 'done', 'fab', 'onFab', 'radius', 'pill'],
+].map((part) => part.map((k) => VAR[k]));
+/** What the cursor colours big, in order, before the widget goes back: the round button, then each tile. */
+const MINE_STEPS = [
+  { part: 'fab', name: 'Button', row: 'bright', pick: 0, keys: [VAR.fab, VAR.onFab] },
+  { part: 'bug', name: 'Bug', row: 'bright', pick: 1, keys: [VAR.bug, VAR.tileBug, VAR.inkBug] },
+  { part: 'idea', name: 'Idea', row: 'bright', pick: 2, quick: true, keys: [VAR.idea, VAR.tileIdea, VAR.inkIdea] },
+  { part: 'review', name: 'Review', row: 'bright', pick: 3, quick: true, keys: [VAR.review, VAR.tileReview, VAR.inkReview] },
+];
+const GROUND_STEP = { name: 'Background', row: 'ground', pick: 0, quick: true, keys: COPY_PARTS[0] };
+
+/** Its board: that same bug, fixed now, and one of each kind, so every colour shows. */
+const BUILD_SAMPLES = [
+  { kind: 'bug', text: BUG, votes: 3, ago: 2 * 3_600_000, status: 'done', fix: VERSION, reply: REPLY },
+  { kind: 'idea', text: 'A dark mode for the whole app', votes: 12, ago: 5 * 3_600_000 },
+  { kind: 'review', text: 'Love how fast it is', rating: 5, votes: 4, ago: 26 * 3_600_000 },
+  OTHER,
+];
+
+/** The widget's size in the middle, before it is scaled to the box. */
+const BW = 300;
+const BH = 440;
+
+/** The cursor, as on Customize. */
+const CURSOR =
+  '<svg width="22" height="26" viewBox="0 0 22 26" aria-hidden="true"><path d="M2 2v19.5l5.2-4.9 3.6 7.9 3.6-1.6-3.5-7.7H18z" fill="#fff" stroke="#12132b" stroke-width="2" stroke-linejoin="round"/></svg>';
+
+/** Where each widget on the stage stands: `{ x, y, r, s }` from the middle. */
+const spots = new WeakMap();
+/** How big the widget in the middle is drawn. */
+let mainScale = 1;
+/** Whether the end comes out of the round button, with a pop. */
+let burst = false;
+/** The build scene playing, so a clean-up planned for an older one leaves this one be. */
+let buildRun = 0;
+
+/** Put `vars` (or only those in `keys`) on a widget, or a copy of one. */
+function paint(el, vars, keys = Object.keys(vars)) {
+  for (const k of keys) el.style.setProperty(k, vars[k]);
+}
+
+/** A widget for the scene: inline, on `screenName`, nothing in it to tap. */
+function sceneWidget(screenName) {
+  const el = document.createElement('please-no-bugs');
+  for (const [k, v] of Object.entries({ demo: '', mode: 'inline', theme: 'light', lang: 'en', screenshots: 'off', screen: screenName })) {
+    el.setAttribute(k, v);
+  }
+  el.samples = BUILD_SAMPLES;
+  el.inert = true;
+  return el;
+}
+
+/**
+ * The scene's stage, set under its title: the owner's board gone, the room
+ * dimmed, and in the middle one real widget, inline, on its tiles, all grey.
+ * The cursor, the line round a part, the row of colours and the big round
+ * button of the end wait unseen. Two more widgets, out of sight, show the
+ * board and "Feedback sent!" once, to be copied.
+ */
+function stage() {
+  const glyph = box.querySelector('please-no-bugs')?.shadowRoot?.querySelector('.fab svg')?.outerHTML ?? '';
+  for (const old of box.querySelectorAll('please-no-bugs')) old.remove();
+  clearBuild();
+  buildRun += 1;
+  build.hidden = false;
+  build.innerHTML =
+    `<div class="tb-main"><span class="tb-fab">${glyph}</span></div>` +
+    '<div class="tb-mark"><span></span></div>' +
+    `<div class="tb-pick">${ROWS.bright.map(() => '<i></i>').join('')}<i class="tb-own"></i></div>` +
+    `<span class="tb-cursor">${CURSOR}</span>` +
+    `<span class="tb-button">${glyph}</span>` +
+    '<div class="tb-bang"><i class="tb-wave"></i><i class="tb-wave tb-wave--2"></i></div>';
+  const bang = build.querySelector('.tb-bang');
+  const colours = ['#1fc7d4', '#8b5cf6', '#67e8f9', '#a78bfa', '#1fc7d4', '#c4b5fd'];
+  for (let i = 0; i < 18; i++) {
+    const spark = document.createElement('i');
+    spark.className = 'tb-spark';
+    spark.style.setProperty('--a', `${(i * 360) / 18 + Math.random() * 12}deg`);
+    spark.style.setProperty('--d', `${110 + Math.random() * 170}px`);
+    spark.style.setProperty('--c', colours[i % colours.length]);
+    bang.append(spark);
+  }
+  const main = build.querySelector('.tb-main');
+  const el = sceneWidget('tiles');
+  paint(el, GREY);
+  main.style.setProperty('--glow', 'rgba(125, 126, 149, 0.6)');
+  main.prepend(el);
+  paintFab(main, GREY);
+  for (const screenName of ['board', 'sent']) {
+    const away = sceneWidget(screenName);
+    away.className = 'tb-away';
+    build.append(away);
+  }
+  fitBuild();
+}
+
+/** The round button at the first widget's corner, in its button colours. */
+function paintFab(main, vars) {
+  const fab = main.querySelector('.tb-fab');
+  fab.style.background = vars[VAR.fab];
+  fab.style.color = vars[VAR.onFab];
+}
+
+/** The widget in the middle as big as fits the box, and the round button to match. */
+function fitBuild() {
+  const main = build.querySelector('.tb-main');
+  if (!main) return;
+  mainScale = Math.min(1, (box.clientWidth * 0.6) / BW, (box.clientHeight * 0.7) / BH);
+  main.style.setProperty('--k', String(mainScale));
+  build.style.setProperty('--btn', `${Math.round(Math.min(112, Math.max(72, Math.min(box.clientWidth, box.clientHeight) * 0.16)))}px`);
+}
+
+/** The stage cleared, at once. */
+function clearBuild() {
+  build.hidden = true;
+  build.className = 'tour-build';
+  build.replaceChildren();
+}
+
+/** A little bounce of `el`, as it takes a colour. */
+function splat(el) {
+  if (still.matches) return;
+  el.animate([{ scale: '1' }, { scale: '1.06' }, { scale: '1' }], { duration: 320, easing: 'ease-out' });
+}
+
+/** Where `el` is on the stage, in the stage's own pixels. */
+function onStage(el) {
+  const b = build.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  return { x: r.left - b.left, y: r.top - b.top, w: r.width, h: r.height };
+}
+
+/** A tap's ring on the stage at (x, y), small for a small widget. */
+function tapRing(x, y, small = false) {
+  const el = document.createElement('span');
+  el.className = `tb-tap${small ? ' tb-tap--small' : ''}`;
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
+  build.append(el);
+  setTimeout(() => el.remove(), 500);
+}
+
+/** Send a cursor to (x, y) on the stage, in `ms`. */
+function moveCursor(cursor, x, y, ms) {
+  cursor.style.transitionDuration = `${ms}ms`;
+  cursor.style.transform = `translate(${x}px, ${y}px)`;
+}
+
+/** A tap where the cursor is: it dips, and a ring goes out. */
+async function click(cursor, x, y, small = false) {
+  tapRing(x, y, small);
+  cursor.classList.add('down');
+  await sleep(120);
+  cursor.classList.remove('down');
+}
+
+/**
+ * The line round a part, with its name, as on Customize, and its row of
+ * colours under it, or over it where there is no room under it.
+ */
+function showPick(r, name, row) {
+  const mark = build.querySelector('.tb-mark');
+  const pick = build.querySelector('.tb-pick');
+  const W = build.clientWidth;
+  const H = build.clientHeight;
+  const left = Math.max(2, r.x - 6);
+  const top = Math.max(2, r.y - 6);
+  const right = Math.min(W - 2, r.x + r.w + 6);
+  const bottom = Math.min(H - 2, r.y + r.h + 6);
+  Object.assign(mark.style, { left: `${left}px`, top: `${top}px`, width: `${right - left}px`, height: `${bottom - top}px` });
+  mark.classList.toggle('tb-mark--in', bottom + 14 > H);
+  mark.querySelector('span').textContent = name;
+  mark.classList.add('on');
+  [...pick.children].forEach((dot, i) => i < ROWS[row].length && dot.style.setProperty('--c', ROWS[row][i]));
+  const pw = pick.offsetWidth;
+  const ph = pick.offsetHeight;
+  const below = r.y + r.h + 22;
+  const y = below + ph < H - 8 ? below : Math.max(8, r.y - ph - 12);
+  const x = Math.min(W - pw - 8, Math.max(8, r.x + r.w / 2 - pw / 2));
+  Object.assign(pick.style, { left: `${x}px`, top: `${y}px` });
+  pick.classList.add('on');
+  return pick;
+}
+
+function hidePick() {
+  build.querySelector('.tb-mark').classList.remove('on');
+  const pick = build.querySelector('.tb-pick');
+  pick.classList.remove('on');
+  for (const dot of pick.children) dot.classList.remove('chosen');
+}
+
+/**
+ * What the widget shows on a screen, kept to copy: its HTML, without its
+ * styles, which the copies share as one sheet.
+ */
+const shots = {};
+let sheet = null;
+async function snap(el, screenName) {
+  const ready = { tiles: '.tile--bug', board: '.card', sent: '.sent' }[screenName];
+  await find(el, ready);
+  await sleep(80);
+  if (!sheet) {
+    sheet = new CSSStyleSheet();
+    sheet.replaceSync(el.shadowRoot.querySelector('style').textContent);
+  }
+  shots[screenName] = [...el.shadowRoot.children]
+    .filter((n) => n.tagName !== 'STYLE')
+    .map((n) => n.outerHTML)
+    .join('');
+}
+
+/** A copy of the widget, on `screenName`, in `vars`: a picture of it, nothing in it alive. */
+function copyOf(screenName, vars) {
+  const c = document.createElement('div');
+  c.className = 'tb-copy';
+  const root = c.attachShadow({ mode: 'open' });
+  root.adoptedStyleSheets = [sheet];
+  root.innerHTML = shots[screenName];
+  paint(c, vars);
+  return c;
+}
+
+/**
+ * Where the copies go: all around the middle, from close by to past the
+ * edges, each a little turned and smaller, in a golden-angle spiral so none
+ * lands on another, and none on `taken`, where the first widget went.
+ */
+function scatter(n, taken) {
+  const hw = box.clientWidth / 2;
+  const hh = box.clientHeight / 2;
+  const clear = BW * taken.s * 0.75;
+  return Array.from({ length: n }, (_, i) => {
+    const a = i * 2.39996 + (Math.random() - 0.5) * 0.4;
+    const f = 0.36 + 0.78 * Math.sqrt((i + 1) / n);
+    return {
+      x: Math.cos(a) * f * hw,
+      y: Math.sin(a) * f * hh,
+      r: (Math.random() - 0.5) * 26,
+      s: mainScale * (0.3 + Math.random() * 0.16),
+    };
+  }).filter((p) => Math.hypot(p.x - taken.x, p.y - taken.y) > clear);
+}
+
+/** The transform of a widget at `p`, from the middle of the box. */
+const at = (p) => `translate(-50%, -50%) translate(${p.x}px, ${p.y}px) rotate(${p.r}deg) scale(${p.s})`;
+
+/**
+ * The cursor colours one part of the first widget, as on Customize: to the
+ * part, a tap, the line round it with its name and a row of colours, to the
+ * colour, a tap, and the part takes it.
+ */
+async function colourIn(cursor, el, target, spot, step, r = onStage(target)) {
+  const q = step.quick;
+  moveCursor(cursor, spot.x, spot.y, q ? 320 : 460);
+  await sleep(q ? 340 : 500);
+  await click(cursor, spot.x, spot.y);
+  const pick = showPick(r, step.name, step.row);
+  await sleep(q ? 220 : 340);
+  const dot = onStage(pick.children[step.pick]);
+  moveCursor(cursor, dot.x + dot.w / 2, dot.y + dot.h / 2, q ? 260 : 360);
+  await sleep(q ? 280 : 400);
+  await click(cursor, dot.x + dot.w / 2, dot.y + dot.h / 2);
+  pick.children[step.pick].classList.add('chosen');
+  paint(el, MINE_LOOK, step.keys);
+  if (step.part === 'fab') paintFab(el.parentElement, MINE_LOOK);
+  splat(target);
+  await sleep(q ? 320 : 420);
+  hidePick();
+}
+
+/**
+ * A widget at `p` coloured in by `cursor` in a tap per part of `parts`,
+ * each from `vars`; `pace` (1 down to about 0.3) how slowly.
+ */
+async function tapIn(cursor, el, p, vars, parts, pace, small) {
+  const cx = build.clientWidth / 2 + p.x;
+  const cy = build.clientHeight / 2 + p.y;
+  const w = BW * p.s;
+  const h = BH * p.s;
+  // Low on it for its ground, the middle for its tiles, the top for the rest.
+  const where = { [COPY_PARTS[0][0]]: [0.25, 0.38], [COPY_PARTS[1][0]]: [0, 0.05], [COPY_PARTS[2][0]]: [0.2, -0.3] };
+  for (const part of parts) {
+    const [fx, fy] = where[part[0]];
+    const x = cx + fx * w + (Math.random() - 0.5) * w * 0.15;
+    const y = cy + fy * h + (Math.random() - 0.5) * h * 0.1;
+    moveCursor(cursor, x, y, 340 * pace);
+    await sleep(370 * pace);
+    await click(cursor, x, y, small);
+    paint(el, vars, part);
+    await sleep(160 * pace);
+  }
+}
+
+/**
+ * One copy, grey, popped up at `p`, and a cursor of its own that colours it
+ * in three taps from `vars`. Its cursor goes once it is done.
+ */
+async function buildCopy(screenName, vars, p, pace) {
+  const c = copyOf(screenName, GREY);
+  spots.set(c, p);
+  c.style.transform = at(p);
+  build.insertBefore(c, build.querySelector('.tb-main'));
+  if (!still.matches) {
+    c.animate([{ transform: `${at(p)} scale(0.6)`, opacity: 0 }, { transform: at(p), opacity: 1 }], { duration: 320, easing: 'cubic-bezier(0.2, 1.25, 0.4, 1)' });
+  }
+  const cursor = document.createElement('span');
+  cursor.className = 'tb-cursor tb-cursor--small';
+  cursor.innerHTML = CURSOR;
+  // In from outside the copy, away from the middle.
+  const out = Math.hypot(p.x, p.y) || 1;
+  moveCursor(cursor, build.clientWidth / 2 + p.x + (p.x / out) * BW * p.s * 0.7, build.clientHeight / 2 + p.y + (p.y / out) * BH * p.s * 0.5, 0);
+  build.append(cursor);
+  await sleep(40);
+  cursor.classList.add('on');
+  await tapIn(cursor, c, p, vars, COPY_PARTS, pace, true);
+  cursor.classList.remove('on');
+  await sleep(260);
+  cursor.remove();
+}
+
+/** Grey copies all around, each coloured in by a cursor of its own, more and more, faster and faster. */
+async function crowd(places) {
+  const screens = ['tiles', 'board', 'sent'];
+  const jobs = [];
+  let gap = 260;
+  for (const [i, p] of places.entries()) {
+    const pace = Math.max(0.32, 0.65 - (0.4 * i) / places.length);
+    jobs.push(buildCopy(screens[i % 3], LOOKS[(i + 1) % LOOKS.length], p, pace).catch(() => {}));
+    await sleep(gap);
+    gap = Math.max(35, gap * 0.84);
+  }
+  await Promise.all(jobs);
+}
+
+/**
+ * All of them into one round button in the middle: it pops up, each widget
+ * flies to it in a curve, shrinking, as it gulps, then it squashes,
+ * stretches, and pops.
+ */
+async function intoButton(main) {
+  build.classList.add('tour-build--button');
+  await sleep(420);
+  build.classList.add('tour-build--eat');
+  const all = [...build.querySelectorAll('.tb-copy'), main];
+  const far = Math.max(...all.map((c) => Math.hypot(spots.get(c).x, spots.get(c).y)), 1);
+  let longest = 0;
+  for (const c of all) {
+    const p = spots.get(c);
+    const d = Math.hypot(p.x, p.y);
+    const delay = (d / far) * 520 + Math.random() * 160;
+    const duration = 520 + Math.random() * 160;
+    longest = Math.max(longest, delay + duration);
+    // A curve: halfway, off to the side a little.
+    const bend = (Math.random() < 0.5 ? -1 : 1) * d * 0.22;
+    const mid = { x: p.x * 0.45 - (p.y / (d || 1)) * bend, y: p.y * 0.45 + (p.x / (d || 1)) * bend, r: p.r * 0.4, s: p.s * 0.45 };
+    c.animate(
+      [
+        { transform: at(p), opacity: 1 },
+        { transform: at(mid), opacity: 1, offset: 0.55 },
+        { transform: at({ x: 0, y: 0, r: 0, s: 0.02 }), opacity: 0.2 },
+      ],
+      { duration, delay, easing: 'cubic-bezier(0.5, 0, 0.9, 0.5)', fill: 'forwards' },
+    );
+  }
+  await sleep(longest + 60);
+  build.classList.remove('tour-build--eat');
+  build.classList.add('tour-build--pop');
+  await sleep(420);
+  build.classList.add('tour-build--bang');
+  await sleep(60);
+  burst = true;
+}
+
+/**
+ * "Build your own widget.": a cursor colours the grey widget's button and tiles in,
+ * the widget goes back among the others as it colours the rest, and
+ * cursors everywhere colour in copies of their own; then all into one
+ * round button, and out of it the end.
+ */
+async function buildRound() {
+  const run = buildRun;
+  const main = build.querySelector('.tb-main');
+  const el = main.querySelector('please-no-bugs');
+  const cursor = build.querySelector('.tb-cursor');
+  // The board and "Feedback sent!" kept for the copies, then gone.
+  await snap(el, 'tiles');
+  for (const away of build.querySelectorAll('.tb-away')) {
+    await snap(away, away.getAttribute('screen'));
+    away.remove();
+  }
+
+  // Big in the middle: the round button, then each tile, each picked from a
+  // row of colours.
+  moveCursor(cursor, build.clientWidth * 0.78, build.clientHeight * 0.42, 0);
+  await sleep(40);
+  cursor.classList.add('on');
+  say(BUILD, 1).catch(() => {});
+  for (const step of MINE_STEPS) {
+    const target = step.part === 'fab' ? main.querySelector('.tb-fab') : await find(el, `.tile--${step.part}`);
+    const t = onStage(target);
+    await colourIn(cursor, el, target, { x: t.x + t.w / 2, y: t.y + t.h / 2 }, step);
+  }
+
+  // Only then back among the others, at the top left, smaller; once it is
+  // there, the others' cursors come.
+  const home = { x: -box.clientWidth * 0.2, y: -box.clientHeight * 0.17, r: -5, s: mainScale * 0.56 };
+  spots.set(main, home);
+  main.style.transition = still.matches ? 'none' : 'transform 650ms cubic-bezier(0.3, 0.9, 0.3, 1)';
+  main.style.transform = at(home);
+  main.classList.add('is-back');
+  await sleep(680);
+  say(BUILD, 2).catch(() => {});
+  const others = crowd(scatter(box.clientWidth < 640 ? 18 : 30, home));
+  // Its ground, picked from a row, quicker now; then the rest, just tapped.
+  // Where it went worked out, not measured: it may still be on its way.
+  const w = BW * home.s;
+  const h = BH * home.s;
+  const r = { x: build.clientWidth / 2 + home.x - w / 2, y: build.clientHeight / 2 + home.y - h / 2, w, h };
+  await colourIn(cursor, el, el, { x: r.x + r.w * 0.2, y: r.y + r.h - 18 * home.s }, GROUND_STEP, r);
+  await tapIn(cursor, el, home, MINE_LOOK, COPY_PARTS.slice(2), 0.55, false);
+  cursor.classList.remove('on');
+  await others;
+  if (run !== buildRun) return;
+  await sleep(250);
+
+  // Without movement, no round button: the end comes as it always did.
+  if (still.matches) return;
+  subtitle.classList.add('tour-say--away');
+  await intoButton(main);
 }
 
 // ---- Playing, pausing, stopping -----------------------------------------
@@ -858,6 +1534,7 @@ function rest() {
   frame.classList.remove('tour--playing', 'tour--end');
   endCard.hidden = true;
   endIntro();
+  clearBuild();
   app(false);
   mount('user');
 }
@@ -868,6 +1545,8 @@ async function play(from = 0) {
   await last;
   if (mine !== current) return;
   running = mine;
+  burst = false;
+  clearBuild();
   endCard.hidden = true;
   frame.classList.remove('tour--end');
   subtitle.querySelector('.tour-say__title').textContent = '';
@@ -885,13 +1564,25 @@ async function play(from = 0) {
 }
 
 /**
- * The end, over the board as the story left it: the whole story in three
+ * The end, over the app as the story left it: the whole story in three
  * steps, and where to go next. It stays until the visitor picks, or Esc.
+ * Out of the round button it bursts as the button pops, and
+ * the stage goes; otherwise the stage goes at once.
  */
 function end() {
   frame.classList.remove('tour--playing');
   frame.classList.add('tour--end');
   endIntro();
+  endCard.classList.toggle('tour-end--burst', burst);
+  if (burst) {
+    const run = buildRun;
+    setTimeout(() => {
+      if (run === buildRun && !frame.classList.contains('tour--playing')) clearBuild();
+    }, 1400);
+  } else {
+    clearBuild();
+  }
+  burst = false;
   endCard.hidden = false;
   again.focus({ preventScroll: true });
 }
@@ -909,7 +1600,7 @@ function stop() {
 function jump(by) {
   if (!frame.classList.contains('tour--playing')) return;
   const to = Math.max(0, chapter + by);
-  if (to > ownerPart()) {
+  if (to > buildPart()) {
     // The story stops where it is, and its end comes over it.
     current += 1;
     return end();
@@ -925,7 +1616,7 @@ function side(e) {
   return x < 1 / 3 ? -1 : x > 2 / 3 ? 1 : 0;
 }
 
-if (box && frame && page && subtitle && watch && titleCard && endCard && again && intro && caption && skip && said) {
+if (box && frame && page && subtitle && watch && titleCard && endCard && again && intro && caption && skip && said && build) {
   await customElements.whenDefined('please-no-bugs');
   mount('user');
   watchSight();
@@ -936,6 +1627,7 @@ if (box && frame && page && subtitle && watch && titleCard && endCard && again &
   });
   // The drawing's lines and round button follow the box as it changes size.
   new ResizeObserver(() => {
+    if (!build.hidden) fitBuild();
     const n = Number(frame.dataset.intro ?? 0);
     if (!n) return;
     if (n >= 5) drawFab();
