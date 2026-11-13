@@ -3,10 +3,13 @@
  * pretend app with the real widget in `demo` mode at its own place in it, and
  * a card inside the screen with the step, its choices and Back / Next
  * (customize.css places it: on the left from 980px, a panel along the bottom
- * that folds below that). Tapping a part of the widget opens its colour or
- * its words, in the step you are on. The steps follow the way a user goes,
- * as the demo does: the way in, the tiles, writing, sent, the board. The last
- * step is the widget working, and the code and the prompt to take along.
+ * that folds below that). The widget starts grey, as in the intro's sketch,
+ * and is coloured in part by part: a line goes round the part, a row of
+ * colours that suit it opens beside it, and a pick paints it and moves the
+ * line on to the next. A step goes on once its parts all have a colour. The
+ * steps follow the way a user goes, as the demo does: the way in, the
+ * button, the tiles, writing, sent, the board. The last step is the widget
+ * working, and the code and the prompt to take along.
  *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
  * `localStorage`: the copied code is the only place a choice ends up.
@@ -45,36 +48,35 @@ const STEPS = [
     screen: 'button',
     floatingOnly: true,
     mark: (r) => [r.querySelector('.fab')],
-    hint: 'The round button in the corner of every screen. Tap it, or a colour, to change it.',
+    hint: 'The round button in the corner of every screen. Give it a colour, then its icon.',
   },
   {
     id: 'tiles',
     name: 'Tiles',
     screen: 'tiles',
     mark: (r) => [...r.querySelectorAll('.tile')],
-    hint: 'What people pick from when they open it. Tap a part of the widget, or a colour, to change it.',
+    hint: 'What people pick from when they open it. Colour each tile, then the background.',
   },
   {
     id: 'writing',
     name: 'Writing',
     screen: 'write',
-    mark: (r) => [r.querySelector('.shot')],
-    shotsOnly: true,
-    hint: 'A bug or an idea can carry a screenshot. Pick who sees it: the widget shows what changes.',
+    mark: (r) => [r.querySelector('.send .btn'), r.querySelector('.shot')],
+    hint: 'Where people write. Colour the button that sends it.',
   },
   {
     id: 'sent',
     name: 'Feedback sent!',
     screen: 'sent',
     mark: (r) => [r.querySelector('.sent')],
-    hint: 'What people see right after they send. Tap a part to change it.',
+    hint: 'What people see right after they send. Colour each part.',
   },
   {
     id: 'board',
     name: 'Board',
     screen: 'board',
     mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')],
-    hint: 'The posts people read and vote on, with your answers. Tap a part to change it.',
+    hint: 'The posts people read and vote on, with your answers. Colour each part.',
   },
   { id: 'ready', name: "You're ready!", screen: '', live: true },
 ];
@@ -94,7 +96,7 @@ const READY_HINT = {
  * written on it.
  */
 const FAMILIES = {
-  accent: ['Accent', 'the send button, the toggle, a vote you gave, and the round button until it has its own'],
+  accent: ['Send button', 'the send button, the toggle and a vote you gave'],
   '--pnb-fab': ['Button', 'the round button in the corner, nothing else'],
   '--pnb-on-fab': ['Icon', 'the sign on the round button'],
   '--pnb-bg': ['Background', 'the panel and the answer box under a post'],
@@ -120,34 +122,124 @@ const FAMILIES = {
 };
 
 /**
- * Per step, the families you can see on its screen: two to four up front,
- * the rest behind "More colours". A family can be in more than one step; it
- * is the same colour in each.
+ * Per step, the parts to colour in (`main`), in the order the line goes
+ * round them, and behind "More colours" the small ones that are worked out
+ * from them (`DERIVED`) but can still be set by hand. A family is the same
+ * colour in every step it is in.
  */
 const COLOURS = {
   button: { main: ['--pnb-fab', '--pnb-on-fab'] },
   tiles: {
     main: ['--pnb-bug', '--pnb-idea', '--pnb-review', '--pnb-bg'],
-    more: ['--pnb-tile-ink', '--pnb-text', '--pnb-text-quiet'],
+    more: ['--pnb-tile-ink'],
   },
-  board: {
-    main: ['--pnb-surface', '--pnb-text', '--pnb-bg', '--pnb-line', '--pnb-filter'],
-    more: [
-      '--pnb-text-quiet',
-      '--pnb-surface-2',
-      '--pnb-sunken',
-      'accent',
-      '--pnb-star',
-      '--pnb-bug',
-      '--pnb-idea',
-      '--pnb-review',
-      '--pnb-planned',
-      '--pnb-done',
-      '--pnb-declined',
-    ],
-  },
+  writing: { main: ['accent'] },
   // Only its own: the shared text colours and Done would change the whole widget.
   sent: { main: ['--pnb-sent', '--pnb-sent-check', '--pnb-sent-title', '--pnb-sent-note'] },
+  board: {
+    // The filter only shows with the filters open: it follows the text, as in the widget.
+    main: ['--pnb-surface', '--pnb-text', '--pnb-line'],
+    more: ['--pnb-filter', '--pnb-text-quiet', '--pnb-surface-2', '--pnb-sunken', '--pnb-star', '--pnb-planned', '--pnb-done', '--pnb-declined'],
+  },
+};
+
+/**
+ * The colours offered beside a part, six that suit what it is, so a quick
+ * pick is nearly always readable; the seventh dot is any colour at all.
+ */
+const PALETTES = {
+  bright: ['#e5484d', '#8b5cf6', '#e9a00b', '#1fc7d4', '#21bca5', '#3b82f6'],
+  ground: ['#292a56', '#1b1b24', '#173b3f', '#ffffff', '#f4f1ea', '#e8ecf5'],
+  cards: ['#5656ac', '#2e2e3a', '#245a5f', '#f4f4f7', '#ffffff', '#dfe4f2'],
+  ink: ['#ffffff', '#111118', '#e4e4ee', '#5a5a6b', '#c9c3ff', '#ffd98a'],
+  lines: ['#6d6dc5', '#44455e', '#2f6f74', '#dcdce5', '#b9bfd3', '#ffffff'],
+  sent: ['#21bca5', '#1fc7d4', '#8b5cf6', '#292a56', '#1b1b24', '#ffffff'],
+};
+const PALETTE_OF = {
+  '--pnb-fab': 'bright',
+  '--pnb-on-fab': 'ink',
+  '--pnb-bug': 'bright',
+  '--pnb-idea': 'bright',
+  '--pnb-review': 'bright',
+  '--pnb-bg': 'ground',
+  accent: 'bright',
+  '--pnb-sent': 'sent',
+  '--pnb-sent-check': 'bright',
+  '--pnb-sent-title': 'ink',
+  '--pnb-sent-note': 'ink',
+  '--pnb-surface': 'cards',
+  '--pnb-text': 'ink',
+  '--pnb-line': 'lines',
+};
+
+/**
+ * Every colour before it is picked: the intro sketch's greys, so the widget
+ * is a sketch until it is somebody's. Light enough on dark to read.
+ */
+const GREY = {
+  accent: '#7d7e95',
+  '--pnb-fab': '#6c6d84',
+  '--pnb-on-fab': 'rgba(255, 255, 255, 0.6)',
+  '--pnb-bg': '#4a4b60',
+  '--pnb-surface': '#5d5e75',
+  '--pnb-surface-2': '#56576d',
+  '--pnb-sunken': '#3d3e50',
+  '--pnb-line': '#6c6d84',
+  '--pnb-text': '#d4d5e0',
+  '--pnb-text-quiet': '#a3a4b6',
+  '--pnb-filter': '#7d7e95',
+  '--pnb-bug': '#6c6d84',
+  '--pnb-idea': '#6c6d84',
+  '--pnb-review': '#6c6d84',
+  '--pnb-tile-ink': 'rgba(255, 255, 255, 0.55)',
+  '--pnb-star': '#8a8ba0',
+  '--pnb-planned': '#7d7e95',
+  '--pnb-done': '#7d7e95',
+  '--pnb-declined': '#7d7e95',
+  '--pnb-sent': '#4a4b60',
+  '--pnb-sent-title': '#d4d5e0',
+  '--pnb-sent-note': '#a3a4b6',
+  '--pnb-sent-check': '#6c6d84',
+};
+
+/**
+ * The small colours, worked out from the picked ones: a colour, `null` for
+ * the theme's own, or nothing while what it comes from is still grey.
+ */
+const DERIVED = {
+  '--pnb-filter': (c) => c['--pnb-text'],
+  '--pnb-text-quiet': (c) => c['--pnb-text'] && `color-mix(in srgb, ${c['--pnb-text']} 75%, transparent)`,
+  '--pnb-surface-2': (c) => c['--pnb-surface'] && `color-mix(in srgb, ${c['--pnb-surface']}, ${c['--pnb-bg'] ?? GREY['--pnb-bg']} 45%)`,
+  '--pnb-sunken': (c) => c['--pnb-bg'] && `color-mix(in srgb, ${c['--pnb-bg']}, #000 38%)`,
+  '--pnb-star': (c) => c['--pnb-review'],
+  // Words on the tiles: white, unless every tile picked is light.
+  '--pnb-tile-ink': (c) => {
+    const tiles = ['bug', 'idea', 'review'].filter((k) => state.kinds.includes(k)).map((k) => c[`--pnb-${k}`]).filter(Boolean);
+    if (!tiles.length) return undefined;
+    return tiles.every((t) => readableOn(t) !== '#ffffff') ? '#111118' : '#ffffff';
+  },
+  // The statuses keep the theme's own, once the board has colours of its own.
+  '--pnb-planned': (c) => (c['--pnb-surface'] ? null : undefined),
+  '--pnb-done': (c) => (c['--pnb-surface'] ? null : undefined),
+  '--pnb-declined': (c) => (c['--pnb-surface'] ? null : undefined),
+};
+
+/** Where a part is in the widget, to put the line and the colours round it. */
+const PART_AT = {
+  '--pnb-fab': '.fab',
+  '--pnb-on-fab': '.fab',
+  '--pnb-bug': '.tile--bug',
+  '--pnb-idea': '.tile--idea',
+  '--pnb-review': '.tile--review',
+  '--pnb-bg': '.app',
+  accent: '.send .btn',
+  '--pnb-sent': '.sent',
+  '--pnb-sent-check': '.sent__check',
+  '--pnb-sent-title': '.sent__title',
+  '--pnb-sent-note': '.sent__note',
+  '--pnb-surface': '.list > li .card, .card',
+  '--pnb-text': '.card__text',
+  '--pnb-line': '.search',
 };
 
 /**
@@ -190,6 +282,7 @@ const PARTS = {
     ['.order__tab[aria-selected="true"]', '--pnb-surface'],
     ['.order__pill', '--pnb-sunken'],
     ['.chip-pick[aria-pressed="true"], .chip-pick[aria-checked="true"]', '--pnb-filter'],
+    ['.search, .filter-btn', '--pnb-line'],
     ['.card__reply-who', { text: 'board.reply' }],
     ['.card__when, .card__who, .rating__n', '--pnb-text-quiet'],
     ['.card__text, .card__reply-text, .rating__avg', '--pnb-text'],
@@ -197,6 +290,7 @@ const PARTS = {
     ['.card, .rating, .chip-pick', '--pnb-surface'],
     ['*', '--pnb-bg'],
   ],
+  write: [OUTSIDE, ['.send .btn', 'accent']],
   sent: [
     OUTSIDE,
     ['.sent__check', '--pnb-sent-check'],
@@ -218,18 +312,34 @@ const PROPS = [...Object.keys(FAMILIES).filter((name) => name !== 'accent'), ...
 /** The round button's colours: in the code only while there is a round button. */
 const FAB = ['--pnb-fab', '--pnb-on-fab'];
 
+/** Whether a part has a colour of its own yet. */
+const picked = (name) => !!(name === 'accent' ? state.accent : state.colours[name]);
+
 /**
- * Chosen colours plus what is written on them, as they go on the widget. In
- * the PleaseNoBugs theme the round button is raised, so a colour picked for
- * it goes a little darker towards the bottom, as the theme's own does.
+ * Every colour as it goes on the widget: picked, worked out from what is
+ * picked, or still grey. A name left out keeps the theme's own. What is
+ * written on the filter follows the filter. In the PleaseNoBugs theme the
+ * round button is raised, so a colour picked for it goes a little darker
+ * towards the bottom, as the theme's own does.
  */
-function withInk(colours) {
-  const out = { ...colours };
-  for (const [name, ink] of Object.entries(INK)) if (colours[name]) out[ink] = readableOn(colours[name]);
-  const fab = colours['--pnb-fab'];
+function paint() {
+  const c = state.colours;
+  const out = {};
+  for (const name of Object.keys(FAMILIES)) {
+    if (name === 'accent') continue;
+    const worked = c[name] ? undefined : DERIVED[name]?.(c);
+    if (c[name]) out[name] = c[name];
+    else if (worked) out[name] = worked;
+    else if (worked !== null) out[name] = GREY[name];
+  }
+  for (const [name, ink] of Object.entries(INK)) out[ink] = readableOn(toHex(out[name]) ?? '#ffffff');
+  const fab = c['--pnb-fab'];
   if (fab && theme() === 'pleasenobugs') out['--pnb-fab'] = `linear-gradient(${fab}, color-mix(in srgb, ${fab}, #000 18%))`;
   return out;
 }
+
+/** The send button's colour, the widget's `accent`: picked, or grey. */
+const accent = () => state.accent || GREY.accent;
 
 /**
  * Black or white, whichever reads better on `color`. A copy of `readableOn`
@@ -302,15 +412,26 @@ let previewing = false;
 /** The widget in the box. */
 let board = null;
 
-/**
- * The steps there are for the current choices: no screenshots without a bug
- * or an idea to put them on, no button step without a round button.
- */
-const route = () =>
-  STEPS.filter(
-    (s) => (!s.shotsOnly || state.kinds.some((k) => k !== 'review')) && (!s.floatingOnly || state.mode === 'floating'),
-  );
+/** The steps there are for the current choices: no button step without a round button. */
+const route = () => STEPS.filter((s) => !s.floatingOnly || state.mode === 'floating');
 const step = () => STEPS.find((s) => s.id === at);
+
+/** The parts a step has to colour in, in order: a kind left off has none. */
+const partsOf = (id = at) => (COLOURS[id]?.main ?? []).filter((name) => !offKind(name));
+/** The ones still grey. */
+const greyIn = (id = at) => partsOf(id).filter((name) => !picked(name));
+
+/**
+ * The part being coloured in, per step: one tapped, or else the first still
+ * grey. Null once the step is all coloured: then the line goes round the
+ * step's whole part again, and a tap on a part picks it.
+ */
+const chosenPart = {};
+function currentPart() {
+  const tapped = chosenPart[at];
+  if (tapped && partsOf().includes(tapped)) return tapped;
+  return greyIn()[0] ?? null;
+}
 
 // ---- The widget ----------------------------------------------------------
 
@@ -324,11 +445,11 @@ function apply(el, mode = state.mode, held = previewing ? '' : step().screen) {
   el.setAttribute('mode', mode);
   set('theme', theme());
   set('lang', 'en');
-  set('accent', state.accent);
+  set('accent', accent());
   set('kinds', state.kinds.length === 3 ? '' : state.kinds.join(','));
   set('screenshots', state.screenshots === 'board' ? '' : state.screenshots);
   set('screen', held);
-  const colours = withInk(state.colours);
+  const colours = paint();
   for (const name of PROPS) {
     if (colours[name]) el.style.setProperty(name, colours[name]);
     else el.style.removeProperty(name);
@@ -489,7 +610,7 @@ const INTRO_PLAY = `${app()}<div class="pl-dim"></div>
     </div>
     <span class="sk-fab" data-sk="button" style="${paintColour('button')}">${GLYPH}</span>
     <div class="sk-mark"><span class="sk-mark__tag"></span></div>
-    <div class="sk-pick">${SKETCH_COLOURS.map((c) => `<i style="--c: ${c}"></i>`).join('')}</div>
+    <div class="sk-pick">${SKETCH_COLOURS.map((c) => `<i style="--c: ${c}"></i>`).join('')}<i class="sk-own"></i></div>
     <span class="sk-tap"></span>
     <span class="sk-cursor"><svg width="22" height="26" viewBox="0 0 22 26" aria-hidden="true"><path d="M2 2v19.5l5.2-4.9 3.6 7.9 3.6-1.6-3.5-7.7H18z" fill="#fff" stroke="#12132b" stroke-width="2" stroke-linejoin="round"/></svg></span>
   </div>`;
@@ -666,12 +787,17 @@ document.addEventListener('pnb:style', () => update());
 
 function update() {
   for (const input of form.querySelectorAll('[data-string]')) input.hidden = offKind(input.dataset.string);
+  // Screenshots go on bugs and ideas only.
+  form.querySelector('[data-shots]').hidden = !state.kinds.some((k) => k !== 'review');
   if (board) apply(board);
   paintDevice();
-  // Kinds can take the screenshots step away, or bring it back.
+  // A kind ticked on brings a grey tile, and holds Next until it has a colour.
   paintSteps();
   paintSwatches();
   writeCode();
+  // The line and the colours move at once, then follow the widget a moment.
+  placeMark();
+  watch();
 }
 
 // ---- Steps ---------------------------------------------------------------
@@ -716,6 +842,11 @@ function paintSteps() {
   const last = i === steps.length - 1;
   nextBtn.hidden = last || i < 0;
   if (!last) nextBtn.textContent = `Next: ${steps[i + 1].name}`;
+  // On once every part of the step has a colour: never a half-grey widget.
+  const left = greyIn().length;
+  nextBtn.disabled = left > 0;
+  nextBtn.title = left ? `Colour ${left === 1 ? 'one more part' : `${left} more parts`} first` : '';
+  paintProgress();
 }
 
 // ---- The card, beside the widget or folding along the bottom --------------
@@ -838,7 +969,9 @@ screen.addEventListener(
     const hit = (PARTS[step().screen] ?? []).find(([sel]) => sel === '*' || inside.some((n) => n.matches(sel)));
     if (!hit) return;
     const what = typeof hit[1] === 'string' ? { colour: hit[1] } : hit[1];
-    if (what.colour) pickColour(what.colour);
+    // A part of this step: the line and the colours go to it.
+    if (what.colour && partsOf().includes(what.colour)) choosePart(what.colour);
+    else if (what.colour) pickColour(what.colour);
     else if (what.text) {
       if (folded) fold(false);
       form.querySelector(`[data-step="${at}"] [data-string="${what.text}"]`)?.focus();
@@ -859,7 +992,6 @@ function pickColour(name) {
   const row = input.closest('[data-row]');
   row.classList.add('picked');
   setTimeout(() => row.classList.remove('picked'), 1200);
-  about(row);
   try {
     input.showPicker();
   } catch {
@@ -875,10 +1007,14 @@ function pickColour(name) {
  * follows it every frame.
  */
 let following = 0;
+let settle = 0;
 function watch() {
   const idle = following < performance.now();
   following = performance.now() + 600;
   if (idle) requestAnimationFrame(follow);
+  // Once more when it has settled, also where no frames are drawn.
+  clearTimeout(settle);
+  settle = setTimeout(placeMark, 650);
 }
 
 function follow() {
@@ -888,10 +1024,14 @@ function follow() {
 
 function placeMark() {
   const root = board?.shadowRoot;
-  const parts = !previewing && root && step().mark ? step().mark(root).filter(Boolean) : [];
+  // The part being coloured in, or else the step's whole part.
+  const part = !previewing && root ? currentPart() : null;
+  const own = part ? root.querySelector(PART_AT[part]) : null;
+  const parts = own ? [own] : !previewing && root && step().mark ? step().mark(root).filter(Boolean) : [];
   const rects = parts.map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height);
   if (!rects.length) {
     mark.hidden = true;
+    pick.hidden = true;
     return;
   }
   if (revealed !== at) {
@@ -899,11 +1039,14 @@ function placeMark() {
     if (reveal(parts[0], rects)) return void placeMark();
   }
   const box = screen.getBoundingClientRect();
+  // Along the bottom the card covers the foot of the box: the line and the
+  // colours stay above it.
+  const floor = beside.matches ? box.bottom : Math.min(box.bottom, deck.getBoundingClientRect().top + 8);
   const pad = 6;
   const left = Math.max(box.left, Math.min(...rects.map((r) => r.left)) - pad);
   const top = Math.max(box.top, Math.min(...rects.map((r) => r.top)) - pad);
   const right = Math.min(box.right, Math.max(...rects.map((r) => r.right)) + pad);
-  const bottom = Math.min(box.bottom - 14, Math.max(...rects.map((r) => r.bottom)) + pad);
+  const bottom = Math.min(floor - 14, Math.max(...rects.map((r) => r.bottom)) + pad);
   mark.hidden = false;
   mark.style.left = `${left - box.left}px`;
   mark.style.top = `${top - box.top}px`;
@@ -911,7 +1054,116 @@ function placeMark() {
   mark.style.height = `${Math.max(0, bottom - top)}px`;
   // A small part at the right edge, like the round button, keeps its tag inside the box.
   mark.classList.toggle('mark--right', right - left < 160 && right > box.left + box.width / 2);
-  document.getElementById('mark-tag').textContent = step().name;
+  // A part as big as the box, like the background, keeps its tag inside it.
+  mark.classList.toggle('mark--in', bottom > floor - 30);
+  mark.classList.toggle('mark--small', right - left < 90 && bottom - top < 90);
+  // A part that cannot be found in the widget still gets its colours, by the step's part.
+  document.getElementById('mark-tag').textContent = part ? FAMILIES[part][0] : step().name;
+  placePick(part, { left, top, right, bottom }, box, floor);
+}
+
+// ---- The colours beside the part -----------------------------------------
+
+const pick = document.getElementById('pick');
+
+/** Fill the row for `part`: its six colours, then any colour at all. */
+function fillPick(part) {
+  if (pick.dataset.part === part) return;
+  pick.dataset.part = part;
+  const [label] = FAMILIES[part];
+  pick.setAttribute('aria-label', `Colours for ${label}`);
+  pick.innerHTML = `${PALETTES[PALETTE_OF[part]]
+    .map((c) => `<button type="button" class="pick__dot" data-pick="${c}" style="--c: ${c}" aria-label="${c}"></button>`)
+    .join('')}<label class="pick__own" title="Your own colour"><input type="color" data-own aria-label="Your own colour for ${label}" /></label>`;
+}
+
+/**
+ * The row under the part, or over it where there is no room under it, or
+ * inside its foot when it fills the box (the background). Never off the box.
+ */
+function placePick(part, r, box, floor) {
+  if (!part) {
+    pick.hidden = true;
+    pick.dataset.part = '';
+    return;
+  }
+  fillPick(part);
+  const value = (part === 'accent' ? state.accent : state.colours[part]) || '';
+  for (const b of pick.querySelectorAll('[data-pick]')) b.classList.toggle('is-on', b.dataset.pick === value);
+  pick.querySelector('[data-own]').value = toHex(value) ?? '#888888';
+  pick.hidden = false;
+  const pw = pick.offsetWidth;
+  const ph = pick.offsetHeight;
+  const room = floor - 10;
+  let top = r.bottom + 18;
+  if (top + ph > room) top = r.top - ph - 12;
+  // No room above or below: inside the part's foot, clear of its name.
+  if (top < box.top + 8) top = Math.min(room, r.bottom) - ph - 34;
+  const left = Math.min(box.right - pw - 8, Math.max(box.left + 8, (r.left + r.right) / 2 - pw / 2));
+  pick.style.left = `${left - box.left}px`;
+  pick.style.top = `${top - box.top}px`;
+}
+
+/** Give `part` a colour, or take it back to grey with ''. */
+function setColour(part, value) {
+  if (part === 'accent') state.accent = value;
+  else if (value) state.colours[part] = value;
+  else delete state.colours[part];
+  update();
+}
+
+/** On to the next part still grey, after this one; none left, the step is done. */
+function nextPart(after) {
+  const parts = partsOf();
+  const from = parts.indexOf(after);
+  const next = [...parts.slice(from + 1), ...parts.slice(0, from + 1)].find((n) => !picked(n));
+  chosenPart[at] = next ?? null;
+  update();
+}
+
+/** Put the line and the colours on `part`, from a tap on it in the widget or its dot in the card. */
+function choosePart(part) {
+  chosenPart[at] = part;
+  paintProgress();
+  placeMark();
+  watch();
+}
+
+pick.addEventListener('click', (e) => {
+  const dot = e.target.closest('[data-pick]');
+  const part = pick.dataset.part;
+  if (!dot || !part) return;
+  // The line stays on it while it takes the colour.
+  chosenPart[at] = part;
+  setColour(part, dot.dataset.pick);
+  // A moment to see it land, then on.
+  dot.classList.add('is-on');
+  setTimeout(() => nextPart(part), 260);
+});
+// Your own colour: the part follows while you choose, and the line moves on once it is closed.
+pick.addEventListener('input', (e) => {
+  if (!e.target.matches('[data-own]') || !pick.dataset.part) return;
+  chosenPart[at] = pick.dataset.part;
+  setColour(pick.dataset.part, e.target.value);
+});
+pick.addEventListener('change', (e) => {
+  if (e.target.matches('[data-own]') && pick.dataset.part) nextPart(pick.dataset.part);
+});
+
+/**
+ * The card's own line under its dots: how far the step is, and which part
+ * the colours are for now.
+ */
+function paintProgress() {
+  const box = form.querySelector(`[data-step="${at}"] [data-colours]`);
+  if (!box) return;
+  const parts = partsOf();
+  const done = parts.filter(picked).length;
+  const now = currentPart();
+  for (const d of box.querySelectorAll('.dot')) d.classList.toggle('is-now', d.dataset.row === now);
+  box.querySelector('.colour-about').innerHTML = now
+    ? `<b>${done} of ${parts.length} coloured.</b> Now: ${FAMILIES[now][0]}. Pick a colour beside it.`
+    : `<b>All ${parts.length} coloured.</b> Tap a part to change it.`;
 }
 
 /**
@@ -982,61 +1234,44 @@ form.addEventListener('input', (e) => {
 });
 
 form.addEventListener('click', (e) => {
+  // A part's dot in the card: the line and the colours go to it.
+  const part = e.target.closest('[data-part]');
+  if (part) return choosePart(part.dataset.part);
   const reset = e.target.closest('[data-reset]');
   if (!reset) return;
-  const name = reset.dataset.reset;
-  if (name === 'accent') state.accent = '';
-  else delete state.colours[name];
-  update();
+  setColour(reset.dataset.reset, '');
 });
 
 // ---- Colours -------------------------------------------------------------
 
-/** A round colour with its name under it, as in the design. */
+/** A part to colour in, round, with its name under it: grey until it has a colour. */
 function dot(name) {
   const [label, what] = FAMILIES[name];
-  return `<div class="dot" data-row="${name}" title="${label}: ${what}">
-    <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}: ${what}" /></label>
+  return `<button type="button" class="dot" data-row="${name}" data-part="${name}" title="${label}: ${what}" aria-label="${label}: ${what}">
+    <span class="swatch__dot"></span>
     <span class="dot__name">${label}</span>
-    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to PleaseNoBugs' own" title="Back to PleaseNoBugs' own">×</button>
-  </div>`;
+  </button>`;
 }
 
-/** The same colour as a row, for the longer list behind "More colours". */
+/** A small colour, worked out by itself, as a row behind "More colours" to set by hand. */
 function swatchRow(name) {
   const [label, what] = FAMILIES[name];
   return `<div class="swatch" data-row="${name}">
     <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}: ${what}" /></label>
     <span class="swatch__name">${label}<small>${what}</small></span>
     <span class="swatch__hex"></span>
-    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to PleaseNoBugs' own" title="Back to PleaseNoBugs' own">×</button>
+    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to worked out" title="Back to worked out">×</button>
   </div>`;
 }
 
 for (const box of form.querySelectorAll('[data-colours]')) {
   const { main, more } = COLOURS[box.dataset.colours];
   box.className = 'field';
-  box.innerHTML = `<span>Colours</span>
+  box.innerHTML = `<span>Colour it in</span>
     <div class="dots">${main.map(dot).join('')}</div>
-    <p class="colour-about" aria-live="polite">Tap a colour, or a part of the widget, to change it.</p>
-    ${more ? `<details class="more-colours"><summary>More colours</summary><div class="swatches">${more.map(swatchRow).join('')}</div></details>` : ''}`;
+    <p class="colour-about" aria-live="polite"></p>
+    ${more ? `<details class="more-colours"><summary>More colours</summary><p class="more-colours__about">Worked out from yours. Change one if you like.</p><div class="swatches">${more.map(swatchRow).join('')}</div></details>` : ''}`;
 }
-
-/** Say under the dots what the colour being changed paints. */
-function about(row) {
-  const [label, what] = FAMILIES[row.dataset.row];
-  const line = row.closest('.field').querySelector('.colour-about');
-  line.innerHTML = `<b>${label}</b>: ${what}.`;
-}
-
-form.addEventListener('focusin', (e) => {
-  const row = e.target.closest('.dot');
-  if (row) about(row);
-});
-form.addEventListener('pointerover', (e) => {
-  const row = e.target.closest('.dot');
-  if (row) about(row);
-});
 
 /** The colours and words that belong to one kind: gone with it when it is unticked. */
 const KIND_OF = {
@@ -1053,21 +1288,23 @@ const KIND_OF = {
 const offKind = (name) => !!KIND_OF[name] && !state.kinds.includes(KIND_OF[name]);
 
 /**
- * Show each colour as the widget has it now. A value is read from the widget
- * itself with the override lifted for a moment, so "the theme's" is always
- * what the theme really says, gradients included.
+ * Show each colour as the widget has it now: picked, worked out, or grey. One
+ * that keeps the theme's own is read from the widget itself with the
+ * override lifted for a moment, so it is what the theme really says.
  */
 function paintSwatches() {
   if (!board?.shadowRoot) return void requestAnimationFrame(paintSwatches);
+  const now = paint();
   for (const row of form.querySelectorAll('[data-row]')) {
     const name = row.dataset.row;
     row.hidden = offKind(name);
     const own = name === 'accent' ? state.accent : state.colours[name];
-    const value = own || themeValue(name === 'accent' ? '--pnb-accent' : name);
+    const value = name === 'accent' ? accent() : (now[name] ?? themeValue(name));
     row.querySelector('.swatch__dot').style.background = value || 'transparent';
-    row.querySelector('input').value = toHex(value) ?? '#000000';
+    const input = row.querySelector('input');
+    if (input) input.value = toHex(value) ?? '#000000';
     const hex = row.querySelector('.swatch__hex');
-    if (hex) hex.textContent = own ? own : /gradient/.test(value) ? 'gradient' : (toHex(value) ?? value);
+    if (hex) hex.textContent = own ? own : /gradient|mix/.test(value) ? 'worked out' : (toHex(value) ?? value);
     row.classList.toggle('swatch--set', !!own);
   }
 }
@@ -1116,7 +1353,7 @@ function html() {
     ['server', 'https://YOUR_SERVER'],
     state.mode !== 'inline' && ['mode', state.mode],
     ['theme', theme()],
-    state.accent && ['accent', state.accent],
+    ['accent', accent()],
     state.kinds.length < 3 && ['kinds', state.kinds.join(',')],
     state.screenshots !== 'board' && ['screenshots', state.screenshots],
   ].filter(Boolean);
@@ -1137,10 +1374,12 @@ function html() {
 }
 
 function css() {
-  // A kind left off takes its colours out of the code, kept here for if it
-  // comes back; so does the round button when it is shown another way.
-  const rows = Object.entries(withInk(state.colours))
-    .filter(([k]) => !offKind(k) && (state.mode === 'floating' || !FAB.includes(k)))
+  // Every colour picked or worked out. A kind left off takes its colours out
+  // of the code, kept here for if it comes back; so does the round button
+  // when it is shown another way. A grey one never gets this far: Next waits
+  // for it.
+  const rows = Object.entries(paint())
+    .filter(([k, v]) => !offKind(k) && (state.mode === 'floating' || !FAB.includes(k)) && v !== GREY[k])
     .map(([k, v]) => `  ${k}: ${v};`);
   if (state.mode === 'inline') rows.unshift('  height: 600px; /* inline: give it a height, or it grows with its posts */');
   if (!rows.length) return "/* No colours changed: PleaseNoBugs' own are used. */";

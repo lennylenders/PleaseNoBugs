@@ -1285,6 +1285,31 @@ demo gets a calmer telling there; the purple look keeps its own, unchanged.
   button colour goes 18% darker towards the bottom, as its own raised one
   does. Shown inline or as an overlay, its colours leave the code.
 
+## 2026-11-13: You colour the widget in yourself, part by part
+
+- **The widget starts grey** in Customize, in the intro sketch's greys, and
+  stays grey wherever nothing is picked yet: making it yours should feel like
+  making something. The steps now do what the sketch shows.
+- **One part at a time.** A line goes round the part with its name, and
+  beside it, in the widget, a row of six colours that suit it (bright for
+  tiles and buttons, dark and light for grounds and cards, white, black and
+  greys for text, ...), the seventh dot any colour at all. A pick paints the
+  part and the line moves on to the next grey one; tapping a coloured part,
+  or its dot in the card, picks it again. The card says how far the step is.
+- **Next waits** until every part of the step has a colour, so the code is
+  never half grey.
+- **The parts:** The button: Button, Icon. Tiles: Bug, Idea, Review (the
+  kinds that are on), Background. Writing: Send button (`accent`: the send
+  button, the toggle and your vote), so the round button and the buttons in
+  the widget can differ; Writing is now always a step, its screenshot choice
+  only with bugs or ideas. Feedback sent!: its four. Board: Cards, Text, Lines
+  (the search field's border marks them). The filter only shows with the
+  filters open, so it follows Text, as in the widget.
+- **The small colours are worked out** from the picked ones (quiet text,
+  pills, the Top / New switch, stars, the words on the tiles; the statuses
+  keep the theme's own) and stay under "More colours" to set by hand.
+- The intro sketch's row of colours gets the any-colour dot too.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

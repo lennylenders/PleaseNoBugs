@@ -99,7 +99,9 @@
                 </div>
 
                 <div class="edit__step" data-step="writing" hidden>
-                  <fieldset class="field">
+                  <div data-colours="writing"></div>
+                  <!-- Only with bugs or ideas: reviews carry no screenshot. -->
+                  <fieldset class="field" data-shots>
                     <legend>Screenshots on bugs and ideas</legend>
                     <div class="seg">
                       <label><input type="radio" name="screenshots" value="board" checked /><span>Everyone</span></label>
@@ -113,13 +115,13 @@
                 </div>
 
                 <div class="edit__step" data-step="sent" hidden>
-                  <div data-strings="sent"></div>
                   <div data-colours="sent"></div>
+                  <div data-strings="sent"></div>
                 </div>
 
                 <div class="edit__step" data-step="board" hidden>
-                  <div data-strings="board"></div>
                   <div data-colours="board"></div>
+                  <div data-strings="board"></div>
                 </div>
 
                 <div class="edit__step ready" data-step="ready" hidden>
@@ -159,6 +161,8 @@
             </div>
           </section>
           <div class="mark" id="mark" hidden><span class="mark__tag" id="mark-tag"></span></div>
+          <!-- The colours for the part the line is around, beside it, as in the intro's sketch. -->
+          <div class="pick" id="pick" role="group" hidden></div>
         </div>
       </div>
     </main>
