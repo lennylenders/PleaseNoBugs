@@ -1268,6 +1268,23 @@ demo gets a calmer telling there; the purple look keeps its own, unchanged.
   - The intro's sketch of a widget being coloured in is gone; the cards
     took its place.
 
+## 2026-11-13: Customize goes back to one way in, and the button gets its own step
+
+- **The ready-made designs are gone again.** The owner would rather have
+  people make the widget theirs straight away. The start card is the one from
+  before 2026-11-12: "Make it look like yours.", one "Make it mine" button,
+  and the sketch of a widget being coloured in, in the corner. No "Start
+  from", no big view of a design, no "Shown as" or "Customize from here" in
+  the last step; the steps start from the PleaseNoBugs colours. The Figma
+  page of the cards stays as a record. `theme="nimiq"` stays in the widget.
+- **The round button has a step of its own, "The button"**, right after "How
+  it opens", and only when it is shown as a button. It offers the button's
+  own colour (`--pnb-fab`, in the widget since 0.2.0) and its icon's, so
+  picking it changes nothing else; Accent (send button, toggle, your vote)
+  moved to Board's "More colours" only. In the PleaseNoBugs theme a picked
+  button colour goes 18% darker towards the bottom, as its own raised one
+  does. Shown inline or as an overlay, its colours leave the code.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

@@ -8,10 +8,6 @@
  * as the demo does: the way in, the tiles, writing, sent, the board. The last
  * step is the widget working, and the code and the prompt to take along.
  *
- * Before the steps, a choice: a ready-made design (`DESIGNS`), seen big
- * screen by screen and taken as it is, straight to the last step; or
- * "Customize it myself", which first asks which design to start from.
- *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
  * `localStorage`: the copied code is the only place a choice ends up.
  */
@@ -31,26 +27,26 @@ const VERSION = '%VERSION%';
  * colour and word on every screen before taking the code.
  */
 const STEPS = [
-  // Before the steps, and not one of them (`pre`): a ready-made design or
-  // your own. Every visit, as nothing here is remembered.
+  // Before the steps, and not one of them: why to make it yours, while a
+  // sketch of the widget is made someone's beside it (`PLAYS.*.intro`).
+  // Every visit, as nothing here is remembered; "Make it mine" goes on.
   {
     id: 'intro',
     name: 'Make it look like yours.',
-    pre: true,
+    intro: true,
     screen: '',
-    hint: "Take a ready-made design and you're done, or make your own. Then copy the code or hand it to your AI agent.",
-  },
-  // A ready-made design, big; its name, line and screen are the design's (`look`).
-  { id: 'look', pre: true, aside: true },
-  // "Customize it myself": the design to start from, then the steps.
-  {
-    id: 'base',
-    name: 'Start from',
-    pre: true,
-    screen: 'tiles',
-    hint: 'Pick the design closest to yours. Every colour and word stays yours to change.',
+    hint: 'A feedback button that fits your app is one people actually tap.',
   },
   { id: 'opens', name: 'How it opens', screen: 'tiles', hint: 'How people get to it in your app. The screen plays it.' },
+  // Only for the round button (`floatingOnly`): inline and overlay have none.
+  {
+    id: 'button',
+    name: 'The button',
+    screen: 'button',
+    floatingOnly: true,
+    mark: (r) => [r.querySelector('.fab')],
+    hint: 'The round button in the corner of every screen. Tap it, or a colour, to change it.',
+  },
   {
     id: 'tiles',
     name: 'Tiles',
@@ -83,32 +79,6 @@ const STEPS = [
   { id: 'ready', name: "You're ready!", screen: '', live: true },
 ];
 
-/**
- * The ready-made designs, in the order their cards stand: each one of the
- * widget's themes, as it is. `screens` are what the big view flips through,
- * as the widget's `screen` attribute (empty: closed, the round button).
- */
-const DESIGNS = {
-  nimiq: {
-    name: 'Nimiq',
-    line: 'Light and bright: gradient tiles and a blue button, like the Nimiq wallet.',
-  },
-  pleasenobugs: {
-    name: 'PleaseNoBugs',
-    line: 'Playful purple with bright tiles and raised buttons.',
-  },
-};
-const ORDER = Object.keys(DESIGNS);
-const LOOK_SCREENS = [
-  ['', 'Button'],
-  ['tiles', 'Tiles'],
-  ['write', 'Writing'],
-  ['sent', 'Sent'],
-  ['board', 'Board'],
-];
-/** The screens on a design's card, small. */
-const SHOTS = ['tiles', 'write', 'board'];
-
 /** The last step's line: where the widget is depends on where the card is. */
 const READY_HINT = {
   side: 'It works now: try it on the right. Then take it along.',
@@ -124,8 +94,9 @@ const READY_HINT = {
  * written on it.
  */
 const FAMILIES = {
-  accent: ['Accent', 'the round button, the send button, the toggle, a vote you gave'],
-  '--pnb-on-fab': ['Button glyph', 'the sign on the round button'],
+  accent: ['Accent', 'the send button, the toggle, a vote you gave, and the round button until it has its own'],
+  '--pnb-fab': ['Button', 'the round button in the corner, nothing else'],
+  '--pnb-on-fab': ['Icon', 'the sign on the round button'],
   '--pnb-bg': ['Background', 'the panel and the answer box under a post'],
   '--pnb-surface': ['Cards', 'posts, filters, the field you type in, the chosen tab'],
   '--pnb-surface-2': ['Pills', 'badges, the vote button, the toggle when off'],
@@ -154,7 +125,7 @@ const FAMILIES = {
  * is the same colour in each.
  */
 const COLOURS = {
-  opens: { main: ['accent', '--pnb-on-fab'] },
+  button: { main: ['--pnb-fab', '--pnb-on-fab'] },
   tiles: {
     main: ['--pnb-bug', '--pnb-idea', '--pnb-review', '--pnb-bg'],
     more: ['--pnb-tile-ink', '--pnb-text', '--pnb-text-quiet'],
@@ -188,6 +159,10 @@ const COLOURS = {
  */
 const OUTSIDE = ['.backdrop', {}];
 const PARTS = {
+  button: [
+    ['.fab svg', '--pnb-on-fab'],
+    ['.fab', '--pnb-fab'],
+  ],
   tiles: [
     OUTSIDE,
     ['.tile--bug', '--pnb-bug'],
@@ -240,10 +215,19 @@ const INK = { '--pnb-filter': '--pnb-on-filter' };
 /** Every custom property the steps offer, and the ones worked out from them, for putting them on the widget. */
 const PROPS = [...Object.keys(FAMILIES).filter((name) => name !== 'accent'), ...Object.values(INK)];
 
-/** Chosen colours plus what is written on them. */
+/** The round button's colours: in the code only while there is a round button. */
+const FAB = ['--pnb-fab', '--pnb-on-fab'];
+
+/**
+ * Chosen colours plus what is written on them, as they go on the widget. In
+ * the PleaseNoBugs theme the round button is raised, so a colour picked for
+ * it goes a little darker towards the bottom, as the theme's own does.
+ */
 function withInk(colours) {
   const out = { ...colours };
   for (const [name, ink] of Object.entries(INK)) if (colours[name]) out[ink] = readableOn(colours[name]);
+  const fab = colours['--pnb-fab'];
+  if (fab && theme() === 'pleasenobugs') out['--pnb-fab'] = `linear-gradient(${fab}, color-mix(in srgb, ${fab}, #000 18%))`;
   return out;
 }
 
@@ -294,17 +278,14 @@ const copyBtn = document.getElementById('copy');
 const beside = window.matchMedia('(min-width: 980px)');
 
 /**
- * The theme the widget wears: the design being looked at, or the one taken
- * or started from. Each colour can be changed on top of it. The code names
+ * The widget has other themes, but the configurator offers the one the site
+ * wears: PleaseNoBugs' own colours, or Nimiq's with the header's style
+ * switch (assets/style.js). Each colour can be changed. The code still names
  * it, so an app gets these colours and not the widget's light default.
  */
-const theme = () => (at === 'look' ? look.design : state.theme);
+const theme = () => window.PNBStyle?.theme() ?? 'pleasenobugs';
 
 const state = {
-  /** A theme from `DESIGNS`. */
-  theme: 'pleasenobugs',
-  /** The ready-made design taken as it is, or null while customizing. */
-  design: null,
   mode: 'floating',
   kinds: ['bug', 'idea', 'review'],
   /** `board` (everyone, after the user's tick), `owners` or `off`. */
@@ -318,23 +299,18 @@ const state = {
 let at = 'intro';
 let previewing = false;
 
-/** The design seen big, and its screen. */
-const look = { design: ORDER[0], screen: 'tiles' };
-
 /** The widget in the box. */
 let board = null;
 
 /**
  * The steps there are for the current choices: no screenshots without a bug
- * or an idea to put them on. The big view of a design stands aside: it is
- * reached from its card, and Back and Next do not pass it.
+ * or an idea to put them on, no button step without a round button.
  */
-const route = () => STEPS.filter((s) => !s.aside && (!s.shotsOnly || state.kinds.some((k) => k !== 'review')));
+const route = () =>
+  STEPS.filter(
+    (s) => (!s.shotsOnly || state.kinds.some((k) => k !== 'review')) && (!s.floatingOnly || state.mode === 'floating'),
+  );
 const step = () => STEPS.find((s) => s.id === at);
-/** The screen the widget is held on: the step's, or the one the big view shows. */
-const held = () => (at === 'look' ? look.screen : step().screen);
-/** How the widget in the box shows: a design seen big, or one to start from, as the round button's panel. */
-const widgetMode = () => (at === 'look' || at === 'base' ? 'floating' : state.mode);
 
 // ---- The widget ----------------------------------------------------------
 
@@ -342,7 +318,7 @@ const widgetMode = () => (at === 'look' || at === 'base' ? 'floating' : state.mo
  * Put the settings on the widget: attributes, colours and texts. The device in
  * step 1 holds its widgets inline, on a screen of their own.
  */
-function apply(el, mode = widgetMode(), screenName = previewing ? '' : held()) {
+function apply(el, mode = state.mode, held = previewing ? '' : step().screen) {
   const set = (name, value) => (value ? el.setAttribute(name, value) : el.removeAttribute(name));
   el.setAttribute('demo', '');
   el.setAttribute('mode', mode);
@@ -351,14 +327,13 @@ function apply(el, mode = widgetMode(), screenName = previewing ? '' : held()) {
   set('accent', state.accent);
   set('kinds', state.kinds.length === 3 ? '' : state.kinds.join(','));
   set('screenshots', state.screenshots === 'board' ? '' : state.screenshots);
-  set('screen', screenName);
-  // A design seen big is seen as it is, without the colours of another.
-  const colours = at === 'look' ? {} : withInk(state.colours);
+  set('screen', held);
+  const colours = withInk(state.colours);
   for (const name of PROPS) {
     if (colours[name]) el.style.setProperty(name, colours[name]);
     else el.style.removeProperty(name);
   }
-  el.strings = at !== 'look' && Object.keys(state.strings).length ? { ...state.strings } : undefined;
+  el.strings = Object.keys(state.strings).length ? { ...state.strings } : undefined;
 }
 
 /**
@@ -377,14 +352,13 @@ function mount() {
   board?.remove();
   screen.querySelector('.screen__again')?.remove();
   screen.querySelector('.inline-frame')?.remove();
-  const mode = widgetMode();
-  screen.classList.toggle('screen--inline', mode === 'inline');
-  if (mode === 'inline') screen.insertAdjacentHTML('beforeend', INLINE_FRAME);
+  screen.classList.toggle('screen--inline', state.mode === 'inline');
+  if (state.mode === 'inline') screen.insertAdjacentHTML('beforeend', INLINE_FRAME);
   board = document.createElement('please-no-bugs');
   revealed = null;
   apply(board);
   screen.append(board);
-  if (mode === 'overlay') board.addEventListener('pleasenobugs:close', offerAgain);
+  if (state.mode === 'overlay') board.addEventListener('pleasenobugs:close', offerAgain);
   fitPanel();
   observeRoot(board);
   watch();
@@ -475,16 +449,182 @@ const PLAYS = {
   },
 };
 
-/** Before the steps the app is only dimmed: the card with the designs is over it. */
-PLAYS.phone.intro = `${app()}<div class="pl-dim"></div>`;
-PLAYS.desk.intro = PLAYS.phone.intro;
+/**
+ * The intro's drawing, in the style of the Why PleaseNoBugs page's: a sketch of the widget
+ * in grey, in its real shape and at its real place, and a cursor that makes
+ * it yours as the steps after it do. The round button pops up in the corner;
+ * the cursor taps it, the line around a part comes up with its name, a row
+ * of colours opens, the cursor picks one and the button takes it. Tapped
+ * again, it opens into the panel on the tiles, and the cursor colours the
+ * Bug tile, the Idea and Review tiles and the background the same way.
+ * A pause, and again (`playSketch`; customize.css draws it).
+ *
+ * Its content is abstract, bars for words, but its shape is the widget's own
+ * tiles screen: the bar with its X, the question, the wide Bug tile, Idea
+ * and Review side by side, and "See the board". A panel in the corner from
+ * 640px, the whole app below that, as the widget opens.
+ */
+const SKETCH_COLOURS = ['#e5484d', '#8b5cf6', '#e9a00b', '#1fc7d4', '#21bca5', '#292a56'];
+/** What the cursor colours, in order, with the name its line shows and the colour it picks. */
+const SKETCH_STEPS = [
+  { part: 'button', name: 'Button', colour: 3 },
+  { part: 'bug', name: 'Bug', colour: 0 },
+  { part: 'idea', name: 'Idea', colour: 1, quick: true },
+  { part: 'review', name: 'Review', colour: 2, quick: true },
+  { part: 'panel', name: 'Background', colour: 5 },
+];
+const SKETCH_TILE = '<i class="sk-icon"></i><i class="sk-word"></i>';
+const paintColour = (part) => `--c: ${SKETCH_COLOURS[SKETCH_STEPS.find((s) => s.part === part).colour]}`;
+const INTRO_PLAY = `${app()}<div class="pl-dim"></div>
+  <div class="sketch">
+    <div class="sk-panel" data-sk="panel" style="${paintColour('panel')}">
+      <div class="sk-bar"><i class="sk-x"></i></div>
+      <i class="sk-title"></i>
+      <div class="sk-tile" data-sk="bug" style="${paintColour('bug')}">${SKETCH_TILE}</div>
+      <div class="sk-row">
+        <div class="sk-tile" data-sk="idea" style="${paintColour('idea')}">${SKETCH_TILE}</div>
+        <div class="sk-tile" data-sk="review" style="${paintColour('review')}">${SKETCH_TILE}</div>
+      </div>
+      <i class="sk-link"></i>
+    </div>
+    <span class="sk-fab" data-sk="button" style="${paintColour('button')}">${GLYPH}</span>
+    <div class="sk-mark"><span class="sk-mark__tag"></span></div>
+    <div class="sk-pick">${SKETCH_COLOURS.map((c) => `<i style="--c: ${c}"></i>`).join('')}</div>
+    <span class="sk-tap"></span>
+    <span class="sk-cursor"><svg width="22" height="26" viewBox="0 0 22 26" aria-hidden="true"><path d="M2 2v19.5l5.2-4.9 3.6 7.9 3.6-1.6-3.5-7.7H18z" fill="#fff" stroke="#12132b" stroke-width="2" stroke-linejoin="round"/></svg></span>
+  </div>`;
+PLAYS.phone.intro = INTRO_PLAY;
+PLAYS.desk.intro = INTRO_PLAY;
+
+/**
+ * Play the sketch in `root` for as long as it is on the page. With less
+ * motion it shows the end, still: open and in all its colours.
+ */
+async function playSketch(root) {
+  const sk = root.querySelector('.sketch');
+  if (!sk) return;
+  const panel = sk.querySelector('.sk-panel');
+  const fab = sk.querySelector('.sk-fab');
+  const cursor = sk.querySelector('.sk-cursor');
+  const tap = sk.querySelector('.sk-tap');
+  const mark = sk.querySelector('.sk-mark');
+  const pick = sk.querySelector('.sk-pick');
+  const parts = [...sk.querySelectorAll('[data-sk]')];
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    sk.classList.add('is-open');
+    for (const el of parts) el.classList.add('is-painted');
+    return;
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  /** Where an element is in the sketch, in its own pixels, whatever scales the page. */
+  const at = (el) => {
+    const b = el.getBoundingClientRect();
+    const o = sk.getBoundingClientRect();
+    const s = o.width / sk.offsetWidth || 1;
+    return { x: (b.left - o.left) / s, y: (b.top - o.top) / s, w: b.width / s, h: b.height / s };
+  };
+  const moveTo = (x, y) => (cursor.style.transform = `translate(${x}px, ${y}px)`);
+  /** A tap where the cursor is: it dips, and a ring goes out. */
+  const press = async (x, y) => {
+    tap.style.left = `${x}px`;
+    tap.style.top = `${y}px`;
+    tap.classList.remove('on');
+    void tap.offsetWidth;
+    tap.classList.add('on');
+    cursor.classList.add('down');
+    await wait(140);
+    cursor.classList.remove('down');
+  };
+  /** The configurator's line around a part, with its name: inside the edge when there is no room outside. */
+  const showMark = (r, name) => {
+    const W = sk.clientWidth;
+    const H = sk.clientHeight;
+    const left = Math.max(2, r.x - 6);
+    const top = Math.max(2, r.y - 6);
+    const right = Math.min(W - 2, r.x + r.w + 6);
+    const bottom = Math.min(H - 2, r.y + r.h + 6);
+    Object.assign(mark.style, { left: `${left}px`, top: `${top}px`, width: `${right - left}px`, height: `${bottom - top}px` });
+    mark.classList.toggle('sk-mark--in', bottom + 14 > H);
+    mark.querySelector('.sk-mark__tag').textContent = name;
+    mark.classList.add('on');
+  };
+  /** The colours, under the part, or over it where there is no room under it. */
+  const placePick = (r) => {
+    const W = sk.clientWidth;
+    const H = sk.clientHeight;
+    const pw = pick.offsetWidth;
+    const ph = pick.offsetHeight;
+    const below = r.y + r.h + 22;
+    const top = below + ph < H - 8 ? below : Math.max(8, r.y - ph - 12);
+    const left = Math.min(W - pw - 8, Math.max(8, r.x + r.w / 2 - pw / 2));
+    Object.assign(pick.style, { left: `${left}px`, top: `${top}px` });
+  };
+  const colourIn = async (step) => {
+    const el = sk.querySelector(`[data-sk="${step.part}"]`);
+    const r = at(el);
+    // The background is tapped where nothing else is: beside "See the board".
+    const spot = step.part === 'panel' ? { x: r.x + 26, y: r.y + r.h - 30 } : { x: r.x + r.w / 2, y: r.y + r.h / 2 };
+    moveTo(spot.x, spot.y);
+    await wait(step.quick ? 420 : 600);
+    await press(spot.x, spot.y);
+    showMark(r, step.name);
+    placePick(r);
+    pick.classList.add('on');
+    await wait(step.quick ? 300 : 450);
+    const dot = pick.children[step.colour];
+    const d = at(dot);
+    moveTo(d.x + d.w / 2, d.y + d.h / 2);
+    await wait(step.quick ? 380 : 520);
+    await press(d.x + d.w / 2, d.y + d.h / 2);
+    dot.classList.add('chosen');
+    el.classList.add('is-painted');
+    await wait(step.quick ? 520 : 760);
+    pick.classList.remove('on');
+    mark.classList.remove('on');
+    dot.classList.remove('chosen');
+    await wait(220);
+  };
+
+  while (sk.isConnected) {
+    await wait(400);
+    sk.classList.add('is-fab');
+    await wait(500);
+    // In from the open middle of the app.
+    moveTo(sk.clientWidth * 0.55, sk.clientHeight * 0.42);
+    sk.classList.add('is-cursor');
+    await wait(300);
+    await colourIn(SKETCH_STEPS[0]);
+    // Tapped again, the button opens.
+    const f = at(fab);
+    moveTo(f.x + f.w / 2, f.y + f.h / 2);
+    await wait(450);
+    await press(f.x + f.w / 2, f.y + f.h / 2);
+    sk.classList.add('is-open');
+    await wait(800);
+    for (const step of SKETCH_STEPS.slice(1)) {
+      if (!sk.isConnected) return;
+      await colourIn(step);
+    }
+    sk.classList.remove('is-cursor');
+    await wait(2600);
+    // Out, back to the start while it cannot be seen, and in again.
+    sk.classList.add('is-away');
+    await wait(400);
+    sk.classList.add('sk--reset');
+    sk.classList.remove('is-fab', 'is-open');
+    for (const el of parts) el.classList.remove('is-painted');
+    moveTo(sk.clientWidth * 0.55, sk.clientHeight * 0.42);
+    void sk.offsetWidth;
+    sk.classList.remove('sk--reset', 'is-away');
+  }
+}
 
 function paintDevice() {
   const mode = previewing ? null : at === 'opens' ? state.mode : at === 'intro' ? 'intro' : null;
   const kind = wide.matches ? 'desk' : 'phone';
   screen.classList.toggle('screen--device', !!mode);
   // The app's own background behind every way, inline too.
-  screen.classList.toggle('screen--inline', widgetMode() === 'inline' && !mode);
+  screen.classList.toggle('screen--inline', state.mode === 'inline' && !mode);
   if (device && device.dataset.key !== `${kind} ${mode}`) {
     device.remove();
     device = null;
@@ -497,6 +637,7 @@ function paintDevice() {
     device.setAttribute('aria-hidden', 'true');
     device.innerHTML = PLAYS[kind][mode];
     screen.append(device);
+    if (mode === 'intro') playSketch(device);
   }
   for (const w of device.querySelectorAll('please-no-bugs')) {
     apply(w, 'inline', w.dataset.screen);
@@ -510,7 +651,8 @@ function paintDevice() {
     }
   }
   // The button and the panel behind it in the widget's own colours, which
-  // live in its shadow root: read from one of the widgets in the box.
+  // live in its shadow root: read from one of the widgets in the box. The
+  // intro's drawing has none: it is a sketch.
   const one = device.querySelector('please-no-bugs');
   if (!one) return;
   const css = getComputedStyle(one);
@@ -519,9 +661,11 @@ function paintDevice() {
   }
 }
 
+// The header's style switch: the widgets and the code take the other theme.
+document.addEventListener('pnb:style', () => update());
+
 function update() {
   for (const input of form.querySelectorAll('[data-string]')) input.hidden = offKind(input.dataset.string);
-  paintOnly();
   if (board) apply(board);
   paintDevice();
   // Kinds can take the screenshots step away, or bring it back.
@@ -533,8 +677,7 @@ function update() {
 // ---- Steps ---------------------------------------------------------------
 
 function go(id) {
-  if (id !== 'look' && !route().some((s) => s.id === id)) id = 'opens';
-  // From the big view a design is taken: that counts as going forward too.
+  if (!route().some((s) => s.id === id)) id = 'opens';
   const forward = route().findIndex((s) => s.id === id) > route().findIndex((s) => s.id === at);
   at = id;
   revealed = null;
@@ -542,167 +685,37 @@ function go(id) {
   paintSteps();
   // Each step starts at its top.
   deckBody.scrollTop = 0;
-  // Into the last step and out of it, a fresh widget, as it starts in an app;
-  // so too for another way of showing it (a design seen big is a button's).
+  // Into the last step and out of it, a fresh widget, as it starts in an app.
   const live = !!step().live;
   if (live !== previewing) {
     previewing = live;
     screen.classList.toggle('screen--live', live);
     mount();
     if (live && forward) cheer("You're ready!");
-  } else if (board && board.getAttribute('mode') !== widgetMode()) mount();
-  else if (board) apply(board);
+  } else if (board) apply(board);
   paintDevice();
   watch();
 }
 
 function paintSteps() {
-  // What is before the steps is not one of them.
-  const steps = route().filter((s) => !s.pre);
+  // The intro is before the steps, not one of them.
+  const steps = route().filter((s) => !s.intro);
   const i = steps.findIndex((s) => s.id === at);
-  /** A ready-made design taken as it is: its last step is the only one it has. */
-  const ready = !!step().live && !!state.design;
-  const looking = at === 'look';
-  const name = looking ? DESIGNS[look.design].name : step().name;
-  deck.classList.toggle('deck--intro', at === 'intro');
-  deck.classList.toggle('deck--pre', !!step().pre || ready);
-  document.getElementById('count').textContent = looking
-    ? `Ready-made design · ${ORDER.indexOf(look.design) + 1} of ${ORDER.length}`
-    : at === 'base'
-      ? 'Customize it myself'
-      : ready
-        ? `${DESIGNS[state.design].name} · ready-made`
-        : `Step ${i + 1} of ${steps.length}`;
-  document.getElementById('short').textContent = `· ${name}`;
-  document.getElementById('step-name').textContent = name;
-  document.getElementById('bars').innerHTML = step().pre || ready
-    ? ''
-    : steps.map((s, n) => `<i class="${n < i ? 'done' : n === i ? 'now' : ''}"></i>`).join('');
-  document.getElementById('hint').textContent = looking
-    ? DESIGNS[look.design].line
-    : step().live
-      ? READY_HINT[beside.matches ? 'side' : 'under']
-      : step().hint;
+  deck.classList.toggle('deck--intro', !!step().intro);
+  document.getElementById('count').textContent = `Step ${i + 1} of ${steps.length}`;
+  document.getElementById('short').textContent = `· ${step().name}`;
+  document.getElementById('step-name').textContent = step().name;
+  document.getElementById('bars').innerHTML = steps
+    .map((s, n) => `<i class="${n < i ? 'done' : n === i ? 'now' : ''}"></i>`)
+    .join('');
+  document.getElementById('hint').textContent = step().live
+    ? READY_HINT[beside.matches ? 'side' : 'under']
+    : step().hint;
   deck.classList.toggle('deck--ready', !!step().live);
-  // The big view has its own buttons, and nothing is before the designs.
-  backBtn.hidden = at === 'intro' || looking;
+  backBtn.hidden = i <= 0;
   const last = i === steps.length - 1;
-  nextBtn.hidden = last || looking || at === 'intro';
-  if (at === 'base') nextBtn.textContent = `Next: ${steps[0].name}`;
-  else if (!last && i >= 0) nextBtn.textContent = `Next: ${steps[i + 1].name}`;
-  document.getElementById('tweak').hidden = !ready;
-  document.getElementById('ready-mode').hidden = !ready;
-  if (looking) paintLook();
-}
-
-// ---- Ready-made designs ---------------------------------------------------
-
-/** Each design card, with its line and three of its screens, small: real widgets, held still. */
-for (const card of document.querySelectorAll('.design[data-design]')) {
-  const id = card.dataset.design;
-  card.querySelector('.design__line').textContent = DESIGNS[id].line;
-  const shots = card.querySelector('.design__shots');
-  for (const name of SHOTS) {
-    const box = document.createElement('div');
-    box.className = 'shot';
-    const w = document.createElement('please-no-bugs');
-    for (const [k, v] of [['demo', ''], ['mode', 'inline'], ['lang', 'en'], ['theme', id], ['screen', name]]) w.setAttribute(k, v);
-    box.append(w);
-    shots.append(box);
-    hold(w);
-  }
-  // The whole card opens it: its name is the button, stretched over it.
-  card.addEventListener('click', (e) => {
-    if (!e.target.closest('.design__open')) card.querySelector('.design__open').click();
-  });
-}
-
-/** A widget that is only a picture: it does not scroll, and has no bar over its tiles. */
-function hold(w) {
-  const style = document.createElement('style');
-  style.dataset.site = '';
-  style.textContent = '.scroll { overflow: hidden !important; }';
-  w.shadowRoot?.append(style);
-}
-
-for (const btn of document.querySelectorAll('[data-look]')) {
-  btn.addEventListener('click', () => {
-    look.design = btn.dataset.look;
-    look.screen = 'tiles';
-    go('look');
-  });
-}
-
-/** The big view's screen buttons, and its way on to the other design. */
-const lookScreens = document.getElementById('look-screens');
-lookScreens.innerHTML = LOOK_SCREENS.map(
-  ([id, label]) => `<button type="button" class="look__chip" data-screen="${id}">${label}</button>`,
-).join('');
-lookScreens.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-screen]');
-  if (b) showScreen(b.dataset.screen);
-});
-
-function paintLook() {
-  for (const b of lookScreens.children) b.setAttribute('aria-pressed', String(b.dataset.screen === look.screen));
-  const other = ORDER[(ORDER.indexOf(look.design) + 1) % ORDER.length];
-  document.getElementById('look-next').textContent = `Next: ${DESIGNS[other].name} →`;
-}
-
-function showScreen(id) {
-  look.screen = id;
-  if (board) apply(board);
-  paintLook();
-}
-
-/** The next screen, or the one before: round, so it never stops. */
-function stepScreen(by) {
-  const ids = LOOK_SCREENS.map(([id]) => id);
-  showScreen(ids[(ids.indexOf(look.screen) + by + ids.length) % ids.length]);
-}
-
-document.addEventListener('keydown', (e) => {
-  if (at !== 'look' || (e.target instanceof Element && e.target.closest('input, textarea, select'))) return;
-  if (e.key === 'ArrowRight') stepScreen(1);
-  else if (e.key === 'ArrowLeft') stepScreen(-1);
-});
-
-document.getElementById('look-next').addEventListener('click', () => {
-  look.design = ORDER[(ORDER.indexOf(look.design) + 1) % ORDER.length];
-  go('look');
-});
-document.getElementById('look-back').addEventListener('click', () => go('intro'));
-
-/**
- * Take the design as it is: its own colours and words, all three kinds,
- * screenshots for everyone, and straight to the last step, where how it
- * opens can still be picked.
- */
-document.getElementById('use').addEventListener('click', () => {
-  state.design = look.design;
-  state.theme = look.design;
-  state.accent = '';
-  state.colours = {};
-  state.strings = {};
-  state.kinds = ['bug', 'idea', 'review'];
-  state.screenshots = 'board';
-  for (const input of form.querySelectorAll('[data-string]')) input.value = '';
-  for (const input of form.querySelectorAll('input[name=kinds]')) input.checked = true;
-  form.querySelector('input[name=screenshots][value=board]').checked = true;
-  form.querySelector(`input[name=base][value=${state.theme}]`).checked = true;
-  update();
-  go('ready');
-});
-
-/** From a ready-made design on into the steps, starting from it. */
-document.getElementById('tweak').addEventListener('click', () => {
-  state.design = null;
-  go('opens');
-});
-
-/** What is only there for one way of showing it: the round button's colours. */
-function paintOnly() {
-  for (const el of form.querySelectorAll('[data-only]')) el.hidden = el.dataset.only !== state.mode;
+  nextBtn.hidden = last || i < 0;
+  if (!last) nextBtn.textContent = `Next: ${steps[i + 1].name}`;
 }
 
 // ---- The card, beside the widget or folding along the bottom --------------
@@ -718,10 +731,7 @@ function fold(down) {
 }
 
 foldBtn.addEventListener('click', () => fold(!folded));
-document.getElementById('start').addEventListener('click', () => {
-  state.design = null;
-  go('base');
-});
+document.getElementById('start').addEventListener('click', () => go('opens'));
 
 /**
  * Along the bottom, the card takes its height off the app, so the widget is
@@ -801,11 +811,6 @@ function cheer(line) {
 }
 
 backBtn.addEventListener('click', () => {
-  // A ready-made design's last step goes back to the design, big.
-  if (step().live && state.design) {
-    look.design = state.design;
-    return go('look');
-  }
   const steps = route();
   go(steps[steps.findIndex((s) => s.id === at) - 1].id);
 });
@@ -828,8 +833,6 @@ screen.addEventListener(
     if (!path.includes(board)) return;
     e.preventDefault();
     e.stopPropagation();
-    // Seen big, a tap shows the next screen.
-    if (at === 'look') return stepScreen(1);
     const inside = path.filter((n) => n instanceof Element);
     if (!COLOURS[at]) return;
     const hit = (PARTS[step().screen] ?? []).find(([sel]) => sel === '*' || inside.some((n) => n.matches(sel)));
@@ -958,14 +961,11 @@ form.addEventListener('input', (e) => {
       return toast('Keep at least one kind');
     }
     state.kinds = on;
-  } else if (t.name === 'base') {
-    state.theme = t.value;
-  } else if (t.name === 'mode' || t.name === 'ready-mode') {
+  } else if (t.name === 'mode') {
     state.mode = t.value;
-    // The same choice in two places: step 1, and a ready-made design's last step.
-    for (const input of form.querySelectorAll('input[name=mode], input[name=ready-mode]')) input.checked = input.value === t.value;
-    mount();
-    paintOnly();
+    // Without a round button its step is gone: never stay on it.
+    if (!route().some((s) => s.id === at)) go('opens');
+    else mount();
     paintSteps();
     paintSwatches();
     writeCode();
@@ -998,7 +998,7 @@ function dot(name) {
   return `<div class="dot" data-row="${name}" title="${label}: ${what}">
     <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}: ${what}" /></label>
     <span class="dot__name">${label}</span>
-    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to the design's own" title="Back to the design's own">×</button>
+    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to PleaseNoBugs' own" title="Back to PleaseNoBugs' own">×</button>
   </div>`;
 }
 
@@ -1009,18 +1009,16 @@ function swatchRow(name) {
     <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}: ${what}" /></label>
     <span class="swatch__name">${label}<small>${what}</small></span>
     <span class="swatch__hex"></span>
-    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to the design's own" title="Back to the design's own">×</button>
+    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to PleaseNoBugs' own" title="Back to PleaseNoBugs' own">×</button>
   </div>`;
 }
 
 for (const box of form.querySelectorAll('[data-colours]')) {
   const { main, more } = COLOURS[box.dataset.colours];
-  // In the first step the widget is a film, not a thing to tap.
-  const film = box.dataset.colours === 'opens';
   box.className = 'field';
-  box.innerHTML = `<span>${film ? 'The round button' : 'Colours'}</span>
+  box.innerHTML = `<span>Colours</span>
     <div class="dots">${main.map(dot).join('')}</div>
-    <p class="colour-about" aria-live="polite">${film ? 'Tap a colour to change it.' : 'Tap a colour, or a part of the widget, to change it.'}</p>
+    <p class="colour-about" aria-live="polite">Tap a colour, or a part of the widget, to change it.</p>
     ${more ? `<details class="more-colours"><summary>More colours</summary><div class="swatches">${more.map(swatchRow).join('')}</div></details>` : ''}`;
 }
 
@@ -1139,11 +1137,13 @@ function html() {
 }
 
 function css() {
-  // A kind left off takes its colours out of the code, kept here for if it comes back.
+  // A kind left off takes its colours out of the code, kept here for if it
+  // comes back; so does the round button when it is shown another way.
   const rows = Object.entries(withInk(state.colours))
-    .filter(([k]) => !offKind(k)).map(([k, v]) => `  ${k}: ${v};`);
+    .filter(([k]) => !offKind(k) && (state.mode === 'floating' || !FAB.includes(k)))
+    .map(([k, v]) => `  ${k}: ${v};`);
   if (state.mode === 'inline') rows.unshift('  height: 600px; /* inline: give it a height, or it grows with its posts */');
-  if (!rows.length) return `/* No colours changed: ${DESIGNS[state.theme].name}'s own are used. */`;
+  if (!rows.length) return "/* No colours changed: PleaseNoBugs' own are used. */";
   return ['please-no-bugs {', ...rows, '}'].join('\n');
 }
 
@@ -1282,7 +1282,6 @@ function toast(text) {
 }
 
 mount();
-paintOnly();
 paintSteps();
 paintSwatches();
 writeCode();
