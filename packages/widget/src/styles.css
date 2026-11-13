@@ -58,14 +58,20 @@
   --pnb-tile-idea: var(--pnb-idea);
   --pnb-tile-review: var(--pnb-review);
   --pnb-tile-ink: #ffffff;
-  /* A disc behind each tile's glyph, and the glyph's colour on it. No disc
-     unless a theme wants one: then the glyph sits on it like on a chip. */
+  /* The words on one tile, for a tile that wants its own (a light tile among
+     dark ones): all three follow the one above unless set. */
+  --pnb-tile-ink-bug: var(--pnb-tile-ink);
+  --pnb-tile-ink-idea: var(--pnb-tile-ink);
+  --pnb-tile-ink-review: var(--pnb-tile-ink);
+  /* A disc behind each tile's glyph, and the glyph's colour on it, the
+     tile's words' unless set. No disc unless a theme wants one: then the
+     glyph sits on it like on a chip. */
   --pnb-tile-dot-bug: transparent;
   --pnb-tile-dot-idea: transparent;
   --pnb-tile-dot-review: transparent;
-  --pnb-tile-glyph-bug: var(--pnb-tile-ink);
-  --pnb-tile-glyph-idea: var(--pnb-tile-ink);
-  --pnb-tile-glyph-review: var(--pnb-tile-ink);
+  --pnb-tile-glyph-bug: var(--pnb-tile-ink-bug);
+  --pnb-tile-glyph-idea: var(--pnb-tile-ink-idea);
+  --pnb-tile-glyph-review: var(--pnb-tile-ink-review);
   /* The box the tile's glyph sits in: room for a disc, or just the glyph. */
   --pnb-tile-icon: 44px;
   /* The chosen half of Top/New, and its words. */
@@ -961,9 +967,9 @@ button {
   cursor: default;
 }
 
-.tile--bug { background: var(--pnb-tile-bug); --_dot: var(--pnb-tile-dot-bug); --_glyph: var(--pnb-tile-glyph-bug); }
-.tile--idea { background: var(--pnb-tile-idea); --_dot: var(--pnb-tile-dot-idea); --_glyph: var(--pnb-tile-glyph-idea); }
-.tile--review { background: var(--pnb-tile-review); --_dot: var(--pnb-tile-dot-review); --_glyph: var(--pnb-tile-glyph-review); }
+.tile--bug { background: var(--pnb-tile-bug); color: var(--pnb-tile-ink-bug); --_dot: var(--pnb-tile-dot-bug); --_glyph: var(--pnb-tile-glyph-bug); }
+.tile--idea { background: var(--pnb-tile-idea); color: var(--pnb-tile-ink-idea); --_dot: var(--pnb-tile-dot-idea); --_glyph: var(--pnb-tile-glyph-idea); }
+.tile--review { background: var(--pnb-tile-review); color: var(--pnb-tile-ink-review); --_dot: var(--pnb-tile-dot-review); --_glyph: var(--pnb-tile-glyph-review); }
 
 .tile__icon {
   display: grid;

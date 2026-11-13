@@ -144,8 +144,9 @@ please-no-bugs {
   --pnb-tile-idea: var(--pnb-idea);
   --pnb-tile-review: var(--pnb-review);
   --pnb-tile-ink: #fff;                  /* the words on them */
+  --pnb-tile-ink-bug: var(--pnb-tile-ink); /* the words on one tile (-idea, -review too) */
   --pnb-tile-dot-bug: transparent;       /* a disc behind each tile's glyph (-idea, -review too) */
-  --pnb-tile-glyph-bug: var(--pnb-tile-ink); /* and the glyph's colour (-idea, -review too) */
+  --pnb-tile-glyph-bug: var(--pnb-tile-ink-bug); /* and the glyph's colour (-idea, -review too) */
   --pnb-tile-icon: 44px;                 /* the box the glyph sits in */
   --pnb-order-on: var(--pnb-surface);    /* the chosen half of Top/New, */
   --pnb-on-order: var(--pnb-text);       /* and its words */
