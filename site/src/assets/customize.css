@@ -317,16 +317,20 @@
 .pick__own { background: conic-gradient(#e5484d, #e9a00b, #f5e663, #21bca5, #1fc7d4, #3b82f6, #8b5cf6, #e5484d); }
 
 /* ---- Colouring it in ------------------------------------------------------
- * The steps do what the sketch shows: the widget is grey, a line goes round
- * one part with its name, and beside it a row of colours that suit it, the
- * last one any colour (customize.js, `placePick`). A pick paints the part and
- * the line moves on. */
+ * No card in the steps: the widget is the place to work. A tap on a part
+ * puts a line round it with its name, and beside it a box with what it can
+ * be (customize.js, `fillPick`): a row of colours per colour, six that suit
+ * it and the last any colour at all, its words, a tile's kinds, who sees
+ * screenshots. With a mouse the line follows the pointer first. Below 640px
+ * the box lies along the bottom of the screen, where a thumb is. */
 .pick {
   position: absolute;
-  z-index: 3;
-  display: flex;
-  gap: 8px;
-  padding: 10px;
+  z-index: 4;
+  display: grid;
+  gap: 12px;
+  width: max-content;
+  max-width: 320px;
+  padding: 12px 14px 14px;
   border-radius: 14px;
   background: var(--card);
   box-shadow: 0 12px 28px rgba(10, 10, 30, 0.4);
@@ -336,6 +340,37 @@
 @keyframes pick-in {
   from { opacity: 0; transform: translateY(6px) scale(0.96); }
 }
+.pick--docked {
+  left: 8px;
+  right: 8px;
+  top: auto;
+  bottom: calc(var(--deck-h, 0px) + 8px);
+  width: auto;
+  max-width: none;
+}
+.pick__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pick__head b { font-size: 14px; font-weight: 900; color: var(--ink); }
+.pick__x {
+  width: 28px;
+  height: 28px;
+  margin: -4px -6px -4px 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--sub);
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.pick__x:hover { background: var(--row); color: var(--ink); }
+.pick__row { display: grid; gap: 6px; }
+.pick__label,
+.pick__field > span { font-size: 12px; font-weight: 700; color: var(--sub); }
+.pick__dots { display: flex; flex-wrap: wrap; gap: 8px; }
+.pick__field { display: grid; gap: 6px; }
+.pick__field .input { min-height: 38px; font-size: 14px; }
+.pick__field .checks { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 .pick__dot,
 .pick__own {
   position: relative;
@@ -352,35 +387,121 @@
 .pick__dot { background: var(--c); }
 .pick__dot:hover,
 .pick__own:hover { transform: scale(1.1); }
-.pick__dot.is-on { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px #fff; transform: scale(1.12); }
+.pick__dot.is-on,
+.pick__own.is-on { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px #fff; transform: scale(1.12); }
 .pick__dot:focus-visible,
 .pick__own:focus-within { outline: 2px solid #fff; outline-offset: 3px; }
 .pick__own { overflow: hidden; }
 .pick__own input { position: absolute; inset: -6px; width: 40px; height: 40px; opacity: 0; cursor: pointer; }
-@media (max-width: 560px) {
-  .pick { gap: 6px; padding: 8px; }
-  .pick__dot,
-  .pick__own { width: 26px; height: 26px; }
-}
 
-/* A part as big as the box keeps its name inside its line; a small one, like
-   the round button, has it beside it, off the part being coloured. */
+/* Under the pointer the line is lighter: a tap opens it. A part as big as
+   the box keeps its name inside its line; a small one, like the round
+   button, has it beside it, off the part being coloured. */
+.mark--hover { border-style: dashed; opacity: 0.85; }
 .mark--in .mark__tag { bottom: 8px; }
 .mark--small .mark__tag { left: auto; right: calc(100% + 8px); bottom: 50%; transform: translateY(50%); }
 
-/* The parts in the card: grey ones dashed, the one being coloured ringed. */
-.dot {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
+/* ---- The steps, as a slim bar along the bottom -------------------------- */
+
+.stepbar {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--card);
+  box-shadow: 0 -6px 18px rgba(10, 10, 30, 0.25);
 }
-.dot:not(.swatch--set) .swatch__dot { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35); outline: 2px dashed rgba(255, 255, 255, 0.35); outline-offset: 2px; }
-.dot.is-now .swatch__dot { outline: 3px solid var(--button); outline-offset: 2px; }
-.dot.is-now .dot__name { color: var(--ink); font-weight: 700; }
-.more-colours__about { margin: 0 0 6px; font-size: 13px; color: var(--sub); }
+.stepbar[hidden] { display: none; }
+.stepbar__name { flex: 1; min-width: 0; text-align: center; font-size: 14px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stepbar__name b { color: var(--ink); font-weight: 900; }
+.deck[hidden] { display: none; }
+/* No card beside it in the steps: an inline widget's app starts at the left. */
+.desk .viewport:not(.viewport--card) { --app-x: 0px; }
+
+/* ---- How it opens: the three ways side by side, each playing ----------- */
+
+.ways {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--deck-h, 0px);
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  padding: 20px;
+  background: var(--page);
+}
+.ways[hidden] { display: none; }
+.ways__track { display: grid; grid-template-columns: repeat(3, minmax(0, 230px)); justify-content: center; gap: 24px; }
+.way {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 10px 10px 14px;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(10, 10, 30, 0.3);
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+.way:hover { transform: translateY(-3px); }
+.way[aria-pressed='true'] { border-color: var(--button); }
+.way__screen {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 320 / 560;
+  margin-bottom: 4px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--page);
+  transform: translateZ(0);
+}
+/* The phone the play is drawn on, scaled to the card (`scaleWays`). */
+.way__device.play {
+  inset: auto;
+  left: 0;
+  top: 0;
+  width: 320px;
+  height: 560px;
+  transform: scale(var(--s, 0.7));
+  transform-origin: 0 0;
+}
+.way__name { font-size: 18px; font-weight: 900; padding: 0 4px; }
+.way__name::after { content: ''; }
+.way[aria-pressed='true'] .way__name::after { content: ' \2713'; color: var(--button); }
+.way__line { padding: 0 4px; font-size: 13px; line-height: 1.45; color: var(--sub); }
+.ways__dots { display: none; }
+
+/* On a phone one card at a time, swiped, with dots under them. */
+@media (max-width: 639px) {
+  .ways { padding: 16px 0; }
+  .ways__track {
+    display: flex;
+    gap: 14px;
+    padding: 0 14%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .ways__track::-webkit-scrollbar { display: none; }
+  .way { flex: 0 0 100%; scroll-snap-align: center; }
+  .ways__dots { display: flex; justify-content: center; gap: 8px; }
+  .ways__dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--card-2); cursor: pointer; }
+  .ways__dots i.on { background: var(--button); }
+  .stepbar { padding: 8px 10px; gap: 8px; }
+}
 
 /* The cursor, its tip on the spot it is sent to, and the ring of a tap.
    On a phone only the ring, as a finger. */
@@ -508,4 +629,42 @@
   .deck__chevron { transition: none; }
   .intro__start,
   .intro__small { animation: none; }
+}
+
+/* ---- You're ready: test it ---------------------------------------------- */
+
+/* "Test your widget" and an arrow down to it, in after the cheer, nudging
+   towards it until it is touched (customize.js, `paintTry`). */
+.try {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  color: var(--button);
+  pointer-events: none;
+  animation: try-in 400ms ease-out 1.6s both;
+}
+.try[hidden] { display: none; }
+.try__text {
+  margin-bottom: 44px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--button);
+  color: #12132b;
+  font-size: 15px;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(10, 10, 30, 0.35);
+}
+.try__arrow { flex: none; filter: drop-shadow(0 3px 6px rgba(10, 10, 30, 0.35)); animation: try-nudge 1.4s ease-in-out 2s infinite; }
+@keyframes try-in {
+  from { opacity: 0; transform: translate(-8px, -8px); }
+}
+@keyframes try-nudge {
+  50% { transform: translate(4px, 4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .try,
+  .try__arrow { animation: none; }
 }

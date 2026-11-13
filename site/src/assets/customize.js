@@ -1,15 +1,15 @@
 /**
  * The configurator, in steps, as one screen like the home page's demo: the
- * pretend app with the real widget in `demo` mode at its own place in it, and
- * a card inside the screen with the step, its choices and Back / Next
- * (customize.css places it: on the left from 980px, a panel along the bottom
- * that folds below that). The widget starts grey, as in the intro's sketch,
- * and is coloured in part by part: a line goes round the part, a row of
- * colours that suit it opens beside it, and a pick paints it and moves the
- * line on to the next. A step goes on once its parts all have a colour. The
- * steps follow the way a user goes, as the demo does: the way in, the
- * button, the tiles, writing, sent, the board. The last step is the widget
- * working, and the code and the prompt to take along.
+ * pretend app with the real widget in `demo` mode at its own place in it.
+ * Before the steps a card says why (the intro, with its sketch of a widget
+ * being coloured in); the last step's card holds the code. In between there
+ * is no card: the widget is the place to work. It starts grey, as in the
+ * sketch, and you tap a part of it: a line goes round it with its name, and
+ * beside it opens what that part can be: colours that suit it and any colour
+ * at all, its words, a tile's kinds, who sees screenshots. Nothing moves on
+ * by itself. A slim bar along the bottom has Back and Next; what is not
+ * coloured stays grey. The steps: the way in, the button, the tiles, then
+ * the board (most of the widget's colours are on it), writing, sent.
  *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
  * `localStorage`: the copied code is the only place a choice ends up.
@@ -22,12 +22,10 @@ const VERSION = '%VERSION%';
 
 /**
  * The steps, in the order a user meets the widget. `screen` is the widget's
- * `screen` attribute that puts the part in view; `mark` finds that part in
- * the widget's shadow root, to draw a line around it; `name` is the card's
- * heading and `hint` the line under it, saying what to do. The round button's
- * colours are in the first step, with the way that has one. The last step is
- * `live`: the widget is itself there, every tap its own, to check every
- * colour and word on every screen before taking the code.
+ * `screen` attribute that puts the part in view, and the key of what can be
+ * tapped on it (`TARGETS`); `name` is the bar's. The last step is `live`: the
+ * widget is itself there, every tap its own, to check every colour and word
+ * on every screen before taking the code.
  */
 const STEPS = [
   // Before the steps, and not one of them: why to make it yours, while a
@@ -40,44 +38,16 @@ const STEPS = [
     screen: '',
     hint: 'A feedback button that fits your app is one people actually tap.',
   },
-  { id: 'opens', name: 'How it opens', screen: 'tiles', hint: 'How people get to it in your app. The screen plays it.' },
+  // The three ways side by side, each playing (`paintWays`).
+  { id: 'opens', name: 'How it opens', screen: '' },
   // Only for the round button (`floatingOnly`): inline and overlay have none.
-  {
-    id: 'button',
-    name: 'The button',
-    screen: 'button',
-    floatingOnly: true,
-    mark: (r) => [r.querySelector('.fab')],
-    hint: 'The round button in the corner of every screen. Give it a colour, then its icon.',
-  },
-  {
-    id: 'tiles',
-    name: 'Tiles',
-    screen: 'tiles',
-    mark: (r) => [...r.querySelectorAll('.tile')],
-    hint: 'What people pick from when they open it. Colour each tile, then the background.',
-  },
-  {
-    id: 'writing',
-    name: 'Writing',
-    screen: 'write',
-    mark: (r) => [r.querySelector('.send .btn'), r.querySelector('.shot')],
-    hint: 'Where people write. Colour the button that sends it.',
-  },
-  {
-    id: 'sent',
-    name: 'Feedback sent!',
-    screen: 'sent',
-    mark: (r) => [r.querySelector('.sent')],
-    hint: 'What people see right after they send. Colour each part.',
-  },
-  {
-    id: 'board',
-    name: 'Board',
-    screen: 'board',
-    mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')],
-    hint: 'The posts people read and vote on, with your answers. Colour each part.',
-  },
+  { id: 'button', name: 'The button', screen: 'button', floatingOnly: true },
+  { id: 'tiles', name: 'Tiles', screen: 'tiles' },
+  // The board right after the tiles: most of the widget's colours are on it.
+  { id: 'board', name: 'Board', screen: 'board' },
+  // `reveal`: scrolled into view once, as the send button is at the foot of a long screen.
+  { id: 'writing', name: 'Writing', screen: 'write', reveal: '.send' },
+  { id: 'sent', name: 'Feedback sent!', screen: 'sent' },
   { id: 'ready', name: "You're ready!", screen: '', live: true },
 ];
 
@@ -107,10 +77,16 @@ const FAMILIES = {
   '--pnb-text': ['Text', 'titles and what people wrote'],
   '--pnb-text-quiet': ['Quiet text', 'dates, names, notes, counts, links'],
   '--pnb-filter': ['Filter', 'the chosen filter at the top, and the chosen status when you answer'],
-  '--pnb-bug': ['Bug', 'its tile and its badge'],
-  '--pnb-idea': ['Idea', 'its tile and its badge'],
-  '--pnb-review': ['Review', 'its tile and its badge'],
-  '--pnb-tile-ink': ['On tiles', 'the words and icons on the tiles'],
+  '--pnb-bug': ['Tile', 'the Bug tile and its badge'],
+  '--pnb-idea': ['Tile', 'the Idea tile and its badge'],
+  '--pnb-review': ['Tile', 'the Review tile and its badge'],
+  // Each tile's own words and icon (the widget's `--pnb-tile-ink-*` and `--pnb-tile-glyph-*`).
+  '--pnb-tile-ink-bug': ['Text', 'the words on the Bug tile'],
+  '--pnb-tile-glyph-bug': ['Icon', 'the icon on the Bug tile'],
+  '--pnb-tile-ink-idea': ['Text', 'the words on the Idea tile'],
+  '--pnb-tile-glyph-idea': ['Icon', 'the icon on the Idea tile'],
+  '--pnb-tile-ink-review': ['Text', 'the words on the Review tile'],
+  '--pnb-tile-glyph-review': ['Icon', 'the icon on the Review tile'],
   '--pnb-star': ['Stars', 'the stars of a review'],
   '--pnb-planned': ['Planned', 'its badge'],
   '--pnb-done': ['Done', 'its badge and the tick on "Feedback sent!"'],
@@ -119,28 +95,6 @@ const FAMILIES = {
   '--pnb-sent-title': ['Title', 'the title on "Feedback sent!", nowhere else'],
   '--pnb-sent-note': ['Small text', 'the line and "Back to the board" on "Feedback sent!", nowhere else'],
   '--pnb-sent-check': ['Tick', 'the disc behind the tick on "Feedback sent!", nowhere else'],
-};
-
-/**
- * Per step, the parts to colour in (`main`), in the order the line goes
- * round them, and behind "More colours" the small ones that are worked out
- * from them (`DERIVED`) but can still be set by hand. A family is the same
- * colour in every step it is in.
- */
-const COLOURS = {
-  button: { main: ['--pnb-fab', '--pnb-on-fab'] },
-  tiles: {
-    main: ['--pnb-bug', '--pnb-idea', '--pnb-review', '--pnb-bg'],
-    more: ['--pnb-tile-ink'],
-  },
-  writing: { main: ['accent'] },
-  // Only its own: the shared text colours and Done would change the whole widget.
-  sent: { main: ['--pnb-sent', '--pnb-sent-check', '--pnb-sent-title', '--pnb-sent-note'] },
-  board: {
-    // The filter only shows with the filters open: it follows the text, as in the widget.
-    main: ['--pnb-surface', '--pnb-text', '--pnb-line'],
-    more: ['--pnb-filter', '--pnb-text-quiet', '--pnb-surface-2', '--pnb-sunken', '--pnb-star', '--pnb-planned', '--pnb-done', '--pnb-declined'],
-  },
 };
 
 /**
@@ -161,12 +115,17 @@ const PALETTE_OF = {
   '--pnb-bug': 'bright',
   '--pnb-idea': 'bright',
   '--pnb-review': 'bright',
+  '--pnb-tile-ink-bug': 'ink',
+  '--pnb-tile-glyph-bug': 'ink',
+  '--pnb-tile-ink-idea': 'ink',
+  '--pnb-tile-glyph-idea': 'ink',
+  '--pnb-tile-ink-review': 'ink',
+  '--pnb-tile-glyph-review': 'ink',
   '--pnb-bg': 'ground',
   accent: 'bright',
   '--pnb-sent': 'sent',
   '--pnb-sent-check': 'bright',
   '--pnb-sent-title': 'ink',
-  '--pnb-sent-note': 'ink',
   '--pnb-surface': 'cards',
   '--pnb-text': 'ink',
   '--pnb-line': 'lines',
@@ -191,7 +150,12 @@ const GREY = {
   '--pnb-bug': '#6c6d84',
   '--pnb-idea': '#6c6d84',
   '--pnb-review': '#6c6d84',
-  '--pnb-tile-ink': 'rgba(255, 255, 255, 0.55)',
+  '--pnb-tile-ink-bug': 'rgba(255, 255, 255, 0.55)',
+  '--pnb-tile-glyph-bug': 'rgba(255, 255, 255, 0.55)',
+  '--pnb-tile-ink-idea': 'rgba(255, 255, 255, 0.55)',
+  '--pnb-tile-glyph-idea': 'rgba(255, 255, 255, 0.55)',
+  '--pnb-tile-ink-review': 'rgba(255, 255, 255, 0.55)',
+  '--pnb-tile-glyph-review': 'rgba(255, 255, 255, 0.55)',
   '--pnb-star': '#8a8ba0',
   '--pnb-planned': '#7d7e95',
   '--pnb-done': '#7d7e95',
@@ -203,100 +167,85 @@ const GREY = {
 };
 
 /**
- * The small colours, worked out from the picked ones: a colour, `null` for
- * the theme's own, or nothing while what it comes from is still grey.
+ * The small colours and texts, worked out from the picked ones: a colour,
+ * `null` for the theme's own, or nothing while what it comes from is still
+ * grey. Only the big texts are picked; the small ones follow them.
  */
 const DERIVED = {
+  // The filter only shows with the filters open: it follows the text, as in the widget.
   '--pnb-filter': (c) => c['--pnb-text'],
+  '--pnb-sent-note': (c) => c['--pnb-sent-title'] && `color-mix(in srgb, ${c['--pnb-sent-title']} 85%, transparent)`,
   '--pnb-text-quiet': (c) => c['--pnb-text'] && `color-mix(in srgb, ${c['--pnb-text']} 75%, transparent)`,
   '--pnb-surface-2': (c) => c['--pnb-surface'] && `color-mix(in srgb, ${c['--pnb-surface']}, ${c['--pnb-bg'] ?? GREY['--pnb-bg']} 45%)`,
   '--pnb-sunken': (c) => c['--pnb-bg'] && `color-mix(in srgb, ${c['--pnb-bg']}, #000 38%)`,
   '--pnb-star': (c) => c['--pnb-review'],
-  // Words on the tiles: white, unless every tile picked is light.
-  '--pnb-tile-ink': (c) => {
-    const tiles = ['bug', 'idea', 'review'].filter((k) => state.kinds.includes(k)).map((k) => c[`--pnb-${k}`]).filter(Boolean);
-    if (!tiles.length) return undefined;
-    return tiles.every((t) => readableOn(t) !== '#ffffff') ? '#111118' : '#ffffff';
-  },
+  // Each tile's words: white, as in the design, unless the tile is a light
+  // one; its icon as its words.
+  ...Object.fromEntries(
+    ['bug', 'idea', 'review'].flatMap((k) => [
+      [`--pnb-tile-ink-${k}`, (c) => c[`--pnb-${k}`] && inkOnTile(c[`--pnb-${k}`])],
+      [`--pnb-tile-glyph-${k}`, (c) => c[`--pnb-tile-ink-${k}`] || (c[`--pnb-${k}`] && inkOnTile(c[`--pnb-${k}`]))],
+    ]),
+  ),
   // The statuses keep the theme's own, once the board has colours of its own.
   '--pnb-planned': (c) => (c['--pnb-surface'] ? null : undefined),
   '--pnb-done': (c) => (c['--pnb-surface'] ? null : undefined),
   '--pnb-declined': (c) => (c['--pnb-surface'] ? null : undefined),
 };
 
-/** Where a part is in the widget, to put the line and the colours round it. */
-const PART_AT = {
-  '--pnb-fab': '.fab',
-  '--pnb-on-fab': '.fab',
-  '--pnb-bug': '.tile--bug',
-  '--pnb-idea': '.tile--idea',
-  '--pnb-review': '.tile--review',
-  '--pnb-bg': '.app',
-  accent: '.send .btn',
-  '--pnb-sent': '.sent',
-  '--pnb-sent-check': '.sent__check',
-  '--pnb-sent-title': '.sent__title',
-  '--pnb-sent-note': '.sent__note',
-  '--pnb-surface': '.list > li .card, .card',
-  '--pnb-text': '.card__text',
-  '--pnb-line': '.search',
+/**
+ * The words that can be changed, with the widget's own English as their
+ * placeholder. A copy of `packages/widget/src/i18n.ts` for these keys only:
+ * if a word changes there, change it here.
+ */
+const WORDS = {
+  'board.title': 'Feedback',
+  'board.reply': '<YOUR APP> says',
+  'board.chooseTitle': 'What do you want to share?',
+  'board.tileBug': 'Report a bug',
+  'board.tileIdea': 'Share an idea',
+  'board.tileReview': 'Write a review',
+  'board.sent': 'Feedback sent!',
 };
 
 /**
- * What a tap in the widget opens, per screen: the family that paints the
- * part, or the words in it. The first part the tap is inside wins, so the
- * small ones come first; `*` is the background around them. Only the step
- * you are on listens, and a tap never moves you to another step. The dim
- * page around the panel is the app's, not the widget's: it opens nothing.
+ * What can be tapped, per screen, and what it opens: its `colours` (one row
+ * each), its `words`, the `kinds` on offer (on a tile), who sees `shots`.
+ * The first one the tap is inside wins, so the small ones come first; `*` is
+ * the background around them. The dim page around the panel is the app's,
+ * not the widget's: it opens nothing (`null`).
  */
-const OUTSIDE = ['.backdrop', {}];
-const PARTS = {
-  button: [
-    ['.fab svg', '--pnb-on-fab'],
-    ['.fab', '--pnb-fab'],
-  ],
+const TARGETS = {
+  button: [['.fab', { name: 'The button', colours: ['--pnb-fab', '--pnb-on-fab'] }]],
   tiles: [
-    OUTSIDE,
-    ['.tile--bug', '--pnb-bug'],
-    ['.tile--idea', '--pnb-idea'],
-    ['.tile--review', '--pnb-review'],
-    ['.choose__title', { text: 'board.chooseTitle' }],
-    ['.text-btn', '--pnb-text-quiet'],
-    ['.icon-btn', '--pnb-text'],
-    ['*', '--pnb-bg'],
+    ['.backdrop', null],
+    ['.tile--bug', { name: 'Bug tile', colours: ['--pnb-bug', '--pnb-tile-ink-bug', '--pnb-tile-glyph-bug'], words: ['board.tileBug'], kinds: true }],
+    ['.tile--idea', { name: 'Idea tile', colours: ['--pnb-idea', '--pnb-tile-ink-idea', '--pnb-tile-glyph-idea'], words: ['board.tileIdea'], kinds: true }],
+    ['.tile--review', { name: 'Review tile', colours: ['--pnb-review', '--pnb-tile-ink-review', '--pnb-tile-glyph-review'], words: ['board.tileReview'], kinds: true }],
+    ['.choose__title', { name: 'Title', colours: ['--pnb-text'], words: ['board.chooseTitle'] }],
+    ['*', { name: 'Background', colours: ['--pnb-bg'] }],
+  ],
+  write: [
+    ['.backdrop', null],
+    ['.send .btn', { name: 'Send button', colours: ['accent'] }],
+    ['.shot', { name: 'Screenshots', shots: true }],
+    ['.bar__title', { name: 'Title', colours: ['--pnb-text'] }],
+    ['*', { name: 'Background', colours: ['--pnb-bg'] }],
+  ],
+  sent: [
+    ['.backdrop', null],
+    ['.sent__check', { name: 'Tick', colours: ['--pnb-sent-check'] }],
+    ['.sent__title', { name: 'Title', colours: ['--pnb-sent-title'], words: ['board.sent'] }],
+    ['*', { name: 'Background', colours: ['--pnb-sent'] }],
   ],
   board: [
-    OUTSIDE,
-    ['.bar__title', { text: 'board.title' }],
-    ['.icon-btn', '--pnb-text'],
-    ['.badge__dot--bug', '--pnb-bug'],
-    ['.badge__dot--idea', '--pnb-idea'],
-    ['.badge__dot--review', '--pnb-review'],
-    ['.badge__dot--planned', '--pnb-planned'],
-    ['.badge__dot--done', '--pnb-done'],
-    ['.badge__dot--declined', '--pnb-declined'],
-    ['.badge, .vote', '--pnb-surface-2'],
-    ['.stars__fill', '--pnb-star'],
-    ['.stars__one', '--pnb-line'],
-    ['.stars', '--pnb-star'],
-    ['.order__tab[aria-selected="true"]', '--pnb-surface'],
-    ['.order__pill', '--pnb-sunken'],
-    ['.chip-pick[aria-pressed="true"], .chip-pick[aria-checked="true"]', '--pnb-filter'],
-    ['.search, .filter-btn', '--pnb-line'],
-    ['.card__reply-who', { text: 'board.reply' }],
-    ['.card__when, .card__who, .rating__n', '--pnb-text-quiet'],
-    ['.card__text, .card__reply-text, .rating__avg', '--pnb-text'],
-    ['.card__reply', '--pnb-bg'],
-    ['.card, .rating, .chip-pick', '--pnb-surface'],
-    ['*', '--pnb-bg'],
-  ],
-  write: [OUTSIDE, ['.send .btn', 'accent']],
-  sent: [
-    OUTSIDE,
-    ['.sent__check', '--pnb-sent-check'],
-    ['.sent__title', { text: 'board.sent' }],
-    ['.sent__note, .text-btn', '--pnb-sent-note'],
-    ['*', '--pnb-sent'],
+    ['.backdrop', null],
+    ['.bar__title', { name: 'Title', colours: ['--pnb-text'], words: ['board.title'] }],
+    ['.card__reply-who', { name: 'Above your answers', words: ['board.reply'] }],
+    ['.card__text, .rating__avg', { name: 'Text', colours: ['--pnb-text'] }],
+    ['.search, .filter-btn', { name: 'Lines', colours: ['--pnb-line'] }],
+    ['.card, .rating', { name: 'Cards', colours: ['--pnb-surface'] }],
+    ['*', { name: 'Background', colours: ['--pnb-bg'] }],
   ],
 };
 
@@ -311,9 +260,6 @@ const PROPS = [...Object.keys(FAMILIES).filter((name) => name !== 'accent'), ...
 
 /** The round button's colours: in the code only while there is a round button. */
 const FAB = ['--pnb-fab', '--pnb-on-fab'];
-
-/** Whether a part has a colour of its own yet. */
-const picked = (name) => !!(name === 'accent' ? state.accent : state.colours[name]);
 
 /**
  * Every colour as it goes on the widget: picked, worked out from what is
@@ -342,6 +288,21 @@ function paint() {
 const accent = () => state.accent || GREY.accent;
 
 /**
+ * The words on a tile: white, as on the design's bright tiles (red, purple,
+ * gold, green), and dark only on a light one, like white or turquoise.
+ */
+function inkOnTile(color) {
+  const hex = toHex(color);
+  if (!hex) return '#ffffff';
+  const channel = (i) => {
+    const v = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  const lum = 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5);
+  return lum > 0.45 ? '#111118' : '#ffffff';
+}
+
+/**
  * Black or white, whichever reads better on `color`. A copy of `readableOn`
  * in `packages/widget/src/element.tsx`: if it changes there, change it here.
  */
@@ -356,23 +317,6 @@ function readableOn(color) {
   const lum = 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
   return 1.05 / (lum + 0.05) >= (lum + 0.05) / 0.05 ? '#ffffff' : '#111118';
 }
-
-/**
- * The texts worth changing, per step, with the widget's own English words as
- * placeholders. A copy of `packages/widget/src/i18n.ts` for these keys only:
- * if a word changes there, change it here.
- */
-const STRINGS = {
-  board: [
-    ['Title', [['board.title', 'Feedback']]],
-    ['Above your answers', [['board.reply', '<YOUR APP> says']]],
-  ],
-  tiles: [
-    ['Question above the tiles', [['board.chooseTitle', 'What do you want to share?']]],
-    ['Words on the tiles', [['board.tileBug', 'Report a bug'], ['board.tileIdea', 'Share an idea'], ['board.tileReview', 'Write a review']]],
-  ],
-  sent: [['Title', [['board.sent', 'Feedback sent!']]]],
-};
 
 const form = document.getElementById('settings');
 const screen = document.getElementById('screen');
@@ -416,21 +360,23 @@ let board = null;
 const route = () => STEPS.filter((s) => !s.floatingOnly || state.mode === 'floating');
 const step = () => STEPS.find((s) => s.id === at);
 
-/** The parts a step has to colour in, in order: a kind left off has none. */
-const partsOf = (id = at) => (COLOURS[id]?.main ?? []).filter((name) => !offKind(name));
-/** The ones still grey. */
-const greyIn = (id = at) => partsOf(id).filter((name) => !picked(name));
-
 /**
- * The part being coloured in, per step: one tapped, or else the first still
- * grey. Null once the step is all coloured: then the line goes round the
- * step's whole part again, and a tap on a part picks it.
+ * A part of the widget: what it opens (`what`, from `TARGETS`) and the
+ * element it is, to put the line round. `tapped` is the one whose box is
+ * open; `hovered` the one under the pointer, for its line alone.
  */
-const chosenPart = {};
-function currentPart() {
-  const tapped = chosenPart[at];
-  if (tapped && partsOf().includes(tapped)) return tapped;
-  return greyIn()[0] ?? null;
+let tapped = null;
+let hovered = null;
+
+/** What `path` (a tap's or the pointer's, through the shadow root) is on, or null. */
+function targetAt(path) {
+  if (!board || !path.includes(board)) return null;
+  const inside = path.filter((n) => n instanceof Element && n !== board);
+  for (const [sel, what] of TARGETS[step().screen] ?? []) {
+    const el = sel === '*' ? board.shadowRoot.querySelector('.app') : inside.find((n) => n.matches(sel));
+    if (el || sel === '*') return what && el ? { what, el, sel } : null;
+  }
+  return null;
 }
 
 // ---- The widget ----------------------------------------------------------
@@ -476,7 +422,6 @@ function mount() {
   screen.classList.toggle('screen--inline', state.mode === 'inline');
   if (state.mode === 'inline') screen.insertAdjacentHTML('beforeend', INLINE_FRAME);
   board = document.createElement('please-no-bugs');
-  revealed = null;
   apply(board);
   screen.append(board);
   if (state.mode === 'overlay') board.addEventListener('pleasenobugs:close', offerAgain);
@@ -511,10 +456,12 @@ function fitPanel() {
     root.append(style);
   }
   const h = screen.clientHeight - 48;
+  // It still scrolls while you colour it in: the send button is at the foot of a long screen.
+  // That button is off until something is written; while you colour it in it
+  // shows its colour in full, so you see what you pick.
   style.textContent =
     `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; } }` +
-    // While choosing, the widget holds still: a part is picked, not scrolled past.
-    (previewing ? '' : ' .scroll { overflow: hidden !important; }');
+    (previewing ? '' : ' .send .btn:disabled { opacity: 1; cursor: pointer; }');
 }
 
 // ---- The device in step 1 ------------------------------------------------
@@ -740,16 +687,37 @@ async function playSketch(root) {
   }
 }
 
+/** A widget that is only a picture: it holds still, and has no bar over its tiles (the real panel has its X there). */
+function still(w) {
+  if (!w.shadowRoot || w.shadowRoot.querySelector('style[data-site]')) return;
+  const style = document.createElement('style');
+  style.dataset.site = '';
+  style.textContent = '.scroll { overflow: hidden !important; } .bar { visibility: hidden; }';
+  w.shadowRoot.append(style);
+}
+
+/** The round button and the panel behind it, for a play's own drawing of them, in the widget's colours. */
+function paintSkin(play) {
+  const one = play.querySelector('please-no-bugs');
+  if (!one) return;
+  const css = getComputedStyle(one);
+  for (const [mine, theirs] of [['--ph-fab', '--pnb-fab'], ['--ph-on-fab', '--pnb-on-fab'], ['--ph-bg', '--pnb-bg']]) {
+    play.style.setProperty(mine, css.getPropertyValue(theirs).trim());
+  }
+}
+
+/** Before the steps the box plays the intro's sketch; in "How it opens" the three ways stand over it. */
 function paintDevice() {
-  const mode = previewing ? null : at === 'opens' ? state.mode : at === 'intro' ? 'intro' : null;
+  const mode = !previewing && at === 'intro' ? 'intro' : null;
   const kind = wide.matches ? 'desk' : 'phone';
-  screen.classList.toggle('screen--device', !!mode);
+  screen.classList.toggle('screen--device', !!mode || at === 'opens');
   // The app's own background behind every way, inline too.
-  screen.classList.toggle('screen--inline', state.mode === 'inline' && !mode);
+  screen.classList.toggle('screen--inline', state.mode === 'inline' && !mode && at !== 'opens');
   if (device && device.dataset.key !== `${kind} ${mode}`) {
     device.remove();
     device = null;
   }
+  paintWays();
   if (!mode) return;
   if (!device) {
     device = document.createElement('div');
@@ -758,44 +726,105 @@ function paintDevice() {
     device.setAttribute('aria-hidden', 'true');
     device.innerHTML = PLAYS[kind][mode];
     screen.append(device);
-    if (mode === 'intro') playSketch(device);
+    playSketch(device);
   }
-  for (const w of device.querySelectorAll('please-no-bugs')) {
-    apply(w, 'inline', w.dataset.screen);
-    // Held still, and without the bar over the tiles, which here would only
-    // be an empty strip: the real panel has its X there.
-    if (w.shadowRoot && !w.shadowRoot.querySelector('style[data-site]')) {
-      const style = document.createElement('style');
-      style.dataset.site = '';
-      style.textContent = '.scroll { overflow: hidden !important; } .bar { visibility: hidden; }';
-      w.shadowRoot.append(style);
-    }
+}
+
+// ---- How it opens: the three ways side by side ---------------------------
+
+/**
+ * Each way as a card that plays it, on a phone of its own, so the three can
+ * be seen at once: the round button growing into the panel, the app's menu
+ * opening a page with the widget, the widget coming up over the app. The
+ * plays are the phone ones (site.css), drawn at a phone's size and scaled
+ * to the card. A tap on a card picks it. On a phone one card at a time,
+ * swiped, with dots under them.
+ */
+const WAYS = [
+  ['floating', 'Button', 'A round button in the corner of every screen.'],
+  ['inline', 'Inline', 'A page of its own in your app, behind Feedback in its menu.'],
+  ['overlay', 'Overlay', 'Over your app, from a button or menu item of yours.'],
+];
+/** The phone the plays are drawn on, before it is scaled to its card. */
+const WAY_W = 320;
+const WAY_H = 560;
+const ways = document.getElementById('ways');
+const waysTrack = document.getElementById('ways-track');
+const waysDots = document.getElementById('ways-dots');
+
+function buildWays() {
+  waysTrack.innerHTML = WAYS.map(
+    ([id, name, line]) => `<button type="button" class="way" data-way="${id}" aria-pressed="false">
+      <span class="way__screen" aria-hidden="true"><span class="way__device play play--phone play--${id}">${PLAYS.phone[id]}</span></span>
+      <span class="way__name">${name}</span>
+      <span class="way__line">${line}</span>
+    </button>`,
+  ).join('');
+  waysDots.innerHTML = WAYS.map(() => '<i></i>').join('');
+}
+
+function paintWays() {
+  const on = at === 'opens' && !previewing;
+  const coming = on && ways.hidden;
+  ways.hidden = !on;
+  if (!on) return;
+  if (!waysTrack.children.length) buildWays();
+  // Swiped, it opens on the way picked.
+  if (coming) {
+    const card = waysTrack.querySelector(`[data-way="${state.mode}"]`);
+    waysTrack.scrollLeft = card.offsetLeft - (waysTrack.clientWidth - card.offsetWidth) / 2;
   }
-  // The button and the panel behind it in the widget's own colours, which
-  // live in its shadow root: read from one of the widgets in the box. The
-  // intro's drawing has none: it is a sketch.
-  const one = device.querySelector('please-no-bugs');
-  if (!one) return;
-  const css = getComputedStyle(one);
-  for (const [mine, theirs] of [['--ph-fab', '--pnb-fab'], ['--ph-on-fab', '--pnb-on-fab'], ['--ph-bg', '--pnb-bg']]) {
-    device.style.setProperty(mine, css.getPropertyValue(theirs).trim());
+  for (const card of waysTrack.children) card.setAttribute('aria-pressed', String(card.dataset.way === state.mode));
+  for (const w of waysTrack.querySelectorAll('please-no-bugs')) {
+    apply(w, 'inline', 'tiles');
+    still(w);
   }
+  for (const play of waysTrack.querySelectorAll('.way__device')) paintSkin(play);
+  scaleWays();
+  paintWayDots();
+}
+
+/** Each phone as wide as its card. */
+function scaleWays() {
+  for (const s of waysTrack.querySelectorAll('.way__screen')) s.style.setProperty('--s', String(s.clientWidth / WAY_W));
+}
+
+/** Which card is in view, on a phone, where they are swiped. */
+function paintWayDots() {
+  const cards = [...waysTrack.children];
+  if (!cards.length) return;
+  const mid = waysTrack.scrollLeft + waysTrack.clientWidth / 2;
+  const i = cards.reduce((best, c, n) => (Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid) < Math.abs(cards[best].offsetLeft + cards[best].offsetWidth / 2 - mid) ? n : best), 0);
+  [...waysDots.children].forEach((d, n) => d.classList.toggle('on', n === i));
+}
+
+waysTrack.addEventListener('scroll', paintWayDots, { passive: true });
+waysTrack.addEventListener('click', (e) => {
+  const card = e.target.closest('[data-way]');
+  if (card) setMode(card.dataset.way);
+});
+waysDots.addEventListener('click', (e) => {
+  const n = [...waysDots.children].indexOf(e.target);
+  if (n >= 0) waysTrack.children[n].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+});
+
+/** Show it another way: Button, Inline or Overlay. The button's step comes or goes with it. */
+function setMode(mode) {
+  state.mode = mode;
+  mount();
+  update();
 }
 
 // The header's style switch: the widgets and the code take the other theme.
 document.addEventListener('pnb:style', () => update());
 
 function update() {
-  for (const input of form.querySelectorAll('[data-string]')) input.hidden = offKind(input.dataset.string);
-  // Screenshots go on bugs and ideas only.
-  form.querySelector('[data-shots]').hidden = !state.kinds.some((k) => k !== 'review');
   if (board) apply(board);
   paintDevice();
-  // A kind ticked on brings a grey tile, and holds Next until it has a colour.
   paintSteps();
-  paintSwatches();
+  paintPick();
   writeCode();
-  // The line and the colours move at once, then follow the widget a moment.
+  // The line and the box move at once, then follow the widget a moment.
   placeMark();
   watch();
 }
@@ -806,7 +835,8 @@ function go(id) {
   if (!route().some((s) => s.id === id)) id = 'opens';
   const forward = route().findIndex((s) => s.id === id) > route().findIndex((s) => s.id === at);
   at = id;
-  revealed = null;
+  tapped = null;
+  hovered = null;
   for (const el of form.querySelectorAll('[data-step]')) el.hidden = el.dataset.step !== at;
   paintSteps();
   // Each step starts at its top.
@@ -815,19 +845,37 @@ function go(id) {
   const live = !!step().live;
   if (live !== previewing) {
     previewing = live;
+    // Each time the last step is reached, the arrow shows where to test it.
+    tried = false;
     screen.classList.toggle('screen--live', live);
     mount();
     if (live && forward) cheer("You're ready!");
   } else if (board) apply(board);
   paintDevice();
+  paintPick();
   watch();
 }
 
+const bar = document.getElementById('stepbar');
+const barBack = document.getElementById('bar-back');
+const barNext = document.getElementById('bar-next');
+const viewport = screen.closest('.viewport');
+
+/**
+ * The card before the steps (why) and on the last one (the code); in
+ * between only the slim bar: where you are, Back and Next. Next is always
+ * there: what is not coloured stays grey.
+ */
 function paintSteps() {
   // The intro is before the steps, not one of them.
   const steps = route().filter((s) => !s.intro);
   const i = steps.findIndex((s) => s.id === at);
+  const card = !!step().intro || !!step().live;
+  deck.hidden = !card;
+  bar.hidden = card;
+  viewport.classList.toggle('viewport--card', card);
   deck.classList.toggle('deck--intro', !!step().intro);
+  deck.classList.toggle('deck--ready', !!step().live);
   document.getElementById('count').textContent = `Step ${i + 1} of ${steps.length}`;
   document.getElementById('short').textContent = `· ${step().name}`;
   document.getElementById('step-name').textContent = step().name;
@@ -836,17 +884,14 @@ function paintSteps() {
     .join('');
   document.getElementById('hint').textContent = step().live
     ? READY_HINT[beside.matches ? 'side' : 'under']
-    : step().hint;
-  deck.classList.toggle('deck--ready', !!step().live);
+    : (step().hint ?? '');
   backBtn.hidden = i <= 0;
-  const last = i === steps.length - 1;
-  nextBtn.hidden = last || i < 0;
-  if (!last) nextBtn.textContent = `Next: ${steps[i + 1].name}`;
-  // On once every part of the step has a colour: never a half-grey widget.
-  const left = greyIn().length;
-  nextBtn.disabled = left > 0;
-  nextBtn.title = left ? `Colour ${left === 1 ? 'one more part' : `${left} more parts`} first` : '';
-  paintProgress();
+  nextBtn.hidden = true;
+  document.getElementById('bar-name').innerHTML = `<b>${step().name}</b> · ${i + 1} of ${steps.length}`;
+  const after = steps[i + 1];
+  barNext.textContent = after?.live ? 'Done →' : 'Next →';
+  barNext.title = after ? `Next: ${after.name}` : '';
+  measureDeck();
 }
 
 // ---- The card, beside the widget or folding along the bottom --------------
@@ -865,20 +910,24 @@ foldBtn.addEventListener('click', () => fold(!folded));
 document.getElementById('start').addEventListener('click', () => go('opens'));
 
 /**
- * Along the bottom, the card takes its height off the app, so the widget is
- * always whole above it (`--deck-h`, customize.css); beside, it takes none.
- * The widget's panel and the line around its part follow.
+ * The app is what the bar or the card leaves of the box, so the widget is
+ * always whole above them (`--deck-h`, customize.css): the bar always, the
+ * card only along the bottom; beside, it takes none. The widget's panel and
+ * the line around its part follow.
  */
 function measureDeck() {
   foldBtn.disabled = beside.matches;
-  screen.style.setProperty('--deck-h', beside.matches ? '0px' : `${deck.offsetHeight}px`);
+  const h = !bar.hidden ? bar.offsetHeight : deck.hidden || beside.matches ? 0 : deck.offsetHeight;
+  // On the box, so the app, the three ways and a docked box all stop above it.
+  viewport.style.setProperty('--deck-h', `${h}px`);
   fitPanel();
+  scaleWays();
   watch();
 }
 new ResizeObserver(measureDeck).observe(deck);
+new ResizeObserver(measureDeck).observe(bar);
 beside.addEventListener('change', () => {
   fold(false);
-  measureDeck();
   paintSteps();
 });
 
@@ -941,21 +990,45 @@ function cheer(line) {
   }
 }
 
-backBtn.addEventListener('click', () => {
+/** One step back or on, from the bar or the last step's card. */
+function stepBy(by) {
   const steps = route();
-  go(steps[steps.findIndex((s) => s.id === at) - 1].id);
-});
+  const next = steps[steps.findIndex((s) => s.id === at) + by];
+  if (next) go(next.id);
+}
+backBtn.addEventListener('click', () => stepBy(-1));
+nextBtn.addEventListener('click', () => stepBy(1));
+barBack.addEventListener('click', () => stepBy(-1));
+barNext.addEventListener('click', () => stepBy(1));
 
-nextBtn.addEventListener('click', () => {
-  const steps = route();
-  go(steps[steps.findIndex((s) => s.id === at) + 1].id);
-});
+// ---- Tapping a part ------------------------------------------------------
 
 /**
- * A tap in the widget picks a part instead of using it: caught on its way
- * down, before the widget's own buttons hear it. In the test step the widget
+ * A tap in the widget picks a part instead of using it. It is read when the
+ * pointer comes up, as a disabled button (send, before anything is written)
+ * gets no click; the click itself is caught on its way down, before the
+ * widget's own buttons hear it. A drag (scrolling the widget) picks nothing.
+ * A tap beside the widget closes what is open. In the last step the widget
  * has its taps to itself.
  */
+let downAt = null;
+function tapAt(path) {
+  if (!path.includes(board)) return closePick();
+  const t = targetAt(path);
+  if (t) openTarget(t);
+  else closePick();
+}
+screen.addEventListener('pointerdown', (e) => (downAt = { x: e.clientX, y: e.clientY }), true);
+screen.addEventListener(
+  'pointerup',
+  (e) => {
+    if (previewing || !board || !downAt) return;
+    const moved = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y);
+    downAt = null;
+    if (moved < 8) tapAt(e.composedPath());
+  },
+  true,
+);
 screen.addEventListener(
   'click',
   (e) => {
@@ -964,47 +1037,51 @@ screen.addEventListener(
     if (!path.includes(board)) return;
     e.preventDefault();
     e.stopPropagation();
-    const inside = path.filter((n) => n instanceof Element);
-    if (!COLOURS[at]) return;
-    const hit = (PARTS[step().screen] ?? []).find(([sel]) => sel === '*' || inside.some((n) => n.matches(sel)));
-    if (!hit) return;
-    const what = typeof hit[1] === 'string' ? { colour: hit[1] } : hit[1];
-    // A part of this step: the line and the colours go to it.
-    if (what.colour && partsOf().includes(what.colour)) choosePart(what.colour);
-    else if (what.colour) pickColour(what.colour);
-    else if (what.text) {
-      if (folded) fold(false);
-      form.querySelector(`[data-step="${at}"] [data-string="${what.text}"]`)?.focus();
-    }
+    // From the keyboard there was no pointer: the click is the tap.
+    if (e.detail === 0) tapAt(path);
   },
   true,
 );
 
-/** Open the colour picker of this step's `name`, behind "More colours" too. */
-function pickColour(name) {
-  const card = form.querySelector(`[data-step="${at}"]`);
-  const input = card.querySelector(`[data-colour="${name}"]`);
-  if (!input) return;
-  // A folded panel opens first: its picker is in it.
-  if (folded) fold(false);
-  const more = input.closest('details');
-  if (more) more.open = true;
-  const row = input.closest('[data-row]');
-  row.classList.add('picked');
-  setTimeout(() => row.classList.remove('picked'), 1200);
-  try {
-    input.showPicker();
-  } catch {
-    input.click();
-  }
+/** With a mouse, the line and the part's name follow the pointer: what a tap would open. */
+screen.addEventListener('pointermove', (e) => {
+  if (e.pointerType !== 'mouse' || previewing) return;
+  const t = targetAt(e.composedPath());
+  if (t?.el === hovered?.el) return;
+  hovered = t;
+  placeMark();
+});
+screen.addEventListener('pointerleave', () => {
+  hovered = null;
+  placeMark();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && tapped) closePick();
+});
+
+function openTarget(t) {
+  tapped = t;
+  hovered = null;
+  fillPick();
+  paintPick();
+  placeMark();
+  watch();
+}
+
+function closePick() {
+  if (!tapped) return;
+  tapped = null;
+  pick.hidden = true;
+  pick.dataset.key = '';
+  placeMark();
 }
 
 // ---- The line around the part --------------------------------------------
 
 /**
- * Draw the line around this step's part. The widget moves while it opens and
- * while it loads its posts, so for a moment after anything changes the line
- * follows it every frame.
+ * Draw the line around the part tapped, or else the one under the pointer.
+ * The widget moves while it opens and while it loads its posts, so for a
+ * moment after anything changes the line follows it every frame.
  */
 let following = 0;
 let settle = 0;
@@ -1022,32 +1099,74 @@ function follow() {
   if (performance.now() < following) requestAnimationFrame(follow);
 }
 
-function placeMark() {
+/** The part a step scrolls into view once it is drawn (`reveal`), and for which step. */
+let revealed = null;
+
+// ---- You're ready: test it ----------------------------------------------
+
+/**
+ * In the last step an arrow points at the widget, "Test your widget": at the
+ * round button in the corner, or at the panel when it is shown inline or
+ * over the app. It comes in after the cheer and goes once the widget is
+ * touched, as by then it has been found.
+ */
+const tryHint = document.getElementById('try');
+let tried = false;
+
+function paintTry() {
   const root = board?.shadowRoot;
-  // The part being coloured in, or else the step's whole part.
-  const part = !previewing && root ? currentPart() : null;
-  const own = part ? root.querySelector(PART_AT[part]) : null;
-  const parts = own ? [own] : !previewing && root && step().mark ? step().mark(root).filter(Boolean) : [];
-  const rects = parts.map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height);
-  if (!rects.length) {
-    mark.hidden = true;
-    pick.hidden = true;
+  const part = previewing && !tried && root ? (root.querySelector('.fab:not(.fab--away)') ?? root.querySelector('.app')) : null;
+  const r = part?.getBoundingClientRect();
+  if (!r || !r.width) {
+    tryHint.hidden = true;
     return;
   }
-  if (revealed !== at) {
-    revealed = at;
-    if (reveal(parts[0], rects)) return void placeMark();
+  const vb = viewport.getBoundingClientRect();
+  tryHint.hidden = false;
+  // Up and to the left of it, the arrow's tip just off its left side.
+  tryHint.style.right = `${vb.right - r.left + 4}px`;
+  tryHint.style.bottom = `${vb.bottom - r.top - Math.min(r.height / 2, 20)}px`;
+}
+
+screen.addEventListener(
+  'pointerdown',
+  (e) => {
+    if (!previewing || tried || !board || !e.composedPath().includes(board)) return;
+    tried = true;
+    paintTry();
+  },
+  true,
+);
+
+function placeMark() {
+  paintTry();
+  const root = board?.shadowRoot;
+  if (root && !previewing && step().reveal && revealed !== at) {
+    const part = root.querySelector(step().reveal);
+    const scroller = part?.closest('.scroll');
+    if (scroller) {
+      revealed = at;
+      scroller.scrollTop += part.getBoundingClientRect().bottom + 16 - scroller.getBoundingClientRect().bottom;
+    }
+  }
+  const t = previewing || !root ? null : (tapped ?? hovered);
+  // A widget that drew itself again has new elements: find the part anew.
+  if (t && !t.el?.isConnected) t.el = t.sel === '*' ? root.querySelector('.app') : root.querySelector(t.sel);
+  const r = t?.el?.getBoundingClientRect();
+  if (!r || !r.width || !r.height) {
+    mark.hidden = true;
+    // A tile switched off is gone, but its box stays open where it was.
+    if (!tapped) pick.hidden = true;
+    return;
   }
   const box = screen.getBoundingClientRect();
-  // Along the bottom the card covers the foot of the box: the line and the
-  // colours stay above it.
-  const floor = beside.matches ? box.bottom : Math.min(box.bottom, deck.getBoundingClientRect().top + 8);
   const pad = 6;
-  const left = Math.max(box.left, Math.min(...rects.map((r) => r.left)) - pad);
-  const top = Math.max(box.top, Math.min(...rects.map((r) => r.top)) - pad);
-  const right = Math.min(box.right, Math.max(...rects.map((r) => r.right)) + pad);
-  const bottom = Math.min(floor - 14, Math.max(...rects.map((r) => r.bottom)) + pad);
+  const left = Math.max(box.left, r.left - pad);
+  const top = Math.max(box.top, r.top - pad);
+  const right = Math.min(box.right, r.right + pad);
+  const bottom = Math.min(box.bottom - 2, r.bottom + pad);
   mark.hidden = false;
+  mark.classList.toggle('mark--hover', !tapped);
   mark.style.left = `${left - box.left}px`;
   mark.style.top = `${top - box.top}px`;
   mark.style.width = `${right - left}px`;
@@ -1055,135 +1174,149 @@ function placeMark() {
   // A small part at the right edge, like the round button, keeps its tag inside the box.
   mark.classList.toggle('mark--right', right - left < 160 && right > box.left + box.width / 2);
   // A part as big as the box, like the background, keeps its tag inside it.
-  mark.classList.toggle('mark--in', bottom > floor - 30);
+  mark.classList.toggle('mark--in', bottom > box.bottom - 30);
   mark.classList.toggle('mark--small', right - left < 90 && bottom - top < 90);
-  // A part that cannot be found in the widget still gets its colours, by the step's part.
-  document.getElementById('mark-tag').textContent = part ? FAMILIES[part][0] : step().name;
-  placePick(part, { left, top, right, bottom }, box, floor);
+  document.getElementById('mark-tag').textContent = t.what.name;
+  if (tapped) placePick({ left, top, right, bottom }, box);
 }
 
-// ---- The colours beside the part -----------------------------------------
+// ---- What a tapped part can be -------------------------------------------
 
 const pick = document.getElementById('pick');
+const KIND_NAMES = { bug: 'Bugs', idea: 'Ideas', review: 'Reviews' };
+const SHOTS = [
+  ['board', 'Everyone'],
+  ['owners', 'Only you'],
+  ['off', 'Off'],
+];
 
-/** Fill the row for `part`: its six colours, then any colour at all. */
-function fillPick(part) {
-  if (pick.dataset.part === part) return;
-  pick.dataset.part = part;
-  const [label] = FAMILIES[part];
-  pick.setAttribute('aria-label', `Colours for ${label}`);
-  pick.innerHTML = `${PALETTES[PALETTE_OF[part]]
-    .map((c) => `<button type="button" class="pick__dot" data-pick="${c}" style="--c: ${c}" aria-label="${c}"></button>`)
-    .join('')}<label class="pick__own" title="Your own colour"><input type="color" data-own aria-label="Your own colour for ${label}" /></label>`;
+/**
+ * The box for the tapped part: a row of colours per colour it has (six that
+ * suit it, then any colour at all), its words, the kinds on offer on a tile,
+ * who sees screenshots on the screenshot box. Built once per part, so a
+ * field keeps its focus while the widget changes under it.
+ */
+function fillPick() {
+  const { what } = tapped;
+  const key = `${at} ${what.name}`;
+  if (pick.dataset.key === key) return;
+  pick.dataset.key = key;
+  pick.setAttribute('aria-label', what.name);
+  const rows = (what.colours ?? [])
+    .map((name) => {
+      const [label] = FAMILIES[name];
+      const dots = PALETTES[PALETTE_OF[name]]
+        .map((c) => `<button type="button" class="pick__dot" data-pick="${c}" style="--c: ${c}" aria-label="${label}: ${c}"></button>`)
+        .join('');
+      return `<div class="pick__row" data-for="${name}">
+        ${what.colours.length > 1 ? `<span class="pick__label">${label}</span>` : ''}
+        <div class="pick__dots">${dots}<label class="pick__own" title="Your own colour"><input type="color" data-own aria-label="Your own colour for ${label}" /></label></div>
+      </div>`;
+    })
+    .join('');
+  const words = (what.words ?? [])
+    .map(
+      (k) => `<label class="pick__field"><span>Words</span>
+        <input class="input" data-string="${k}" maxlength="80" placeholder="${attr(WORDS[k])}" value="${attr(state.strings[k] ?? '')}" /></label>`,
+    )
+    .join('');
+  const kinds = what.kinds
+    ? `<div class="pick__field"><span>Tiles</span><div class="checks">${Object.entries(KIND_NAMES)
+        .map(([k, l]) => `<label class="check"><input type="checkbox" data-kind="${k}" />${l}</label>`)
+        .join('')}</div></div>`
+    : '';
+  const shots = what.shots
+    ? `<div class="pick__field"><span>Who sees screenshots</span><div class="seg">${SHOTS.map(
+        ([v, l]) => `<label><input type="radio" name="pick-shots" value="${v}" /><span>${l}</span></label>`,
+      ).join('')}</div></div>`
+    : '';
+  pick.innerHTML = `<div class="pick__head"><b>${what.name}</b><button type="button" class="pick__x" data-close aria-label="Close">&times;</button></div>${rows}${words}${kinds}${shots}`;
+}
+
+/** Show in the box what each colour, kind and choice is now. */
+function paintPick() {
+  if (!tapped) return;
+  for (const row of pick.querySelectorAll('[data-for]')) {
+    const name = row.dataset.for;
+    const value = (name === 'accent' ? state.accent : state.colours[name]) || '';
+    const own = !!value && !PALETTES[PALETTE_OF[name]].includes(value);
+    for (const b of row.querySelectorAll('[data-pick]')) b.classList.toggle('is-on', b.dataset.pick === value);
+    row.querySelector('.pick__own').classList.toggle('is-on', own);
+    row.querySelector('[data-own]').value = toHex(value) ?? '#888888';
+  }
+  for (const k of pick.querySelectorAll('[data-kind]')) k.checked = state.kinds.includes(k.dataset.kind);
+  for (const s of pick.querySelectorAll('[name=pick-shots]')) s.checked = s.value === state.screenshots;
 }
 
 /**
- * The row under the part, or over it where there is no room under it, or
- * inside its foot when it fills the box (the background). Never off the box.
+ * The box beside the part: under it, over it, or to its side, wherever it
+ * fits in the box, else inside the part's foot. On a phone it lies along
+ * the bottom of the screen, over the widget, where a thumb is.
  */
-function placePick(part, r, box, floor) {
-  if (!part) {
-    pick.hidden = true;
-    pick.dataset.part = '';
+function placePick(r, box) {
+  pick.hidden = false;
+  const narrow = box.width < 640;
+  pick.classList.toggle('pick--docked', narrow);
+  if (narrow) {
+    pick.style.left = '';
+    pick.style.top = '';
     return;
   }
-  fillPick(part);
-  const value = (part === 'accent' ? state.accent : state.colours[part]) || '';
-  for (const b of pick.querySelectorAll('[data-pick]')) b.classList.toggle('is-on', b.dataset.pick === value);
-  pick.querySelector('[data-own]').value = toHex(value) ?? '#888888';
-  pick.hidden = false;
   const pw = pick.offsetWidth;
   const ph = pick.offsetHeight;
-  const room = floor - 10;
-  let top = r.bottom + 18;
-  if (top + ph > room) top = r.top - ph - 12;
-  // No room above or below: inside the part's foot, clear of its name.
-  if (top < box.top + 8) top = Math.min(room, r.bottom) - ph - 34;
-  const left = Math.min(box.right - pw - 8, Math.max(box.left + 8, (r.left + r.right) / 2 - pw / 2));
-  pick.style.left = `${left - box.left}px`;
-  pick.style.top = `${top - box.top}px`;
+  const gap = 18;
+  const fitsX = (x) => x >= box.left + 8 && x + pw <= box.right - 8;
+  const fitsY = (y) => y >= box.top + 8 && y + ph <= box.bottom - 8;
+  const midX = Math.min(box.right - pw - 8, Math.max(box.left + 8, (r.left + r.right) / 2 - pw / 2));
+  const midY = Math.min(box.bottom - ph - 8, Math.max(box.top + 8, (r.top + r.bottom) / 2 - ph / 2));
+  const spots = [
+    [midX, r.bottom + gap],
+    [midX, r.top - ph - gap],
+    [r.left - pw - gap, midY],
+    [r.right + gap, midY],
+  ];
+  const [x, y] = spots.find(([sx, sy]) => fitsX(sx) && fitsY(sy)) ?? [midX, Math.max(box.top + 8, r.bottom - ph - 40)];
+  pick.style.left = `${x - box.left}px`;
+  pick.style.top = `${y - box.top}px`;
 }
 
-/** Give `part` a colour, or take it back to grey with ''. */
+/** Give a part a colour. Nothing moves on: try another, or tap the next part. */
 function setColour(part, value) {
   if (part === 'accent') state.accent = value;
-  else if (value) state.colours[part] = value;
-  else delete state.colours[part];
+  else state.colours[part] = value;
   update();
-}
-
-/** On to the next part still grey, after this one; none left, the step is done. */
-function nextPart(after) {
-  const parts = partsOf();
-  const from = parts.indexOf(after);
-  const next = [...parts.slice(from + 1), ...parts.slice(0, from + 1)].find((n) => !picked(n));
-  chosenPart[at] = next ?? null;
-  update();
-}
-
-/** Put the line and the colours on `part`, from a tap on it in the widget or its dot in the card. */
-function choosePart(part) {
-  chosenPart[at] = part;
-  paintProgress();
-  placeMark();
-  watch();
 }
 
 pick.addEventListener('click', (e) => {
+  if (e.target.closest('[data-close]')) return closePick();
   const dot = e.target.closest('[data-pick]');
-  const part = pick.dataset.part;
-  if (!dot || !part) return;
-  // The line stays on it while it takes the colour.
-  chosenPart[at] = part;
-  setColour(part, dot.dataset.pick);
-  // A moment to see it land, then on.
-  dot.classList.add('is-on');
-  setTimeout(() => nextPart(part), 260);
+  if (dot) setColour(dot.closest('[data-for]').dataset.for, dot.dataset.pick);
 });
-// Your own colour: the part follows while you choose, and the line moves on once it is closed.
 pick.addEventListener('input', (e) => {
-  if (!e.target.matches('[data-own]') || !pick.dataset.part) return;
-  chosenPart[at] = pick.dataset.part;
-  setColour(pick.dataset.part, e.target.value);
+  const t = e.target;
+  if (t.matches('[data-own]')) setColour(t.closest('[data-for]').dataset.for, t.value);
+  else if (t.matches('[data-string]')) {
+    if (t.value.trim()) state.strings[t.dataset.string] = t.value;
+    else delete state.strings[t.dataset.string];
+    update();
+  }
 });
 pick.addEventListener('change', (e) => {
-  if (e.target.matches('[data-own]') && pick.dataset.part) nextPart(pick.dataset.part);
+  const t = e.target;
+  if (t.matches('[data-kind]')) {
+    const on = [...pick.querySelectorAll('[data-kind]:checked')].map((i) => i.dataset.kind);
+    // At least one kind: a board nobody can write on is no board.
+    if (!on.length) {
+      t.checked = true;
+      return toast('Keep at least one kind');
+    }
+    state.kinds = on;
+    update();
+  } else if (t.name === 'pick-shots') {
+    state.screenshots = t.value;
+    update();
+  }
 });
-
-/**
- * The card's own line under its dots: how far the step is, and which part
- * the colours are for now.
- */
-function paintProgress() {
-  const box = form.querySelector(`[data-step="${at}"] [data-colours]`);
-  if (!box) return;
-  const parts = partsOf();
-  const done = parts.filter(picked).length;
-  const now = currentPart();
-  for (const d of box.querySelectorAll('.dot')) d.classList.toggle('is-now', d.dataset.row === now);
-  box.querySelector('.colour-about').innerHTML = now
-    ? `<b>${done} of ${parts.length} coloured.</b> Now: ${FAMILIES[now][0]}. Pick a colour beside it.`
-    : `<b>All ${parts.length} coloured.</b> Tap a part to change it.`;
-}
-
-/**
- * Scroll the widget once per step so the whole part is in view, like the send
- * button at the foot of a long writing screen. Once, so a visitor scrolling
- * the widget themselves is never pulled back. Says whether it moved.
- */
-let revealed = null;
-function reveal(part, rects) {
-  const scroller = part.closest('.scroll');
-  if (!scroller) return false;
-  const view = scroller.getBoundingClientRect();
-  const top = Math.min(...rects.map((r) => r.top));
-  const bottom = Math.max(...rects.map((r) => r.bottom));
-  // Down until the bottom shows, but never so far that the top goes out.
-  const by = Math.min(bottom + 12 - view.bottom, top - 12 - view.top);
-  if (by <= 0) return false;
-  scroller.scrollTop += by;
-  return true;
-}
 
 /** Follow the widget whenever it redraws: posts arriving, a screen changing. */
 function observeRoot(el) {
@@ -1200,78 +1333,7 @@ window.addEventListener('resize', () => {
 // A hidden tab draws no frames: catch up when it is back.
 document.addEventListener('visibilitychange', watch);
 
-// ---- Settings ------------------------------------------------------------
-
-form.addEventListener('input', (e) => {
-  const t = e.target;
-  if (t.name === 'screenshots') state.screenshots = t.value;
-  else if (t.name === 'kinds') {
-    const on = [...form.querySelectorAll('input[name=kinds]:checked')].map((i) => i.value);
-    // At least one kind: a board nobody can write on is no board.
-    if (!on.length) {
-      t.checked = true;
-      return toast('Keep at least one kind');
-    }
-    state.kinds = on;
-  } else if (t.name === 'mode') {
-    state.mode = t.value;
-    // Without a round button its step is gone: never stay on it.
-    if (!route().some((s) => s.id === at)) go('opens');
-    else mount();
-    paintSteps();
-    paintSwatches();
-    writeCode();
-    return;
-  } else if (t.dataset.colour) {
-    const name = t.dataset.colour;
-    if (name === 'accent') state.accent = t.value;
-    else state.colours[name] = t.value;
-  } else if (t.dataset.string) {
-    if (t.value.trim()) state.strings[t.dataset.string] = t.value;
-    else delete state.strings[t.dataset.string];
-  } else return;
-  update();
-});
-
-form.addEventListener('click', (e) => {
-  // A part's dot in the card: the line and the colours go to it.
-  const part = e.target.closest('[data-part]');
-  if (part) return choosePart(part.dataset.part);
-  const reset = e.target.closest('[data-reset]');
-  if (!reset) return;
-  setColour(reset.dataset.reset, '');
-});
-
-// ---- Colours -------------------------------------------------------------
-
-/** A part to colour in, round, with its name under it: grey until it has a colour. */
-function dot(name) {
-  const [label, what] = FAMILIES[name];
-  return `<button type="button" class="dot" data-row="${name}" data-part="${name}" title="${label}: ${what}" aria-label="${label}: ${what}">
-    <span class="swatch__dot"></span>
-    <span class="dot__name">${label}</span>
-  </button>`;
-}
-
-/** A small colour, worked out by itself, as a row behind "More colours" to set by hand. */
-function swatchRow(name) {
-  const [label, what] = FAMILIES[name];
-  return `<div class="swatch" data-row="${name}">
-    <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}: ${what}" /></label>
-    <span class="swatch__name">${label}<small>${what}</small></span>
-    <span class="swatch__hex"></span>
-    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to worked out" title="Back to worked out">×</button>
-  </div>`;
-}
-
-for (const box of form.querySelectorAll('[data-colours]')) {
-  const { main, more } = COLOURS[box.dataset.colours];
-  box.className = 'field';
-  box.innerHTML = `<span>Colour it in</span>
-    <div class="dots">${main.map(dot).join('')}</div>
-    <p class="colour-about" aria-live="polite"></p>
-    ${more ? `<details class="more-colours"><summary>More colours</summary><p class="more-colours__about">Worked out from yours. Change one if you like.</p><div class="swatches">${more.map(swatchRow).join('')}</div></details>` : ''}`;
-}
+// ---- Kinds ---------------------------------------------------------------
 
 /** The colours and words that belong to one kind: gone with it when it is unticked. */
 const KIND_OF = {
@@ -1279,6 +1341,12 @@ const KIND_OF = {
   '--pnb-idea': 'idea',
   '--pnb-review': 'review',
   '--pnb-star': 'review',
+  '--pnb-tile-ink-bug': 'bug',
+  '--pnb-tile-glyph-bug': 'bug',
+  '--pnb-tile-ink-idea': 'idea',
+  '--pnb-tile-glyph-idea': 'idea',
+  '--pnb-tile-ink-review': 'review',
+  '--pnb-tile-glyph-review': 'review',
   'board.tileBug': 'bug',
   'board.tileIdea': 'idea',
   'board.tileReview': 'review',
@@ -1286,36 +1354,6 @@ const KIND_OF = {
 
 /** Whether a colour or a word is for a kind that is left off. */
 const offKind = (name) => !!KIND_OF[name] && !state.kinds.includes(KIND_OF[name]);
-
-/**
- * Show each colour as the widget has it now: picked, worked out, or grey. One
- * that keeps the theme's own is read from the widget itself with the
- * override lifted for a moment, so it is what the theme really says.
- */
-function paintSwatches() {
-  if (!board?.shadowRoot) return void requestAnimationFrame(paintSwatches);
-  const now = paint();
-  for (const row of form.querySelectorAll('[data-row]')) {
-    const name = row.dataset.row;
-    row.hidden = offKind(name);
-    const own = name === 'accent' ? state.accent : state.colours[name];
-    const value = name === 'accent' ? accent() : (now[name] ?? themeValue(name));
-    row.querySelector('.swatch__dot').style.background = value || 'transparent';
-    const input = row.querySelector('input');
-    if (input) input.value = toHex(value) ?? '#000000';
-    const hex = row.querySelector('.swatch__hex');
-    if (hex) hex.textContent = own ? own : /gradient|mix/.test(value) ? 'worked out' : (toHex(value) ?? value);
-    row.classList.toggle('swatch--set', !!own);
-  }
-}
-
-function themeValue(prop) {
-  const mine = board.style.getPropertyValue(prop);
-  if (mine) board.style.removeProperty(prop);
-  const value = getComputedStyle(board).getPropertyValue(prop).trim();
-  if (mine) board.style.setProperty(prop, mine);
-  return value;
-}
 
 /** `#abc`, `#aabbcc`, `rgb(...)` or the first colour in a gradient, as `#aabbcc`. */
 function toHex(v) {
@@ -1328,19 +1366,6 @@ function toHex(v) {
   const rgb = v.match(/rgba?\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)/i);
   if (rgb) return `#${rgb.slice(1, 4).map((n) => Number(n).toString(16).padStart(2, '0')).join('')}`;
   return null;
-}
-
-// ---- Texts ---------------------------------------------------------------
-
-for (const box of form.querySelectorAll('[data-strings]')) {
-  box.innerHTML = STRINGS[box.dataset.strings]
-    .map(
-      ([label, keys]) =>
-        `<div class="field"><span>${label}</span>${keys
-          .map(([key, words]) => `<input class="input" data-string="${key}" maxlength="80" placeholder="${words}" aria-label="${label}: ${words}" />`)
-          .join('')}</div>`,
-    )
-    .join('');
 }
 
 // ---- The code ------------------------------------------------------------
@@ -1374,12 +1399,12 @@ function html() {
 }
 
 function css() {
-  // Every colour picked or worked out. A kind left off takes its colours out
-  // of the code, kept here for if it comes back; so does the round button
-  // when it is shown another way. A grey one never gets this far: Next waits
-  // for it.
+  // Every colour as it is on the widget: picked, worked out, or grey, as
+  // grey stays grey. A kind left off takes its colours out of the code, kept
+  // here for if it comes back; so does the round button when it is shown
+  // another way.
   const rows = Object.entries(paint())
-    .filter(([k, v]) => !offKind(k) && (state.mode === 'floating' || !FAB.includes(k)) && v !== GREY[k])
+    .filter(([k]) => !offKind(k) && (state.mode === 'floating' || !FAB.includes(k)))
     .map(([k, v]) => `  ${k}: ${v};`);
   if (state.mode === 'inline') rows.unshift('  height: 600px; /* inline: give it a height, or it grows with its posts */');
   if (!rows.length) return "/* No colours changed: PleaseNoBugs' own are used. */";
@@ -1522,6 +1547,5 @@ function toast(text) {
 
 mount();
 paintSteps();
-paintSwatches();
 writeCode();
 measureDeck();

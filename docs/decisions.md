@@ -1310,6 +1310,53 @@ demo gets a calmer telling there; the purple look keeps its own, unchanged.
   keep the theme's own) and stay under "More colours" to set by hand.
 - The intro sketch's row of colours gets the any-colour dot too.
 
+## 2026-11-13 (later): No card in the steps; you tap what you want to change
+
+The same day the owner took the guiding out again: the user should simply
+customize the widget step by step, by tapping it.
+
+- **No card in the steps.** The intro keeps its card (why, "Make it mine",
+  the sketch) and "You're ready!" keeps its card (the code and the prompt).
+  In between only a slim bar along the bottom: `← Back`, the step's name and
+  number, `Next →`. No hints, no dots, no "More colours": the small colours
+  are always worked out.
+- **Tap a part of the widget** to change it; with a mouse a dashed line with
+  its name shows what a tap would open. The tapped part gets a solid line,
+  and beside it a box with what it can be: a row of colours per colour (six
+  that suit it, then any colour), its words (titles, tiles, "Feedback
+  sent!", "... says"), the kinds on offer (on any tile), who sees
+  screenshots (on the screenshot box). On a phone the box lies along the
+  bottom. **Nothing moves on by itself**: try colours, then tap the next
+  part or beside the widget.
+- **Text colours:** only the big texts are picked: Text (titles and what
+  people wrote) and the "Feedback sent!" title. Quiet text, the small line
+  on "sent", the words on tiles and buttons are worked out.
+- **Next is always there; what is not coloured stays grey**, in the code too.
+- **How it opens** shows the three ways side by side, each a card playing
+  its phone animation, tapped to pick; on a phone one card at a time,
+  swiped, with dots.
+- A tap is read when the pointer comes up, because the send button is
+  disabled until something is written and a disabled button gets no click.
+  Writing scrolls the send button into view once; the widget scrolls again
+  while being customized.
+- **The board comes right after the tiles**: How it opens, The button,
+  Tiles, Board, Writing, Feedback sent!, You're ready!. Most of the widget's
+  colours are on the board.
+- **The send button shows in full while you colour it in**, not faded as a
+  disabled button is, so its colour can be judged (a style the site puts in
+  the demo widget; in the last step it is the widget's own again).
+- **A tile's text and icon have their own colours, per tile.** Tapping a
+  tile offers three rows: Tile, Text, Icon. The widget gets
+  `--pnb-tile-ink-bug` (and `-idea`, `-review`), the words on one tile,
+  following `--pnb-tile-ink` unless set; `--pnb-tile-glyph-*` now follows
+  its tile's words. Not picked, a tile's text is white, as on the design's
+  bright tiles, and dark only on a light tile. **Not in npm 0.2.0**: the
+  copied code pins 0.2.0, where all tiles share one `--pnb-tile-ink` and the
+  glyph follows it, so these colours reach an app with the next release.
+- **"Test your widget"** with an arrow points at the widget in "You're
+  ready!" (the round button, or the panel when it is inline or an overlay),
+  coming in after the cheer and gone once the widget is touched.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

@@ -66,64 +66,6 @@
                   <p class="intro__small">Free and open source. About two minutes, then copy the code or hand it to your AI agent.</p>
                 </div>
 
-                <div class="edit__step" data-step="opens" hidden>
-                  <fieldset class="field">
-                    <legend>Shown as</legend>
-                    <div class="seg">
-                      <label><input type="radio" name="mode" value="floating" checked /><span>Button</span></label>
-                      <label><input type="radio" name="mode" value="inline" /><span>Inline</span></label>
-                      <label><input type="radio" name="mode" value="overlay" /><span>Overlay</span></label>
-                    </div>
-                    <p class="field__about" data-mode="floating">A round button in the corner of every screen.</p>
-                    <p class="field__about" data-mode="inline">A page of its own in your app, for example behind Feedback in its menu.</p>
-                    <p class="field__about" data-mode="overlay">Over your app, opened from a button or menu item of yours.</p>
-                  </fieldset>
-                </div>
-
-                <!-- Only when it is shown as a button: there is no round button otherwise. -->
-                <div class="edit__step" data-step="button" hidden>
-                  <div data-colours="button"></div>
-                </div>
-
-                <div class="edit__step" data-step="tiles" hidden>
-                  <div data-colours="tiles"></div>
-                  <fieldset class="field">
-                    <legend>Which ones</legend>
-                    <div class="checks">
-                      <label class="check"><input type="checkbox" name="kinds" value="bug" checked />Bugs</label>
-                      <label class="check"><input type="checkbox" name="kinds" value="idea" checked />Ideas</label>
-                      <label class="check"><input type="checkbox" name="kinds" value="review" checked />Reviews</label>
-                    </div>
-                  </fieldset>
-                  <div data-strings="tiles"></div>
-                </div>
-
-                <div class="edit__step" data-step="writing" hidden>
-                  <div data-colours="writing"></div>
-                  <!-- Only with bugs or ideas: reviews carry no screenshot. -->
-                  <fieldset class="field" data-shots>
-                    <legend>Screenshots on bugs and ideas</legend>
-                    <div class="seg">
-                      <label><input type="radio" name="screenshots" value="board" checked /><span>Everyone</span></label>
-                      <label><input type="radio" name="screenshots" value="owners" /><span>Only you</span></label>
-                      <label><input type="radio" name="screenshots" value="off" /><span>Off</span></label>
-                    </div>
-                    <p class="field__about" data-for="board">On the board, once the user ticks that everyone may see it.</p>
-                    <p class="field__about" data-for="owners">Only you see them, never the board.</p>
-                    <p class="field__about" data-for="off">No screenshots.</p>
-                  </fieldset>
-                </div>
-
-                <div class="edit__step" data-step="sent" hidden>
-                  <div data-colours="sent"></div>
-                  <div data-strings="sent"></div>
-                </div>
-
-                <div class="edit__step" data-step="board" hidden>
-                  <div data-colours="board"></div>
-                  <div data-strings="board"></div>
-                </div>
-
                 <div class="edit__step ready" data-step="ready" hidden>
                   <div class="ready__ways">
                     <button type="button" class="btn ready__btn" id="feed">Feed it to your AI agent</button>
@@ -160,9 +102,29 @@
               <button type="button" class="btn btn--small" id="next">Next</button>
             </div>
           </section>
+          <!-- How it opens: the three ways side by side, each playing (customize.js, `paintWays`). -->
+          <div class="ways" id="ways" hidden>
+            <div class="ways__track" id="ways-track"></div>
+            <div class="ways__dots" id="ways-dots" aria-hidden="true"></div>
+          </div>
+
+          <!-- Around a part: under the pointer, or the one tapped. -->
           <div class="mark" id="mark" hidden><span class="mark__tag" id="mark-tag"></span></div>
-          <!-- The colours for the part the line is around, beside it, as in the intro's sketch. -->
-          <div class="pick" id="pick" role="group" hidden></div>
+          <!-- What the tapped part can be: its colours, its words, and more. -->
+          <div class="pick" id="pick" role="dialog" hidden></div>
+
+          <!-- In the last step: where to try it, till it is tried (customize.js, `paintTry`). -->
+          <div class="try" id="try" aria-hidden="true" hidden>
+            <span class="try__text">Test your widget</span>
+            <svg class="try__arrow" width="64" height="56" viewBox="0 0 64 56" fill="none"><path d="M4 6c18 0 38 8 50 34" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><path d="M44 36l11 8 3-13" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+
+          <!-- The steps, as a slim bar along the bottom: no card, the widget is the place to work. -->
+          <nav class="stepbar" id="stepbar" aria-label="Steps" hidden>
+            <button type="button" class="btn btn--small btn--grey" id="bar-back">&larr; Back</button>
+            <span class="stepbar__name" id="bar-name" aria-live="polite"></span>
+            <button type="button" class="btn btn--small" id="bar-next">Next &rarr;</button>
+          </nav>
         </div>
       </div>
     </main>
