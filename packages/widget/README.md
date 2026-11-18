@@ -41,7 +41,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `mode` | `inline`, `floating` or `overlay`. |
 | `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board. |
 | `lang` | `en`, `nl`, `de`, or any code you supply `strings` for. Defaults to Nimiq Pay's language, then the page's. |
-| `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (the Nimiq wallet's gradient tiles and buttons, light only). Every theme has the same shapes: painted tiles with a white glyph, the same badges; only the colours differ. `shitti` is the old name of `pleasenobugs` and still works. |
+| `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (the Nimiq Foundation's 2026 brand: navy on white, a gold round button) and `nimiq-dark` (the same on navy). Every theme has the same shapes: painted tiles with a glyph on them, the same badges; only the colours differ. `shitti` is the old name of `pleasenobugs` and still works. |
 | `accent` | One colour, e.g. `#e84a5f`. The text on it picks black or white by itself. |
 | `app-name` | What answers are signed with ("Shitti says"). Defaults to the project's name. |
 | `name` | A display name you already know, offered when the user chooses to show theirs. |
@@ -148,6 +148,39 @@ please-no-bugs {
   --pnb-tile-dot-bug: transparent;       /* a disc behind each tile's glyph (-idea, -review too) */
   --pnb-tile-glyph-bug: var(--pnb-tile-ink-bug); /* and the glyph's colour (-idea, -review too) */
   --pnb-tile-icon: 44px;                 /* the box the glyph sits in */
+  --pnb-choose-title: var(--pnb-text);   /* the question above the tiles */
+  --pnb-title-board: var(--pnb-text);    /* the title in the board's bar */
+  --pnb-title-write: var(--pnb-text);    /* the title above the form */
+  --pnb-card: var(--pnb-surface);        /* the posts and the rating on the board, */
+  --pnb-card-text: var(--pnb-text);      /* their words, */
+  --pnb-card-quiet: var(--pnb-text-quiet); /* and their names, dates and counts */
+  --pnb-field: var(--pnb-surface);       /* every field you type in (form, search, answer, update), */
+  --pnb-field-text: var(--pnb-text);     /* what is typed in it, */
+  --pnb-field-quiet: var(--pnb-text-quiet); /* its hint while empty, */
+  --pnb-field-line: var(--pnb-line);     /* and the line round it */
+  --pnb-news: var(--pnb-surface-2);      /* the note on top of the board ("... answered your idea"), */
+  --pnb-news-line: var(--pnb-accent);    /* its line, */
+  --pnb-news-text: var(--pnb-text);      /* its words, */
+  --pnb-news-link: var(--pnb-accent);    /* its link, */
+  --pnb-news-quiet: var(--pnb-text-quiet); /* and its small words and close */
+  --pnb-filter-btn: var(--pnb-surface);  /* the Filter button: its ground, */
+  --pnb-filter-btn-text: var(--pnb-text); /* its word, */
+  --pnb-filter-btn-line: var(--pnb-line); /* and its line */
+  --pnb-bar-icon: var(--pnb-text);       /* the icons in every bar: close, back, updates, new post */
+  --pnb-order: var(--pnb-sunken);        /* behind Top / New, */
+  --pnb-order-text: var(--pnb-text-quiet); /* and the word not chosen */
+  --pnb-vote: var(--pnb-surface-2);      /* the vote button, */
+  --pnb-vote-text: var(--pnb-card-text); /* its count, */
+  --pnb-vote-on: var(--pnb-accent);      /* a vote you gave, */
+  --pnb-on-vote-on: var(--pnb-on-accent); /* and its count */
+  --pnb-choose-link: var(--pnb-text-quiet); /* "See the board" under the tiles */
+  --pnb-form-quiet: var(--pnb-text-quiet); /* the small words in a form */
+  --pnb-switch: var(--pnb-surface-2);    /* a switch when off, */
+  --pnb-switch-line: var(--pnb-line);    /* its line, */
+  --pnb-switch-knob: var(--pnb-text-quiet); /* its knob, */
+  --pnb-switch-on: var(--pnb-accent);    /* the switch when on, */
+  --pnb-on-switch-on: var(--pnb-on-accent); /* and its knob */
+  --pnb-shot-line: var(--pnb-line);      /* the line round "Add screenshot" */
   --pnb-order-on: var(--pnb-surface);    /* the chosen half of Top/New, */
   --pnb-on-order: var(--pnb-text);       /* and its words */
   --pnb-sent: var(--pnb-bg);             /* behind "Feedback sent!" */

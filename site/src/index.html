@@ -9,11 +9,11 @@
     <script src="assets/style.js"></script>
     <link rel="stylesheet" href="assets/site.css" />
     <link rel="stylesheet" href="assets/nimiq.css" />
+    <script src="assets/stack.js" type="module"></script>
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/board.js" type="module"></script>
     <script src="assets/tour.js" type="module"></script>
     <script src="assets/pattern.js" type="module"></script>
-    <script src="assets/hexes.js" type="module"></script>
   </head>
   <body class="page--home page--pattern">
     <svg width="0" height="0" style="position: absolute" aria-hidden="true">
@@ -26,31 +26,46 @@
     <header class="top">
       <div class="wrap top__inner">
         <a class="brand" href="./">
-          <img src="assets/logo.svg" alt="" width="32" height="36" />
+          <img class="brand__classic" src="assets/logo.svg" alt="" width="32" height="36" />
+          <img class="brand__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="30" height="24" />
           <span>PleaseNoBugs</span>
         </a>
         <nav class="nav" aria-label="Main">
           <a href="what-is-it.html">Why PleaseNoBugs</a>
-          <a href="customize.html">Customize</a>
+          <a href="customize.html">Make it yours</a>
           <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
         </nav>
         <button type="button" class="style-switch" data-style-switch hidden>
-          <svg width="16" height="15" viewBox="0 0 20 18" aria-hidden="true"><path d="M10 1H5.5L1 9l4.5 8H10z" fill="#ffb700"/><path d="M5.5 1h9L19 9l-4.5 8h-9L1 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <svg class="style-switch__to-classic" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200.77,53.89A103.27,103.27,0,0,0,128,24h-1.07A104,104,0,0,0,24,128c0,43,26.58,79.06,69.36,94.17A32,32,0,0,0,136,192a16,16,0,0,1,16-16h46.21a31.81,31.81,0,0,0,31.2-24.88,104.43,104.43,0,0,0,2.59-24A103.28,103.28,0,0,0,200.77,53.89Zm13,93.71A15.89,15.89,0,0,1,198.21,160H152a32,32,0,0,0-32,32,16,16,0,0,1-21.31,15.07C62.490,194.3,40,164,40,128a88,88,0,0,1,87.09-88h.9a88.35,88.35,0,0,1,88,87.25A88.86,88.86,0,0,1,213.81,147.6ZM140,76a12,12,0,1,1-12-12A12,12,0,0,1,140,76ZM96,100A12,12,0,1,1,84,88,12,12,0,0,1,96,100Zm0,56a12,12,0,1,1-12-12A12,12,0,0,1,96,156Zm88-56a12,12,0,1,1-12-12A12,12,0,0,1,184,100Z"/></svg>
+          <svg class="style-switch__to-nimiq" width="16" height="15" viewBox="0 0 20 18" aria-hidden="true"><path d="M10 1H5.5L1 9l4.5 8H10z" fill="#ffb700"/><path d="M5.5 1h9L19 9l-4.5 8h-9L1 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
           <span class="style-switch__text">Nimiq style</span>
         </button>
       </div>
     </header>
 
     <main class="one">
+      <!-- The Nimiq look's hero (nimiq.css): the brand's navy with its stacks at both sides, the heading, and the way to the demo below it. Not shown in the classic look, where the heading is on the pretend app itself. -->
+      <section class="nq-hero nq-only" aria-labelledby="nq-title">
+        <div class="stack stack--hero" data-stack="hero"></div>
+        <div class="wrap nq-hero__inner">
+          <p class="nq-label">For Nimiq builders</p>
+          <h1 id="nq-title">Stop guessing what your users want.</h1>
+          <p class="lead">Free, open-source feedback for Nimiq builders. Live in minutes. And let users drive your roadmap.</p>
+          <div class="nq-hero__ways">
+            <button type="button" class="btn" data-nq-watch>Watch demo<svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></button>
+            <a class="btn btn--quiet" href="what-is-it.html">Why PleaseNoBugs</a>
+          </div>
+        </div>
+      </section>
       <div class="wrap hero">
         <div class="editor tour" id="tour-frame">
           <div class="screen screen--home" id="tour">
-            <div class="hexes-bg" data-hexes="left right"></div>
             <div class="screen__app tour-app" aria-hidden="true">
               <b>Your app</b>
               <i></i><i></i><i></i><i></i>
             </div>
             <div class="tour-intro" id="tour-intro" hidden>
+              <svg class="nq-lines" aria-hidden="true"></svg>
               <svg class="ti-arrow" viewBox="0 0 56 24" aria-hidden="true"><path d="M52 12H6M6 12l9-8M6 12l9 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
               <span class="ti-person" style="--i: 0; --x: 10%; --y: 46%" aria-hidden="true"><span class="ti-tile"><svg><use href="#i-fons"/></svg></span></span>
               <span class="ti-person" style="--i: 1; --x: 44%; --y: 54%" aria-hidden="true"><span class="ti-tile"><svg><use href="#i-ines"/></svg></span></span>
@@ -62,19 +77,7 @@
               <span class="ti-bubble ti-bubble--left" style="--i: 2; --x: 64%; --y: 13%; --r: -3deg; --sx: calc(80% + 8px - var(--bw0)); --sy: calc(14% - 44px)" aria-hidden="true"><b><span class="ti-from">DM</span><span class="ti-to">Bug</span></b><i></i><i></i></span>
               <span class="ti-bubble ti-bubble--left" style="--i: 3; --x: 58%; --y: 36%; --r: 7deg; --sx: calc(68% + 8px - var(--bw0)); --sy: calc(38% - 44px)" aria-hidden="true"><b><span class="ti-from">Review</span><span class="ti-to">Idea</span></b><i></i><i></i></span>
               <span class="ti-bubble" style="--i: 4; --x: 20%; --y: 23%; --r: 4deg; --sx: calc(28% + 44px); --sy: calc(24% - 44px)" aria-hidden="true"><b><span class="ti-from">Chat</span><span class="ti-to">Bug</span></b><i></i><i></i></span>
-              <!-- The Nimiq look's drawing (nimiq.css), in its place: Nimiq identicons, the channels they write in and the lines between them (tour.js draws the lines). Not shown in the classic look. Identicon shapes: Nimiq's, MIT (assets/nimiq/identicons-LICENSE.txt). -->
-              <div class="tn" aria-hidden="true">
-                <svg class="tn-lines"><g class="tn-lines__ch"></g><g class="tn-lines__fab"></g></svg>
-                <span class="tn-ch" style="--i: 0">Reviews</span>
-                <span class="tn-ch" style="--i: 1">Chats</span>
-                <span class="tn-ch" style="--i: 2">DMs</span>
-                <span class="tn-user" style="--i: 0; --y: 50%" data-ch="0"><img src="assets/nimiq/identicon-1.svg" alt="" width="48" height="48" /></span>
-                <span class="tn-user" style="--i: 1; --y: 60%" data-ch="1"><img src="assets/nimiq/identicon-2.svg" alt="" width="48" height="48" /></span>
-                <span class="tn-user tn-user--stays" style="--i: 2; --y: 46%" data-ch="0"><img src="assets/nimiq/identicon-3.svg" alt="" width="48" height="48" /></span>
-                <span class="tn-user" style="--i: 3; --y: 57%" data-ch="2"><img src="assets/nimiq/identicon-4.svg" alt="" width="48" height="48" /></span>
-                <span class="tn-user" style="--i: 4; --y: 49%" data-ch="1"><img src="assets/nimiq/identicon-5.svg" alt="" width="48" height="48" /></span>
-              </div>
-              <span class="ti-board" aria-hidden="true"><b>Feedback</b><span>Everyone can see it</span><i class="tn-public">Public</i><i class="tn-row tn-row--bug" style="--i: 0"><em>Bug</em></i><i class="tn-row tn-row--idea" style="--i: 1"><em>Idea</em></i><i class="tn-row tn-row--bug" style="--i: 2"><em>Bug</em></i><i class="tn-row tn-row--idea" style="--i: 3"><em>Idea</em></i><i class="tn-row tn-row--bug" style="--i: 4"><em>Bug</em></i></span>
+              <span class="ti-board" aria-hidden="true"><b>Feedback</b><span>Everyone can see it</span><i class="nq-row nq-row--bug" style="--i: 0"><em>Bug</em>Save button does nothing</i><i class="nq-row nq-row--idea" style="--i: 1"><em>Idea</em>Dark mode</i><i class="nq-row nq-row--bug" style="--i: 2"><em>Bug</em>Buttons too small</i><i class="nq-row nq-row--idea" style="--i: 3"><em>Idea</em>Export to CSV</i></span>
               <span class="ti-fab" aria-hidden="true"></span>
               <svg class="ti-arrow ti-arrow--fab" viewBox="0 0 56 24" aria-hidden="true"><path d="M4 12H50M50 12l-9-8M50 12l-9 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
               <p class="ti-caption" aria-hidden="true"><b></b><span></span></p>
@@ -86,6 +89,7 @@
             <div class="tour-page">
               <p class="tour-tag"><svg width="18" height="16" viewBox="0 0 20 18" aria-hidden="true"><path fill="#ffb700" d="M19.734 8.156 15.576.844A1.66 1.66 0 0014.135 0H5.819C5.226 0 4.677.32 4.38.844L.222 8.156a1.71 1.71 0 000 1.688l4.158 7.312c.297.523.846.844 1.439.844h8.316c.593 0 1.142-.32 1.438-.844l4.158-7.312c.3-.523.3-1.165.003-1.688"/></svg>For Nimiq builders</p>
               <h1>Stop guessing what your users want.</h1>
+              <p class="nq-start nq-only"><small>01 / 06</small><b>Imagine this is your app.</b></p>
               <p class="lead">Free, open-source feedback for Nimiq builders. Live in minutes. And let users drive your roadmap.</p>
               <div class="tour-start">
                 <button type="button" class="btn" id="tour-watch"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.5v11a.75.75 0 0 0 1.14.64l9-5.5a.75.75 0 0 0 0-1.28l-9-5.5A.75.75 0 0 0 3 1.5z"/></svg>Watch demo</button>
@@ -116,7 +120,7 @@
     <footer class="foot">
       <div class="wrap">
         <div class="foot__row">
-          <p class="foot__who"><img src="assets/nimiq/hexagon.svg" alt="" width="16" height="14" /><b>For everyone building on Nimiq.</b> <span>Free and open source.</span></p>
+          <p class="foot__who"><img class="foot__classic" src="assets/nimiq/hexagon.svg" alt="" width="16" height="14" /><img class="foot__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="18" height="14" /><b>For everyone building on Nimiq.</b> <span>Free and open source.</span></p>
           <nav class="foot__links" aria-label="Links">
             <a href="https://nimiq.dev/">Nimiq docs</a><span aria-hidden="true">&middot;</span><a href="https://nimiq.dev/mini-apps/">Mini apps</a><span aria-hidden="true">&middot;</span><a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
           </nav>

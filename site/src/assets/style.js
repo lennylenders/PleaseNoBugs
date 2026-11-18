@@ -1,8 +1,8 @@
 /*
  * The site's two looks: PleaseNoBugs' own (dark purple, the default) and the
- * Nimiq Foundation's (navy and gold on white, assets/nimiq.css). A button in
- * the header flips between them, like a dark/light switch, and this browser
- * remembers the choice. Nothing leaves the browser.
+ * Nimiq Foundation's 2026 brand (navy and gold on white, assets/nimiq.css).
+ * A button in the header flips between them, like a dark/light switch, and
+ * this browser remembers the choice. Nothing leaves the browser.
  *
  * Loaded in <head>, before the page is drawn, so a visitor who chose Nimiq
  * never sees the purple first. A classic script, not a module: modules wait.
@@ -11,17 +11,15 @@
  * the other. Scripts that make widgets ask `PNBStyle.theme()`, and hear
  * `pnb:style` when it changes.
  *
- * Parked for the first version: everyone sees the classic look, the header
- * button stays hidden, and a Nimiq choice made earlier is not read. The
- * Nimiq look itself stays in the repo; set PARKED to false to bring it back.
+ * The tab's icon follows too: PleaseNoBugs' own in its look, the Nimiq
+ * hexagon in Nimiq's.
  */
 (function () {
-  var PARKED = true;
   var KEY = 'pnb-style';
+  var ICONS = { classic: 'assets/logo.svg', nimiq: 'assets/nimiq/hexagon-2026.svg' };
   var root = document.documentElement;
 
   function read() {
-    if (PARKED) return 'classic';
     try {
       return localStorage.getItem(KEY) === 'nimiq' ? 'nimiq' : 'classic';
     } catch (e) {
@@ -36,6 +34,12 @@
   var current = read();
   if (current === 'nimiq') root.setAttribute('data-style', 'nimiq');
 
+  /** The tab's icon, in the look's own. */
+  function icon() {
+    var link = document.querySelector('link[rel="icon"]');
+    if (link) link.setAttribute('href', ICONS[current]);
+  }
+
   /** What the button says: the look it switches to. */
   function label(btn) {
     var to = current === 'nimiq' ? 'Classic style' : 'Nimiq style';
@@ -48,6 +52,7 @@
     current = style === 'nimiq' ? 'nimiq' : 'classic';
     if (current === 'nimiq') root.setAttribute('data-style', 'nimiq');
     else root.removeAttribute('data-style');
+    icon();
     try {
       localStorage.setItem(KEY, current);
     } catch (e) {
@@ -76,7 +81,7 @@
   };
 
   function wire() {
-    if (PARKED) return;
+    icon();
     var buttons = document.querySelectorAll('[data-style-switch]');
     for (var i = 0; i < buttons.length; i++) {
       var btn = buttons[i];

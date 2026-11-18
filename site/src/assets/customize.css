@@ -668,3 +668,65 @@
   .try,
   .try__arrow { animation: none; }
 }
+
+/* ---- What can be tapped, lit up ------------------------------------------ */
+
+/* At the start of each step every tappable part glows a moment, twice, and
+   fades (customize.js, `glowParts`); the background only as an outline. */
+.glow {
+  position: absolute;
+  z-index: 2;
+  border: 2px solid var(--button);
+  border-radius: 14px;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 0 18px 2px color-mix(in srgb, var(--button) 55%, transparent);
+  animation: glow 2.2s ease-in-out forwards;
+}
+.glow--ground { box-shadow: none; border-style: dashed; }
+@keyframes glow {
+  15%, 35% { opacity: 1; }
+  50% { opacity: 0.35; }
+  65%, 80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glow { animation: glow-still 2.2s steps(1, end) forwards; }
+  @keyframes glow-still {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+}
+
+/* The rest of a tapped part's family: a line round each, without a name. */
+.mark--kin { z-index: 1; }
+.mark[hidden] { display: none; }
+
+/* An own colour by its hex: behind the any-colour dot, a swatch that also
+   opens the eye picker, "#", and the six digits. */
+.pick__own { border: 0; padding: 0; }
+.pick__own[aria-expanded='true'] { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px #fff; }
+.pick__hex { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.pick__hex[hidden] { display: none; }
+.pick__swatch {
+  position: relative;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  cursor: pointer;
+}
+.pick__swatch input { position: absolute; inset: -6px; width: 40px; height: 40px; opacity: 0; cursor: pointer; }
+.pick__hash { font-family: ui-monospace, Consolas, monospace; font-size: 14px; font-weight: 700; color: var(--sub); }
+.pick__hex-input.input {
+  width: 96px;
+  min-height: 32px;
+  height: 32px;
+  padding: 0 8px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 14px;
+  text-transform: lowercase;
+}
+.pick__hex-input[aria-invalid] { box-shadow: inset 0 0 0 2px #e5484d; }

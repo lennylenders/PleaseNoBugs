@@ -11,6 +11,12 @@
  * coloured stays grey. The steps: the way in, the button, the tiles, then
  * the board (most of the widget's colours are on it), writing, sent.
  *
+ * In the Nimiq look it is shorter, as there the feedback itself comes first
+ * and colouring it in comes later: no intro card, no colouring. Light or
+ * dark (the widget's `nimiq` or `nimiq-dark`, on two cards, with a third,
+ * greyed, "Customize your own", coming soon), then how it opens, then the
+ * code. Classic keeps every step.
+ *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
  * `localStorage`: the copied code is the only place a choice ends up.
  */
@@ -37,17 +43,24 @@ const STEPS = [
     intro: true,
     screen: '',
     hint: 'A feedback button that fits your app is one people actually tap.',
+    classicOnly: true,
   },
+  // The Nimiq look's first step instead: light or dark, nothing to colour.
+  { id: 'theme', name: 'Light or dark', screen: 'board', nimiqOnly: true },
   // The three ways side by side, each playing (`paintWays`).
   { id: 'opens', name: 'How it opens', screen: '' },
+  // The Nimiq look's third step, wide over the stage (`paintPanel`): where
+  // people use the app, which decides how they sign. The server and the code
+  // are left to the developer's AI agent, from the last step's prompt.
+  { id: 'runs', name: "Where it's used", screen: '', panel: true, nimiqOnly: true },
   // Only for the round button (`floatingOnly`): inline and overlay have none.
-  { id: 'button', name: 'The button', screen: 'button', floatingOnly: true },
-  { id: 'tiles', name: 'Tiles', screen: 'tiles' },
+  { id: 'button', name: 'The button', screen: 'button', floatingOnly: true, classicOnly: true },
+  { id: 'tiles', name: 'Tiles', screen: 'tiles', classicOnly: true },
   // The board right after the tiles: most of the widget's colours are on it.
-  { id: 'board', name: 'Board', screen: 'board' },
+  { id: 'board', name: 'Board', screen: 'board', classicOnly: true },
   // `reveal`: scrolled into view once, as the send button is at the foot of a long screen.
-  { id: 'writing', name: 'Writing', screen: 'write', reveal: '.send' },
-  { id: 'sent', name: 'Feedback sent!', screen: 'sent' },
+  { id: 'writing', name: 'Writing', screen: 'write', reveal: '.send', classicOnly: true },
+  { id: 'sent', name: 'Feedback sent!', screen: 'sent', classicOnly: true },
   { id: 'ready', name: "You're ready!", screen: '', live: true },
 ];
 
@@ -70,11 +83,47 @@ const FAMILIES = {
   '--pnb-fab': ['Button', 'the round button in the corner, nothing else'],
   '--pnb-on-fab': ['Icon', 'the sign on the round button'],
   '--pnb-bg': ['Background', 'the panel and the answer box under a post'],
-  '--pnb-surface': ['Cards', 'posts, filters, the field you type in, the chosen tab'],
+  '--pnb-surface': ['Filters', 'the filters and the chosen tab'],
   '--pnb-surface-2': ['Pills', 'badges, the vote button, the toggle when off'],
   '--pnb-sunken': ['Top / New switch', 'behind its two tabs'],
-  '--pnb-line': ['Lines', 'borders, empty stars, the screenshot box'],
-  '--pnb-text': ['Text', 'titles and what people wrote'],
+  '--pnb-line': ['Line', 'the line round the cards and the rating, and the empty stars'],
+  '--pnb-text': ['Text', 'the labels and other words of the widget'],
+  // Parts with a colour of their own, so a step never changes another.
+  '--pnb-choose-title': ['Question', 'the question above the tiles'],
+  '--pnb-title-board': ['Title', 'the title on the board'],
+  '--pnb-title-write': ['Title', 'the title above the form'],
+  '--pnb-card': ['Cards', 'the posts and the rating on the board'],
+  '--pnb-card-text': ['Text', 'the words in the posts and the rating'],
+  '--pnb-card-quiet': ['Small text', 'names, dates and counts in the posts'],
+  '--pnb-field': ['Field', 'every field you type in: the form, the search, an answer'],
+  '--pnb-field-text': ['Text', 'what is typed in a field'],
+  '--pnb-field-quiet': ['Hint', 'the hint in an empty field'],
+  '--pnb-field-line': ['Line', 'the line round every field'],
+  '--pnb-news': ['Notice', 'the note on top of the board, like "... answered your idea"'],
+  '--pnb-news-text': ['Text', 'the words of the note'],
+  '--pnb-news-link': ['Link', '"See the conversation" in the note'],
+  '--pnb-news-line': ['Line', 'the line round the note'],
+  '--pnb-news-quiet': ['Small text', 'the small words and the close in the note'],
+  '--pnb-filter-btn': ['Button', 'the Filter button beside the search'],
+  '--pnb-filter-btn-text': ['Text', 'the word and icon on the Filter button'],
+  '--pnb-filter-btn-line': ['Line', 'the line round the Filter button'],
+  '--pnb-bar-icon': ['Icons', 'close, back, updates and new post, in every bar'],
+  '--pnb-order': ['Switch', 'behind Top and New'],
+  '--pnb-order-on': ['Chosen', 'the chosen one of Top and New'],
+  '--pnb-on-order': ['Text', 'the chosen word of Top and New'],
+  '--pnb-order-text': ['Other word', 'the word not chosen'],
+  '--pnb-vote': ['Button', 'the vote button on a post'],
+  '--pnb-vote-text': ['Text', 'the count on the vote button'],
+  '--pnb-vote-on': ['Your vote', 'the vote button once you voted'],
+  '--pnb-on-vote-on': ['On your vote', 'the count once you voted'],
+  '--pnb-choose-link': ['Link', '"See the board" under the tiles'],
+  '--pnb-form-quiet': ['Small text', 'the small words in the form'],
+  '--pnb-switch': ['Off', 'a switch, like "Show my name", when off'],
+  '--pnb-switch-line': ['Line', 'the line round a switch when off'],
+  '--pnb-switch-knob': ['Knob', 'the knob of a switch when off'],
+  '--pnb-switch-on': ['On', 'a switch when on'],
+  '--pnb-on-switch-on': ['Knob on', 'the knob of a switch when on'],
+  '--pnb-shot-line': ['Line', 'the line round "Add screenshot"'],
   '--pnb-text-quiet': ['Quiet text', 'dates, names, notes, counts, links'],
   '--pnb-filter': ['Filter', 'the chosen filter at the top, and the chosen status when you answer'],
   '--pnb-bug': ['Tile', 'the Bug tile and its badge'],
@@ -101,7 +150,7 @@ const FAMILIES = {
  * The colours offered beside a part, six that suit what it is, so a quick
  * pick is nearly always readable; the seventh dot is any colour at all.
  */
-const PALETTES = {
+const CLASSIC_PALETTES = {
   bright: ['#e5484d', '#8b5cf6', '#e9a00b', '#1fc7d4', '#21bca5', '#3b82f6'],
   ground: ['#292a56', '#1b1b24', '#173b3f', '#ffffff', '#f4f1ea', '#e8ecf5'],
   cards: ['#5656ac', '#2e2e3a', '#245a5f', '#f4f4f7', '#ffffff', '#dfe4f2'],
@@ -109,6 +158,18 @@ const PALETTES = {
   lines: ['#6d6dc5', '#44455e', '#2f6f74', '#dcdce5', '#b9bfd3', '#ffffff'],
   sent: ['#21bca5', '#1fc7d4', '#8b5cf6', '#292a56', '#1b1b24', '#ffffff'],
 };
+/** The same rows in the Nimiq look: the 2026 brand's navy steps, white and its gold-to-red steps. */
+const NIMIQ_PALETTES = {
+  bright: ['#ffb700', '#cb0015', '#e93700', '#f27700', '#040724', '#828392'],
+  ground: ['#ffffff', '#040724', '#1d203a', '#fafaf8', '#fff8e4', '#f2f3f4'],
+  cards: ['#ffffff', '#fafaf8', '#f2f3f4', '#1d203a', '#363950', '#ffefc5'],
+  ink: ['#040724', '#ffffff', '#363950', '#686a7c', '#9b9ca7', '#ffc758'],
+  lines: ['#e6e6e9', '#cdcdd3', '#9b9ca7', '#363950', '#4f5166', '#ffd785'],
+  sent: ['#ffffff', '#040724', '#ffb700', '#fafaf8', '#1d203a', '#ffefc5'],
+};
+/** Whether the site wears the Nimiq look (assets/style.js). */
+const nimiqLook = () => document.documentElement.dataset.style === 'nimiq';
+const palettes = () => (nimiqLook() ? NIMIQ_PALETTES : CLASSIC_PALETTES);
 const PALETTE_OF = {
   '--pnb-fab': 'bright',
   '--pnb-on-fab': 'ink',
@@ -128,6 +189,33 @@ const PALETTE_OF = {
   '--pnb-sent-title': 'ink',
   '--pnb-surface': 'cards',
   '--pnb-text': 'ink',
+  '--pnb-choose-title': 'ink',
+  '--pnb-title-board': 'ink',
+  '--pnb-title-write': 'ink',
+  '--pnb-card': 'cards',
+  '--pnb-card-text': 'ink',
+  '--pnb-field': 'cards',
+  '--pnb-field-text': 'ink',
+  '--pnb-field-line': 'lines',
+  '--pnb-news': 'cards',
+  '--pnb-news-text': 'ink',
+  '--pnb-news-link': 'bright',
+  '--pnb-news-line': 'bright',
+  '--pnb-filter-btn': 'cards',
+  '--pnb-filter-btn-text': 'ink',
+  '--pnb-filter-btn-line': 'lines',
+  '--pnb-bar-icon': 'ink',
+  '--pnb-order': 'ground',
+  '--pnb-order-on': 'cards',
+  '--pnb-on-order': 'ink',
+  '--pnb-vote': 'cards',
+  '--pnb-vote-text': 'ink',
+  '--pnb-vote-on': 'bright',
+  '--pnb-choose-link': 'ink',
+  '--pnb-form-quiet': 'ink',
+  '--pnb-switch': 'cards',
+  '--pnb-switch-on': 'bright',
+  '--pnb-shot-line': 'lines',
   '--pnb-line': 'lines',
 };
 
@@ -145,6 +233,41 @@ const GREY = {
   '--pnb-sunken': '#3d3e50',
   '--pnb-line': '#6c6d84',
   '--pnb-text': '#d4d5e0',
+  '--pnb-choose-title': '#d4d5e0',
+  '--pnb-title-board': '#d4d5e0',
+  '--pnb-title-write': '#d4d5e0',
+  '--pnb-card': '#5d5e75',
+  '--pnb-card-text': '#d4d5e0',
+  '--pnb-card-quiet': '#a3a4b6',
+  '--pnb-field': '#5d5e75',
+  '--pnb-field-text': '#d4d5e0',
+  '--pnb-field-quiet': '#a3a4b6',
+  '--pnb-field-line': '#6c6d84',
+  '--pnb-news': '#56576d',
+  '--pnb-news-text': '#d4d5e0',
+  '--pnb-news-link': '#a3a4b6',
+  '--pnb-news-line': '#7d7e95',
+  '--pnb-news-quiet': '#a3a4b6',
+  '--pnb-filter-btn': '#5d5e75',
+  '--pnb-filter-btn-text': '#d4d5e0',
+  '--pnb-filter-btn-line': '#6c6d84',
+  '--pnb-bar-icon': '#d4d5e0',
+  '--pnb-order': '#3d3e50',
+  '--pnb-order-on': '#5d5e75',
+  '--pnb-on-order': '#d4d5e0',
+  '--pnb-order-text': '#a3a4b6',
+  '--pnb-vote': '#56576d',
+  '--pnb-vote-text': '#d4d5e0',
+  '--pnb-vote-on': '#7d7e95',
+  '--pnb-on-vote-on': '#ffffff',
+  '--pnb-choose-link': '#a3a4b6',
+  '--pnb-form-quiet': '#a3a4b6',
+  '--pnb-switch': '#56576d',
+  '--pnb-switch-line': '#6c6d84',
+  '--pnb-switch-knob': 'rgba(255, 255, 255, 0.6)',
+  '--pnb-switch-on': '#7d7e95',
+  '--pnb-on-switch-on': '#ffffff',
+  '--pnb-shot-line': '#6c6d84',
   '--pnb-text-quiet': '#a3a4b6',
   '--pnb-filter': '#7d7e95',
   '--pnb-bug': '#6c6d84',
@@ -176,7 +299,37 @@ const DERIVED = {
   '--pnb-filter': (c) => c['--pnb-text'],
   '--pnb-sent-note': (c) => c['--pnb-sent-title'] && `color-mix(in srgb, ${c['--pnb-sent-title']} 85%, transparent)`,
   '--pnb-text-quiet': (c) => c['--pnb-text'] && `color-mix(in srgb, ${c['--pnb-text']} 75%, transparent)`,
-  '--pnb-surface-2': (c) => c['--pnb-surface'] && `color-mix(in srgb, ${c['--pnb-surface']}, ${c['--pnb-bg'] ?? GREY['--pnb-bg']} 45%)`,
+  '--pnb-card-quiet': (c) => c['--pnb-card-text'] && `color-mix(in srgb, ${c['--pnb-card-text']} 75%, transparent)`,
+  // What is typed reads on the field picked, black or white, till its own is picked; the hint is a lighter one.
+  '--pnb-field-text': (c) => c['--pnb-field'] && readableOn(c['--pnb-field']),
+  '--pnb-field-quiet': (c) => {
+    const typed = c['--pnb-field-text'] || (c['--pnb-field'] && readableOn(c['--pnb-field']));
+    return typed && `color-mix(in srgb, ${typed} 55%, transparent)`;
+  },
+  // The note's words read on the note picked, till their own is picked; its small words are lighter.
+  '--pnb-news-text': (c) => c['--pnb-news'] && readableOn(c['--pnb-news']),
+  '--pnb-news-quiet': (c) => {
+    const words = c['--pnb-news-text'] || (c['--pnb-news'] && readableOn(c['--pnb-news']));
+    return words && `color-mix(in srgb, ${words} 70%, transparent)`;
+  },
+  // The Filter button's word reads on it till its own is picked.
+  '--pnb-filter-btn-text': (c) => c['--pnb-filter-btn'] && readableOn(c['--pnb-filter-btn']),
+  // Top / New: the chosen word reads on the chosen half, the other on the trough.
+  '--pnb-on-order': (c) => c['--pnb-order-on'] && readableOn(c['--pnb-order-on']),
+  '--pnb-order-text': (c) => c['--pnb-order'] && `color-mix(in srgb, ${readableOn(c['--pnb-order'])} 65%, transparent)`,
+  // The vote's count reads on the vote, and on your vote.
+  '--pnb-vote-text': (c) => c['--pnb-vote'] && readableOn(c['--pnb-vote']),
+  '--pnb-on-vote-on': (c) => c['--pnb-vote-on'] && readableOn(c['--pnb-vote-on']),
+  // A switch: no line of its own, a knob that reads on it, off and on.
+  '--pnb-switch-line': (c) => c['--pnb-switch'],
+  '--pnb-switch-knob': (c) => c['--pnb-switch'] && `color-mix(in srgb, ${readableOn(c['--pnb-switch'])} 70%, transparent)`,
+  '--pnb-on-switch-on': (c) => c['--pnb-switch-on'] && readableOn(c['--pnb-switch-on']),
+  // The filters and the chosen tab go with the cards.
+  '--pnb-surface': (c) => c['--pnb-card'],
+  '--pnb-surface-2': (c) => {
+    const surface = c['--pnb-surface'] ?? c['--pnb-card'];
+    return surface && `color-mix(in srgb, ${surface}, ${c['--pnb-bg'] ?? GREY['--pnb-bg']} 45%)`;
+  },
   '--pnb-sunken': (c) => c['--pnb-bg'] && `color-mix(in srgb, ${c['--pnb-bg']}, #000 38%)`,
   '--pnb-star': (c) => c['--pnb-review'],
   // Each tile's words: white, as in the design, unless the tile is a light
@@ -188,9 +341,9 @@ const DERIVED = {
     ]),
   ),
   // The statuses keep the theme's own, once the board has colours of its own.
-  '--pnb-planned': (c) => (c['--pnb-surface'] ? null : undefined),
-  '--pnb-done': (c) => (c['--pnb-surface'] ? null : undefined),
-  '--pnb-declined': (c) => (c['--pnb-surface'] ? null : undefined),
+  '--pnb-planned': (c) => (c['--pnb-card'] ? null : undefined),
+  '--pnb-done': (c) => (c['--pnb-card'] ? null : undefined),
+  '--pnb-declined': (c) => (c['--pnb-card'] ? null : undefined),
 };
 
 /**
@@ -219,17 +372,24 @@ const TARGETS = {
   button: [['.fab', { name: 'The button', colours: ['--pnb-fab', '--pnb-on-fab'] }]],
   tiles: [
     ['.backdrop', null],
+    ['.bar .icon-btn', { name: 'Icons', colours: ['--pnb-bar-icon'] }],
     ['.tile--bug', { name: 'Bug tile', colours: ['--pnb-bug', '--pnb-tile-ink-bug', '--pnb-tile-glyph-bug'], words: ['board.tileBug'], kinds: true }],
     ['.tile--idea', { name: 'Idea tile', colours: ['--pnb-idea', '--pnb-tile-ink-idea', '--pnb-tile-glyph-idea'], words: ['board.tileIdea'], kinds: true }],
     ['.tile--review', { name: 'Review tile', colours: ['--pnb-review', '--pnb-tile-ink-review', '--pnb-tile-glyph-review'], words: ['board.tileReview'], kinds: true }],
-    ['.choose__title', { name: 'Title', colours: ['--pnb-text'], words: ['board.chooseTitle'] }],
+    ['.choose__title', { name: 'Question', colours: ['--pnb-choose-title'], words: ['board.chooseTitle'] }],
+    ['.choose__board .text-btn', { name: 'Link', colours: ['--pnb-choose-link'] }],
     ['*', { name: 'Background', colours: ['--pnb-bg'] }],
   ],
   write: [
     ['.backdrop', null],
+    ['.bar .icon-btn', { name: 'Icons', colours: ['--pnb-bar-icon'] }],
     ['.send .btn', { name: 'Send button', colours: ['accent'] }],
-    ['.shot', { name: 'Screenshots', shots: true }],
-    ['.bar__title', { name: 'Title', colours: ['--pnb-text'] }],
+    ['.switch', { name: 'Switch', colours: ['--pnb-switch', '--pnb-switch-on'] }],
+    ['.public, .count, .note, .left', { name: 'Small text', colours: ['--pnb-form-quiet'] }],
+    ['.shot', { name: 'Screenshots', colours: ['--pnb-shot-line'], shots: true }],
+    ['.bar__title', { name: 'Title', colours: ['--pnb-title-write'] }],
+    ['.field, .compose .input', { name: 'Field', colours: ['--pnb-field', '--pnb-field-text', '--pnb-field-line'] }],
+    ['.label, .switch-row__label, .compose__kind', { name: 'Text', colours: ['--pnb-text'] }],
     ['*', { name: 'Background', colours: ['--pnb-bg'] }],
   ],
   sent: [
@@ -240,11 +400,18 @@ const TARGETS = {
   ],
   board: [
     ['.backdrop', null],
-    ['.bar__title', { name: 'Title', colours: ['--pnb-text'], words: ['board.title'] }],
+    ['.bar .icon-btn', { name: 'Icons', colours: ['--pnb-bar-icon'] }],
+    ['.order', { name: 'Top / New', colours: ['--pnb-order', '--pnb-order-on', '--pnb-on-order'] }],
+    ['.vote:not(.vote--count)', { name: 'Vote button', colours: ['--pnb-vote', '--pnb-vote-text', '--pnb-vote-on'] }],
+    ['.news', { name: 'Notice', colours: ['--pnb-news', '--pnb-news-text', '--pnb-news-link', '--pnb-news-line'] }],
+    ['.bar__title', { name: 'Title', colours: ['--pnb-title-board'], words: ['board.title'] }],
     ['.card__reply-who', { name: 'Above your answers', words: ['board.reply'] }],
-    ['.card__text, .rating__avg', { name: 'Text', colours: ['--pnb-text'] }],
-    ['.search, .filter-btn', { name: 'Lines', colours: ['--pnb-line'] }],
-    ['.card, .rating', { name: 'Cards', colours: ['--pnb-surface'] }],
+    ['.card__text, .rating__avg', { name: 'Text in the posts', colours: ['--pnb-card-text'] }],
+    // The search is a field like every field you type in: the same colours.
+    ['.search', { name: 'Field', colours: ['--pnb-field', '--pnb-field-text', '--pnb-field-line'] }],
+    ['.filter-btn', { name: 'Filter button', colours: ['--pnb-filter-btn', '--pnb-filter-btn-text', '--pnb-filter-btn-line'] }],
+    // All the posts and the rating are one family: one tap colours them all.
+    ['.card, .rating', { name: 'Cards', colours: ['--pnb-card', '--pnb-line'] }],
     ['*', { name: 'Background', colours: ['--pnb-bg'] }],
   ],
 };
@@ -269,6 +436,8 @@ const FAB = ['--pnb-fab', '--pnb-on-fab'];
  * towards the bottom, as the theme's own does.
  */
 function paint() {
+  // The Nimiq look: the theme's own colours, none set on top.
+  if (nimiqLook()) return {};
   const c = state.colours;
   const out = {};
   for (const name of Object.keys(FAMILIES)) {
@@ -285,7 +454,7 @@ function paint() {
 }
 
 /** The send button's colour, the widget's `accent`: picked, or grey. */
-const accent = () => state.accent || GREY.accent;
+const accent = () => (nimiqLook() ? '' : state.accent || GREY.accent);
 
 /**
  * The words on a tile: white, as on the design's bright tiles (red, purple,
@@ -333,11 +502,12 @@ const beside = window.matchMedia('(min-width: 980px)');
 
 /**
  * The widget has other themes, but the configurator offers the one the site
- * wears: PleaseNoBugs' own colours, or Nimiq's with the header's style
- * switch (assets/style.js). Each colour can be changed. The code still names
- * it, so an app gets these colours and not the widget's light default.
+ * wears: PleaseNoBugs' own colours, where each colour can be changed, or in
+ * the Nimiq look (the header's style switch, assets/style.js) Nimiq's, light
+ * or dark as picked. The code still names it, so an app gets these colours
+ * and not the widget's light default.
  */
-const theme = () => window.PNBStyle?.theme() ?? 'pleasenobugs';
+const theme = () => (nimiqLook() ? (state.dark ? 'nimiq-dark' : 'nimiq') : (window.PNBStyle?.theme() ?? 'pleasenobugs'));
 
 const state = {
   mode: 'floating',
@@ -347,17 +517,53 @@ const state = {
   accent: '',
   colours: {},
   strings: {},
+  /** The Nimiq look's pick: `nimiq-dark` rather than `nimiq`. */
+  dark: false,
+  /** What the visitor's server printed, typed in on the last step (the Nimiq look), for the code. Never saved. */
+  project: '',
+  server: '',
+  /** Where the app runs (the Nimiq look): `pay`, only in Nimiq Pay, or `browser`, which needs a signer. */
+  runs: '',
+  /**
+   * The Nimiq look's steps go on only once something is chosen (`blocked`):
+   * whether light or dark was picked, and how it opens; that the server will
+   * come later; that one of the ways in was copied.
+   */
+  pickedTheme: false,
+  pickedMode: false,
 };
 
+/** A server address as one prints it: https, and a host with a dot. */
+
+/**
+ * Why Next waits on this step, in the Nimiq look, or '' when it may go on.
+ * Said in the bar beside the step's name.
+ */
+function blocked() {
+  if (!nimiqLook()) return '';
+  if (at === 'theme' && !state.pickedTheme) return 'Pick light or dark to go on.';
+  if (at === 'opens' && !state.pickedMode) return 'Pick how it opens to go on.';
+  if (at === 'runs' && !state.runs) return "Pick where it's used to go on.";
+  return '';
+}
+
+/**
+ * Whether the widget takes its own taps. In the last step, and in the
+ * Nimiq look in every step: there is nothing to colour in there, so the
+ * widget is there to be tried.
+ */
+const tryable = () => previewing || nimiqLook();
+
 /** The step on screen, by id, and whether the widget is being tried out. */
-let at = 'intro';
+let at = nimiqLook() ? 'theme' : 'intro';
 let previewing = false;
 
 /** The widget in the box. */
 let board = null;
 
-/** The steps there are for the current choices: no button step without a round button. */
-const route = () => STEPS.filter((s) => !s.floatingOnly || state.mode === 'floating');
+/** The steps there are for the look and the choices: no button step without a round button. */
+const route = () =>
+  STEPS.filter((s) => (nimiqLook() ? !s.classicOnly : !s.nimiqOnly) && (!s.floatingOnly || state.mode === 'floating'));
 const step = () => STEPS.find((s) => s.id === at);
 
 /**
@@ -370,7 +576,8 @@ let hovered = null;
 
 /** What `path` (a tap's or the pointer's, through the shadow root) is on, or null. */
 function targetAt(path) {
-  if (!board || !path.includes(board)) return null;
+  // Nothing is coloured in the Nimiq look, so nothing to tap.
+  if (nimiqLook() || !board || !path.includes(board)) return null;
   const inside = path.filter((n) => n instanceof Element && n !== board);
   for (const [sel, what] of TARGETS[step().screen] ?? []) {
     const el = sel === '*' ? board.shadowRoot.querySelector('.app') : inside.find((n) => n.matches(sel));
@@ -533,6 +740,9 @@ const PLAYS = {
  * 640px, the whole app below that, as the widget opens.
  */
 const SKETCH_COLOURS = ['#e5484d', '#8b5cf6', '#e9a00b', '#1fc7d4', '#21bca5', '#292a56'];
+/** In the Nimiq look: a red bug, a gold idea, a grey review, the gold button, a white ground. */
+const NIMIQ_SKETCH_COLOURS = ['#cb0015', '#ffc758', '#4f5166', '#ffb700', '#e93700', '#ffffff'];
+const sketchColours = () => (nimiqLook() ? NIMIQ_SKETCH_COLOURS : SKETCH_COLOURS);
 /** What the cursor colours, in order, with the name its line shows and the colour it picks. */
 const SKETCH_STEPS = [
   { part: 'button', name: 'Button', colour: 3 },
@@ -542,8 +752,9 @@ const SKETCH_STEPS = [
   { part: 'panel', name: 'Background', colour: 5 },
 ];
 const SKETCH_TILE = '<i class="sk-icon"></i><i class="sk-word"></i>';
-const paintColour = (part) => `--c: ${SKETCH_COLOURS[SKETCH_STEPS.find((s) => s.part === part).colour]}`;
-const INTRO_PLAY = `${app()}<div class="pl-dim"></div>
+const paintColour = (part) => `--c: ${sketchColours()[SKETCH_STEPS.find((s) => s.part === part).colour]}`;
+/** Written when it plays, so it is in the colours of the look the site wears then. */
+const introPlay = () => `${app()}<div class="pl-dim"></div>
   <div class="sketch">
     <div class="sk-panel" data-sk="panel" style="${paintColour('panel')}">
       <div class="sk-bar"><i class="sk-x"></i></div>
@@ -557,12 +768,12 @@ const INTRO_PLAY = `${app()}<div class="pl-dim"></div>
     </div>
     <span class="sk-fab" data-sk="button" style="${paintColour('button')}">${GLYPH}</span>
     <div class="sk-mark"><span class="sk-mark__tag"></span></div>
-    <div class="sk-pick">${SKETCH_COLOURS.map((c) => `<i style="--c: ${c}"></i>`).join('')}<i class="sk-own"></i></div>
+    <div class="sk-pick">${sketchColours().map((c) => `<i style="--c: ${c}"></i>`).join('')}<i class="sk-own"></i></div>
     <span class="sk-tap"></span>
     <span class="sk-cursor"><svg width="22" height="26" viewBox="0 0 22 26" aria-hidden="true"><path d="M2 2v19.5l5.2-4.9 3.6 7.9 3.6-1.6-3.5-7.7H18z" fill="#fff" stroke="#12132b" stroke-width="2" stroke-linejoin="round"/></svg></span>
   </div>`;
-PLAYS.phone.intro = INTRO_PLAY;
-PLAYS.desk.intro = INTRO_PLAY;
+Object.defineProperty(PLAYS.phone, 'intro', { get: introPlay, enumerable: true });
+Object.defineProperty(PLAYS.desk, 'intro', { get: introPlay, enumerable: true });
 
 /**
  * Play the sketch in `root` for as long as it is on the page. With less
@@ -718,6 +929,8 @@ function paintDevice() {
     device = null;
   }
   paintWays();
+  paintThemes();
+  paintPanel();
   if (!mode) return;
   if (!device) {
     device = document.createElement('div');
@@ -774,7 +987,8 @@ function paintWays() {
     const card = waysTrack.querySelector(`[data-way="${state.mode}"]`);
     waysTrack.scrollLeft = card.offsetLeft - (waysTrack.clientWidth - card.offsetWidth) / 2;
   }
-  for (const card of waysTrack.children) card.setAttribute('aria-pressed', String(card.dataset.way === state.mode));
+  const shown = !nimiqLook() || state.pickedMode;
+  for (const card of waysTrack.children) card.setAttribute('aria-pressed', String(shown && card.dataset.way === state.mode));
   for (const w of waysTrack.querySelectorAll('please-no-bugs')) {
     apply(w, 'inline', 'tiles');
     still(w);
@@ -808,15 +1022,44 @@ waysDots.addEventListener('click', (e) => {
   if (n >= 0) waysTrack.children[n].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 });
 
+// ---- Light or dark: the Nimiq look's first step ---------------------------
+
+/**
+ * Two cards, Light and Dark, each with a small board in its colours; the
+ * widget in the app takes the one tapped. A third card, greyed, says making
+ * your own is coming: it does nothing.
+ */
+const themes = document.getElementById('themes');
+
+function paintThemes() {
+  themes.hidden = !(at === 'theme' && !previewing);
+  for (const card of themes.querySelectorAll('[data-theme]')) {
+    card.setAttribute('aria-pressed', String(state.pickedTheme && (card.dataset.theme === 'dark') === state.dark));
+  }
+}
+
+themes.addEventListener('click', (e) => {
+  const card = e.target.closest('[data-theme]');
+  if (!card) return;
+  state.dark = card.dataset.theme === 'dark';
+  state.pickedTheme = true;
+  update();
+});
+
 /** Show it another way: Button, Inline or Overlay. The button's step comes or goes with it. */
 function setMode(mode) {
   state.mode = mode;
+  state.pickedMode = true;
   mount();
   update();
 }
 
-// The header's style switch: the widgets and the code take the other theme.
-document.addEventListener('pnb:style', () => update());
+// The header's style switch: the widgets and the code take the other theme,
+// and a step the other look has not goes to that look's first.
+document.addEventListener('pnb:style', () => {
+  if (!route().some((s) => s.id === at)) go(route()[0].id);
+  update();
+});
 
 function update() {
   if (board) apply(board);
@@ -849,11 +1092,13 @@ function go(id) {
     tried = false;
     screen.classList.toggle('screen--live', live);
     mount();
-    if (live && forward) cheer("You're ready!");
+    // The Nimiq look says it in the card itself, plainly (`paintDone`).
+    if (live && forward && !nimiqLook()) cheer("You're ready!");
   } else if (board) apply(board);
   paintDevice();
   paintPick();
   watch();
+  glowParts();
 }
 
 const bar = document.getElementById('stepbar');
@@ -878,19 +1123,29 @@ function paintSteps() {
   deck.classList.toggle('deck--ready', !!step().live);
   document.getElementById('count').textContent = `Step ${i + 1} of ${steps.length}`;
   document.getElementById('short').textContent = `· ${step().name}`;
-  document.getElementById('step-name').textContent = step().name;
+  document.getElementById('step-name').textContent =
+    nimiqLook() && step().live ? 'Your widget is ready to add.' : step().name;
   document.getElementById('bars').innerHTML = steps
     .map((s, n) => `<i class="${n < i ? 'done' : n === i ? 'now' : ''}"></i>`)
     .join('');
-  document.getElementById('hint').textContent = step().live
-    ? READY_HINT[beside.matches ? 'side' : 'under']
-    : (step().hint ?? '');
+  document.getElementById('hint').textContent =
+    nimiqLook() && step().live
+      ? `Hand your choices to your AI agent: it asks you the rest and adds it to your app. Try it ${beside.matches ? 'on the right' : 'above'} meanwhile.`
+      : step().live
+        ? READY_HINT[beside.matches ? 'side' : 'under']
+        : (step().hint ?? '');
   backBtn.hidden = i <= 0;
   nextBtn.hidden = true;
-  document.getElementById('bar-name').innerHTML = `<b>${step().name}</b> · ${i + 1} of ${steps.length}`;
+  // Nothing before the first step (the Nimiq look has no intro to go back to).
+  barBack.hidden = route().findIndex((s) => s.id === at) <= 0;
+  const why = blocked();
+  document.getElementById('bar-name').innerHTML =
+    `<b>${step().name}</b> · ${i + 1} of ${steps.length}` + (why ? `<span class="stepbar__why">${why}</span>` : '');
   const after = steps[i + 1];
-  barNext.textContent = after?.live ? 'Done →' : 'Next →';
-  barNext.title = after ? `Next: ${after.name}` : '';
+  barNext.textContent = after?.live ? (nimiqLook() ? 'Finish →' : 'Done →') : 'Next →';
+  // Where it runs is a choice to make: on from it once made.
+  barNext.disabled = !!why;
+  barNext.title = why || (after ? `Next: ${after.name}` : '');
   measureDeck();
 }
 
@@ -941,6 +1196,8 @@ const SPREAD = 190;
 const FALL = 320;
 /** The site's palette, and the tiles'. */
 const PAPER = ['#1fc7d4', '#21bca5', '#e9a00b', '#e5484d', '#8b5cf6', '#ffffff'];
+/** The Nimiq look's: gold, navy, the red step and white. */
+const NIMIQ_PAPER = ['#ffb700', '#ffc758', '#040724', '#e93700', '#cdcdd3', '#ffffff'];
 
 /**
  * One line of good news over the whole page, with a burst of paper from its
@@ -970,7 +1227,7 @@ function cheer(line) {
   for (let i = 0; i < PIECES; i++) {
     const bit = document.createElement('i');
     if (i % 3 === 0) bit.className = 'round';
-    bit.style.background = PAPER[i % PAPER.length];
+    bit.style.background = (nimiqLook() ? NIMIQ_PAPER : PAPER)[i % PAPER.length];
     paper.append(bit);
     // Even all round, jittered, so it is a burst and not the spokes of a wheel.
     const angle = (i / PIECES) * Math.PI * 2 + Math.random() * 0.6;
@@ -1022,7 +1279,7 @@ screen.addEventListener('pointerdown', (e) => (downAt = { x: e.clientX, y: e.cli
 screen.addEventListener(
   'pointerup',
   (e) => {
-    if (previewing || !board || !downAt) return;
+    if (tryable() || !board || !downAt) return;
     const moved = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y);
     downAt = null;
     if (moved < 8) tapAt(e.composedPath());
@@ -1032,7 +1289,7 @@ screen.addEventListener(
 screen.addEventListener(
   'click',
   (e) => {
-    if (previewing || !board) return;
+    if (tryable() || !board) return;
     const path = e.composedPath();
     if (!path.includes(board)) return;
     e.preventDefault();
@@ -1045,7 +1302,7 @@ screen.addEventListener(
 
 /** With a mouse, the line and the part's name follow the pointer: what a tap would open. */
 screen.addEventListener('pointermove', (e) => {
-  if (e.pointerType !== 'mouse' || previewing) return;
+  if (e.pointerType !== 'mouse' || tryable()) return;
   const t = targetAt(e.composedPath());
   if (t?.el === hovered?.el) return;
   hovered = t;
@@ -1059,7 +1316,59 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && tapped) closePick();
 });
 
+// ---- What can be tapped, lit up ------------------------------------------
+
+/**
+ * At the start of each step every part that can be tapped lights up a
+ * moment, together, so it is plain that the widget itself is what you
+ * change, on a phone too, where nothing follows a pointer. Once the widget
+ * has drawn the step's screen; gone at the first tap.
+ */
+let glowing = 0;
+function glowParts() {
+  clearGlow();
+  const parts = TARGETS[step().screen];
+  if (!parts || previewing || nimiqLook()) return;
+  const token = ++glowing;
+  setTimeout(() => {
+    const root = board?.shadowRoot;
+    if (token !== glowing || !root) return;
+    const vb = viewport.getBoundingClientRect();
+    const box = screen.getBoundingClientRect();
+    const els = new Set();
+    for (const [sel, what] of parts) {
+      if (!what) continue;
+      for (const el of sel === '*' ? [root.querySelector('.app')] : root.querySelectorAll(sel)) if (el) els.add(el);
+    }
+    for (const el of els) {
+      const r = el.getBoundingClientRect();
+      // Only what is in view.
+      if (!r.width || !r.height || r.bottom < box.top + 8 || r.top > box.bottom - 8) continue;
+      const g = document.createElement('div');
+      g.className = el.matches('.app') ? 'glow glow--ground' : 'glow';
+      g.setAttribute('aria-hidden', 'true');
+      const top = Math.max(r.top, box.top);
+      const bottom = Math.min(r.bottom, box.bottom);
+      Object.assign(g.style, {
+        left: `${r.left - vb.left - 3}px`,
+        top: `${top - vb.top - 3}px`,
+        width: `${r.width + 6}px`,
+        height: `${bottom - top + 6}px`,
+      });
+      viewport.append(g);
+    }
+    setTimeout(() => token === glowing && clearGlow(), 2400);
+  }, 550);
+}
+
+function clearGlow() {
+  for (const g of viewport.querySelectorAll('.glow')) g.remove();
+}
+
 function openTarget(t) {
+  // Found: the parts need not light up any more.
+  glowing++;
+  clearGlow();
   tapped = t;
   hovered = null;
   fillPick();
@@ -1138,6 +1447,42 @@ screen.addEventListener(
   true,
 );
 
+/**
+ * A part with family, like the posts on the board, has a line round every
+ * one of them in view, not only the one under the finger: one colour paints
+ * them all. Without a name tag; the part itself has that.
+ */
+const kin = [];
+function paintKin(t, box) {
+  const root = board?.shadowRoot;
+  const others = t && root && t.sel !== '*' ? [...root.querySelectorAll(t.sel)].filter((el) => el !== t.el) : [];
+  let n = 0;
+  for (const el of others) {
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height || r.bottom < box.top + 4 || r.top > box.bottom - 4) continue;
+    let line = kin[n];
+    if (!line) {
+      line = document.createElement('div');
+      line.className = 'mark mark--kin';
+      line.setAttribute('aria-hidden', 'true');
+      viewport.append(line);
+      kin.push(line);
+    }
+    const top = Math.max(box.top, r.top - 6);
+    const bottom = Math.min(box.bottom - 2, r.bottom + 6);
+    Object.assign(line.style, {
+      left: `${Math.max(box.left, r.left - 6) - box.left}px`,
+      top: `${top - box.top}px`,
+      width: `${Math.min(box.right, r.right + 6) - Math.max(box.left, r.left - 6)}px`,
+      height: `${Math.max(0, bottom - top)}px`,
+    });
+    line.classList.toggle('mark--hover', !tapped);
+    line.hidden = false;
+    n++;
+  }
+  for (const line of kin.slice(n)) line.hidden = true;
+}
+
 function placeMark() {
   paintTry();
   const root = board?.shadowRoot;
@@ -1155,11 +1500,13 @@ function placeMark() {
   const r = t?.el?.getBoundingClientRect();
   if (!r || !r.width || !r.height) {
     mark.hidden = true;
+    paintKin(null);
     // A tile switched off is gone, but its box stays open where it was.
     if (!tapped) pick.hidden = true;
     return;
   }
   const box = screen.getBoundingClientRect();
+  paintKin(t, box);
   const pad = 6;
   const left = Math.max(box.left, r.left - pad);
   const top = Math.max(box.top, r.top - pad);
@@ -1205,12 +1552,17 @@ function fillPick() {
   const rows = (what.colours ?? [])
     .map((name) => {
       const [label] = FAMILIES[name];
-      const dots = PALETTES[PALETTE_OF[name]]
+      const dots = palettes()[PALETTE_OF[name]]
         .map((c) => `<button type="button" class="pick__dot" data-pick="${c}" style="--c: ${c}" aria-label="${label}: ${c}"></button>`)
         .join('');
       return `<div class="pick__row" data-for="${name}">
         ${what.colours.length > 1 ? `<span class="pick__label">${label}</span>` : ''}
-        <div class="pick__dots">${dots}<label class="pick__own" title="Your own colour"><input type="color" data-own aria-label="Your own colour for ${label}" /></label></div>
+        <div class="pick__dots">${dots}<button type="button" class="pick__own" data-own-open aria-expanded="false" title="Your own colour" aria-label="Your own colour for ${label}"></button></div>
+        <div class="pick__hex" hidden>
+          <label class="pick__swatch" title="Pick it by eye"><input type="color" data-own aria-label="Pick ${label} by eye" /></label>
+          <span class="pick__hash" aria-hidden="true">#</span>
+          <input class="input pick__hex-input" data-hex maxlength="7" placeholder="e5484d" spellcheck="false" autocomplete="off" aria-label="${label} as a hex colour" />
+        </div>
       </div>`;
     })
     .join('');
@@ -1239,10 +1591,20 @@ function paintPick() {
   for (const row of pick.querySelectorAll('[data-for]')) {
     const name = row.dataset.for;
     const value = (name === 'accent' ? state.accent : state.colours[name]) || '';
-    const own = !!value && !PALETTES[PALETTE_OF[name]].includes(value);
+    const own = !!value && !palettes()[PALETTE_OF[name]].includes(value);
     for (const b of row.querySelectorAll('[data-pick]')) b.classList.toggle('is-on', b.dataset.pick === value);
     row.querySelector('.pick__own').classList.toggle('is-on', own);
-    row.querySelector('[data-own]').value = toHex(value) ?? '#888888';
+    const hex = toHex(value);
+    row.querySelector('[data-own]').value = hex ?? '#888888';
+    row.querySelector('.pick__swatch').style.background = hex ?? 'transparent';
+    // The hex field shows the colour as it is, but never fights the one typing in it.
+    const field = row.querySelector('[data-hex]');
+    if (document.activeElement !== field) {
+      field.value = hex ? hex.slice(1) : '';
+      field.removeAttribute('aria-invalid');
+    }
+    // An own colour opens with its hex in view.
+    if (own) openHex(row, true);
   }
   for (const k of pick.querySelectorAll('[data-kind]')) k.checked = state.kinds.includes(k.dataset.kind);
   for (const s of pick.querySelectorAll('[name=pick-shots]')) s.checked = s.value === state.screenshots;
@@ -1287,15 +1649,51 @@ function setColour(part, value) {
   update();
 }
 
+/** Open or close a colour row's hex field, behind its any-colour dot. */
+function openHex(row, open) {
+  const hex = row.querySelector('.pick__hex');
+  if (hex.hidden === !open) return;
+  hex.hidden = !open;
+  row.querySelector('[data-own-open]').setAttribute('aria-expanded', String(open));
+  // The box grew or shrank: keep it in the screen.
+  placeMark();
+}
+
+// Left, the hex field writes the colour out in full, as it is now.
+pick.addEventListener('focusout', (e) => {
+  if (e.target.matches('[data-hex]')) setTimeout(paintPick);
+});
+
+/** `e5484d`, `#E5484D` or `f00` as `#e5484d`, or null when it is no colour yet. */
+function readHex(text) {
+  const h = text.trim().replace(/^#/, '').toLowerCase();
+  if (/^[0-9a-f]{6}$/.test(h)) return `#${h}`;
+  if (/^[0-9a-f]{3}$/.test(h)) return `#${[...h].map((c) => c + c).join('')}`;
+  return null;
+}
+
 pick.addEventListener('click', (e) => {
   if (e.target.closest('[data-close]')) return closePick();
+  const toggle = e.target.closest('[data-own-open]');
+  if (toggle) {
+    const row = toggle.closest('[data-for]');
+    const open = row.querySelector('.pick__hex').hidden;
+    openHex(row, open);
+    if (open) row.querySelector('[data-hex]').focus();
+    return;
+  }
   const dot = e.target.closest('[data-pick]');
   if (dot) setColour(dot.closest('[data-for]').dataset.for, dot.dataset.pick);
 });
 pick.addEventListener('input', (e) => {
   const t = e.target;
   if (t.matches('[data-own]')) setColour(t.closest('[data-for]').dataset.for, t.value);
-  else if (t.matches('[data-string]')) {
+  else if (t.matches('[data-hex]')) {
+    // Applied as soon as it is a whole colour; till then the field says so.
+    const colour = readHex(t.value);
+    t.toggleAttribute('aria-invalid', !colour && t.value.trim().length >= 3);
+    if (colour) setColour(t.closest('[data-for]').dataset.for, colour);
+  } else if (t.matches('[data-string]')) {
     if (t.value.trim()) state.strings[t.dataset.string] = t.value;
     else delete state.strings[t.dataset.string];
     update();
@@ -1374,11 +1772,11 @@ const attr = (v) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</
 
 function html() {
   const attrs = [
-    ['project', 'YOUR_PROJECT_ID'],
-    ['server', 'https://YOUR_SERVER'],
+    ['project', state.project || 'YOUR_PROJECT_ID'],
+    ['server', state.server || 'https://YOUR_SERVER'],
     state.mode !== 'inline' && ['mode', state.mode],
     ['theme', theme()],
-    ['accent', accent()],
+    accent() && ['accent', accent()],
     state.kinds.length < 3 && ['kinds', state.kinds.join(',')],
     state.screenshots !== 'board' && ['screenshots', state.screenshots],
   ].filter(Boolean);
@@ -1407,7 +1805,7 @@ function css() {
     .filter(([k]) => !offKind(k) && (state.mode === 'floating' || !FAB.includes(k)))
     .map(([k, v]) => `  ${k}: ${v};`);
   if (state.mode === 'inline') rows.unshift('  height: 600px; /* inline: give it a height, or it grows with its posts */');
-  if (!rows.length) return "/* No colours changed: PleaseNoBugs' own are used. */";
+  if (!rows.length) return nimiqLook() ? `/* No colours of your own: the ${theme()} theme's are used. */` : "/* No colours changed: PleaseNoBugs' own are used. */";
   return ['please-no-bugs {', ...rows, '}'].join('\n');
 }
 
@@ -1433,6 +1831,10 @@ function highlight(code) {
 }
 
 function writeCode() {
+  if (nimiqLook()) {
+    writeRoutes();
+    paintDone();
+  }
   document.querySelector('#code-html code').innerHTML = highlight(html());
   document.querySelector('#code-css code').innerHTML = highlight(css());
   document.getElementById('prompt').textContent = prompt();
@@ -1464,21 +1866,25 @@ const REPO = 'https://github.com/lennylenders/PleaseNoBugs';
 function prompt() {
   const style = css().startsWith('/*') ? '' : css();
   const strings = Object.keys(state.strings).some((k) => !offKind(k));
+  // Typed in on the last step: the server is there, and the code has it.
+  const known = !!(state.project && state.server);
   return [
-    `Hi! Please add PleaseNoBugs to this app: a feedback board where its users report bugs, share ideas and write reviews, as one web component. I chose its look and settings on PleaseNoBugs' customize page; they are in the code below.`,
+    `Hi! Please add PleaseNoBugs to this app: a feedback board where its users report bugs, share ideas and write reviews, as one web component. I chose its look and settings on PleaseNoBugs' "Make it yours" page; they are in the code below.`,
     `Docs: ${REPO}`,
     '',
     '1. The server',
-    'The widget talks to a PleaseNoBugs server that I run myself, so nobody else holds the feedback. First ask me whether I have one. If I do, ask me for its project id and its address: it prints both in its log every time it starts.',
-    "If not, show me the four ways below side by side, briefly and without picking one for me: what each depends on and what it asks of me. Let me choose, then walk me through only that one. Whichever it is, the server is one container and every post is in one file, pleasenobugs.db, so I can move later by copying it. Each way needs the same three values: PNB_PROJECT_NAME (what users call this app), PNB_PROJECT_ORIGINS (where it runs, comma-separated, the local dev address too, like https://my.app,http://localhost:5173) and PNB_PROJECT_OWNER (my NQ... wallet address, which answers posts).",
+    known
+      ? `The widget talks to a PleaseNoBugs server that I run myself, so nobody else holds the feedback. I have one: project id ${state.project} at ${state.server}. They are in the code below already.`
+      : 'The widget talks to a PleaseNoBugs server that I run myself, so nobody else holds the feedback. First ask me whether I have one. If I do, ask me for its project id and its address: it prints both in its log every time it starts.',
+    ...(known ? [] : ["If not, show me the four ways below side by side, briefly and without picking one for me: what each depends on and what it asks of me. Let me choose, then walk me through only that one. Whichever it is, the server is one container and every post is in one file, pleasenobugs.db, so I can move later by copying it. Each way needs the same three values: PNB_PROJECT_NAME (what users call this app), PNB_PROJECT_ORIGINS (where it runs, comma-separated, the local dev address too, like https://my.app,http://localhost:5173) and PNB_PROJECT_OWNER (my NQ... wallet address, which answers posts).",
     '- Railway. Depends on Railway; no command line. I open https://railway.com/deploy/PdvdtB, sign in and fill in the three fields, then paste you what Deploy Logs says.',
     `- This app's own backend, if it has a Node one (Node 22.13 or newer). Depends on nothing new. npx @pleasenobugs/server create-project --name "..." --origin https://... --owner "NQ...", then npx @pleasenobugs/server. Or mount it in Express: ${REPO}/tree/main/packages/server`,
     '- Docker on a server I rent (a VPS, or Coolify on one). Depends on whoever rents me the machine, and I can switch. docker-compose.yml from the repo, a .env with PNB_DOMAIN and the three values, then docker compose up -d; Caddy in it gets the HTTPS certificate by itself; the project id is in docker compose logs pleasenobugs.',
     `- My own hardware (a Raspberry Pi, a NAS). Depends on my internet connection, a domain name, and keeping it switched on. The same Docker setup, with the domain pointing at my connection and ports 80 and 443 open, or behind a Cloudflare Tunnel without Caddy: ${REPO}#readme`,
-    'Never make up my wallet address, the project id or the server address: ask me.',
+    'Never make up my wallet address, the project id or the server address: ask me.']),
     '',
     '2. The widget',
-    'Add this, with YOUR_PROJECT_ID and https://YOUR_SERVER replaced by the real values:',
+    known ? 'Add this:' : 'Add this, with YOUR_PROJECT_ID and https://YOUR_SERVER replaced by the real values:',
     '',
     html(),
     ...(style ? ['', "And this CSS, in the app's global stylesheet:", '', style] : []),
@@ -1487,7 +1893,11 @@ function prompt() {
     `- With a bundler (React, Vue, Svelte, ...): npm install pleasenobugs@${VERSION}, import 'pleasenobugs' once at startup, and render <please-no-bugs> with the same attributes. It is a custom element: write the attributes as they are.`,
     ...(strings ? ["- The texts I changed go on the element's strings property, as in the code; in a framework, set it from a ref once it is rendered."] : []),
     `- ${PLACE[state.mode]}`,
-    `- Ask me where this app runs. Inside Nimiq Pay the wallet signs by itself: nothing to add. Anywhere else, such as a web app in a desktop browser, give the element a signer so users can post and vote with their Nimiq wallet through the Nimiq Hub (npm install @nimiq/hub-api): ${REPO}/tree/main/packages/widget#signing-outside-nimiq-pay. If the app already signs users in with their Nimiq wallet, reuse that login instead: ${REPO}/tree/main/packages/widget#reusing-your-apps-own-login. Without either, the board can only be read.`,
+    browser()
+      ? `- It runs ${state.runs === 'both' ? 'in Nimiq Pay and in browsers' : 'in a browser'}, so outside Nimiq Pay users sign with their Nimiq wallet through the Nimiq Hub: add this as well (npm install @nimiq/hub-api), with 'Your app' as this app's name. Inside Nimiq Pay the wallet signs by itself, which the check keeps.\n\n${npmSignerOnly()}`
+      : nimiqLook() && state.runs === 'pay'
+        ? '- It runs only inside Nimiq Pay: the wallet signs by itself, nothing to add.'
+        : `- Ask me where this app runs. Inside Nimiq Pay the wallet signs by itself: nothing to add. Anywhere else, such as a web app in a desktop browser, give the element a signer so users can post and vote with their Nimiq wallet through the Nimiq Hub (npm install @nimiq/hub-api): ${REPO}/tree/main/packages/widget#signing-outside-nimiq-pay. If the app already signs users in with their Nimiq wallet, reuse that login instead: ${REPO}/tree/main/packages/widget#reusing-your-apps-own-login. Without either, the board can only be read.`,
     '- If it runs inside Nimiq Pay: Pay draws its own bar over the page and the widget cannot see it. If this app already measures that bar, pass it on: please-no-bugs { --pnb-inset-top: ...; --pnb-inset-bottom: ...; }',
     '- Keep the version pinned.',
     '',
@@ -1544,6 +1954,149 @@ function toast(text) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('toast--on'), 2200);
 }
+
+// ---- The Nimiq look: the wide steps, and the code for each way in ---------
+
+/** The panel over the stage, for the steps about the developer's own app rather than the widget. */
+const panel = document.getElementById('nq-panel');
+
+function paintPanel() {
+  const on = !!step().panel && !previewing;
+  panel.hidden = !on;
+  for (const part of panel.querySelectorAll('[data-panel]')) part.hidden = part.dataset.panel !== at;
+  for (const b of panel.querySelectorAll('[data-runs]')) b.setAttribute('aria-pressed', String(b.dataset.runs === state.runs));
+}
+
+/** The Nimiq Hub, pinned, as the site's own board uses it (assets/board.js). */
+const HUB = 'https://cdn.jsdelivr.net/npm/@nimiq/hub-api@1.15.0/dist/standalone/HubApi.standalone.es.js';
+
+/** The signer's body: outside Nimiq Pay, the Nimiq Hub signs with the user's own wallet. */
+const SIGNER = [
+  "  const hub = new HubApi('https://hub.nimiq.com');",
+  "  const hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');",
+  "  document.querySelector('please-no-bugs').signer = async (message) => {",
+  "    const r = await hub.signMessage({ appName: 'Your app', message }); // your app's name, shown in the wallet",
+  '    return { address: r.signer, publicKey: hex(r.signerPublicKey), signature: hex(r.signature) };',
+  '  };',
+];
+/** Whether the code needs that signer: the Nimiq look, an app in a browser. */
+const browser = () => nimiqLook() && (state.runs === 'browser' || state.runs === 'both');
+
+/** The signer for an app with a bundler, for the steps and the prompt. */
+function npmSignerOnly() {
+  return [
+    "import { insideNimiqPay } from 'pleasenobugs';",
+    "import HubApi from '@nimiq/hub-api';",
+    '',
+    '// Once the element is in the page. Outside Nimiq Pay,',
+    '// users sign with their Nimiq wallet through the Nimiq Hub.',
+    'if (!insideNimiqPay()) {',
+    ...SIGNER,
+    '}',
+  ].join('\n');
+}
+
+/** Pasted as HTML: the script, the tag, its CSS if any, and in a browser the signer. */
+function htmlRoute() {
+  const style = css().startsWith('/*') ? '' : `\n<style>\n${css()}\n</style>`;
+  const signer = browser()
+    ? [
+        '',
+        '<!-- Outside Nimiq Pay, users sign with their Nimiq wallet through the Nimiq Hub. -->',
+        '<script type="module">',
+        `  import HubApi from '${HUB}';`,
+        '  if (!PleaseNoBugs.insideNimiqPay()) {',
+        ...SIGNER.map((l) => `  ${l}`),
+        '  }',
+        '</script>',
+      ].join('\n')
+    : '';
+  return `${html()}${style}${signer}\n`;
+}
+
+/** With npm: what to install, what to import once, the tag, and in a browser the signer. */
+function npmSteps() {
+  const tag = html().split('\n').slice(1).join('\n');
+  const style = css().startsWith('/*') ? '' : `\n\n/* In the app's global stylesheet: */\n${css()}`;
+  if (!browser()) {
+    return `npm install pleasenobugs@${VERSION}\n\n// Once, at startup:\nimport 'pleasenobugs';\n\n<!-- Where the board goes: -->\n${tag}${style}\n`;
+  }
+  const [imports, signer] = npmSignerOnly().split('\n\n');
+  return `npm install pleasenobugs@${VERSION} @nimiq/hub-api\n\n// Once, at startup:\n${imports}\n\n<!-- Where the board goes: -->\n${tag}\n\n${signer}${style}\n`;
+}
+
+const COPIES = {
+  html: () => [htmlRoute(), 'Code copied'],
+  npm: () => [npmSteps(), 'npm steps copied'],
+  ai: () => [`${prompt()}\n`, "Prompt copied. Paste it into your agent's chat."],
+};
+
+/** The prompt and the code on the last step, kept up to date with every choice. */
+function writeRoutes() {
+  for (const el of document.querySelectorAll('.nq-done [data-code]')) {
+    const text = COPIES[el.dataset.code]()[0];
+    if (el.dataset.code === 'ai') el.textContent = text;
+    else el.innerHTML = highlight(text);
+  }
+}
+
+panel.addEventListener('click', (e) => {
+  const run = e.target.closest('[data-runs]');
+  if (!run) return;
+  state.runs = run.dataset.runs;
+  update();
+});
+
+// ---- The Nimiq look's last step: ready to add ------------------------------
+
+const done = document.querySelector('.nq-done');
+
+done.addEventListener('click', async (e) => {
+  // "Change": back to that step, every choice kept.
+  const back = e.target.closest('[data-goto]');
+  if (back) return go(back.dataset.goto);
+  const btn = e.target.closest('[data-copy]');
+  if (!btn) return;
+  const [text, said] = COPIES[btn.dataset.copy]();
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(said);
+  } catch {
+    // Blocked: open it in the page, to select by hand.
+    for (const peek of done.querySelectorAll('.nq-peek')) peek.open = true;
+    toast('Copying was blocked: select it below instead');
+  }
+});
+
+/** The choices made, each with a way back to change it. */
+function paintDone() {
+  const rows = [
+    ['Look', state.dark ? 'Dark' : 'Light', 'theme'],
+    ['Opens as', { floating: 'A button in the corner', inline: 'A page in your app', overlay: 'Over your app' }[state.mode], 'opens'],
+    ['Used in', { pay: 'Nimiq Pay', browser: 'A browser', both: 'Nimiq Pay and a browser' }[state.runs] ?? 'Not picked yet', 'runs'],
+  ];
+  const list = document.getElementById('nq-summary');
+  list.innerHTML = rows.map(() => '<div><dt></dt><dd></dd><button type="button" class="nq-change">Change</button></div>').join('');
+  list.querySelectorAll('div').forEach((row, i) => {
+    row.querySelector('dt').textContent = rows[i][0];
+    row.querySelector('dd').textContent = rows[i][1];
+    row.querySelector('button').dataset.goto = rows[i][2];
+    row.querySelector('button').setAttribute('aria-label', `Change ${rows[i][0].toLowerCase()}`);
+  });
+}
+
+/**
+ * The preview as a desktop or as a phone: the box narrows to a phone's
+ * width, and the widget, its panel and the three ways follow it.
+ */
+const viewButtons = document.querySelectorAll('[data-view]');
+function setView(kind) {
+  viewport.classList.toggle('viewport--phone', kind === 'phone');
+  for (const b of viewButtons) b.setAttribute('aria-pressed', String(b.dataset.view === kind));
+  measureDeck();
+  update();
+}
+for (const b of viewButtons) b.addEventListener('click', () => setView(b.dataset.view));
 
 mount();
 paintSteps();

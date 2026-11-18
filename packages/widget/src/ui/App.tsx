@@ -625,7 +625,7 @@ export function App({
             <button type="button" class="icon-btn" aria-label={t('board.back')} onClick={toBoard}>
               <Icon.Back />
             </button>
-            <h2 class="bar__title">{t('board.composeTitle')}</h2>
+            <h2 class="bar__title bar__title--write">{t('board.composeTitle')}</h2>
             <span />
           </header>
         )}
@@ -671,10 +671,11 @@ export function App({
           >
             <Icon.Back />
           </button>
-          <h2 class="bar__title">{t('board.composeTitle')}</h2>
+          <h2 class="bar__title bar__title--write">{t('board.composeTitle')}</h2>
           <span />
         </header>
-        <div class="scroll" ref={scroller} style={{ paddingBottom: '24px' }}>
+        {/* Little under the send button: it sits at the foot, clear of a phone's bar. */}
+        <div class="scroll" ref={scroller} style={{ paddingBottom: 'calc(12px + var(--_bottom))' }}>
           <Compose
             t={t}
             kind={writing}
@@ -711,7 +712,7 @@ export function App({
             </button>
           )}
         </div>
-        <h2 class="bar__title">{t('board.title')}</h2>
+        <h2 class="bar__title bar__title--board">{t('board.title')}</h2>
         {readonly ? (
           <span />
         ) : (

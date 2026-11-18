@@ -9,8 +9,8 @@
     <script src="assets/style.js"></script>
     <link rel="stylesheet" href="assets/site.css" />
     <link rel="stylesheet" href="assets/nimiq.css" />
+    <script src="assets/stack.js" type="module"></script>
     <script src="assets/how.js" type="module"></script>
-    <script src="assets/hexes.js" type="module"></script>
   </head>
   <body>
     <!-- The widget's own glyphs, path for path from packages/widget/src/ui/icons.tsx, used by everything below. -->
@@ -33,25 +33,28 @@
     <header class="top">
       <div class="wrap top__inner">
         <a class="brand" href="./">
-          <img src="assets/logo.svg" alt="" width="32" height="36" />
+          <img class="brand__classic" src="assets/logo.svg" alt="" width="32" height="36" />
+          <img class="brand__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="30" height="24" />
           <span>PleaseNoBugs</span>
         </a>
         <nav class="nav" aria-label="Main">
           <a href="what-is-it.html" aria-current="page">Why PleaseNoBugs</a>
-          <a href="customize.html">Customize</a>
+          <a href="customize.html">Make it yours</a>
           <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
         </nav>
         <button type="button" class="style-switch" data-style-switch hidden>
-          <svg width="16" height="15" viewBox="0 0 20 18" aria-hidden="true"><path d="M10 1H5.5L1 9l4.5 8H10z" fill="#ffb700"/><path d="M5.5 1h9L19 9l-4.5 8h-9L1 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <svg class="style-switch__to-classic" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200.77,53.89A103.27,103.27,0,0,0,128,24h-1.07A104,104,0,0,0,24,128c0,43,26.58,79.06,69.36,94.17A32,32,0,0,0,136,192a16,16,0,0,1,16-16h46.21a31.81,31.81,0,0,0,31.2-24.88,104.43,104.43,0,0,0,2.59-24A103.28,103.28,0,0,0,200.77,53.89Zm13,93.71A15.89,15.89,0,0,1,198.21,160H152a32,32,0,0,0-32,32,16,16,0,0,1-21.31,15.07C62.490,194.3,40,164,40,128a88,88,0,0,1,87.09-88h.9a88.35,88.35,0,0,1,88,87.25A88.86,88.86,0,0,1,213.81,147.6ZM140,76a12,12,0,1,1-12-12A12,12,0,0,1,140,76ZM96,100A12,12,0,1,1,84,88,12,12,0,0,1,96,100Zm0,56a12,12,0,1,1-12-12A12,12,0,0,1,96,156Zm88-56a12,12,0,1,1-12-12A12,12,0,0,1,184,100Z"/></svg>
+          <svg class="style-switch__to-nimiq" width="16" height="15" viewBox="0 0 20 18" aria-hidden="true"><path d="M10 1H5.5L1 9l4.5 8H10z" fill="#ffb700"/><path d="M5.5 1h9L19 9l-4.5 8h-9L1 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
           <span class="style-switch__text">Nimiq style</span>
         </button>
       </div>
     </header>
 
     <main>
-      <div class="hexes-bg hexes-bg--page" data-hexes="right"></div>
       <section class="how-intro">
+        <div class="stack stack--page nq-only" data-stack="page"></div>
         <div class="wrap">
+          <p class="nq-label nq-only">Why PleaseNoBugs</p>
           <h1>Your users talk. You answer. <span class="nowrap">Everyone sees it.</span></h1>
           <p class="lead">A free, open-source feedback widget for apps built on Nimiq. Bugs, ideas and reviews, right inside your app.</p>
         </div>
@@ -147,6 +150,7 @@
       <!-- The goal in one line. -->
       <section class="pull" aria-label="The goal">
         <div class="wrap">
+          <p class="nq-label nq-only">The goal</p>
           <blockquote class="pull__quote"><p>Make feedback effortless for users and actionable for developers.</p></blockquote>
         </div>
       </section>
@@ -192,7 +196,7 @@
             <li>
               <h3>Make it yours</h3>
               <p>A button in the corner (<code>floating</code>), on a page of your own (<code>inline</code>), or over your page (<code>overlay</code>). Pick that, your colours and your words in the configurator. It writes the code for you, or a prompt for your AI agent.</p>
-              <p><a class="btn btn--small" href="customize.html">Customize it</a></p>
+              <p><a class="btn btn--small" href="customize.html">Make it yours</a></p>
             </li>
           </ol>
         </div>
@@ -202,7 +206,7 @@
     <footer class="foot">
       <div class="wrap">
         <div class="foot__row">
-          <p class="foot__who"><img src="assets/nimiq/hexagon.svg" alt="" width="16" height="14" /><b>For everyone building on Nimiq.</b> <span>Free and open source.</span></p>
+          <p class="foot__who"><img class="foot__classic" src="assets/nimiq/hexagon.svg" alt="" width="16" height="14" /><img class="foot__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="18" height="14" /><b>For everyone building on Nimiq.</b> <span>Free and open source.</span></p>
           <nav class="foot__links" aria-label="Links">
             <a href="https://nimiq.dev/">Nimiq docs</a><span aria-hidden="true">&middot;</span><a href="https://nimiq.dev/mini-apps/">Mini apps</a><span aria-hidden="true">&middot;</span><a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
           </nav>

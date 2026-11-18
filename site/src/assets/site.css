@@ -191,10 +191,13 @@ code, pre, kbd { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace
 .nav a:hover { color: var(--ink); background: var(--row); }
 .nav a[aria-current='page'] { color: var(--ink); background: var(--card); }
 
-/* Only in the Nimiq look (assets/nimiq.css): its turning hexagons and the
-   label over the home page's heading. */
-.hexes-bg,
-.tour-tag { display: none; }
+/* Only in the Nimiq look (assets/nimiq.css): the label over the home page's
+   heading, its own hero and the hexagon stacks (assets/stack.js). */
+.tour-tag,
+.nq-only,
+.brand__nimiq,
+.foot__nimiq,
+.style-switch__to-classic { display: none; }
 
 /* The other look, Nimiq's (assets/style.js, assets/nimiq.css): a button with
    words, at the far end of the bar. It names the look it switches to. */
@@ -227,6 +230,11 @@ code, pre, kbd { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace
   .brand span { display: none; }
   .nav { gap: 0; }
   .nav a { padding: 8px 8px; font-size: 14px; }
+}
+/* A small phone: "Make it yours" is longer than "Customize" was. */
+@media (max-width: 400px) {
+  .top__inner { gap: 4px; }
+  .nav a { padding: 8px 5px; font-size: 13px; }
 }
 
 /* ---- Buttons ----------------------------------------------------------- */
@@ -727,10 +735,8 @@ section + section { padding-top: 0; }
   pointer-events: none;
 }
 .tour-intro[hidden] { display: none; }
-/* The Nimiq look's own drawing, only there (nimiq.css). */
-.tn,
-.tn-row,
-.tn-public { display: none; }
+/* The Nimiq look's rows on the board, only there (nimiq.css). */
+.nq-row { display: none; }
 /* No subtitle, and no widget: scene 5 draws its round button, and the real
    one is there, under the title, once the intro is over. Before the demo
    neither: the home page is the app without PleaseNoBugs yet. */

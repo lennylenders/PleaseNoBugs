@@ -52,6 +52,55 @@
      answers: the text colour turned round, unless a theme says otherwise. */
   --pnb-filter: var(--pnb-text);
   --pnb-on-filter: var(--pnb-bg);
+  /* Parts that can have a colour of their own, each following the shared
+     one above unless set: the question over the tiles, the title in the
+     board's bar and in the writing screen's, the cards on the board (posts
+     and the rating) with their words and small words, the field you write
+     in, and the line round "Add screenshot". */
+  --pnb-choose-title: var(--pnb-text);
+  --pnb-title-board: var(--pnb-text);
+  --pnb-title-write: var(--pnb-text);
+  --pnb-card: var(--pnb-surface);
+  --pnb-card-text: var(--pnb-text);
+  --pnb-card-quiet: var(--pnb-text-quiet);
+  --pnb-field: var(--pnb-surface);
+  --pnb-shot-line: var(--pnb-line);
+  /* Everywhere you type (the form, the search, an answer, an update) is one
+     family: its ground above, its words, its hint words, its line. */
+  --pnb-field-text: var(--pnb-text);
+  --pnb-field-quiet: var(--pnb-text-quiet);
+  --pnb-field-line: var(--pnb-line);
+  /* The note on top of the board ("... answered your idea"): its ground,
+     line, words, link, and small words and close. */
+  --pnb-news: var(--pnb-surface-2);
+  --pnb-news-line: var(--pnb-accent);
+  --pnb-news-text: var(--pnb-text);
+  --pnb-news-link: var(--pnb-accent);
+  --pnb-news-quiet: var(--pnb-text-quiet);
+  /* The Filter button beside the search: its ground, words and line. */
+  --pnb-filter-btn: var(--pnb-surface);
+  --pnb-filter-btn-text: var(--pnb-text);
+  --pnb-filter-btn-line: var(--pnb-line);
+  /* The icons in the bars (close, back, updates, new post), one family. */
+  --pnb-bar-icon: var(--pnb-text);
+  /* The Top / New switch: its trough and its other word; the chosen half is
+     --pnb-order-on and --pnb-on-order below. */
+  --pnb-order: var(--pnb-sunken);
+  --pnb-order-text: var(--pnb-text-quiet);
+  /* The vote button on a post, its count, and a vote you gave. */
+  --pnb-vote: var(--pnb-surface-2);
+  --pnb-vote-text: var(--pnb-card-text);
+  --pnb-vote-on: var(--pnb-accent);
+  --pnb-on-vote-on: var(--pnb-on-accent);
+  /* "See the board" under the tiles, and the small words in the forms. */
+  --pnb-choose-link: var(--pnb-text-quiet);
+  --pnb-form-quiet: var(--pnb-text-quiet);
+  /* A switch, like "Show my name": off, its line and knob; on, and its knob. */
+  --pnb-switch: var(--pnb-surface-2);
+  --pnb-switch-line: var(--pnb-line);
+  --pnb-switch-knob: var(--pnb-text-quiet);
+  --pnb-switch-on: var(--pnb-accent);
+  --pnb-on-switch-on: var(--pnb-on-accent);
   /* The tiles you pick a kind on, and what is written on them: each painted
      in its kind's colour, as in the design. */
   --pnb-tile-bug: var(--pnb-bug);
@@ -162,44 +211,75 @@
   --pnb-scrim: rgba(0, 0, 0, 0.6);
 }
 
-/* Nimiq: bright and light, the colours of the Nimiq wallet feedback design
-   this widget's tiles came from. Painted tiles, a gradient on the buttons,
-   and a green "sent". (For a few days before 0.3 it was the Foundation's
-   late-2026 rebrand instead; that look is parked in Figma.) */
-:host([theme='nimiq']) {
+/* Nimiq: the Nimiq Foundation's 2026 brand. Navy on white, quiet greys, and
+   gold for the one thing that matters: the round button. A bug's dot takes
+   the brand's red step, an idea the gold, a review grey; Done is navy. Calm
+   and flat: no gradients, no raised buttons. `nimiq-dark` is the same on the
+   brand's navy. (Before 0.3 `nimiq` was the Nimiq wallet's feedback colours,
+   gradients and all.) */
+:host([theme='nimiq']),
+:host([theme='nimiq-dark']) {
   --pnb-bg: #ffffff;
-  --pnb-surface: #f5f5f8;
-  --pnb-surface-2: #e9e9f0;
-  --pnb-sunken: #e9e9f0;
-  --pnb-line: #dedee7;
-  --pnb-text: #1f2348;
-  --pnb-text-quiet: #5c5f7a;
-  --pnb-accent: #0582ca;
-  --pnb-accent-fill: linear-gradient(274deg, #265dd7 0%, #0582ca 100%);
+  --pnb-surface: #fafaf8;
+  --pnb-surface-2: #f2f3f4;
+  --pnb-sunken: #f2f3f4;
+  --pnb-line: #e6e6e9;
+  --pnb-text: #040724;
+  --pnb-text-quiet: #686a7c;
+  --pnb-accent: #040724;
   --pnb-on-accent: #ffffff;
-  --pnb-danger: #d94432;
-  --pnb-bug: #d94432;
-  --pnb-idea: #21bca5;
-  --pnb-review: #e9a113;
-  --pnb-planned: #0582ca;
-  --pnb-done: #21bca5;
-  --pnb-declined: #8b8d98;
-  --pnb-star: #e9a113;
-  --pnb-tile-bug: linear-gradient(274deg, #cc3047 0%, #e9564a 100%);
-  --pnb-tile-idea: linear-gradient(274deg, #41a38e 0%, #21bca5 100%);
-  --pnb-tile-review: linear-gradient(274deg, #ec991c 0%, #e9b213 100%);
-  --pnb-sent: linear-gradient(274deg, #41a38e 0%, #21bca5 100%);
-  /* On the painted "sent" the words go white and the tick needs no disc. */
-  --pnb-sent-title: #ffffff;
-  --pnb-sent-note: rgba(255, 255, 255, 0.9);
-  --pnb-sent-check: transparent;
-  --pnb-fab: #1f2348;
-  --pnb-on-fab: #ffffff;
+  --pnb-danger: #cb0015;
+  --pnb-bug: #cb0015;
+  --pnb-idea: #ffb700;
+  --pnb-on-idea: #040724;
+  --pnb-review: #4f5166;
+  --pnb-planned: #ffc758;
+  --pnb-on-planned: #040724;
+  --pnb-done: #040724;
+  --pnb-declined: #9b9ca7;
+  --pnb-star: #ffb700;
+  --pnb-card: #ffffff;
+  --pnb-field: #f2f3f4;
+  --pnb-filter-btn: #ffffff;
+  --pnb-filter-btn-line: #cdcdd3;
+  --pnb-vote: #f2f3f4;
+  --pnb-tile-ink-idea: #040724;
+  --pnb-sent-check: #040724;
+  --pnb-fab: #ffb700;
+  --pnb-on-fab: #040724;
   --pnb-radius: 10px;
-  --pnb-radius-sheet: 20px;
-  --pnb-radius-panel: 10px;
-  --pnb-shadow: 0 8px 24px rgba(31, 35, 72, 0.16);
-  --pnb-scrim: rgba(31, 35, 72, 0.5);
+  --pnb-radius-sheet: 16px;
+  --pnb-radius-panel: 16px;
+  --pnb-shadow: 0 8px 24px rgba(4, 7, 36, 0.14);
+  --pnb-scrim: rgba(4, 7, 36, 0.5);
+}
+
+:host([theme='nimiq-dark']) {
+  --pnb-bg: #040724;
+  --pnb-surface: #1d203a;
+  --pnb-surface-2: #363950;
+  --pnb-sunken: #02030f;
+  --pnb-line: #363950;
+  --pnb-text: #ffffff;
+  --pnb-text-quiet: #9b9ca7;
+  --pnb-accent: #ffffff;
+  --pnb-on-accent: #040724;
+  --pnb-danger: #e93700;
+  --pnb-bug: #e93700;
+  --pnb-review: #b4b5bd;
+  --pnb-on-review: #040724;
+  --pnb-done: #ffffff;
+  --pnb-on-done: #040724;
+  --pnb-declined: #686a7c;
+  --pnb-card: #1d203a;
+  --pnb-field: #363950;
+  --pnb-filter-btn: #1d203a;
+  --pnb-filter-btn-line: #4f5166;
+  --pnb-vote: #363950;
+  --pnb-sent-check: #ffffff;
+  --pnb-on-sent-check: #040724;
+  --pnb-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --pnb-scrim: rgba(0, 0, 0, 0.6);
 }
 
 /* PleaseNoBugs' own colours, the same as its website. They started as
@@ -296,6 +376,10 @@ button {
   align-items: center;
 }
 
+/* The board's and the writing screen's titles can each have their own colour. */
+.bar__title--board { color: var(--pnb-title-board); }
+.bar__title--write { color: var(--pnb-title-write); }
+
 .bar__title {
   margin: 0;
   text-align: center;
@@ -317,6 +401,10 @@ button {
 
 .icon-btn:active {
   background: var(--pnb-surface);
+}
+
+.bar .icon-btn {
+  color: var(--pnb-bar-icon);
 }
 
 .filters {
@@ -393,8 +481,9 @@ button {
   position: relative;
   padding: 16px;
   border-radius: var(--pnb-radius);
-  background: var(--pnb-surface);
+  background: var(--pnb-card);
   border: 1px solid var(--pnb-line);
+  color: var(--pnb-card-text);
 }
 
 .card--owner {
@@ -471,19 +560,20 @@ button {
   margin-bottom: 12px;
   padding: 12px 16px;
   border-radius: var(--pnb-radius);
-  background: var(--pnb-surface);
+  background: var(--pnb-card);
   border: 1px solid var(--pnb-line);
 }
 
 .rating__avg {
   font-size: 22px;
   font-weight: 700;
+  color: var(--pnb-card-text);
 }
 
 .rating__n {
   margin-left: auto;
   font-size: 14px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-card-quiet);
 }
 
 .card__off {
@@ -501,11 +591,12 @@ button {
 .card__when {
   margin-left: auto;
   font-size: 12px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-card-quiet);
 }
 
 .card__text {
   margin: 12px 0 0;
+  color: var(--pnb-card-text);
   font-size: 16px;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -595,8 +686,9 @@ button {
   margin-bottom: 12px;
   padding: 10px 6px 10px 12px;
   border-radius: var(--pnb-radius);
-  background: var(--pnb-surface-2);
-  border: 1.5px solid var(--pnb-accent);
+  background: var(--pnb-news);
+  border: 1.5px solid var(--pnb-news-line);
+  color: var(--pnb-news-text);
 }
 
 .news__text {
@@ -616,7 +708,7 @@ button {
 
 .news__post {
   font-size: 12px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-news-quiet);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -626,7 +718,7 @@ button {
   flex: none;
   width: 36px;
   height: 36px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-news-quiet);
 }
 
 .card__foot {
@@ -640,7 +732,7 @@ button {
   flex: 1;
   min-width: 0;
   font-size: 14px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-card-quiet);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -660,7 +752,8 @@ button {
   height: 36px;
   padding: 0 12px;
   border-radius: var(--pnb-radius-pill);
-  background: var(--pnb-surface-2);
+  background: var(--pnb-vote);
+  color: var(--pnb-vote-text);
   font-size: 14px;
   font-weight: 700;
   justify-content: center;
@@ -669,12 +762,12 @@ button {
 /* The count on a read-only board: the same pill, nothing to press. */
 .vote--count {
   background: transparent;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-card-quiet);
 }
 
 .vote[aria-pressed='true'] {
-  background: var(--pnb-accent);
-  color: var(--pnb-on-accent);
+  background: var(--pnb-vote-on);
+  color: var(--pnb-on-vote-on);
 }
 
 /* ---- The order, floating over the foot of the list ---------------------- */
@@ -703,7 +796,7 @@ button {
   height: 48px;
   padding: 4px;
   border-radius: var(--pnb-radius-pill);
-  background: var(--pnb-sunken);
+  background: var(--pnb-order);
   box-shadow: var(--pnb-shadow);
 }
 
@@ -711,7 +804,7 @@ button {
   border-radius: max(0px, calc(var(--pnb-radius-pill) - 4px));
   font-weight: 700;
   font-size: 15px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-order-text);
 }
 
 .order__tab[aria-selected='true'] {
@@ -812,11 +905,15 @@ button {
 
 /* ---- Writing one -------------------------------------------------------- */
 
+/* As tall as the screen at least, so the send button and the line under it
+   sit at the foot of the panel when there is little to write in, as on a
+   form's own page; with more, they follow it. */
 .compose {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-bottom: 24px;
+  min-height: 100%;
+  padding-bottom: 4px;
 }
 
 .label {
@@ -874,7 +971,7 @@ button {
   gap: 6px;
   min-height: 88px;
   border-radius: var(--pnb-radius);
-  border: 1.5px dashed var(--pnb-line);
+  border: 1.5px dashed var(--pnb-shot-line);
   color: var(--pnb-text-quiet);
   font-size: 14px;
   font-weight: 700;
@@ -928,6 +1025,7 @@ button {
 
 .choose__title {
   margin: 8px 0 16px;
+  color: var(--pnb-choose-title);
   font-size: 20px;
   font-weight: 700;
   text-align: center;
@@ -1007,6 +1105,7 @@ button {
 }
 
 .choose__board .text-btn {
+  color: var(--pnb-choose-link);
   font-size: 14px;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -1061,7 +1160,7 @@ button {
 .public {
   margin: 12px 0 0;
   font-size: 14px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-form-quiet);
 }
 
 .field {
@@ -1069,8 +1168,9 @@ button {
   min-height: 140px;
   padding: 12px 14px;
   border-radius: var(--pnb-radius);
-  border: 1px solid var(--pnb-line);
-  background: var(--pnb-surface);
+  border: 1px solid var(--pnb-field-line);
+  background: var(--pnb-field);
+  color: var(--pnb-field-text);
   font-size: 16px;
   line-height: 1.4;
   resize: vertical;
@@ -1085,7 +1185,7 @@ button {
    colour is made to be read on it. Firefox also dims it by itself. */
 .field::placeholder,
 .input::placeholder {
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-field-quiet);
   opacity: 1;
 }
 
@@ -1094,8 +1194,9 @@ button {
   height: 44px;
   padding: 0 14px;
   border-radius: var(--pnb-radius);
-  border: 1px solid var(--pnb-line);
-  background: var(--pnb-surface);
+  border: 1px solid var(--pnb-field-line);
+  background: var(--pnb-field);
+  color: var(--pnb-field-text);
   font-size: 16px;
 }
 
@@ -1107,7 +1208,7 @@ button {
 .count {
   align-self: flex-end;
   font-size: 12px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-form-quiet);
 }
 
 .alike {
@@ -1167,8 +1268,8 @@ button {
   width: 48px;
   height: 28px;
   border-radius: 999px;
-  background: var(--pnb-surface-2);
-  border: 1px solid var(--pnb-line);
+  background: var(--pnb-switch);
+  border: 1px solid var(--pnb-switch-line);
   transition: background 160ms ease;
 }
 
@@ -1180,25 +1281,25 @@ button {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--pnb-text-quiet);
+  background: var(--pnb-switch-knob);
   transition: transform 160ms ease, background 160ms ease;
 }
 
 .switch[aria-checked='true'] {
-  background: var(--pnb-accent);
-  border-color: var(--pnb-accent);
+  background: var(--pnb-switch-on);
+  border-color: var(--pnb-switch-on);
 }
 
 .switch[aria-checked='true']::after {
   transform: translateX(20px);
-  background: var(--pnb-on-accent);
+  background: var(--pnb-on-switch-on);
 }
 
 .note {
   margin: 4px 0 0;
   font-size: 12px;
   line-height: 1.45;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-form-quiet);
 }
 
 .note--bad {
@@ -1352,9 +1453,7 @@ button {
 }
 
 .fix-box__label .input {
-  color: var(--pnb-text);
   font-weight: 400;
-  background: var(--pnb-bg);
 }
 
 .input[aria-invalid='true'] {
@@ -1369,9 +1468,15 @@ button {
   margin-top: 20px;
 }
 
+/* In the form, pushed down to the foot when there is room for it. */
+.compose .send {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
 .left {
   font-size: 13px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-form-quiet);
   text-align: center;
 }
 
@@ -1713,9 +1818,9 @@ button {
   height: 40px;
   padding: 0 6px 0 12px;
   border-radius: var(--pnb-radius);
-  background: var(--pnb-surface);
-  border: 1px solid var(--pnb-line);
-  color: var(--pnb-text-quiet);
+  background: var(--pnb-field);
+  border: 1px solid var(--pnb-field-line);
+  color: var(--pnb-field-quiet);
 }
 
 .search:focus-within {
@@ -1729,13 +1834,13 @@ button {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--pnb-text);
+  color: var(--pnb-field-text);
   font-size: 15px;
   outline: none;
 }
 
 .search__input::placeholder {
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-field-quiet);
   opacity: 1;
 }
 
@@ -1762,8 +1867,9 @@ button {
   height: 40px;
   padding: 0 12px;
   border-radius: var(--pnb-radius);
-  background: var(--pnb-surface);
-  border: 1px solid var(--pnb-line);
+  background: var(--pnb-filter-btn);
+  border: 1px solid var(--pnb-filter-btn-line);
+  color: var(--pnb-filter-btn-text);
   font-size: 14px;
   font-weight: 700;
 }
@@ -1866,6 +1972,7 @@ mark {
 .news__link {
   align-self: flex-start;
   padding: 0;
+  color: var(--pnb-news-link);
 }
 
 .chip-btn {

@@ -6,10 +6,12 @@
  * app ("Your app" and its skeleton) and plays one story through, once,
  * then the heading is back.
  *
- * In the Nimiq look (`calm`) the same story is told more quietly: the
- * pretend app is a white window on the navy and its turning hexagons, the
- * users are Nimiq identicons with thin lines to where they wrote, the words
- * fade in whole rather than typed, and the intro's lines are plainer.
+ * In the Nimiq look (`calm`) the same story, with the same words, is told
+ * more quietly, after the Nimiq 2026 brand: the pretend app is a white
+ * window at the right of a light stage, the big line stands at its left with
+ * which scene of how many over it, the words fade in whole rather than being
+ * typed, the users are plain circles, and scene 6 draws thin dashed lines
+ * from each of them to the board (nimiq.css).
  *
  * It starts with why PleaseNoBugs is there, in six short scenes drawn on
  * the pretend app (`INTRO`; the drawing is site.css's), each with its big
@@ -27,7 +29,8 @@
  * - **Your perspective**, the owner's (`demo="owner"`): the round button, the
  *   board, that same bug picked, marked fixed in a version with a link,
  *   answered, and the card as everybody now sees it.
- * - **Build your own widget.**, under a small "Make it yours": one real
+ * - **Build your own widget.** (the classic look only; the Nimiq look goes
+ *   from the owner's side straight to the end), under a small "Make it yours": one real
  *   widget in the middle, all grey, as on Customize, and a cursor that
  *   colours it in as Customize's sketch does: a tap on a part, the line round
  *   it with its name, a row of colours, a pick: its round button, then the
@@ -82,50 +85,40 @@ const said = document.getElementById('ti-said');
  * it plays on once the words are all there (ms, as drawn in site.css).
  */
 const INTRO = [
-  { title: 'Imagine this is your app.', line: '', ms: 3000, calm: ['This is your app.', ''] },
-  { title: 'You gained your first users!', line: '', during: true, ms: 2000, calm: ['Your first users arrive.', ''] },
+  { title: 'Imagine this is your app.', line: '', ms: 3000 },
+  { title: 'You gained your first users!', line: '', during: true, ms: 2000 },
   {
     title: 'They give feedback, all over the place.',
     line: 'In reviews, chats and DMs.',
     during: true,
     ms: 2000,
-    calm: ['They give feedback wherever they can.', 'In reviews, chats and DMs.'],
   },
   {
     title: 'And then most of your users leave, and never tell you why.',
     line: "Most apps don't die loudly.",
     during: true,
     ms: 2800,
-    calm: ['Most of them leave without saying why.', 'And what they did say is scattered.'],
   },
   {
     title: 'This open source feedback widget is your solution!',
     line: 'PleaseNoBugs: one button in your app.',
     ms: 3000,
-    calm: ['PleaseNoBugs adds one button to your app.', 'An open-source feedback widget.'],
   },
   {
     title: 'All your feedback in one place.',
     line: 'Visible to all your users.',
     ms: 3600,
-    calm: ['All feedback in one place.', 'Every report, from every user, on one board.'],
-  },
-  {
-    // The Nimiq look only: the board in the middle, every user around it.
-    calmOnly: true,
-    ms: 3600,
-    calm: ['Visible to everyone.', 'Every user sees what was asked, and what you did with it.'],
   },
 ];
 
-/** The intro's scenes in the look the site wears: the Nimiq look has one more. */
-const scenes = () => INTRO.filter((s) => !s.calmOnly || calm());
+/** The intro's scenes: the same six in either look. */
+const scenes = () => INTRO;
 
 /**
  * Whether the site wears the Nimiq look (assets/style.js). There the tour is
  * calmer: the words fade in whole instead of being typed, the intro has its
- * own, plainer lines (`calm`) and its own drawing (nimiq.css), and the app
- * is a white window on the navy, the widget inside it.
+ * own drawing (nimiq.css), and the app is a white window on the stage, the
+ * widget inside it.
  */
 const calm = () => document.documentElement.dataset.style === 'nimiq';
 
@@ -196,15 +189,18 @@ function fit(el) {
     style.dataset.site = '';
     el.shadowRoot.append(style);
   }
-  // In the Nimiq look the app is a window inset in the navy box: the round
-  // button, the panel and what dims behind it stay inside that window.
-  const w = calm() ? (box.querySelector('.tour-app')?.offsetTop ?? 0) : 0;
-  const h = box.clientHeight - 48 - 2 * w;
+  // In the Nimiq look the app is a window on the stage, at its right: the
+  // round button, the panel and what dims behind it stay inside that window.
+  const a = calm() ? box.querySelector('.tour-app') : null;
+  const w = a
+    ? { t: a.offsetTop, l: a.offsetLeft, r: box.clientWidth - a.offsetLeft - a.offsetWidth, b: box.clientHeight - a.offsetTop - a.offsetHeight }
+    : null;
+  const h = box.clientHeight - 48 - (w ? w.t + w.b : 0);
   const inset = w
-    ? ` .fab { right: ${16 + w}px; bottom: ${16 + w}px; }` +
-      ` .overlay { inset: ${w}px; border-radius: 14px; overflow: hidden; }` +
-      ` @media (min-width: 640px) { .overlay { inset: auto ${24 + w}px ${24 + w}px auto; }` +
-      ` .backdrop { inset: ${w}px; border-radius: 14px; } }`
+    ? ` .fab { right: ${16 + w.r}px; bottom: ${16 + w.b}px; }` +
+      ` .overlay { inset: ${w.t}px ${w.r}px ${w.b}px ${w.l}px; border-radius: 14px; overflow: hidden; }` +
+      ` @media (min-width: 640px) { .overlay { inset: auto ${24 + w.r}px ${24 + w.b}px auto; }` +
+      ` .backdrop { inset: ${w.t}px ${w.r}px ${w.b}px ${w.l}px; border-radius: 14px; } }`
     : '';
   // The owner's page for answering a post, as tall as the box allows, so
   // what they fill in is not squeezed into a short panel.
@@ -530,88 +526,26 @@ function elbow(x1, y1, x2, y2) {
 }
 
 /**
- * The Nimiq look's lines (nimiq.css draws them): from each user up to the
- * channel they wrote in, and, once the round button is there, from each
- * user to it. Made once, then only moved, so a line being drawn goes on.
+ * The Nimiq look's lines (nimiq.css draws them, dashed, in scene 6): from
+ * each user to the board, as if all of them look at the one place now. Made
+ * once, then only moved, so a line being drawn goes on.
  */
 function placeLines() {
-  const tn = intro.querySelector('.tn');
-  if (!tn || !calm()) return;
-  const o = tn.getBoundingClientRect();
-  const fab = intro.querySelector('.ti-fab').getBoundingClientRect();
-  const channels = [...tn.querySelectorAll('.tn-ch')].map((c) => c.getBoundingClientRect());
-  const groups = { ch: tn.querySelector('.tn-lines__ch'), fab: tn.querySelector('.tn-lines__fab') };
-  tn.querySelectorAll('.tn-user').forEach((user, i) => {
+  const svg = intro.querySelector('.nq-lines');
+  if (!svg || !calm()) return;
+  const o = svg.getBoundingClientRect();
+  const board = intro.querySelector('.ti-board').getBoundingClientRect();
+  const bx = board.left + board.width / 2 - o.left;
+  const by = board.top + board.height / 2 - o.top;
+  intro.querySelectorAll('.ti-person').forEach((user, i) => {
     const u = user.getBoundingClientRect();
-    const c = channels[Number(user.dataset.ch)];
-    const x = u.left + u.width / 2 - o.left;
-    const to = {
-      ch: curve(x, u.top - o.top, c.left + c.width / 2 - o.left, c.bottom - o.top),
-      fab: fab.width ? elbow(u.right - o.left, u.top + u.height / 2 - o.top, fab.left + fab.width / 2 - o.left, fab.top - o.top) : '',
-    };
-    for (const [kind, g] of Object.entries(groups)) {
-      let path = g.children[i];
-      if (!path) {
-        path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('pathLength', '1');
-        path.style.setProperty('--i', String(i));
-        if (user.classList.contains('tn-user--stays')) path.classList.add('tn-stays');
-        g.append(path);
-      }
-      if (to[kind]) path.setAttribute('d', to[kind]);
+    let path = svg.children[i];
+    if (!path) {
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.style.setProperty('--i', String(i));
+      svg.append(path);
     }
-  });
-}
-
-/**
- * Scene 7, the Nimiq look's last: the board to the middle of the room above
- * the words, as big as fits there, and every user around it, left, above and
- * right, as if all looking at it. Set as offsets from where each stands
- * (`--bdx`/`--bdy`/`--bs` for the board, `--udx`/`--udy` for each user),
- * which nimiq.css moves them by. Measured by layout, so a move under way
- * does not count.
- */
-function placeCenter() {
-  const tn = intro.querySelector('.tn');
-  if (!tn || !calm()) return;
-  const board = intro.querySelector('.ti-board');
-  const users = [...tn.querySelectorAll('.tn-user')];
-  const words = document.createRange();
-  words.selectNodeContents(caption);
-  const w = words.getBoundingClientRect();
-  const i = intro.getBoundingClientRect();
-  const us = users[0].offsetWidth;
-  const gap = 28;
-  // The room: inside the window, under "Skip intro", over the words.
-  const left = tn.offsetLeft + 16;
-  const right = tn.offsetLeft + tn.offsetWidth - 16;
-  const top = tn.offsetTop + 56;
-  const bottom = (w.height ? w.top - i.top : tn.offsetTop + tn.offsetHeight) - 20;
-  const bw = board.offsetWidth;
-  const bh = board.offsetHeight;
-  const s = Math.max(0.6, Math.min(1.15, (right - left - 2 * (gap + us)) / bw, (bottom - top - gap - us) / bh));
-  const hw = (s * bw) / 2;
-  const hh = (s * bh) / 2;
-  const cx = (left + right) / 2;
-  const cy = top + (bottom - top - (2 * hh + gap + us)) / 2 + gap + us + hh;
-  intro.style.setProperty('--bdx', `${cx - (board.offsetLeft + bw / 2)}px`);
-  intro.style.setProperty('--bdy', `${cy - (board.offsetTop + bh / 2)}px`);
-  intro.style.setProperty('--bs', String(s));
-  // Left, above at the left, above, above at the right, right: in the order
-  // they stand, so no two cross on the way.
-  const side = hw + gap + us / 2;
-  const up = hh + gap + us / 2;
-  const spots = [
-    [-side, 0],
-    [-hw * 0.6, -up],
-    [0, -up],
-    [hw * 0.6, -up],
-    [side, 0],
-  ];
-  users.forEach((user, n) => {
-    const [x, y] = spots[n] ?? [0, -up];
-    user.style.setProperty('--udx', `${cx + x - (tn.offsetLeft + user.offsetLeft + us / 2)}px`);
-    user.style.setProperty('--udy', `${cy + y - (tn.offsetTop + user.offsetTop + us / 2)}px`);
+    path.setAttribute('d', `M${u.left + u.width / 2 - o.left} ${u.top + u.height / 2 - o.top}L${bx} ${by}`);
   });
 }
 
@@ -620,7 +554,6 @@ function draw(n) {
   if (n === 1) placeArrow();
   if (n === 5) drawFab();
   if (n === 6) placeBoard();
-  if (n === 7) placeCenter();
   placeLines();
   frame.dataset.intro = String(n);
   // The round button, tapped: the board opens from it.
@@ -632,8 +565,9 @@ function draw(n) {
  * after it; its drawing while it is typed, or after.
  */
 async function scene(n) {
-  const { during, calm: plain, title: t, line: l } = scenes()[n - 1];
-  const [big, line] = calm() ? plain : [t, l];
+  const { during, title: big, line } = scenes()[n - 1];
+  // Which scene of how many, small over the big line in the Nimiq look.
+  caption.dataset.step = `${String(n).padStart(2, '0')} / ${String(scenes().length).padStart(2, '0')}`;
   caption.classList.add('ti-caption--away');
   await hold(calm() ? 450 : 250);
   if (skipped) return;
@@ -669,7 +603,7 @@ async function scene(n) {
   if (!during && !skipped) draw(n);
 }
 
-/** Why PleaseNoBugs is there, in six scenes (seven in the Nimiq look), unless skipped. */
+/** Why PleaseNoBugs is there, in six scenes, unless skipped. */
 async function playIntro(from = 1) {
   skipped = false;
   // A fresh widget, closed, whatever a later part left open: scene 5 draws
@@ -732,6 +666,9 @@ async function story(from = 0) {
     await title('Your perspective', 'How it works', endIntro);
     await ownerRound();
   }
+  // The Nimiq look keeps to the feedback itself: from the owner's side
+  // straight to the end, without "Build your own widget.".
+  if (calm()) return;
   chapter = buildPart();
   await title('Build your own widget.', 'Make it yours', () => {
     endIntro();
@@ -741,8 +678,8 @@ async function story(from = 0) {
 }
 
 /**
- * The story's parts, to go back or on by: the intro's scenes (0 to 5, or 6
- * in the Nimiq look), the user's side, the owner's, and "Build your own
+ * The story's parts, to go back or on by: the intro's scenes (0 to 5), the
+ * user's side, the owner's, and "Build your own
  * widget.". On from that is the end.
  */
 const userPart = () => scenes().length;
@@ -1065,6 +1002,41 @@ const ROWS = {
 };
 
 /**
+ * The same scene in the Nimiq look: looks of the Nimiq 2026 family only,
+ * navy and white with the brand's gold-to-red steps, light and dark taking
+ * turns; the first widget gets the widget's own `nimiq` theme, gold round
+ * button and all; and the rows of colours are the brand's.
+ */
+const NQ = {
+  white: '#ffffff', paper: '#fafaf8', grey5: '#f2f3f4', grey10: '#e6e6e9', grey20: '#cdcdd3', grey40: '#9b9ca7',
+  grey60: '#686a7c', grey70: '#4f5166', navy80: '#363950', navy90: '#1d203a', navy: '#040724',
+  gold: '#ffb700', gold400: '#ffc758', gold100: '#ffefc5', gold50: '#fff8e4', orange: '#f27700', red700: '#e93700', red: '#cb0015', wine: '#6d001e',
+};
+const NIMIQ_MINE = look({
+  bg: NQ.white, surface: NQ.paper, surface2: NQ.grey5, sunken: NQ.grey5, line: NQ.grey10, text: NQ.navy, quiet: NQ.grey60,
+  accent: NQ.navy, onAccent: NQ.white, fab: NQ.gold, onFab: NQ.navy, bug: NQ.red, idea: NQ.gold, review: NQ.grey70, done: NQ.navy,
+  inkIdea: NQ.navy, radius: '10px',
+});
+const NIMIQ_LOOKS = [
+  look({ bg: NQ.navy, surface: NQ.navy90, surface2: NQ.navy80, sunken: '#02030f', line: NQ.navy80, text: NQ.white, quiet: NQ.grey40, accent: NQ.white, onAccent: NQ.navy, fab: NQ.gold, onFab: NQ.navy, bug: NQ.red700, idea: NQ.gold, review: NQ.grey40, done: NQ.white, inkIdea: NQ.navy, inkReview: NQ.navy, radius: '10px' }),
+  look({ bg: NQ.gold50, surface: NQ.gold100, surface2: '#ffe3a4', line: '#ffd785', text: NQ.wine, quiet: '#9d0020', accent: NQ.red700, onAccent: NQ.white, bug: NQ.red, idea: NQ.orange, review: NQ.gold, inkReview: NQ.wine, radius: '12px' }),
+  look({ bg: NQ.navy90, surface: NQ.navy80, surface2: NQ.grey70, sunken: NQ.navy, line: NQ.grey70, text: NQ.white, quiet: NQ.grey20, accent: NQ.gold400, onAccent: NQ.navy, bug: NQ.red700, idea: NQ.gold400, review: NQ.grey40, inkIdea: NQ.navy, inkReview: NQ.navy, radius: '6px' }),
+  look({ bg: NQ.grey5, surface: NQ.white, surface2: NQ.grey10, line: NQ.grey20, text: NQ.navy, quiet: NQ.grey70, accent: NQ.navy80, onAccent: NQ.white, bug: '#9d0020', idea: NQ.orange, review: NQ.grey60, radius: '2px', pill: '4px' }),
+  look({ bg: NQ.navy, surface: '#0d1030', surface2: NQ.navy90, sunken: '#02030f', line: NQ.navy90, text: NQ.gold100, quiet: NQ.grey40, accent: NQ.gold, onAccent: NQ.navy, bug: NQ.red, idea: NQ.gold, review: NQ.orange, inkIdea: NQ.navy, radius: '2px', pill: '2px' }),
+  NIMIQ_MINE,
+  look({ bg: NQ.wine, surface: '#9d0020', surface2: '#83001b', sunken: '#4d0015', line: '#b3203a', text: NQ.white, quiet: NQ.gold100, accent: NQ.gold, onAccent: NQ.navy, bug: NQ.red700, idea: NQ.gold, review: NQ.gold400, inkIdea: NQ.navy, inkReview: NQ.navy, radius: '14px' }),
+  look({ bg: NQ.paper, surface: NQ.grey5, surface2: NQ.grey10, line: NQ.grey20, text: NQ.navy, quiet: NQ.grey60, accent: NQ.navy, onAccent: NQ.white, bug: NQ.navy, idea: NQ.grey60, review: NQ.grey40, done: NQ.navy, radius: '8px' }),
+];
+const NIMIQ_ROWS = {
+  bright: [NQ.gold, NQ.red, NQ.red700, NQ.orange, NQ.navy, NQ.grey60],
+  ground: [NQ.white, NQ.navy, NQ.navy90, NQ.paper, NQ.gold50, NQ.navy80],
+};
+/** The scene's colours in the look the site wears. */
+const looks = () => (calm() ? NIMIQ_LOOKS : LOOKS);
+const mineLook = () => (calm() ? NIMIQ_MINE : MINE_LOOK);
+const rows = () => (calm() ? NIMIQ_ROWS : ROWS);
+
+/**
  * A widget is coloured in a few taps: its ground, its tiles, its buttons and
  * shape. The first widget's round button, tiles and ground are picked from
  * a row of colours, as on Customize; the rest, and every copy, just tapped.
@@ -1140,12 +1112,14 @@ function stage() {
   build.innerHTML =
     `<div class="tb-main"><span class="tb-fab">${glyph}</span></div>` +
     '<div class="tb-mark"><span></span></div>' +
-    `<div class="tb-pick">${ROWS.bright.map(() => '<i></i>').join('')}<i class="tb-own"></i></div>` +
+    `<div class="tb-pick">${rows().bright.map(() => '<i></i>').join('')}<i class="tb-own"></i></div>` +
     `<span class="tb-cursor">${CURSOR}</span>` +
     `<span class="tb-button">${glyph}</span>` +
     '<div class="tb-bang"><i class="tb-wave"></i><i class="tb-wave tb-wave--2"></i></div>';
   const bang = build.querySelector('.tb-bang');
-  const colours = ['#1fc7d4', '#8b5cf6', '#67e8f9', '#a78bfa', '#1fc7d4', '#c4b5fd'];
+  const colours = calm()
+    ? ['#ffb700', '#ffc758', '#e93700', '#ffd785', '#ffb700', '#cdcdd3']
+    : ['#1fc7d4', '#8b5cf6', '#67e8f9', '#a78bfa', '#1fc7d4', '#c4b5fd'];
   for (let i = 0; i < 18; i++) {
     const spark = document.createElement('i');
     spark.className = 'tb-spark';
@@ -1245,7 +1219,7 @@ function showPick(r, name, row) {
   mark.classList.toggle('tb-mark--in', bottom + 14 > H);
   mark.querySelector('span').textContent = name;
   mark.classList.add('on');
-  [...pick.children].forEach((dot, i) => i < ROWS[row].length && dot.style.setProperty('--c', ROWS[row][i]));
+  [...pick.children].forEach((dot, i) => i < rows()[row].length && dot.style.setProperty('--c', rows()[row][i]));
   const pw = pick.offsetWidth;
   const ph = pick.offsetHeight;
   const below = r.y + r.h + 22;
@@ -1316,7 +1290,8 @@ function scatter(n, taken) {
 }
 
 /** The transform of a widget at `p`, from the middle of the box. */
-const at = (p) => `translate(-50%, -50%) translate(${p.x}px, ${p.y}px) rotate(${p.r}deg) scale(${p.s})`;
+// Straight in the Nimiq look, which asks for calm: no tilted copies there.
+const at = (p) => `translate(-50%, -50%) translate(${p.x}px, ${p.y}px) rotate(${calm() ? 0 : p.r}deg) scale(${p.s})`;
 
 /**
  * The cursor colours one part of the first widget, as on Customize: to the
@@ -1335,8 +1310,8 @@ async function colourIn(cursor, el, target, spot, step, r = onStage(target)) {
   await sleep(q ? 280 : 400);
   await click(cursor, dot.x + dot.w / 2, dot.y + dot.h / 2);
   pick.children[step.pick].classList.add('chosen');
-  paint(el, MINE_LOOK, step.keys);
-  if (step.part === 'fab') paintFab(el.parentElement, MINE_LOOK);
+  paint(el, mineLook(), step.keys);
+  if (step.part === 'fab') paintFab(el.parentElement, mineLook());
   splat(target);
   await sleep(q ? 320 : 420);
   hidePick();
@@ -1399,7 +1374,7 @@ async function crowd(places) {
   let gap = 260;
   for (const [i, p] of places.entries()) {
     const pace = Math.max(0.32, 0.65 - (0.4 * i) / places.length);
-    jobs.push(buildCopy(screens[i % 3], LOOKS[(i + 1) % LOOKS.length], p, pace).catch(() => {}));
+    jobs.push(buildCopy(screens[i % 3], looks()[(i + 1) % looks().length], p, pace).catch(() => {}));
     await sleep(gap);
     gap = Math.max(35, gap * 0.84);
   }
@@ -1491,7 +1466,7 @@ async function buildRound() {
   const h = BH * home.s;
   const r = { x: build.clientWidth / 2 + home.x - w / 2, y: build.clientHeight / 2 + home.y - h / 2, w, h };
   await colourIn(cursor, el, el, { x: r.x + r.w * 0.2, y: r.y + r.h - 18 * home.s }, GROUND_STEP, r);
-  await tapIn(cursor, el, home, MINE_LOOK, COPY_PARTS.slice(2), 0.55, false);
+  await tapIn(cursor, el, home, mineLook(), COPY_PARTS.slice(2), 0.55, false);
   cursor.classList.remove('on');
   await others;
   if (run !== buildRun) return;
@@ -1600,7 +1575,7 @@ function stop() {
 function jump(by) {
   if (!frame.classList.contains('tour--playing')) return;
   const to = Math.max(0, chapter + by);
-  if (to > buildPart()) {
+  if (to > (calm() ? ownerPart() : buildPart())) {
     // The story stops where it is, and its end comes over it.
     current += 1;
     return end();
@@ -1631,7 +1606,7 @@ if (box && frame && page && subtitle && watch && titleCard && endCard && again &
     const n = Number(frame.dataset.intro ?? 0);
     if (!n) return;
     if (n >= 5) drawFab();
-    if (n >= 7) placeCenter();
+    if (n >= 6) placeBoard();
     placeLines();
   }).observe(box);
 
@@ -1640,6 +1615,14 @@ if (box && frame && page && subtitle && watch && titleCard && endCard && again &
     e.stopPropagation();
     void play();
   });
+  // The Nimiq look's hero, above the box: its "Watch demo" brings the box
+  // into view and plays it there.
+  for (const btn of document.querySelectorAll('[data-nq-watch]')) {
+    btn.addEventListener('click', () => {
+      frame.scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth', block: 'center' });
+      void play();
+    });
+  }
   skip.addEventListener('click', (e) => {
     // Not a skip either.
     e.stopPropagation();

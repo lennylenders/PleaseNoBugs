@@ -1353,9 +1353,196 @@ customize the widget step by step, by tapping it.
   bright tiles, and dark only on a light tile. **Not in npm 0.2.0**: the
   copied code pins 0.2.0, where all tiles share one `--pnb-tile-ink` and the
   glyph follows it, so these colours reach an app with the next release.
+- **A step never changes another.** Each part has a colour of its own,
+  only a family shares one (all posts on the board); the background stays
+  one, as it is one panel. The widget gets parts that follow the shared
+  colours unless set: `--pnb-choose-title` (the question over the tiles),
+  `--pnb-title-board` and `--pnb-title-write` (the bar's title per
+  screen), `--pnb-card`, `--pnb-card-text`, `--pnb-card-quiet` (the posts
+  and the rating), `--pnb-field` (the field you write in) and
+  `--pnb-shot-line` (round "Add screenshot"). Writing also offers the
+  field, the screenshot box's line and Text (its labels: the widget's other
+  words). The filters, the chosen tab and the search field go with the
+  cards. Like the tile colours, these reach apps with the next release.
+- **Every field you type in is one family**: the form's field and name,
+  the board's search, an answer, an update. `--pnb-field` is its ground,
+  and the widget adds `--pnb-field-text`, `--pnb-field-quiet` (the hint)
+  and `--pnb-field-line`. Tapping any field, on Writing or the search on
+  Board, offers Field, Text and Line; until its text is picked it is black
+  or white, whichever reads on the field, the hint a lighter one. The
+  owner's version and link fields in the "Fixed in" box are fields too now,
+  where they were the background's colour.
+- **The note on top of the board** ("... answered your idea") has its own
+  colours, where its line and link were the send button's: `--pnb-news`,
+  `--pnb-news-line`, `--pnb-news-text`, `--pnb-news-link` and
+  `--pnb-news-quiet`. Tapped (its link and close too) it offers Notice,
+  Text, Link and Line; its words read on the note until picked.
+- **A tapped family is lined all round**: tapping a post puts a line round
+  every post and the rating in view, as one colour paints them all; so too
+  the bar's icons, the post texts, the fields.
+- **More parts of their own** (the owner went through the list): the
+  Filter button (`--pnb-filter-btn`, `-text`, `-line`); the bar's icons, one
+  family on every screen (`--pnb-bar-icon`); Top / New (`--pnb-order`,
+  `--pnb-order-on`, `--pnb-on-order`, `--pnb-order-text`); the vote button
+  (`--pnb-vote`, `-text`, `--pnb-vote-on`, `--pnb-on-vote-on`), not the
+  badges; "See the board" (`--pnb-choose-link`); the small words in a form
+  (`--pnb-form-quiet`); a switch (`--pnb-switch`, `-line`, `-knob`,
+  `--pnb-switch-on`, `--pnb-on-switch-on`). A card's words now carry to
+  what is on it, so the badges' words follow the posts' text, and a
+  read-only count their small text. "Line" moved into Cards (the line round
+  the cards and the empty stars). The kind's colour stays one family: a
+  tile, its badges, the stars and "REPORT A BUG".
+- **An own colour by its hex.** The any-colour dot opens a field under its
+  row: a swatch (the eye picker, which shows RGB in Chrome), "#" and the
+  digits. Six or three digits, with or without "#", apply as typed; a wrong
+  one is outlined red; leaving the field writes it out in full. An own
+  colour opens with its hex in view.
+- **The send button hugs the foot** of the writing screen: 16px under its
+  line instead of about 48, and pushed down when the form is short.
+- **What can be tapped lights up** at the start of each step: every
+  tappable part glows twice and fades (the background as a dashed outline),
+  gone at the first tap. Hover alone left phones without a hint.
 - **"Test your widget"** with an arrow points at the widget in "You're
   ready!" (the round button, or the panel when it is inline or an overlay),
   coming in after the cheer and gone once the widget is touched.
+
+## 2026-11-17: The Nimiq look again, made fresh from the 2026 brand
+
+The owner got the Nimiq Foundation's updated brand files ("Brand Styleguide
+[basics]", Figma file of the Foundation, copied onto our file's page "Nimiq
+refresh") and asked to throw the earlier Nimiq look away and build it again
+from the styleguide only, not from the old designs. Designed in Figma first
+(page "PleaseNoBugs · Nimiq 2026": components, Home, Why PleaseNoBugs,
+Customize, the demo's storyboard, the widget theme), approved, then built.
+
+- **The switch is back** in the header: Classic (PleaseNoBugs' purple) stays
+  the default for new visitors; the button names the look it switches to.
+  `PARKED` is gone from `assets/style.js`. The tab's icon follows the look.
+- **Logo in the Nimiq look:** the gold Nimiq hexagon (the master shape from
+  the brand file, Brand/500 `#FFB700`, `assets/nimiq/hexagon-2026.svg`) with
+  "PleaseNoBugs" in Manrope. Classic keeps its own logo.
+- **Texts stay, the layout is new:** Home gets a navy hero with the brand's
+  hexagon stacks and gold glow, the heading centred, and the demo on a light
+  stage under it; Why PleaseNoBugs a light intro band with the fine outline
+  stack, four cards with Phosphor icons, the goal on navy, three numbered
+  step cards (the "why" and "add" drawings are not shown in this look);
+  Customize the same screen, flat and light. Manrope and JetBrains Mono, from
+  the site's own files; brackets round one label per section.
+- **The stacks** (`assets/stack.js`) are the brand file's layers, read from
+  Figma as one hexagon and a place per layer, drawn as SVG, and turn as the
+  brand's "Motion" asks: round the stack's middle, a whole turn in 192 s,
+  each layer 0.4 s behind the one in front; still with less motion. On a
+  phone the hero's stack keeps to its lower right, under the words.
+- **The demo, told quietly with the same words:** the six intro scenes use
+  the classic lines; the line fades in at the left with "01 / 06" over it,
+  the app is a white window at the right, users are plain circles with a
+  mono tag for where they wrote, most of them fade, the gold round button
+  gets brackets, and scene 6 opens a board with four rows and dashed lines
+  from every user to it. The real widget then plays in the `nimiq` theme;
+  "Build your own widget." colours copies in Nimiq-family looks only, kept
+  straight; the end card is navy. The old seventh scene, identicons,
+  channels and turning hexagons (`hexes.js`) are gone.
+- **The widget's `nimiq` theme is replaced** by the 2026 brand: navy on
+  white, a gold round button with a navy glyph, a bug's dot red, an idea's
+  gold, a review's grey, Done navy, flat. New: `nimiq-dark`, the same on
+  navy. Apps using `theme="nimiq"` change look with the next release (npm
+  0.2.0 still has the wallet colours, and the site's copied code pins it).
+- Customize's colour rows, the intro sketch and the cheer's paper use the
+  brand's colours in the Nimiq look.
+
+## 2026-11-17 (later): In the Nimiq look the feedback comes first
+
+The owner wants the concept of the feedback feature right and working
+before colouring it in. In the Nimiq look only; Classic keeps everything:
+
+- **The demo** goes from the owner's side straight to the end card; no
+  "Build your own widget." with its cursors there.
+- **Customize** has three steps: **Light or dark** (two cards, each with a
+  small board in its colours, the widget in the app taking the one tapped;
+  a third card, greyed, "Customize your own · Coming soon", that does
+  nothing), **How it opens**, and **You're ready!**. No start card, no parts
+  to tap, no colours: the code names `theme="nimiq"` or `"nimiq-dark"`,
+  without `accent` or CSS. Switching the header's style moves to the other
+  look's first step if the one you were on is not in it.
+
+Later the same day:
+
+- **"Customize" is now "Make it yours"** everywhere it is named (menu, page
+  title, the button on Why PleaseNoBugs), in both looks; the address stays
+  `customize.html`, so links keep working. On a phone narrower than 400px
+  the menu's links are a little tighter, to fit the longer name.
+- In the Nimiq look the page gets **a heading** ("Make it yours" and one
+  line) with a **Desktop / Phone** switch: Phone narrows the preview to a
+  phone's width, the theme cards along its bottom, the three ways swiped.
+- **The widget can be tried in every step** in the Nimiq look (nothing to
+  colour there), not only in the last.
+- **You're ready!** in the Nimiq look: 1) your server, with fields for the
+  project id and address it printed (they go straight into the code and the
+  prompt; kept in the page's memory only) and "No server yet? Start one on
+  Railway"; 2) three ways in, each copied in one tap: paste HTML, with npm
+  (install, import once, the tag), or the prompt for your AI agent; 3) a
+  "Does it work?" checklist: the board loads, you can post and vote, you can
+  answer as the owner. The code and the prompt stay under it to look at.
+
+## 2026-11-18: Make it yours, step by step to a working board (Nimiq look)
+
+"You're ready!" came right after "How it opens", while the developer still
+had a server, a project id and the code to sort out. In the Nimiq look the
+page now walks them through it, six steps, in the order the work comes:
+
+1. **Light or dark**, 2. **How it opens** (as before).
+3. **Your server**, wide over the stage: "I have one" (project id and
+   address, which fill in the code; never saved or sent) beside "Not yet?
+   Pick a way": Railway (easiest, one button), your own Node backend,
+   Docker on a rented server, your own hardware, each a line and a link,
+   and what every way asks: the app's name, its address, the owner's
+   `NQ…` wallet. Next works without filling it in.
+4. **Where does your app run?**: only in Nimiq Pay (the wallet signs, nothing
+   to add) or in a browser (the Nimiq Hub signs; Nimiq Pay still signs by
+   itself, as the code checks `insideNimiqPay()`). Next waits for a pick.
+   A link to reusing the app's own login.
+5. **Add it to your app**: the three ways side by side, each a complete
+   block with its copy button: paste HTML (with a module script for the
+   signer when in a browser), npm (install, import once, the tag, the
+   signer), or the AI prompt, which now says where the app runs.
+6. **The last step**, the widget back to try: "You're set up.", a short list
+   of what was chosen (a gold tag on what is still open), and "Before you
+   ship" with three checks. Ticked, the title becomes "You're live.", the
+   line "Everything checks out. Ship it.", and a navy note with the gold
+   hexagon says the users can speak up now. No confetti in this look;
+   Classic keeps its cheer and its "You're ready!" card.
+
+**Next waits for a choice** (same day, Nimiq look only). Nothing is picked
+beforehand: Light or dark and How it opens start with no card marked (the
+widget shows light, a button in the corner, until then). Next stays grey,
+and the bar says why under the step's name, until: a theme is tapped; a way
+is tapped; the server has a project id and an `https://` address with a
+host, or "I'll set it up later" is ticked (the code then keeps
+`YOUR_PROJECT_ID` and `YOUR_SERVER`); where it runs is picked; one of the
+three ways in was copied. Going back keeps every choice. Classic's Next is
+always there, as before.
+
+## 2026-11-18 (later): Make it yours, less technical (Nimiq look)
+
+The owner found the six steps too technical. The server is the hard part,
+and the developer's AI agent can ask about it and set it up with them; the
+prompt already holds the four ways. So in the Nimiq look there are four
+steps, and the server, the code steps and the checklist above are gone:
+
+1. **Light or dark**, 2. **How it opens**, each waiting for a pick.
+3. **Where it's used**, wide over the stage, in plain words: only in Nimiq
+   Pay, only in a browser, or both ("Not sure? Pick both."). A browser, or
+   both, puts the Nimiq Hub signer in the code (it leaves Nimiq Pay's own
+   signing alone); the prompt says which.
+4. **"Your widget is ready to add."**, with the gold hexagon, the widget
+   beside it to try: a big "Copy prompt for your AI agent"; what happens next
+   (paste it into your agent; answer its questions, it asks which server and
+   sets it up with you; try it in your app); the three choices, each with
+   "Change" back to its step; "See the prompt"; and, small, "Prefer to add
+   it yourself? Show the code" with the HTML and the npm steps (project id
+   and server address left to fill in). No confetti.
+
+Classic is unchanged.
 
 ## Where it stands
 
