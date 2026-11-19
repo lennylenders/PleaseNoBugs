@@ -86,7 +86,7 @@ const said = document.getElementById('ti-said');
  */
 const INTRO = [
   { title: 'Imagine this is your app.', line: '', ms: 3000 },
-  { title: 'You gained your first users!', line: '', during: true, ms: 2000 },
+  { title: 'You gained your first users!', line: '', during: true, ms: 2000, calm: ['Your first users arrive.', ''] },
   {
     title: 'They give feedback, all over the place.',
     line: 'In reviews, chats and DMs.',
@@ -101,6 +101,7 @@ const INTRO = [
   },
   {
     title: 'This open source feedback widget is your solution!',
+    calm: ['PleaseNoBugs gives it one place.', 'An open-source feedback button in your app.'],
     line: 'PleaseNoBugs: one button in your app.',
     ms: 3000,
   },
@@ -252,7 +253,8 @@ async function sleep(ms) {
   }
 }
 /** A pause between steps. Typing and taps keep their speed. */
-const wait = (ms) => sleep(ms * PACE);
+// The Nimiq look keeps it shorter: a quarter quicker.
+const wait = (ms) => sleep(ms * (calm() ? PACE * 0.75 : PACE));
 
 function watchSight() {
   let onScreen = true;
@@ -565,7 +567,10 @@ function draw(n) {
  * after it; its drawing while it is typed, or after.
  */
 async function scene(n) {
-  const { during, title: big, line } = scenes()[n - 1];
+  const s = scenes()[n - 1];
+  // The Nimiq look says the two lines that shout more calmly.
+  const [big, line] = calm() && s.calm ? s.calm : [s.title, s.line];
+  const { during } = s;
   // Which scene of how many, small over the big line in the Nimiq look.
   caption.dataset.step = `${String(n).padStart(2, '0')} / ${String(scenes().length).padStart(2, '0')}`;
   caption.classList.add('ti-caption--away');
@@ -622,7 +627,7 @@ async function playIntro(from = 1) {
   for (let n = from; n <= scenes().length && !skipped; n++) {
     chapter = n - 1;
     await scene(n);
-    await hold(scenes()[n - 1].ms);
+    await hold(calm() ? scenes()[n - 1].ms * 0.8 : scenes()[n - 1].ms);
   }
 }
 

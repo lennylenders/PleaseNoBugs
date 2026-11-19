@@ -1544,6 +1544,35 @@ steps, and the server, the code steps and the checklist above are gone:
 
 Classic is unchanged.
 
+**2026-11-19: the demo, clearer (Nimiq look only).**
+- Before it plays the stage is a calm cover: "Demo · about a minute",
+  "See how it works." and Watch demo, rather than scene 1 already standing
+  there (which then seemed to start over).
+- Scene 1: the "Your app" window comes up towards you once (10px, a little
+  bigger, a soft shadow), holds a moment and settles back, so it is plain
+  the demo is about that screen.
+- While it plays the site's own round button steps aside: one gold button
+  on screen, the demo's.
+- The user's and the owner's side say each step big at the stage's left
+  ("01 / 05" over it), as the intro does, with the app window full height
+  at the right; on a phone the step on top, the app under it.
+- A quarter quicker (pauses × 0.75, intro scenes × 0.8), and two lines said
+  without shouting: "Your first users arrive." and "PleaseNoBugs gives it
+  one place." / "An open-source feedback button in your app.".
+- The back and on zones stay invisible, as they were.
+- Scene 3's feedback stays the white mono tags ("REVIEW", "CHAT", "DM"; a
+  navy version with sentences was tried and dropped), but each now comes
+  out of its user, lifts a moment (6px, a little bigger, a soft shadow) and
+  settles back, one after another, so it is plain each one says something.
+  On a phone the tags show too, small, just over their users.
+
+**2026-11-19: the right Nimiq mark.** The hexagon came from the styleguide's
+title bar, a wider draft (34 × 28) than the mark in its Logo chapter. Now
+it is that master mark (91 × 80, Brand/500), exported as
+`assets/nimiq/hexagon-2026.svg`: in the header (27 × 24, the brand's 0.4 ×
+its height to the name), the footer, the tab's icon and the last step of
+Make it yours; also swapped in the Figma page's logo and footer components.
+
 ## Where it stands
 
 Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

@@ -179,7 +179,7 @@
 }
 [data-style='nimiq'] .top__inner { min-height: 76px; gap: 24px; }
 [data-style='nimiq'] .brand { gap: 10px; font-size: 19px; font-weight: 600; letter-spacing: -0.03em; }
-[data-style='nimiq'] .brand img { width: 30px; height: 24px; }
+[data-style='nimiq'] .brand img { width: 27.3px; height: 24px; }
 [data-style='nimiq'] .nav { gap: 8px; margin: 0 auto; }
 [data-style='nimiq'] .nav a { padding: 8px 12px; color: var(--nq-navy); font-size: 15px; font-weight: 400; }
 [data-style='nimiq'] .nav a:hover { background: var(--nq-navy-5); }
@@ -240,7 +240,7 @@
 [data-style='nimiq'] .foot a { text-decoration: none; }
 [data-style='nimiq'] .foot a:hover { text-decoration: underline; }
 [data-style='nimiq'] .foot__who { gap: 4px 10px; }
-[data-style='nimiq'] .foot__who img { width: 18px; height: 14px; }
+[data-style='nimiq'] .foot__who img { width: 16px; height: 14px; }
 [data-style='nimiq'] .foot__who b { font-weight: 500; }
 [data-style='nimiq'] .foot__links { gap: 4px 28px; }
 [data-style='nimiq'] .foot__links span { display: none; }
@@ -326,7 +326,7 @@
 
 /* While the real widget plays, the app window takes the stage's full height,
    so its board has room (tour.js measures it as it mounts the widget). */
-[data-style='nimiq'] .tour--playing:not([data-intro]) .tour-app { top: 6%; bottom: 14%; }
+[data-style='nimiq'] .tour--playing:not([data-intro]) .tour-app { top: 6%; bottom: 6%; }
 
 /* Before it plays: the first scene still, its line at the left, and "Watch demo". */
 [data-style='nimiq'] .tour-page { inset: 0 auto 0 0; width: 44%; justify-content: flex-start; padding: 56px; }
@@ -1084,7 +1084,7 @@
 [data-style='nimiq'] .deck--ready .deck__name::before {
   content: '';
   display: block;
-  width: 35px;
+  width: 32px;
   height: 28px;
   margin-bottom: 14px;
   background: url('nimiq/hexagon-2026.svg') center / contain no-repeat;
@@ -1144,3 +1144,72 @@
 [data-style='nimiq'] .nq-code { display: grid; gap: 8px; margin-top: 12px; }
 [data-style='nimiq'] .nq-code > b { font-family: var(--nq-mono); font-size: 11px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; color: var(--nq-navy-60); }
 [data-style='nimiq'] .nq-code .btn { justify-self: start; }
+
+/* ---- The demo, clearer -------------------------------------------------- */
+
+/* Scene 1: "Your app" comes up towards you once, then settles back, so it
+   is plain what the demo is about. */
+[data-style='nimiq'] .tour[data-intro='1'] .tour-app { animation: nq-lift 1.9s cubic-bezier(0.3, 0.7, 0.3, 1) 350ms both; }
+@keyframes nq-lift {
+  0%, 100% { transform: none; box-shadow: inset 0 0 0 1px var(--nq-navy-10); }
+  28%, 68% { transform: translateY(-10px) scale(1.02); box-shadow: inset 0 0 0 1px var(--nq-navy-10), 0 24px 48px rgba(4, 7, 36, 0.16); }
+}
+
+/* While it plays, the site's own feedback button steps aside: one round
+   button on screen, the demo's. */
+[data-style='nimiq'] body > please-no-bugs { transition: opacity 300ms ease, visibility 0s; }
+[data-style='nimiq'] body:has(.tour--playing) > please-no-bugs { opacity: 0; visibility: hidden; transition: opacity 300ms ease, visibility 0s 300ms; }
+
+/* The user's and the owner's side: each step big at the stage's left, as
+   the intro's lines are, which of how many over it. */
+@media (min-width: 761px) {
+  [data-style='nimiq'] .tour-say {
+    left: 56px;
+    top: 56px;
+    right: auto;
+    bottom: auto;
+    width: min(40%, 440px);
+    max-width: none;
+  }
+  [data-style='nimiq'] .tour-say__title { font-size: clamp(26px, 3vw, 40px); line-height: 1.1; letter-spacing: -0.04em; }
+  [data-style='nimiq'] .tour-say::before { margin-bottom: 16px; }
+}
+/* A phone: the step on top, the app under it. */
+@media (max-width: 760px) {
+  [data-style='nimiq'] .tour-say {
+    position: absolute;
+    z-index: 2;
+    top: 24px;
+    left: 24px;
+    right: 24px;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+  }
+  [data-style='nimiq'] .tour-say__title { font-size: 22px; line-height: 1.2; letter-spacing: -0.03em; }
+  [data-style='nimiq'] .tour--playing:not([data-intro]) .tour-app { top: 132px; bottom: 24px; left: 16px; right: 16px; }
+}
+
+/* ---- Scene 3: the feedback, lifted ---------------------------------------
+   Each white tag comes out of its user, lifts a moment with a soft shadow
+   and settles back, one after another, so it is plain each one says
+   something. The tags themselves, their places and scene 4 are above. */
+[data-style='nimiq'] .tour[data-intro='3'] .ti-bubble { animation: nq-say-lift 1.5s cubic-bezier(0.3, 0.7, 0.3, 1) calc(250ms + var(--i) * 350ms) both; }
+@keyframes nq-say-lift {
+  0% { opacity: 0; transform: translateX(-8px); filter: none; }
+  22% { opacity: 1; transform: none; filter: none; }
+  42%, 62% { opacity: 1; transform: translateY(-6px) scale(1.08); filter: drop-shadow(0 8px 10px rgba(4, 7, 36, 0.18)); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+/* A phone: the tags small, just over their users. */
+@media (max-width: 760px) {
+  [data-style='nimiq'] .ti-bubble { display: block; }
+  [data-style='nimiq'] .ti-bubble .ti-from { padding: 3px 7px; font-size: 9px; }
+  [data-style='nimiq'] .ti-bubble:nth-of-type(6) { left: 4%; top: calc(30% - 24px); }
+  [data-style='nimiq'] .ti-bubble:nth-of-type(7) { left: 80%; top: calc(30% - 24px); }
+  [data-style='nimiq'] .ti-bubble:nth-of-type(8) { left: 80%; top: calc(62% - 24px); }
+  [data-style='nimiq'] .ti-bubble:nth-of-type(9) { left: 4%; top: calc(84% - 24px); }
+  [data-style='nimiq'] .ti-bubble:nth-of-type(10) { left: 42%; top: calc(88% - 24px); }
+}
