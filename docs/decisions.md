@@ -4,6 +4,12 @@ Why PleaseNoBugs is the way it is. Newest at the bottom. When a decision is
 reversed, add a new entry rather than editing the old one, so the reasoning
 that was tried survives.
 
+Until 2026-11-19 the website and the widget also had a second, playful look
+("Classic": dark purple, raised buttons, colouring the widget in yourself) and
+spoke Dutch and German. Entries about those describe code that is no longer
+on `main`; it is kept on the branch `classic` (tag `classic-2026-11-19`).
+See the entry of that day.
+
 ## 2026-10-14: Where it comes from
 
 Extracted from the feedback board in [Shitti](https://shitti.me), a Nimiq Pay
@@ -1572,6 +1578,26 @@ it is that master mark (91 × 80, Brand/500), exported as
 `assets/nimiq/hexagon-2026.svg`: in the header (27 × 24, the brand's 0.4 ×
 its height to the name), the footer, the tab's icon and the last step of
 Make it yours; also swapped in the Figma page's logo and footer components.
+
+## 2026-11-19: Nimiq only, English only
+
+For sharing with a team, the project is one thing: the Nimiq look.
+
+- **The website** has one look, the Nimiq 2026 brand. The style switch, the
+  Classic look, its colouring Customize and the "Build your own widget"
+  scene are gone; site.css is the one stylesheet (it was site.css, a
+  customize.css and a nimiq.css on top). Visitors see the same pages as
+  before: every state was compared screenshot by screenshot.
+- **The widget** has two themes, `nimiq` (now the default) and
+  `nimiq-dark`. `auto`, `light`, `dark`, `pleasenobugs` and `shitti`, the
+  `accent` attribute and `readableOn` are gone; the `--pnb-*` custom
+  properties still override any colour.
+- **English only.** Dutch and German left the widget. A developer puts it in
+  their app's language with the `strings` property, and `lang` now only says
+  which language that is, for dates. Shitti becomes English when it updates.
+- Everything as it was is parked on the branch `classic` and the tag
+  `classic-2026-11-19`.
+- Versions go to 0.3.0: an app on 0.2.0 keeps its look until it updates.
 
 ## Where it stands
 

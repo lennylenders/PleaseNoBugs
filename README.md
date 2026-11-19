@@ -10,10 +10,10 @@ one place, without asking anybody to send you an email.
   <img src="docs/images/board-light.png" width="250" alt="The board in light mode: ideas and bugs with votes and the app's answers">
   <img src="docs/images/board-dark.png" width="250" alt="The same board in dark mode">
   <img src="docs/images/owner-answer.png" width="250" alt="The owner answering a bug: status, a reply, and the app version it came from">
-  <img src="docs/images/tiles-nimiq.png" width="250" alt="The three tiles behind the plus, in the nimiq theme: report a bug, share an idea, write a review">
+  <img src="docs/images/tiles.png" width="250" alt="The three tiles behind the plus: report a bug, share an idea, write a review">
 </p>
 
-> **Status: 0.2.0, early.** It runs [Shitti](https://shitti.me)'s board.
+> **Status: 0.3.0, early.** It runs [Shitti](https://shitti.me)'s board.
 > This is a community tool, not an official Nimiq product.
 
 ## What it does
@@ -41,8 +41,9 @@ one place, without asking anybody to send you an email.
 - **Anonymous by default.** A name shows only if the author turns it on, and a
   wallet address is never shown to anyone.
 - **Login is the Nimiq wallet your users already have.** No accounts, no email.
-- **Follows the phone**: light or dark, English, Dutch or German, and your
-  accent colour. Or the bright `nimiq` theme.
+- **In Nimiq's look**: the Nimiq Foundation's 2026 brand, light (`nimiq`)
+  or dark (`nimiq-dark`). In English; the `strings` property puts it in your
+  app's own language.
 
 <br clear="right">
 
