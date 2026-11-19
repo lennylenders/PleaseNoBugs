@@ -2,7 +2,7 @@ import { render } from 'preact';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { POST_KINDS, type AppLogin, type PostContext, type PostKind } from '@pleasenobugs/core';
 import { createClient, type Client } from './client.js';
-import { pickLang, translator, type Strings } from './i18n.js';
+import { translator, type Strings } from './i18n.js';
 import type { Signer } from './signer.js';
 import { App, type View } from './ui/App.js';
 import type { Screenshots } from './ui/Compose.js';
@@ -27,8 +27,8 @@ export const TAG = 'please-no-bugs';
  * under them; `start="board"` opens on the board instead.
  *
  * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
- * `start` (`tiles` or `board`), `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq`), `accent`
- * (a colour), `app-name`, `name` (a display name to suggest), `kinds` (which
+ * `start` (`tiles` or `board`), `theme` (`nimiq`, the default, or `nimiq-dark`),
+ * `lang` (the language of your `strings`, for dates; English by default), `app-name`, `name` (a display name to suggest), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
  * the board, for the app's owners only; `off` to leave them out), `names`
  * (`off` leaves out "Show my name", so every post is anonymous),
@@ -36,7 +36,7 @@ export const TAG = 'please-no-bugs';
  * `readonly.ts`), `demo` (sample posts in the page's memory, no server: see
  * `demo.ts`; `demo="owner"` is the owner's side of it) and, with `demo` only, `screen` (`button`, `tiles`, `board`,
  * `write`, `sent` or `updates`: that screen, held, for the website's
- * configurator).
+ * Make it yours).
  *
  * Properties, for things an attribute cannot carry: `signer`, `appLogin`,
  * `context`, `noise`, `strings` and, with `demo`, `samples`.
@@ -56,7 +56,6 @@ export class PleaseNoBugsElement extends HTMLElement {
     'start',
     'lang',
     'theme',
-    'accent',
     'app-name',
     'name',
     'kinds',
@@ -124,7 +123,7 @@ export class PleaseNoBugsElement extends HTMLElement {
     this.#render();
   }
 
-  /** Override any string, or supply a language: `{ 'board.title': 'Ideas box' }`. */
+  /** Override any string, or put the whole board in your app's language: `{ 'board.title': 'Ideas box' }`. */
   get strings() {
     return this.#strings;
   }
@@ -165,7 +164,6 @@ export class PleaseNoBugsElement extends HTMLElement {
 
   attributeChangedCallback(name: string) {
     if (name === 'project' || name === 'server' || name === 'demo' || name === 'readonly') this.#clientKey = '';
-    if (name === 'accent') this.#paintAccent();
     this.#render();
   }
 
@@ -174,23 +172,9 @@ export class PleaseNoBugsElement extends HTMLElement {
     this.dispatchEvent(new CustomEvent('pleasenobugs:close', { bubbles: true, composed: true }));
   }
 
-  #paintAccent() {
-    const accent = this.getAttribute('accent');
-    // The fill too, so one colour beats a theme's gradient on the buttons.
-    if (accent) {
-      this.style.setProperty('--pnb-accent', accent);
-      this.style.setProperty('--pnb-accent-fill', accent);
-      this.style.setProperty('--pnb-on-accent', readableOn(accent));
-    } else {
-      this.style.removeProperty('--pnb-accent');
-      this.style.removeProperty('--pnb-accent-fill');
-      this.style.removeProperty('--pnb-on-accent');
-    }
-  }
-
   #render() {
     if (!this.#mount || !this.isConnected) return;
-    const lang = pickLang(this.getAttribute('lang'));
+    const lang = this.getAttribute('lang') || 'en';
     if (this.hasAttribute('demo')) {
       // Its own chunk in the module build, so an app that never sets `demo`
       // never downloads the sample posts.
@@ -201,12 +185,11 @@ export class PleaseNoBugsElement extends HTMLElement {
         });
         return;
       }
-      // Keyed on the language too: the sample posts speak the board's.
       // `demo="owner"`: the same board, seen by the app's owner.
       const owner = this.getAttribute('demo') === 'owner';
-      const key = `demo|${lang}|${owner}`;
+      const key = `demo|${owner}`;
       if (!this.#client || this.#clientKey !== key) {
-        this.#client = this.#demo.createDemoClient(lang, { owner, samples: this.#samples });
+        this.#client = this.#demo.createDemoClient({ owner, samples: this.#samples });
         this.#clientKey = key;
       }
       this.#show(this.#client, lang);
@@ -246,7 +229,7 @@ export class PleaseNoBugsElement extends HTMLElement {
     const mode = this.getAttribute('mode') ?? 'inline';
     const app = {
       client,
-      t: translator(lang, this.#strings),
+      t: translator(this.#strings),
       locale: lang,
       appName: this.getAttribute('app-name') ?? undefined,
       suggestName: this.getAttribute('name') ?? undefined,
@@ -541,24 +524,6 @@ export function readKinds(v: string | null): PostKind[] | undefined {
     .split(',')
     .map((s) => s.trim().toLowerCase())
     .filter((s): s is PostKind => (POST_KINDS as readonly string[]).includes(s));
-}
-
-/**
- * Black or white, whichever reads better on `color`. So `accent="#ffd400"`
- * gets dark text and `accent="#1f2348"` gets white, without the developer
- * having to know there was a question.
- */
-export function readableOn(color: string): string {
-  const hex = color.trim().replace('#', '');
-  const full = hex.length === 3 ? [...hex].map((c) => c + c).join('') : hex.slice(0, 6);
-  if (!/^[0-9a-f]{6}$/i.test(full)) return '#ffffff';
-  const channel = (i: number) => {
-    const v = parseInt(full.slice(i, i + 2), 16) / 255;
-    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-  };
-  const lum = 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
-  // White wins when it out-contrasts black: (1.05) / (L + 0.05) vs (L + 0.05) / 0.05.
-  return 1.05 / (lum + 0.05) >= (lum + 0.05) / 0.05 ? '#ffffff' : '#111118';
 }
 
 /** Register the element once, however many times the script is loaded. */

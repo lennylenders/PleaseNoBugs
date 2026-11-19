@@ -40,9 +40,8 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `project`, `server` | Required. |
 | `mode` | `inline`, `floating` or `overlay`. |
 | `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board. |
-| `lang` | `en`, `nl`, `de`, or any code you supply `strings` for. Defaults to Nimiq Pay's language, then the page's. |
-| `theme` | `auto` (follows the phone), `light`, `dark`, `pleasenobugs` (dark purple, the website's look), `nimiq` (the Nimiq Foundation's 2026 brand: navy on white, a gold round button) and `nimiq-dark` (the same on navy). Every theme has the same shapes: painted tiles with a glyph on them, the same badges; only the colours differ. `shitti` is the old name of `pleasenobugs` and still works. |
-| `accent` | One colour, e.g. `#e84a5f`. The text on it picks black or white by itself. |
+| `theme` | `nimiq` (default): the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
+| `lang` | The language of your `strings`, so dates follow it: `nl` writes "14 sep". English by default. |
 | `app-name` | What answers are signed with ("Shitti says"). Defaults to the project's name. |
 | `name` | A display name you already know, offered when the user chooses to show theirs. |
 | `kinds` | Which kinds to offer, of the ones your project takes: `bug,idea,review` by default. `kinds="bug,idea"` leaves reviews off the tiles and out of the list. |
@@ -50,7 +49,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `names` | `off` leaves out "Show my name", so every post is anonymous. For a board on a public page. |
 | `readonly` | The board to read and scroll through, nothing else: no **+**, no votes (the count still shows), no "Sign in", and it never asks a wallet or sends a proof, not even inside Nimiq Pay. Every post shows as anonymous and without its screenshot, whatever its author chose, because a read-only board is usually shown somewhere other than the app its authors wrote for. |
 | `demo` | A board of sample posts in the page's memory, with no server: `<please-no-bugs demo>`. Voting and writing work, nothing is sent or stored, and a reload starts over. For trying the widget, or showing it off. `demo="owner"` is the same board as its owner sees it: answer, set a status and "Fixed in", write updates. |
-| `screen` | With `demo` only: hold one screen in view, `button`, `tiles`, `board`, `write`, `sent` or `updates`. What the website's configurator uses to show the part you are changing. |
+| `screen` | With `demo` only: hold one screen in view, `button`, `tiles`, `board`, `write`, `sent` or `updates`. What the website's Make it yours uses to show each part. |
 
 | Property | |
 |---|---|
@@ -58,7 +57,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `appLogin` | Your app's own login signature, so nobody signs twice (below). |
 | `context` | Sent with every bug report, to owners only: `{ version: '1.4.0' }`. |
 | `noise` | Words common in your app, so "said already?" ignores them: `['nim', 'wallet']`. |
-| `strings` | Override any text: `{ 'board.title': 'Ideas box' }`. Keys are in `src/i18n.ts`. |
+| `strings` | Override any text, or put the whole board in your app's language: `{ 'board.title': 'Ideas box' }`. The widget ships in English; the keys and the English are in `src/i18n.ts`. |
 | `samples` | With `demo` only: the posts the demo board starts with, instead of its own, and no updates: `[{ kind: 'idea', text: 'Pin my contacts', votes: 12 }]`. |
 
 Events: `pleasenobugs:posted` (`detail: { id, kind }`) and `pleasenobugs:close`.
@@ -118,32 +117,33 @@ authors get the note. Until you write the first one, only you see the button.
 ## Theming
 
 The widget lives in a shadow root, so your CSS cannot break it. These custom
-properties cross that boundary on purpose and are the theming API:
+properties cross that boundary on purpose and are the theming API. The
+defaults below are the `nimiq` look; `nimiq-dark` sets the colours again on
+navy:
 
 ```css
 please-no-bugs {
-  --pnb-bg: #fff;            /* the page */
-  --pnb-surface: #f4f4f7;    /* a card */
-  --pnb-surface-2: #e8e8ef;  /* a chip or field inside a card */
-  --pnb-sunken: #e8e8ef;     /* the Top/New trough */
-  --pnb-line: #dcdce5;
-  --pnb-text: #1b1b24;
-  --pnb-text-quiet: #5a5a6b;
-  --pnb-accent: #2563eb;
-  --pnb-accent-fill: var(--pnb-accent);  /* what buttons are painted with; may be a gradient */
-  --pnb-on-accent: #fff;
-  --pnb-danger: #d23b2f;
-  --pnb-bug: #e5484d;  --pnb-idea: #8b5cf6;  --pnb-review: #e9a00b;
-  --pnb-planned: #8a8fb8;  --pnb-done: #21bca5;  --pnb-declined: #8a8fb8;
-  --pnb-on-dot: #fff;                    /* the glyph on a chip's dot; or per kind and status: */
+  --pnb-bg: #ffffff;            /* the page */
+  --pnb-surface: #fafaf8;    /* a card */
+  --pnb-surface-2: #f2f3f4;  /* a chip or field inside a card */
+  --pnb-sunken: #f2f3f4;     /* the Top/New trough */
+  --pnb-line: #e6e6e9;
+  --pnb-text: #040724;
+  --pnb-text-quiet: #686a7c;
+  --pnb-accent: #040724;
+  --pnb-on-accent: #ffffff;
+  --pnb-danger: #cb0015;
+  --pnb-bug: #cb0015;  --pnb-idea: #ffb700;  --pnb-review: #4f5166;
+  --pnb-planned: #ffc758;  --pnb-done: #040724;  --pnb-declined: #9b9ca7;
+  --pnb-on-dot: #ffffff;                    /* the glyph on a chip's dot; or per kind and status: */
   --pnb-on-bug: var(--pnb-on-dot);       /* --pnb-on-idea, -review, -planned, -done, -declined */
-  --pnb-star: #f5a524;
+  --pnb-star: #ffb700;
   --pnb-filter: var(--pnb-text);         /* the chosen filter, and the chosen status in your answer sheet */
   --pnb-on-filter: var(--pnb-bg);        /* its words: set both, as they are not picked for you */
   --pnb-tile-bug: var(--pnb-bug);        /* the three tiles; may be gradients */
   --pnb-tile-idea: var(--pnb-idea);
   --pnb-tile-review: var(--pnb-review);
-  --pnb-tile-ink: #fff;                  /* the words on them */
+  --pnb-tile-ink: #ffffff;                  /* the words on them */
   --pnb-tile-ink-bug: var(--pnb-tile-ink); /* the words on one tile (-idea, -review too) */
   --pnb-tile-dot-bug: transparent;       /* a disc behind each tile's glyph (-idea, -review too) */
   --pnb-tile-glyph-bug: var(--pnb-tile-ink-bug); /* and the glyph's colour (-idea, -review too) */
@@ -151,10 +151,10 @@ please-no-bugs {
   --pnb-choose-title: var(--pnb-text);   /* the question above the tiles */
   --pnb-title-board: var(--pnb-text);    /* the title in the board's bar */
   --pnb-title-write: var(--pnb-text);    /* the title above the form */
-  --pnb-card: var(--pnb-surface);        /* the posts and the rating on the board, */
+  --pnb-card: #ffffff;        /* the posts and the rating on the board, */
   --pnb-card-text: var(--pnb-text);      /* their words, */
   --pnb-card-quiet: var(--pnb-text-quiet); /* and their names, dates and counts */
-  --pnb-field: var(--pnb-surface);       /* every field you type in (form, search, answer, update), */
+  --pnb-field: #f2f3f4;       /* every field you type in (form, search, answer, update), */
   --pnb-field-text: var(--pnb-text);     /* what is typed in it, */
   --pnb-field-quiet: var(--pnb-text-quiet); /* its hint while empty, */
   --pnb-field-line: var(--pnb-line);     /* and the line round it */
@@ -163,13 +163,13 @@ please-no-bugs {
   --pnb-news-text: var(--pnb-text);      /* its words, */
   --pnb-news-link: var(--pnb-accent);    /* its link, */
   --pnb-news-quiet: var(--pnb-text-quiet); /* and its small words and close */
-  --pnb-filter-btn: var(--pnb-surface);  /* the Filter button: its ground, */
+  --pnb-filter-btn: #ffffff;  /* the Filter button: its ground, */
   --pnb-filter-btn-text: var(--pnb-text); /* its word, */
-  --pnb-filter-btn-line: var(--pnb-line); /* and its line */
+  --pnb-filter-btn-line: #cdcdd3; /* and its line */
   --pnb-bar-icon: var(--pnb-text);       /* the icons in every bar: close, back, updates, new post */
   --pnb-order: var(--pnb-sunken);        /* behind Top / New, */
   --pnb-order-text: var(--pnb-text-quiet); /* and the word not chosen */
-  --pnb-vote: var(--pnb-surface-2);      /* the vote button, */
+  --pnb-vote: #f2f3f4;      /* the vote button, */
   --pnb-vote-text: var(--pnb-card-text); /* its count, */
   --pnb-vote-on: var(--pnb-accent);      /* a vote you gave, */
   --pnb-on-vote-on: var(--pnb-on-accent); /* and its count */
@@ -186,18 +186,15 @@ please-no-bugs {
   --pnb-sent: var(--pnb-bg);             /* behind "Feedback sent!" */
   --pnb-sent-title: var(--pnb-text);     /* its title, */
   --pnb-sent-note: var(--pnb-text-quiet); /* its small words and "Back to the board", */
-  --pnb-sent-check: var(--pnb-done);     /* and the disc behind its tick */
-  --pnb-on-sent-check: #fff;            /* the tick itself */
-  --pnb-raise: none;                     /* a filled button's shadow; `pleasenobugs` raises it */
-  --pnb-raise-pressed: none;             /* its shadow while pressed */
-  --pnb-raise-sink: 0px;                 /* how far it sinks when pressed */
-  --pnb-fab: var(--pnb-accent-fill);     /* the round floating button */
-  --pnb-on-fab: var(--pnb-on-accent);    /* its glyph */
+  --pnb-sent-check: #040724;            /* and the disc behind its tick */
+  --pnb-on-sent-check: #ffffff;         /* the tick itself */
+  --pnb-fab: #ffb700;                    /* the round floating button */
+  --pnb-on-fab: #040724;                 /* its glyph */
   --pnb-fab-shadow: var(--pnb-shadow);   /* its shadow, */
   --pnb-fab-shadow-pressed: var(--pnb-fab-shadow); /* pressed, */
   --pnb-fab-squeeze: 0.94;               /* and how small it gets pressed */
   --pnb-radius-panel: 16px;              /* the panel on a wide screen */
-  --pnb-radius: 8px;
+  --pnb-radius: 10px;
   --pnb-radius-sheet: 16px;
   --pnb-radius-pill: 999px;  /* filters, chips, votes, Top/New, buttons */
   --pnb-font: inherit;       /* your app's font */

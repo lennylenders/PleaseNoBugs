@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>PleaseNoBugs demo</title>
     <style>
-      /* PleaseNoBugs' own font, from the website. The widget takes the page's. */
-      @font-face { font-family: 'Museo Sans Rounded'; font-weight: 500; font-display: swap; src: url('/fonts/museo-sans-rounded-500.otf') format('opentype'); }
-      @font-face { font-family: 'Museo Sans Rounded'; font-weight: 700; font-display: swap; src: url('/fonts/museo-sans-rounded-700.otf') format('opentype'); }
-      @font-face { font-family: 'Museo Sans Rounded'; font-weight: 900; font-display: swap; src: url('/fonts/museo-sans-rounded-900.otf') format('opentype'); }
+      /* The website's font, Manrope. The widget takes the page's. */
+      @font-face { font-family: 'Manrope'; font-weight: 200 800; font-display: swap; src: url('/fonts/manrope.woff2') format('woff2'); }
       :root { color-scheme: light dark; }
       body {
         margin: 0;
-        font-family: 'Museo Sans Rounded', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
         background: Canvas;
         color: CanvasText;
       }
@@ -43,18 +41,8 @@
       </label>
       <label>Theme
         <select id="theme">
-          <option value="auto">auto</option>
-          <option value="light">light</option>
-          <option value="dark">dark</option>
-          <option value="pleasenobugs">pleasenobugs</option>
           <option value="nimiq">nimiq</option>
-        </select>
-      </label>
-      <label>Lang
-        <select id="lang">
-          <option value="en">en</option>
-          <option value="nl">nl</option>
-          <option value="de">de</option>
+          <option value="nimiq-dark">nimiq-dark</option>
         </select>
       </label>
       <label>Mode
@@ -79,7 +67,7 @@
       board.noise = ['demo'];
       const $ = (id) => document.getElementById(id);
       const params = new URLSearchParams(location.search);
-      for (const k of ['who', 'theme', 'lang', 'mode']) if (params.get(k)) $(k).value = params.get(k);
+      for (const k of ['who', 'theme', 'mode']) if (params.get(k)) $(k).value = params.get(k);
 
       const signerFor = (who) =>
         who === 'none'
@@ -98,12 +86,11 @@
         for (const k of Object.keys(localStorage)) if (k.startsWith('pleasenobugs.proof.')) localStorage.removeItem(k);
         board.signer = signerFor($('who').value);
         board.setAttribute('theme', $('theme').value);
-        board.setAttribute('lang', $('lang').value);
         board.setAttribute('mode', $('mode').value);
         // Re-create the client so the forgotten proof is really forgotten.
         board.setAttribute('project', 'demo');
       }
-      for (const k of ['who', 'theme', 'lang', 'mode']) $(k).addEventListener('change', apply);
+      for (const k of ['who', 'theme', 'mode']) $(k).addEventListener('change', apply);
       apply();
 
       $('open').addEventListener('click', () =>
@@ -111,7 +98,6 @@
           project: 'demo',
           server: location.origin,
           theme: $('theme').value,
-          lang: $('lang').value,
           signer: signerFor($('who').value),
         }),
       );

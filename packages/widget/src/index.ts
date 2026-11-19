@@ -4,7 +4,7 @@ import type { Strings } from './i18n.js';
 import type { Signer } from './signer.js';
 
 export * from './client.js';
-export { PleaseNoBugsElement, readableOn } from './element.js';
+export { PleaseNoBugsElement } from './element.js';
 export type { Strings, CopyKey } from './i18n.js';
 export type { DemoSample } from './demo.js';
 
@@ -14,9 +14,9 @@ define();
 export interface OpenOptions {
   project: string;
   server: string;
+  /** The language of your `strings`, for dates. English by default. */
   lang?: string;
-  theme?: 'auto' | 'light' | 'dark' | 'pleasenobugs' | 'nimiq' | 'nimiq-dark' | 'shitti';
-  accent?: string;
+  theme?: 'nimiq' | 'nimiq-dark';
   appName?: string;
   /** A display name to suggest when the user chooses to show theirs. */
   name?: string;
@@ -51,7 +51,6 @@ export function open(options: OpenOptions): () => void {
   el.setAttribute('server', options.server);
   if (options.lang) el.setAttribute('lang', options.lang);
   if (options.theme) el.setAttribute('theme', options.theme);
-  if (options.accent) el.setAttribute('accent', options.accent);
   if (options.appName) el.setAttribute('app-name', options.appName);
   if (options.name) el.setAttribute('name', options.name);
   if (options.kinds) el.setAttribute('kinds', options.kinds.join(','));

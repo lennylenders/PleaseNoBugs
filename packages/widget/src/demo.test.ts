@@ -2,25 +2,20 @@ import { describe, expect, it } from 'vitest';
 import { createDemoClient } from './demo.js';
 
 describe('createDemoClient', () => {
-  it('reads a board in the language asked, signed in as a non-owner', async () => {
-    const res = await createDemoClient('nl').board();
+  it('reads its own board, signed in as a non-owner', async () => {
+    const res = await createDemoClient().board();
     if (!res.ok) throw new Error('no board');
     expect(res.data.posts.length).toBeGreaterThan(3);
-    expect(res.data.posts[0].text).toMatch(/donkere modus/);
+    expect(res.data.posts[0].text).toMatch(/dark mode/);
     expect(res.data.me).toMatchObject({ owner: false, left: 5 });
   });
 
   it('starts from samples of its own, with no updates, when given them', async () => {
-    const c = createDemoClient('en', { samples: [{ kind: 'idea', text: 'Pin my contacts', votes: 12 }] });
+    const c = createDemoClient({ samples: [{ kind: 'idea', text: 'Pin my contacts', votes: 12 }] });
     const res = await c.board();
     if (!res.ok) throw new Error('no board');
     expect(res.data.posts.map((p) => [p.kind, p.text, p.votes, p.status])).toEqual([['idea', 'Pin my contacts', 12, 'open']]);
     expect(res.data.updates).toBe(0);
-  });
-
-  it('falls back to English for a language it has no posts in', async () => {
-    const res = await createDemoClient('fr').board();
-    expect(res.ok && res.data.posts[0].text).toMatch(/dark mode/);
   });
 
   it('counts a vote once, however often it is cast', async () => {
@@ -86,7 +81,7 @@ describe('createDemoClient', () => {
   });
 
   it('as the owner, answers and fixes a bug, and an update closes what it names', async () => {
-    const c = createDemoClient('en', { owner: true });
+    const c = createDemoClient({ owner: true });
     const first = await c.board();
     expect(first.ok && first.data.me.owner).toBe(true);
     // Sam's bug, with what the app sent along, which owners see.

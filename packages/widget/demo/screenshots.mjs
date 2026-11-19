@@ -5,7 +5,7 @@
  *   npm run screenshots -w pleasenobugs    (in another)
  *
  * Writes docs/images/board-light.png, board-dark.png, owner-answer.png,
- * tiles-nimiq.png and writing.gif. Needs Chrome or Edge (or CHROME=path/to/browser) and, for the
+ * tiles.png and writing.gif. Needs Chrome or Edge (or CHROME=path/to/browser) and, for the
  * animation, ffmpeg on the PATH. Take them again whenever the look changes.
  */
 import puppeteer from 'puppeteer-core';
@@ -57,38 +57,38 @@ const shot = async (page, file) => (await page.$('.phone')).screenshot({ path: f
 const click = async (page, sel, i = 0) =>
   (await page.$$('please-no-bugs >>> ' + sel))[i].evaluate((el) => el.click());
 
-// The board, light and dark.
+// The board, light (`nimiq`) and dark (`nimiq-dark`).
 for (const scheme of ['light', 'dark']) {
-  const page = await open({ who: 'alice', theme: scheme }, { scheme });
+  const page = await open({ who: 'alice', theme: scheme === 'dark' ? 'nimiq-dark' : 'nimiq' }, { scheme });
   await shot(page, path.join(OUT, `board-${scheme}.png`));
   await page.close();
 }
 
 // The owner answering a bug, with the context it came with.
 {
-  const page = await open({ who: 'owner', theme: 'light' });
+  const page = await open({ who: 'owner', theme: 'nimiq' });
   await click(page, '.sign-in .text-btn');
   await waitIn(page, '.card--owner');
   await sleep(300);
   for (const card of await page.$$('please-no-bugs >>> .card--owner')) {
-    if ((await card.evaluate((n) => n.textContent)).includes('Dutch translation')) {
+    if ((await card.evaluate((n) => n.textContent)).includes('cut off on small phones')) {
       await card.evaluate((n) => n.click());
       break;
     }
   }
-  await waitIn(page, '.sheet');
+  await waitIn(page, '.manage');
   await sleep(500);
   await shot(page, path.join(OUT, 'owner-answer.png'));
   await page.close();
 }
 
-// The three tiles behind the "+", in the bright theme.
+// The three tiles behind the "+".
 {
   const page = await open({ who: 'alice', theme: 'nimiq' });
-  await click(page, '.bar .icon-btn:last-child');
+  await click(page, '.bar [aria-label="Write feedback"]');
   await waitIn(page, '.tile');
   await sleep(300);
-  await shot(page, path.join(OUT, 'tiles-nimiq.png'));
+  await shot(page, path.join(OUT, 'tiles.png'));
   await page.close();
 }
 
@@ -96,7 +96,7 @@ for (const scheme of ['light', 'dark']) {
 // ffmpeg turns the frames into a GIF with the durations listed here.
 {
   const frames = fs.mkdtempSync(path.join(os.tmpdir(), 'pnb-frames-'));
-  const page = await open({ who: 'alice', theme: 'light' }, { width: 360, height: 640, scale: 1.5 });
+  const page = await open({ who: 'alice', theme: 'nimiq' }, { width: 360, height: 640, scale: 1.5 });
   const list = [];
   let n = 0;
   const frame = async (seconds) => {
@@ -106,7 +106,7 @@ for (const scheme of ['light', 'dark']) {
   };
 
   await frame(2.0);
-  await click(page, '.bar .icon-btn:last-child');
+  await click(page, '.bar [aria-label="Write feedback"]');
   await waitIn(page, '.tile');
   await sleep(200);
   await frame(1.2);
