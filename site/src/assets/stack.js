@@ -1,5 +1,5 @@
 /*
- * The Nimiq look's key visual (Nimiq brand styleguide 2026, "Background
+ * The site's key visual (Nimiq brand styleguide 2026, "Background
  * visuals"): layers of the logo's rounded hexagon, each turned a little
  * further and fading, as a stack at the side of a hero. On navy the layers
  * are white at rising strength with the gold glow behind them; on white they
@@ -8,10 +8,10 @@
  * Every `[data-stack]` gets one: `hero` (Home's navy hero, a stack at either
  * side) or `page` (a white intro, one stack at the right). The layers and
  * their places are the brand file's, read from Figma (page "PleaseNoBugs ·
- * Nimiq 2026"), not drawn anew. nimiq.css turns them, as the brand's
+ * Nimiq 2026"), not drawn anew. site.css turns them, as the brand's
  * "Motion" asks: every layer round the stack's middle, 60° in 32 s, each
  * 0.4 s behind the one in front; nothing moves for a visitor who asked for
- * less motion. In the classic look nothing is drawn.
+ * less motion.
  */
 
 /** The logo's hexagon, rounded, in the size the stack's layers have (1448 × 1291). */

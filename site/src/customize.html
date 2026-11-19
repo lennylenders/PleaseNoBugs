@@ -5,20 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Make it yours · PleaseNoBugs</title>
     <meta name="description" content="Make the PleaseNoBugs widget yours in a few short steps, see it live, and copy the code into your app." />
-    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
-    <script src="assets/style.js"></script>
+    <link rel="icon" href="assets/nimiq/hexagon-2026.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="assets/site.css" />
-    <link rel="stylesheet" href="assets/customize.css" />
-    <link rel="stylesheet" href="assets/nimiq.css" />
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/customize.js" defer></script>
-    <script src="assets/pattern.js" type="module"></script>
   </head>
-  <body class="page--pattern">
+  <body>
     <header class="top">
       <div class="wrap top__inner">
         <a class="brand" href="./">
-          <img class="brand__classic" src="assets/logo.svg" alt="" width="32" height="36" />
           <img class="brand__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="27" height="24" />
           <span>PleaseNoBugs</span>
         </a>
@@ -27,17 +22,12 @@
           <a href="customize.html" aria-current="page">Make it yours</a>
           <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
         </nav>
-        <button type="button" class="style-switch" data-style-switch hidden>
-          <svg class="style-switch__to-classic" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200.77,53.89A103.27,103.27,0,0,0,128,24h-1.07A104,104,0,0,0,24,128c0,43,26.58,79.06,69.36,94.17A32,32,0,0,0,136,192a16,16,0,0,1,16-16h46.21a31.81,31.81,0,0,0,31.2-24.88,104.43,104.43,0,0,0,2.59-24A103.28,103.28,0,0,0,200.77,53.89Zm13,93.71A15.89,15.89,0,0,1,198.21,160H152a32,32,0,0,0-32,32,16,16,0,0,1-21.31,15.07C62.490,194.3,40,164,40,128a88,88,0,0,1,87.09-88h.9a88.35,88.35,0,0,1,88,87.25A88.86,88.86,0,0,1,213.81,147.6ZM140,76a12,12,0,1,1-12-12A12,12,0,0,1,140,76ZM96,100A12,12,0,1,1,84,88,12,12,0,0,1,96,100Zm0,56a12,12,0,1,1-12-12A12,12,0,0,1,96,156Zm88-56a12,12,0,1,1-12-12A12,12,0,0,1,184,100Z"/></svg>
-          <svg class="style-switch__to-nimiq" width="16" height="15" viewBox="0 0 20 18" aria-hidden="true"><path d="M10 1H5.5L1 9l4.5 8H10z" fill="#ffb700"/><path d="M5.5 1h9L19 9l-4.5 8h-9L1 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-          <span class="style-switch__text">Nimiq style</span>
-        </button>
       </div>
     </header>
 
     <main class="wrap make">
-      <!-- The Nimiq look's heading, and whether the preview is a desktop or a phone (customize.js, `setView`). -->
-      <header class="make-head nq-only">
+      <!-- The heading, and whether the preview is a desktop or a phone (customize.js, `setView`). -->
+      <header class="make-head">
         <div>
           <h1>Make it yours</h1>
           <p class="lead">Pick light or dark and how it opens, try it right here, then take the code.</p>
@@ -61,7 +51,7 @@
           <section class="deck" id="deck" aria-labelledby="step-name">
             <div class="deck__head">
               <button type="button" class="deck__fold" id="fold" aria-expanded="true" aria-controls="deck-body">
-                <span class="deck__count" id="count" aria-live="polite">Step 1 of 6</span>
+                <span class="deck__count" id="count" aria-live="polite">Step 4 of 4</span>
                 <span class="deck__short" id="short" aria-hidden="true"></span>
                 <svg class="deck__chevron" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 9l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span class="visually-hidden" id="fold-label">Fold the steps away</span>
@@ -70,18 +60,13 @@
             </div>
 
             <div class="deck__body" id="deck-body">
-              <h1 class="deck__name" id="step-name">Make it look like yours.</h1>
-              <p class="deck__hint" id="hint">A feedback button that fits your app is one people actually tap.</p>
+              <h1 class="deck__name" id="step-name">Your widget is ready to add.</h1>
+              <p class="deck__hint" id="hint"></p>
 
               <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
-                <div class="edit__step intro" data-step="intro">
-                  <button type="button" class="btn intro__start" id="start">Make it mine</button>
-                  <p class="intro__small">Free and open source. About two minutes, then copy the code or hand it to your AI agent.</p>
-                </div>
-
-                <div class="edit__step ready" data-step="ready" hidden>
-                  <!-- The Nimiq look's last step: the choices are made; hand them to your AI agent (customize.js, `paintDone`). -->
-                  <div class="nq-done nq-only">
+                <div class="edit__step ready">
+                  <!-- The choices are made; hand them to your AI agent (customize.js, `paintDone`). -->
+                  <div class="nq-done">
                     <button type="button" class="btn nq-copy" data-copy="ai">Copy prompt for your AI agent</button>
                     <ol class="nq-next" aria-label="What happens next">
                       <li><b>Paste it into your AI agent.</b> Claude, Cursor, ChatGPT: any of them will do.</li>
@@ -108,39 +93,12 @@
                       </div>
                     </details>
                   </div>
-                  <div class="ready__ways">
-                    <button type="button" class="btn ready__btn" id="feed">Feed it to your AI agent</button>
-                    <button type="button" class="btn btn--quiet ready__btn" id="copy">Copy code</button>
-                  </div>
-                  <p class="ready__about">
-                    The prompt holds your settings, the code, where it goes in your kind of app and how to get a
-                    server running. Your agent asks you for what only you know, like your wallet address.
-                  </p>
-                  <details class="peek">
-                    <summary>Peek at the prompt</summary>
-                    <pre class="code"><code id="prompt"></code></pre>
-                  </details>
-                  <details class="peek">
-                    <summary>See the code</summary>
-                    <p class="ready__about">
-                      Swap <code>YOUR_PROJECT_ID</code> and <code>YOUR_SERVER</code> for what your server printed
-                      when it started. <a href="https://github.com/lennylenders/PleaseNoBugs#readme">No server yet?</a>
-                    </p>
-                    <div class="tabs" role="tablist" aria-label="Code">
-                      <button type="button" role="tab" aria-selected="true" aria-controls="code-html" id="tab-html">HTML</button>
-                      <button type="button" role="tab" aria-selected="false" aria-controls="code-css" id="tab-css">CSS</button>
-                    </div>
-                    <pre class="code" id="code-html" role="tabpanel" aria-labelledby="tab-html"><code></code></pre>
-                    <pre class="code" id="code-css" role="tabpanel" aria-labelledby="tab-css" hidden><code></code></pre>
-                  </details>
                 </div>
               </form>
             </div>
 
             <div class="deck__foot">
               <button type="button" class="btn btn--small btn--grey" id="back">Back</button>
-              <span class="spacer"></span>
-              <button type="button" class="btn btn--small" id="next">Next</button>
             </div>
           </section>
           <!-- How it opens: the three ways side by side, each playing (customize.js, `paintWays`). -->
@@ -149,7 +107,7 @@
             <div class="ways__dots" id="ways-dots" aria-hidden="true"></div>
           </div>
 
-          <!-- The Nimiq look's first step: light or dark, and making your own, coming soon (customize.js, `paintThemes`). -->
+          <!-- The first step: light or dark, and making your own, coming soon (customize.js, `paintThemes`). -->
           <div class="themes" id="themes" role="group" aria-labelledby="themes-title" hidden>
             <p class="themes__title" id="themes-title">Light or dark</p>
             <button type="button" class="theme-card" data-theme="light" aria-pressed="true">
@@ -169,7 +127,7 @@
             </div>
           </div>
 
-          <!-- The Nimiq look's third step, wide over the stage: where the app runs, in plain words (customize.js, `paintPanel`). -->
+          <!-- The third step, wide over the stage: where the app runs, in plain words (customize.js, `paintPanel`). -->
           <section class="nq-panel" id="nq-panel" hidden>
             <div class="nq-panel__step" data-panel="runs">
               <h2>Where will people use your app?</h2>
@@ -181,11 +139,6 @@
               </div>
             </div>
           </section>
-
-          <!-- Around a part: under the pointer, or the one tapped. -->
-          <div class="mark" id="mark" hidden><span class="mark__tag" id="mark-tag"></span></div>
-          <!-- What the tapped part can be: its colours, its words, and more. -->
-          <div class="pick" id="pick" role="dialog" hidden></div>
 
           <!-- In the last step: where to try it, till it is tried (customize.js, `paintTry`). -->
           <div class="try" id="try" aria-hidden="true" hidden>
@@ -206,9 +159,9 @@
     <footer class="foot">
       <div class="wrap">
         <div class="foot__row">
-          <p class="foot__who"><img class="foot__classic" src="assets/nimiq/hexagon.svg" alt="" width="16" height="14" /><img class="foot__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="16" height="14" /><b>For everyone building on Nimiq.</b> <span>Free and open source.</span></p>
+          <p class="foot__who"><img class="foot__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="16" height="14" /><b>For everyone building on Nimiq.</b> <span>Free and open source.</span></p>
           <nav class="foot__links" aria-label="Links">
-            <a href="https://nimiq.dev/">Nimiq docs</a><span aria-hidden="true">&middot;</span><a href="https://nimiq.dev/mini-apps/">Mini apps</a><span aria-hidden="true">&middot;</span><a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
+            <a href="https://nimiq.dev/">Nimiq docs</a><a href="https://nimiq.dev/mini-apps/">Mini apps</a><a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
           </nav>
         </div>
         <p class="foot__note">No tracking.</p>
