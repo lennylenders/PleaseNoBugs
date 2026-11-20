@@ -1,12 +1,14 @@
 import type {
   Answer,
+  Message,
   PostContext,
+  PostFix,
   PostKind,
-  PostReply,
   PostStatus,
   Project,
   ShotFor,
   ShotType,
+  Update,
 } from '@pleasenobugs/core';
 
 /**
@@ -38,7 +40,10 @@ export interface PostRow {
   text: string;
   at: number;
   status: PostStatus;
-  reply?: PostReply;
+  /** The conversation under it, oldest first, hidden messages included. Changed only through {@link Store.setThread}. */
+  thread?: Message[];
+  /** Done bugs and ideas only. */
+  fix?: PostFix;
   hidden?: boolean;
   /** Waiting for an owner's approval: its author and the owners see it, nobody else. */
   pending?: boolean;
@@ -47,8 +52,9 @@ export interface PostRow {
   rating?: number;
   /**
    * When an owner last set a status on it or wrote under it. Its own field
-   * rather than `reply.at`, because a status moved with nothing written is an
-   * answer too. Nothing else touches it, so a vote cannot lift somebody's news.
+   * rather than the last message's `at`, because a status moved with nothing
+   * written is an answer too. Nothing else touches it, so a vote cannot lift
+   * somebody's news, and neither can the author's own answer.
    */
   answeredAt?: number;
 }
@@ -89,7 +95,7 @@ export function shotFor(board: boolean, off: boolean): ShotFor {
 /** What `updatePost` may change. `null` removes a field. */
 export interface PostPatch {
   status?: PostStatus;
-  reply?: PostReply | null;
+  fix?: PostFix | null;
   hidden?: boolean;
   pending?: boolean;
   answeredAt?: number;
@@ -145,6 +151,13 @@ export interface Store {
    */
   createPost(row: PostRow, shot?: Shot): Promise<boolean>;
   updatePost(projectId: string, id: string, patch: PostPatch): Promise<void>;
+  /**
+   * Replace a post's conversation, **only if it still is `prev`**, and answer
+   * whether it did. The router decides whose turn it is from what it read;
+   * this makes sure nothing was said in between, so two answers sent at once
+   * can never both land after the same question. Empty `next` removes it.
+   */
+  setThread(projectId: string, id: string, next: Message[], prev: Message[]): Promise<boolean>;
   /** Removes the post, its votes and its screenshot. */
   deletePost(projectId: string, id: string): Promise<void>;
   getShot(projectId: string, postId: string): Promise<StoredShot | null>;
@@ -163,8 +176,16 @@ export interface Store {
   countByAuthorSince(projectId: string, author: string, since: number): Promise<number>;
   /** How many posts anybody wrote on this board after `since`. */
   countSince(projectId: string, since: number): Promise<number>;
-  /** This wallet's answered posts, newest answer first. */
+  /** This wallet's answered posts, newest answer first, with where each stands and its fix. */
   answersFor(projectId: string, author: string, limit: number): Promise<Answer[]>;
+
+  // ---- Updates ----
+  /** A board's updates, newest first, each with every post id it was written with. */
+  updates(projectId: string): Promise<Update[]>;
+  /** Answers false, writing nothing, when the id is taken. */
+  createUpdate(projectId: string, update: Update): Promise<boolean>;
+  /** Answers whether there was one. The posts it fixed keep their status and fix. */
+  deleteUpdate(projectId: string, id: string): Promise<boolean>;
 
   // ---- Names, per wallet per project ----
   names(projectId: string, addresses: string[]): Promise<Map<string, string>>;

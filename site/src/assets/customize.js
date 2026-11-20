@@ -1,8 +1,17 @@
 /**
- * The configurator, in steps: the real widget in `demo` mode on top, one card
- * under it for the part being changed, and Back / Preview / Next. Tapping a
- * part of the widget opens its colour or its words, in the step you are on.
- * The last step is the code.
+ * Make it yours: one screen like the home page's demo, the pretend app with
+ * the real widget in `demo` mode at its own place in it, and four steps:
+ *
+ * 1. Light or dark: the widget's `nimiq` or `nimiq-dark`, on two cards, with
+ *    a third, greyed, "Customize your own", coming soon.
+ * 2. How it opens: the three ways side by side, each playing.
+ * 3. Where it's used: Nimiq Pay, a browser or both, which decides whether the
+ *    code needs a signer.
+ * 4. Ready to add: a prompt for the developer's AI agent, the choices made,
+ *    and the code itself for who prefers to add it by hand.
+ *
+ * The widget can be tried in every step. A slim bar along the bottom has
+ * Back and Next; Next waits until the step's choice is made.
  *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
  * `localStorage`: the copied code is the only place a choice ends up.
@@ -13,244 +22,103 @@
  *  somebody's app without them choosing to. */
 const VERSION = '%VERSION%';
 
+const REPO = 'https://github.com/lennylenders/PleaseNoBugs';
+
 /**
- * The steps, in order. `screen` is the widget's `screen` attribute that puts
- * the part in view; `mark` finds that part in the widget's shadow root, to
- * draw a line around it.
+ * The steps. `screen` is the widget's `screen` attribute that puts a part in
+ * view; `name` is the bar's. `panel`: the step is a wide panel over the
+ * stage. The last step is `live`: the widget is itself there, every tap its
+ * own, as it starts in an app.
  */
 const STEPS = [
-  { id: 'settings', name: 'Settings', screen: 'tiles' },
-  { id: 'button', name: 'Feedback button', screen: 'button', mark: (r) => [r.querySelector('.fab')], floatingOnly: true },
-  { id: 'tiles', name: 'Tiles', screen: 'tiles', mark: (r) => [...r.querySelectorAll('.tile')] },
-  { id: 'board', name: 'Board', screen: 'board', mark: (r) => [r.querySelector('.bar'), r.querySelector('.list > li')] },
-  { id: 'write', name: 'Write and send', screen: 'write', mark: (r) => [r.querySelector('.field'), r.querySelector('.send')] },
-  { id: 'sent', name: 'Feedback sent!', screen: 'sent', mark: (r) => [r.querySelector('.sent')] },
-  { id: 'code', name: 'Code', screen: 'tiles' },
+  { id: 'theme', name: 'Light or dark', screen: 'board' },
+  // The three ways side by side, each playing (`paintWays`).
+  { id: 'opens', name: 'How it opens', screen: '' },
+  // Where people use the app, which decides how they sign. The server and
+  // the code are left to the developer's AI agent, from the last step's prompt.
+  { id: 'runs', name: "Where it's used", screen: '', panel: true },
+  { id: 'ready', name: "You're ready!", screen: '', live: true },
 ];
 
-/**
- * The colour families. Each is one custom property, and every part of the
- * widget painted with it changes with it: the background is the panel and the
- * answer box at once. The name says what it is, `what` where it shows, so a
- * developer knows what a dot will change before they tap it. `accent` is the
- * widget's `accent` attribute, which also picks black or white for what is
- * written on it.
- */
-const FAMILIES = {
-  accent: ['Accent', 'the round button, the send button, the toggle, a vote you gave'],
-  '--pnb-on-fab': ['Button glyph', 'the sign on the round button'],
-  '--pnb-bg': ['Background', 'the panel and the answer box under a post'],
-  '--pnb-surface': ['Cards', 'posts, filters, the field you type in, the chosen tab'],
-  '--pnb-surface-2': ['Pills', 'badges, the vote button, the toggle when off'],
-  '--pnb-sunken': ['Top / New switch', 'behind its two tabs'],
-  '--pnb-line': ['Lines', 'borders, empty stars, the screenshot box'],
-  '--pnb-text': ['Text', 'titles and what people wrote'],
-  '--pnb-text-quiet': ['Quiet text', 'dates, names, notes, counts, links'],
-  '--pnb-danger': ['Danger', 'too many words, things that went wrong'],
-  '--pnb-bug': ['Bug', 'its tile and its badge'],
-  '--pnb-idea': ['Idea', 'its tile and its badge'],
-  '--pnb-review': ['Review', 'its tile and its badge'],
-  '--pnb-tile-ink': ['On tiles', 'the words and icons on the tiles'],
-  '--pnb-star': ['Stars', 'the stars of a review'],
-  '--pnb-planned': ['Planned', 'its badge'],
-  '--pnb-done': ['Done', 'its badge and the tick on "Feedback sent!"'],
-  '--pnb-declined': ['Not doing', 'its badge'],
-  '--pnb-sent': ['Behind "sent"', 'the "Feedback sent!" screen'],
-};
-
-/**
- * Per step, the families you can see on its screen: two to four up front,
- * the rest behind "More colours". A family can be in more than one step; it
- * is the same colour in each.
- */
-const COLOURS = {
-  button: { main: ['accent', '--pnb-on-fab'] },
-  tiles: {
-    main: ['--pnb-bug', '--pnb-idea', '--pnb-review', '--pnb-bg'],
-    more: ['--pnb-tile-ink', '--pnb-text', '--pnb-text-quiet'],
-  },
-  board: {
-    main: ['--pnb-surface', '--pnb-text', '--pnb-bg'],
-    more: [
-      '--pnb-text-quiet',
-      '--pnb-surface-2',
-      '--pnb-sunken',
-      '--pnb-line',
-      'accent',
-      '--pnb-star',
-      '--pnb-bug',
-      '--pnb-idea',
-      '--pnb-review',
-      '--pnb-planned',
-      '--pnb-done',
-      '--pnb-declined',
-    ],
-  },
-  write: {
-    main: ['--pnb-surface', '--pnb-line', 'accent'],
-    more: ['--pnb-bg', '--pnb-text', '--pnb-text-quiet', '--pnb-surface-2', '--pnb-danger', '--pnb-bug', '--pnb-idea', '--pnb-review'],
-  },
-  sent: { main: ['--pnb-sent', '--pnb-done'], more: ['--pnb-text', '--pnb-text-quiet'] },
-};
-
-/**
- * What a tap in the widget opens, per screen: the family that paints the
- * part, or the words in it. The first part the tap is inside wins, so the
- * small ones come first; `*` is the background around them. Only the step
- * you are on listens, and a tap never moves you to another step. The dim
- * page around the panel is the app's, not the widget's: it opens nothing.
- */
-const OUTSIDE = ['.backdrop', {}];
-const PARTS = {
-  button: [['.fab', 'accent']],
-  tiles: [
-    OUTSIDE,
-    ['.tile--bug', '--pnb-bug'],
-    ['.tile--idea', '--pnb-idea'],
-    ['.tile--review', '--pnb-review'],
-    ['.choose__title', { text: 'board.chooseTitle' }],
-    ['.text-btn', '--pnb-text-quiet'],
-    ['.icon-btn', '--pnb-text'],
-    ['*', '--pnb-bg'],
-  ],
-  board: [
-    OUTSIDE,
-    ['.bar__title', { text: 'board.title' }],
-    ['.icon-btn', '--pnb-text'],
-    ['.badge__dot--bug', '--pnb-bug'],
-    ['.badge__dot--idea', '--pnb-idea'],
-    ['.badge__dot--review', '--pnb-review'],
-    ['.badge__dot--planned', '--pnb-planned'],
-    ['.badge__dot--done', '--pnb-done'],
-    ['.badge__dot--declined', '--pnb-declined'],
-    ['.badge, .vote', '--pnb-surface-2'],
-    ['.stars__fill', '--pnb-star'],
-    ['.stars__one', '--pnb-line'],
-    ['.stars', '--pnb-star'],
-    ['.order__tab[aria-selected="true"]', '--pnb-surface'],
-    ['.order__pill', '--pnb-sunken'],
-    ['.chip-pick[aria-pressed="true"], .chip-pick[aria-checked="true"]', '--pnb-text'],
-    ['.card__reply-who', { text: 'board.reply' }],
-    ['.card__when, .card__who, .rating__n', '--pnb-text-quiet'],
-    ['.card__text, .card__reply-text, .rating__avg', '--pnb-text'],
-    ['.card__reply', '--pnb-bg'],
-    ['.card, .rating, .chip-pick', '--pnb-surface'],
-    ['*', '--pnb-bg'],
-  ],
-  write: [
-    OUTSIDE,
-    ['.badge__dot--bug', '--pnb-bug'],
-    ['.badge__dot--idea', '--pnb-idea'],
-    ['.badge__dot--review', '--pnb-review'],
-    ['.icon-btn, .bar__title, .compose__kind, .switch-row__label, .check', '--pnb-text'],
-    ['.send .btn', 'accent'],
-    ['.switch[aria-checked="true"]', 'accent'],
-    ['.switch', '--pnb-surface-2'],
-    ['.field', '--pnb-surface'],
-    ['.shot__add', '--pnb-line'],
-    ['.left--bad', '--pnb-danger'],
-    ['.public, .note, .count, .left', '--pnb-text-quiet'],
-    ['*', '--pnb-bg'],
-  ],
-  sent: [
-    OUTSIDE,
-    ['.sent__check', '--pnb-done'],
-    ['.sent__title', { text: 'board.sent' }],
-    ['.sent__note, .text-btn', '--pnb-text-quiet'],
-    ['*', '--pnb-sent'],
-  ],
-};
-
-/** Every custom property the steps offer, for putting them on the widget. */
-const PROPS = Object.keys(FAMILIES).filter((name) => name !== 'accent');
-
-/**
- * The texts worth changing, per step, with the widget's own English words as
- * placeholders. A copy of `packages/widget/src/i18n.ts` for these keys only:
- * if a word changes there, change it here.
- */
-const STRINGS = {
-  board: [
-    ['Title', [['board.title', 'Feedback']]],
-    ['Above your answers', [['board.reply', '<YOUR APP> says']]],
-  ],
-  tiles: [
-    ['Question above the tiles', [['board.chooseTitle', 'What do you want to share?']]],
-    ['Words on the tiles', [['board.tileBug', 'Report a bug'], ['board.tileIdea', 'Share an idea'], ['board.tileReview', 'Write a review']]],
-  ],
-  write: [['Send button', [['board.send', 'Put it on the board']]]],
-  sent: [['Title', [['board.sent', 'Feedback sent!']]]],
-};
-
-const form = document.getElementById('settings');
 const screen = document.getElementById('screen');
-const mark = document.getElementById('mark');
+const deck = document.getElementById('deck');
+const deckBody = document.getElementById('deck-body');
+const foldBtn = document.getElementById('fold');
 const backBtn = document.getElementById('back');
-const nextBtn = document.getElementById('next');
-const previewBtn = document.getElementById('preview');
-const copyBtn = document.getElementById('copy');
+const bar = document.getElementById('stepbar');
+const barBack = document.getElementById('bar-back');
+const barNext = document.getElementById('bar-next');
+const viewport = screen.closest('.viewport');
 
-/**
- * The widget has other themes, but the configurator offers one: PleaseNoBugs'
- * own colours, each of which can be changed. The code still names it, so an
- * app gets these colours and not the widget's light default.
- */
-const THEME = 'pleasenobugs';
+/** Whether the card stands beside the widget (from 980px, as in site.css) or lies along the bottom. */
+const beside = window.matchMedia('(min-width: 980px)');
 
 const state = {
   mode: 'floating',
-  kinds: ['bug', 'idea', 'review'],
-  /** `board` (everyone, after the user's tick), `owners` or `off`. */
-  screenshots: 'board',
-  accent: '',
-  colours: {},
-  strings: {},
+  /** `nimiq-dark` rather than `nimiq`. */
+  dark: false,
+  /** Where the app runs: `pay` (only in Nimiq Pay), `browser` or `both`, which need a signer. */
+  runs: '',
+  /** The steps go on only once something is chosen (`blocked`). */
+  pickedTheme: false,
+  pickedMode: false,
 };
 
-/** The step on screen, by id, and whether the widget is being tried out. */
-let at = 'settings';
+const theme = () => (state.dark ? 'nimiq-dark' : 'nimiq');
+
+/** Why Next waits on this step, or '' when it may go on. Said in the bar beside the step's name. */
+function blocked() {
+  if (at === 'theme' && !state.pickedTheme) return 'Pick light or dark to go on.';
+  if (at === 'opens' && !state.pickedMode) return 'Pick how it opens to go on.';
+  if (at === 'runs' && !state.runs) return "Pick where it's used to go on.";
+  return '';
+}
+
+/** The step on screen, by id, and whether the widget is the last step's fresh one. */
+let at = 'theme';
 let previewing = false;
 
 /** The widget in the box. */
 let board = null;
 
-/** The steps there are for the current choices: no round button unless it is one. */
-const route = () => STEPS.filter((s) => !s.floatingOnly || state.mode === 'floating');
 const step = () => STEPS.find((s) => s.id === at);
 
 // ---- The widget ----------------------------------------------------------
 
-/** Put the settings on the widget: attributes, colours and texts. */
-function apply(el) {
+/** Put the settings on the widget. The plays in "How it opens" hold theirs inline, on one screen. */
+function apply(el, mode = state.mode, held = previewing ? '' : step().screen) {
   const set = (name, value) => (value ? el.setAttribute(name, value) : el.removeAttribute(name));
   el.setAttribute('demo', '');
-  el.setAttribute('mode', state.mode);
-  set('theme', THEME);
-  set('lang', 'en');
-  set('accent', state.accent);
-  set('kinds', state.kinds.length === 3 ? '' : state.kinds.join(','));
-  set('screenshots', state.screenshots === 'board' ? '' : state.screenshots);
-  set('screen', previewing ? '' : step().screen);
-  for (const name of PROPS) {
-    if (state.colours[name]) el.style.setProperty(name, state.colours[name]);
-    else el.style.removeProperty(name);
-  }
-  el.strings = Object.keys(state.strings).length ? { ...state.strings } : undefined;
+  el.setAttribute('mode', mode);
+  set('theme', theme());
+  set('screen', held);
 }
 
-/** A fresh widget in the box: for a new mode, and for a preview that starts as it would in an app. */
+/**
+ * Where an inline widget sits: in the app's Feedback page, as the inline
+ * play leaves it. The menu beside it on a wide screen, the page's bar over
+ * it on a narrow one (site.css picks).
+ */
+const INLINE_FRAME = `<div class="inline-frame" aria-hidden="true">
+    <nav class="dk-menu"><b>Your app</b><span>Home</span><span>Settings</span><span class="dk-menu__pick">Feedback</span><span>About</span></nav>
+    <b class="ph-back">‹&nbsp; Your app</b>
+  </div>`;
+
+/** A fresh widget in the box: for a new way of opening, and for the last step, where it starts as it would in an app. */
 function mount() {
   board?.remove();
   screen.querySelector('.screen__again')?.remove();
+  screen.querySelector('.inline-frame')?.remove();
   screen.classList.toggle('screen--inline', state.mode === 'inline');
+  if (state.mode === 'inline') screen.insertAdjacentHTML('beforeend', INLINE_FRAME);
   board = document.createElement('please-no-bugs');
-  revealed = null;
   apply(board);
   screen.append(board);
   if (state.mode === 'overlay') board.addEventListener('pleasenobugs:close', offerAgain);
   fitPanel();
   observeRoot(board);
   watch();
+  paintScreen();
 }
 
 /** An overlay is gone once closed; a button brings it back. */
@@ -277,173 +145,347 @@ function fitPanel() {
     style.dataset.site = '';
     root.append(style);
   }
-  const h = screen.clientHeight - 48;
-  style.textContent =
-    `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; } }` +
-    // While choosing, the widget holds still: a part is picked, not scrolled past.
-    // The field is a little lower then, so the whole writing screen, field to
-    // send button, fits in the box at once.
-    // The send button waits for words, so it is dimmed; here it shows its
-    // real colour, since that is what is being chosen.
-    (previewing ? '' : ' .scroll { overflow: hidden !important; } .compose .field { height: 96px; min-height: 0; } .btn:disabled { opacity: 1; }');
+  style.textContent = `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${screen.clientHeight - 48}px; } }`;
 }
 
+/** What stands over the app: the three ways, the theme cards or the wide panel, as the step asks. */
+function paintScreen() {
+  screen.classList.toggle('screen--device', at === 'opens');
+  // The app's own background behind every way, inline too.
+  screen.classList.toggle('screen--inline', state.mode === 'inline' && at !== 'opens');
+  paintWays();
+  paintThemes();
+  paintPanel();
+}
+
+// ---- How it opens: the three ways side by side ---------------------------
+
+/**
+ * Each way as a card that plays it, on a phone of its own, so the three can
+ * be seen at once: the round button growing into the panel, the app's menu
+ * opening a page with the widget, the widget coming up over the app. The
+ * plays are drawn at a phone's size and scaled to the card; the widgets in
+ * them are real ones, in `demo` mode, inline and held on the tiles, and the
+ * moving is CSS (`.play--…` in site.css). With reduced motion they stand
+ * still, open. A tap on a card picks it. On a phone one card at a time,
+ * swiped, with dots under them.
+ */
+const WAYS = [
+  ['floating', 'Button', 'A round button in the corner of every screen.'],
+  ['inline', 'Inline', 'A page of its own in your app, behind Feedback in its menu.'],
+  ['overlay', 'Overlay', 'Over your app, from a button or menu item of yours.'],
+];
+
+/** The round button's glyph: a copy of `Feedback` in the widget's icons.tsx. */
+const GLYPH =
+  '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 6C12 5.45 11.55 5 11 5H5.815L6.48 1.825c.015-.075.025-.155.025-.235 0-.31-.125-.59-.33-.795L5.38 0 .44 4.94C.17 5.21 0 5.585 0 6v6.5c0 .83.67 1.5 1.5 1.5h6.75c.62 0 1.155-.375 1.38-.915l2.265-5.29c.065-.17.105-.35.105-.545V6zm10.5 4h-6.75c-.62 0-1.155.375-1.38.915l-2.265 5.29c-.065.17-.105.35-.105.545V18c0 .55.45 1 1 1h5.185l-.665 3.175c-.015.075-.025.155-.025.235 0 .31.125.59.33.795L18.62 24l4.94-4.94c.27-.27.44-.645.44-1.06v-6.5c0-.83-.67-1.5-1.5-1.5z"/></svg>';
+
+const TILES = '<please-no-bugs data-screen="tiles"></please-no-bugs>';
+/** Where a finger taps: inside the thing it taps, so it is always on it. */
+const TAP_A = '<span class="pl-tap pl-tap--a"></span>';
+const TAP_B = '<span class="pl-tap pl-tap--b"></span>';
+const CTA = `<span class="pl-cta">Send feedback${TAP_A}</span>`;
+
+/** The pretend app, as in the other steps, with what a way needs of it. */
+const app = (extra = '', burger = false) =>
+  `<div class="screen__app"><b>${burger ? `<span class="ph-burger">${TAP_A}</span>` : ''}Your app</b><i></i><i></i><i></i><i></i>${extra}</div>`;
+
+/** What each way plays. */
+const PLAYS = {
+  floating: `${app()}<div class="ph-open">${TILES}</div>
+      <div class="ph-skin"><span class="ph-glyph">${GLYPH}</span></div>
+      <span class="pl-spot">${TAP_A}</span>`,
+  inline: `${app('', true)}<div class="pl-dim"></div>
+      <nav class="ph-menu"><b>Your app</b><span>Home</span><span>Settings</span><span class="ph-menu__pick">Feedback${TAP_B}</span><span>About</span></nav>
+      <div class="ph-page"><b class="ph-back">‹&nbsp; Your app</b>${TILES}</div>`,
+  overlay: `${app(CTA)}<div class="pl-dim"></div><div class="ph-sheet">${TILES}</div>`,
+};
+
+/** The phone the plays are drawn on, before it is scaled to its card. */
+const WAY_W = 320;
+const ways = document.getElementById('ways');
+const waysTrack = document.getElementById('ways-track');
+const waysDots = document.getElementById('ways-dots');
+
+function buildWays() {
+  waysTrack.innerHTML = WAYS.map(
+    ([id, name, line]) => `<button type="button" class="way" data-way="${id}" aria-pressed="false">
+      <span class="way__screen" aria-hidden="true"><span class="way__device play play--phone play--${id}">${PLAYS[id]}</span></span>
+      <span class="way__name">${name}</span>
+      <span class="way__line">${line}</span>
+    </button>`,
+  ).join('');
+  waysDots.innerHTML = WAYS.map(() => '<i></i>').join('');
+}
+
+function paintWays() {
+  const on = at === 'opens' && !previewing;
+  const coming = on && ways.hidden;
+  ways.hidden = !on;
+  if (!on) return;
+  if (!waysTrack.children.length) buildWays();
+  // Swiped, it opens on the way picked.
+  if (coming) {
+    const card = waysTrack.querySelector(`[data-way="${state.mode}"]`);
+    waysTrack.scrollLeft = card.offsetLeft - (waysTrack.clientWidth - card.offsetWidth) / 2;
+  }
+  for (const card of waysTrack.children) card.setAttribute('aria-pressed', String(state.pickedMode && card.dataset.way === state.mode));
+  for (const w of waysTrack.querySelectorAll('please-no-bugs')) {
+    apply(w, 'inline', 'tiles');
+    still(w);
+  }
+  for (const play of waysTrack.querySelectorAll('.way__device')) paintSkin(play);
+  scaleWays();
+  paintWayDots();
+}
+
+/** A widget that is only a picture: it holds still, and has no bar over its tiles (the real panel has its X there). */
+function still(w) {
+  if (!w.shadowRoot || w.shadowRoot.querySelector('style[data-site]')) return;
+  const style = document.createElement('style');
+  style.dataset.site = '';
+  style.textContent = '.scroll { overflow: hidden !important; } .bar { visibility: hidden; }';
+  w.shadowRoot.append(style);
+}
+
+/** The round button and the panel behind it, for a play's own drawing of them, in the widget's colours. */
+function paintSkin(play) {
+  const one = play.querySelector('please-no-bugs');
+  if (!one) return;
+  const css = getComputedStyle(one);
+  for (const [mine, theirs] of [['--ph-fab', '--pnb-fab'], ['--ph-on-fab', '--pnb-on-fab'], ['--ph-bg', '--pnb-bg']]) {
+    play.style.setProperty(mine, css.getPropertyValue(theirs).trim());
+  }
+}
+
+/** Each phone as wide as its card. */
+function scaleWays() {
+  for (const s of waysTrack.querySelectorAll('.way__screen')) s.style.setProperty('--s', String(s.clientWidth / WAY_W));
+}
+
+/** Which card is in view, on a phone, where they are swiped. */
+function paintWayDots() {
+  const cards = [...waysTrack.children];
+  if (!cards.length) return;
+  const mid = waysTrack.scrollLeft + waysTrack.clientWidth / 2;
+  const i = cards.reduce((best, c, n) => (Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid) < Math.abs(cards[best].offsetLeft + cards[best].offsetWidth / 2 - mid) ? n : best), 0);
+  [...waysDots.children].forEach((d, n) => d.classList.toggle('on', n === i));
+}
+
+waysTrack.addEventListener('scroll', paintWayDots, { passive: true });
+waysTrack.addEventListener('click', (e) => {
+  const card = e.target.closest('[data-way]');
+  if (card) setMode(card.dataset.way);
+});
+waysDots.addEventListener('click', (e) => {
+  const n = [...waysDots.children].indexOf(e.target);
+  if (n >= 0) waysTrack.children[n].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+});
+
+/** Show it another way: Button, Inline or Overlay. */
+function setMode(mode) {
+  state.mode = mode;
+  state.pickedMode = true;
+  mount();
+  update();
+}
+
+// ---- Light or dark -------------------------------------------------------
+
+/**
+ * Two cards, Light and Dark, each with a small board in its colours; the
+ * widget in the app takes the one tapped. A third card, greyed, says making
+ * your own is coming: it does nothing.
+ */
+const themes = document.getElementById('themes');
+
+function paintThemes() {
+  themes.hidden = !(at === 'theme' && !previewing);
+  for (const card of themes.querySelectorAll('[data-theme]')) {
+    card.setAttribute('aria-pressed', String(state.pickedTheme && (card.dataset.theme === 'dark') === state.dark));
+  }
+}
+
+themes.addEventListener('click', (e) => {
+  const card = e.target.closest('[data-theme]');
+  if (!card) return;
+  state.dark = card.dataset.theme === 'dark';
+  state.pickedTheme = true;
+  update();
+});
+
+// ---- Where it's used: the wide panel -------------------------------------
+
+const panel = document.getElementById('nq-panel');
+
+function paintPanel() {
+  const on = !!step().panel && !previewing;
+  panel.hidden = !on;
+  for (const part of panel.querySelectorAll('[data-panel]')) part.hidden = part.dataset.panel !== at;
+  for (const b of panel.querySelectorAll('[data-runs]')) b.setAttribute('aria-pressed', String(b.dataset.runs === state.runs));
+}
+
+panel.addEventListener('click', (e) => {
+  const run = e.target.closest('[data-runs]');
+  if (!run) return;
+  state.runs = run.dataset.runs;
+  update();
+});
+
 function update() {
-  for (const input of form.querySelectorAll('[data-string]')) input.hidden = offKind(input.dataset.string);
   if (board) apply(board);
-  paintSwatches();
+  paintScreen();
+  paintSteps();
   writeCode();
+  watch();
 }
 
 // ---- Steps ---------------------------------------------------------------
 
 function go(id) {
-  if (!route().some((s) => s.id === id)) id = 'settings';
-  const changed = id !== at;
+  if (!STEPS.some((s) => s.id === id)) id = 'opens';
   at = id;
-  revealed = null;
-  for (const el of form.querySelectorAll('[data-step]')) el.hidden = el.dataset.step !== at;
+  deckBody.scrollTop = 0;
   paintSteps();
-  if (previewing) endPreview();
-  else if (board) apply(board);
+  // Into the last step and out of it, a fresh widget, as it starts in an app.
+  const live = !!step().live;
+  if (live !== previewing) {
+    previewing = live;
+    // Each time the last step is reached, the arrow shows where to test it.
+    tried = false;
+    screen.classList.toggle('screen--live', live);
+    mount();
+  } else if (board) apply(board);
+  paintScreen();
   watch();
-  // On a phone the card is under the widget: bring it into view.
-  if (changed && window.matchMedia('(max-width: 639px)').matches) {
-    form.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
 }
 
+/** One step back or on, from the bar or the last step's card. */
+function stepBy(by) {
+  const next = STEPS[STEPS.findIndex((s) => s.id === at) + by];
+  if (next) go(next.id);
+}
+backBtn.addEventListener('click', () => stepBy(-1));
+barBack.addEventListener('click', () => stepBy(-1));
+barNext.addEventListener('click', () => stepBy(1));
+
+/** The card on the last step (the code); before it only the slim bar: where you are, Back and Next. */
 function paintSteps() {
-  const steps = route();
-  const i = steps.findIndex((s) => s.id === at);
-  document.getElementById('count').textContent = `Step ${i + 1} of ${steps.length}`;
-  document.getElementById('step-name').textContent = step().name;
-  document.getElementById('bars').innerHTML = steps
-    .map((s, n) => `<i class="${n < i ? 'done' : n === i ? 'now' : ''}"></i>`)
-    .join('');
-  backBtn.hidden = i === 0;
-  const last = i === steps.length - 1;
-  nextBtn.hidden = last;
-  copyBtn.hidden = !last;
-  if (!last) nextBtn.textContent = `Next: ${steps[i + 1].name}`;
+  const i = STEPS.findIndex((s) => s.id === at);
+  const card = !!step().live;
+  deck.hidden = !card;
+  bar.hidden = card;
+  viewport.classList.toggle('viewport--card', card);
+  deck.classList.toggle('deck--ready', card);
+  document.getElementById('count').textContent = `Step ${i + 1} of ${STEPS.length}`;
+  document.getElementById('short').textContent = `· ${step().name}`;
+  document.getElementById('step-name').textContent = card ? 'Your widget is ready to add.' : step().name;
+  document.getElementById('bars').innerHTML = STEPS.map((s, n) => `<i class="${n < i ? 'done' : n === i ? 'now' : ''}"></i>`).join('');
+  document.getElementById('hint').textContent = card
+    ? `Hand your choices to your AI agent: it asks you the rest and adds it to your app. Try it ${beside.matches ? 'on the right' : 'above'} meanwhile.`
+    : '';
+  backBtn.hidden = i <= 0;
+  barBack.hidden = i <= 0;
+  const why = blocked();
+  document.getElementById('bar-name').innerHTML =
+    `<b>${step().name}</b> · ${i + 1} of ${STEPS.length}` + (why ? `<span class="stepbar__why">${why}</span>` : '');
+  const after = STEPS[i + 1];
+  barNext.textContent = after?.live ? 'Finish →' : 'Next →';
+  barNext.disabled = !!why;
+  barNext.title = why || (after ? `Next: ${after.name}` : '');
+  measureDeck();
 }
 
-backBtn.addEventListener('click', () => {
-  const steps = route();
-  go(steps[steps.findIndex((s) => s.id === at) - 1].id);
-});
+// ---- The card, beside the widget or folding along the bottom --------------
 
-nextBtn.addEventListener('click', () => {
-  const steps = route();
-  go(steps[steps.findIndex((s) => s.id === at) + 1].id);
-});
+/** Whether the panel along the bottom is folded down to its one line. */
+let folded = false;
+
+function fold(down) {
+  folded = down && !beside.matches;
+  deck.classList.toggle('deck--folded', folded);
+  foldBtn.setAttribute('aria-expanded', String(!folded));
+  document.getElementById('fold-label').textContent = folded ? 'Show the steps' : 'Fold the steps away';
+}
+
+foldBtn.addEventListener('click', () => fold(!folded));
 
 /**
- * A tap in the widget picks a part instead of using it: caught on its way
- * down, before the widget's own buttons hear it. While previewing, the widget
- * has its taps to itself.
+ * The app is what the bar or the card leaves of the box, so the widget is
+ * always whole above them (`--deck-h`, site.css): the bar always, the
+ * card only along the bottom; beside, it takes none. The widget's panel and
+ * the test arrow follow.
  */
+function measureDeck() {
+  foldBtn.disabled = beside.matches;
+  const h = !bar.hidden ? bar.offsetHeight : deck.hidden || beside.matches ? 0 : deck.offsetHeight;
+  // On the box, so the app, the three ways and a docked box all stop above it.
+  viewport.style.setProperty('--deck-h', `${h}px`);
+  fitPanel();
+  scaleWays();
+  watch();
+}
+new ResizeObserver(measureDeck).observe(deck);
+new ResizeObserver(measureDeck).observe(bar);
+beside.addEventListener('change', () => {
+  fold(false);
+  paintSteps();
+});
+
+// ---- The last step: test it ----------------------------------------------
+
+/**
+ * In the last step an arrow points at the widget, "Test your widget": at the
+ * round button in the corner, or at the panel when it is shown inline or
+ * over the app. It goes once the widget is touched, as by then it has been
+ * found.
+ */
+const tryHint = document.getElementById('try');
+let tried = false;
+
+function paintTry() {
+  const root = board?.shadowRoot;
+  const part = previewing && !tried && root ? (root.querySelector('.fab:not(.fab--away)') ?? root.querySelector('.app')) : null;
+  const r = part?.getBoundingClientRect();
+  if (!r || !r.width) {
+    tryHint.hidden = true;
+    return;
+  }
+  const vb = viewport.getBoundingClientRect();
+  tryHint.hidden = false;
+  // Up and to the left of it, the arrow's tip just off its left side.
+  tryHint.style.right = `${vb.right - r.left + 4}px`;
+  tryHint.style.bottom = `${vb.bottom - r.top - Math.min(r.height / 2, 20)}px`;
+}
+
 screen.addEventListener(
-  'click',
+  'pointerdown',
   (e) => {
-    if (previewing || !board) return;
-    const path = e.composedPath();
-    if (!path.includes(board)) return;
-    e.preventDefault();
-    e.stopPropagation();
-    const inside = path.filter((n) => n instanceof Element);
-    if (!COLOURS[at]) return;
-    const hit = (PARTS[step().screen] ?? []).find(([sel]) => sel === '*' || inside.some((n) => n.matches(sel)));
-    if (!hit) return;
-    const what = typeof hit[1] === 'string' ? { colour: hit[1] } : hit[1];
-    if (what.colour) pickColour(what.colour);
-    else if (what.text) form.querySelector(`[data-step="${at}"] [data-string="${what.text}"]`)?.focus();
+    if (!previewing || tried || !board || !e.composedPath().includes(board)) return;
+    tried = true;
+    paintTry();
   },
   true,
 );
 
-/** Open the colour picker of this step's `name`, behind "More colours" too. */
-function pickColour(name) {
-  const card = form.querySelector(`[data-step="${at}"]`);
-  const input = card.querySelector(`[data-colour="${name}"]`);
-  if (!input) return;
-  const more = input.closest('details');
-  if (more) more.open = true;
-  const row = input.closest('[data-row]');
-  row.classList.add('picked');
-  setTimeout(() => row.classList.remove('picked'), 1200);
-  about(row);
-  try {
-    input.showPicker();
-  } catch {
-    input.click();
-  }
-}
-
-// ---- The line around the part --------------------------------------------
-
 /**
- * Draw the line around this step's part. The widget moves while it opens and
- * while it loads its posts, so for a moment after anything changes the line
- * follows it every frame.
+ * The widget moves while it opens and while it loads its posts, so for a
+ * moment after anything changes the arrow follows it every frame.
  */
 let following = 0;
+let settle = 0;
 function watch() {
   const idle = following < performance.now();
   following = performance.now() + 600;
   if (idle) requestAnimationFrame(follow);
+  // Once more when it has settled, also where no frames are drawn.
+  clearTimeout(settle);
+  settle = setTimeout(paintTry, 650);
 }
 
 function follow() {
-  placeMark();
+  paintTry();
   if (performance.now() < following) requestAnimationFrame(follow);
-}
-
-function placeMark() {
-  const root = board?.shadowRoot;
-  const parts = !previewing && root && step().mark ? step().mark(root).filter(Boolean) : [];
-  const rects = parts.map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height);
-  if (!rects.length) {
-    mark.hidden = true;
-    return;
-  }
-  if (revealed !== at) {
-    revealed = at;
-    if (reveal(parts[0], rects)) return void placeMark();
-  }
-  const box = screen.getBoundingClientRect();
-  const pad = 6;
-  const left = Math.max(box.left, Math.min(...rects.map((r) => r.left)) - pad);
-  const top = Math.max(box.top, Math.min(...rects.map((r) => r.top)) - pad);
-  const right = Math.min(box.right, Math.max(...rects.map((r) => r.right)) + pad);
-  const bottom = Math.min(box.bottom - 14, Math.max(...rects.map((r) => r.bottom)) + pad);
-  mark.hidden = false;
-  mark.style.left = `${left - box.left}px`;
-  mark.style.top = `${top - box.top}px`;
-  mark.style.width = `${right - left}px`;
-  mark.style.height = `${Math.max(0, bottom - top)}px`;
-  // A small part at the right edge, like the round button, keeps its tag inside the box.
-  mark.classList.toggle('mark--right', right - left < 160 && right > box.left + box.width / 2);
-  document.getElementById('mark-tag').textContent = step().name;
-}
-
-/**
- * Scroll the widget once per step so the whole part is in view, like the send
- * button at the foot of a long writing screen. Once, so a visitor scrolling
- * the widget themselves is never pulled back. Says whether it moved.
- */
-let revealed = null;
-function reveal(part, rects) {
-  const scroller = part.closest('.scroll');
-  if (!scroller) return false;
-  const view = scroller.getBoundingClientRect();
-  const top = Math.min(...rects.map((r) => r.top));
-  const bottom = Math.max(...rects.map((r) => r.bottom));
-  // Down until the bottom shows, but never so far that the top goes out.
-  const by = Math.min(bottom + 12 - view.bottom, top - 12 - view.top);
-  if (by <= 0) return false;
-  scroller.scrollTop += by;
-  return true;
 }
 
 /** Follow the widget whenever it redraws: posts arriving, a screen changing. */
@@ -455,227 +497,28 @@ function observeRoot(el) {
 
 window.addEventListener('resize', () => {
   fitPanel();
+  paintScreen();
   watch();
 });
 // A hidden tab draws no frames: catch up when it is back.
 document.addEventListener('visibilitychange', watch);
-
-// ---- Preview -------------------------------------------------------------
-
-previewBtn.addEventListener('click', () => (previewing ? endPreview() : startPreview()));
-
-/** The widget as it is in an app: no part held, every tap its own. */
-function startPreview() {
-  previewing = true;
-  previewBtn.textContent = 'Stop preview';
-  screen.classList.add('screen--live');
-  document.getElementById('hint').textContent = 'Try it: everything works, and nothing leaves this page.';
-  mount();
-}
-
-function endPreview() {
-  previewing = false;
-  previewBtn.textContent = 'Preview';
-  screen.classList.remove('screen--live');
-  document.getElementById('hint').textContent = 'Tap a part of the widget to change it.';
-  mount();
-}
-
-// ---- Settings ------------------------------------------------------------
-
-form.addEventListener('input', (e) => {
-  const t = e.target;
-  if (t.name === 'screenshots') state.screenshots = t.value;
-  else if (t.name === 'kinds') {
-    const on = [...form.querySelectorAll('input[name=kinds]:checked')].map((i) => i.value);
-    // At least one kind: a board nobody can write on is no board.
-    if (!on.length) {
-      t.checked = true;
-      return toast('Keep at least one kind');
-    }
-    state.kinds = on;
-  } else if (t.name === 'mode') {
-    state.mode = t.value;
-    if (!route().some((s) => s.id === at)) at = 'settings';
-    mount();
-    paintSteps();
-    paintSwatches();
-    writeCode();
-    return;
-  } else if (t.dataset.colour) {
-    const name = t.dataset.colour;
-    if (name === 'accent') state.accent = t.value;
-    else state.colours[name] = t.value;
-  } else if (t.dataset.string) {
-    if (t.value.trim()) state.strings[t.dataset.string] = t.value;
-    else delete state.strings[t.dataset.string];
-  } else return;
-  update();
-});
-
-form.addEventListener('click', (e) => {
-  const reset = e.target.closest('[data-reset]');
-  if (!reset) return;
-  const name = reset.dataset.reset;
-  if (name === 'accent') state.accent = '';
-  else delete state.colours[name];
-  update();
-});
-
-// ---- Colours -------------------------------------------------------------
-
-/** A round colour with its name under it, as in the design. */
-function dot(name) {
-  const [label, what] = FAMILIES[name];
-  return `<div class="dot" data-row="${name}" title="${label}: ${what}">
-    <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}: ${what}" /></label>
-    <span class="dot__name">${label}</span>
-    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to PleaseNoBugs' own" title="Back to PleaseNoBugs' own">×</button>
-  </div>`;
-}
-
-/** The same colour as a row, for the longer list behind "More colours". */
-function swatchRow(name) {
-  const [label, what] = FAMILIES[name];
-  return `<div class="swatch" data-row="${name}">
-    <label class="swatch__dot"><input type="color" data-colour="${name}" aria-label="${label}: ${what}" /></label>
-    <span class="swatch__name">${label}<small>${what}</small></span>
-    <span class="swatch__hex"></span>
-    <button type="button" class="swatch__reset" data-reset="${name}" aria-label="${label} back to PleaseNoBugs' own" title="Back to PleaseNoBugs' own">×</button>
-  </div>`;
-}
-
-for (const box of form.querySelectorAll('[data-colours]')) {
-  const { main, more } = COLOURS[box.dataset.colours];
-  box.className = 'field';
-  box.innerHTML = `<span>Colours</span>
-    <div class="dots">${main.map(dot).join('')}</div>
-    <p class="colour-about" aria-live="polite">Tap a colour, or a part of the widget, to change it.</p>
-    ${more ? `<details class="more-colours"><summary>More colours</summary><div class="swatches">${more.map(swatchRow).join('')}</div></details>` : ''}`;
-}
-
-/** Say under the dots what the colour being changed paints. */
-function about(row) {
-  const [label, what] = FAMILIES[row.dataset.row];
-  const line = row.closest('.field').querySelector('.colour-about');
-  line.innerHTML = `<b>${label}</b>: ${what}.`;
-}
-
-form.addEventListener('focusin', (e) => {
-  const row = e.target.closest('.dot');
-  if (row) about(row);
-});
-form.addEventListener('pointerover', (e) => {
-  const row = e.target.closest('.dot');
-  if (row) about(row);
-});
-
-/** The colours and words that belong to one kind: gone with it when it is unticked. */
-const KIND_OF = {
-  '--pnb-bug': 'bug',
-  '--pnb-idea': 'idea',
-  '--pnb-review': 'review',
-  '--pnb-star': 'review',
-  'board.tileBug': 'bug',
-  'board.tileIdea': 'idea',
-  'board.tileReview': 'review',
-};
-
-/** Whether a colour or a word is for a kind that is left off. */
-const offKind = (name) => !!KIND_OF[name] && !state.kinds.includes(KIND_OF[name]);
-
-/**
- * Show each colour as the widget has it now. A value is read from the widget
- * itself with the override lifted for a moment, so "the theme's" is always
- * what the theme really says, gradients included.
- */
-function paintSwatches() {
-  if (!board?.shadowRoot) return void requestAnimationFrame(paintSwatches);
-  for (const row of form.querySelectorAll('[data-row]')) {
-    const name = row.dataset.row;
-    row.hidden = offKind(name);
-    const own = name === 'accent' ? state.accent : state.colours[name];
-    const value = own || themeValue(name === 'accent' ? '--pnb-accent' : name);
-    row.querySelector('.swatch__dot').style.background = value || 'transparent';
-    row.querySelector('input').value = toHex(value) ?? '#000000';
-    const hex = row.querySelector('.swatch__hex');
-    if (hex) hex.textContent = own ? own : /gradient/.test(value) ? 'gradient' : (toHex(value) ?? value);
-    row.classList.toggle('swatch--set', !!own);
-  }
-}
-
-function themeValue(prop) {
-  const mine = board.style.getPropertyValue(prop);
-  if (mine) board.style.removeProperty(prop);
-  const value = getComputedStyle(board).getPropertyValue(prop).trim();
-  if (mine) board.style.setProperty(prop, mine);
-  return value;
-}
-
-/** `#abc`, `#aabbcc`, `rgb(...)` or the first colour in a gradient, as `#aabbcc`. */
-function toHex(v) {
-  if (!v) return null;
-  const hex = v.match(/#([0-9a-f]{6}|[0-9a-f]{3})\b/i);
-  if (hex) {
-    const h = hex[1].length === 3 ? [...hex[1]].map((c) => c + c).join('') : hex[1];
-    return `#${h.toLowerCase()}`;
-  }
-  const rgb = v.match(/rgba?\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)/i);
-  if (rgb) return `#${rgb.slice(1, 4).map((n) => Number(n).toString(16).padStart(2, '0')).join('')}`;
-  return null;
-}
-
-// ---- Texts ---------------------------------------------------------------
-
-for (const box of form.querySelectorAll('[data-strings]')) {
-  box.innerHTML = STRINGS[box.dataset.strings]
-    .map(
-      ([label, keys]) =>
-        `<div class="field"><span>${label}</span>${keys
-          .map(([key, words]) => `<input class="input" data-string="${key}" maxlength="80" placeholder="${words}" aria-label="${label}: ${words}" />`)
-          .join('')}</div>`,
-    )
-    .join('');
-}
 
 // ---- The code ------------------------------------------------------------
 
 const attr = (v) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
 function html() {
-  const attrs = [
-    ['project', 'YOUR_PROJECT_ID'],
-    ['server', 'https://YOUR_SERVER'],
-    state.mode !== 'inline' && ['mode', state.mode],
-    ['theme', THEME],
-    state.accent && ['accent', state.accent],
-    state.kinds.length < 3 && ['kinds', state.kinds.join(',')],
-    state.screenshots !== 'board' && ['screenshots', state.screenshots],
-  ].filter(Boolean);
-  const lines = [
+  const attrs = [['project', 'YOUR_PROJECT_ID'], ['server', 'https://YOUR_SERVER'], state.mode !== 'inline' && ['mode', state.mode], ['theme', theme()]].filter(Boolean);
+  return [
     `<script src="https://unpkg.com/pleasenobugs@${VERSION}"></script>`,
     `<please-no-bugs`,
     ...attrs.map(([k, v]) => `  ${k}="${attr(v)}"`),
     `></please-no-bugs>`,
-  ];
-  // A kind left off takes its words out of the code too.
-  const strings = Object.fromEntries(Object.entries(state.strings).filter(([k]) => !offKind(k)));
-  if (Object.keys(strings).length) {
-    // Safe inside a <script>: no "</script>" can come out of this.
-    const json = JSON.stringify(strings, null, 2).replace(/</g, '\\u003c').replace(/\n/g, '\n  ');
-    lines.push('<script>', `  document.querySelector('please-no-bugs').strings = ${json};`, '</script>');
-  }
-  return lines.join('\n');
+  ].join('\n');
 }
 
-function css() {
-  // A kind left off takes its colours out of the code, kept here for if it comes back.
-  const rows = Object.entries(state.colours)
-    .filter(([k]) => !offKind(k)).map(([k, v]) => `  ${k}: ${v};`);
-  if (state.mode === 'inline') rows.unshift('  height: 600px; /* inline: give it a height, or it grows with its posts */');
-  if (!rows.length) return "/* No colours changed: PleaseNoBugs' own are used. */";
-  return ['please-no-bugs {', ...rows, '}'].join('\n');
-}
+/** The one rule an inline widget needs; nothing otherwise. */
+const css = () => (state.mode === 'inline' ? 'please-no-bugs {\n  height: 600px; /* inline: give it a height, or it grows with its posts */\n}' : '');
 
 /**
  * A little colour in the code blocks. One pass over the plain code, each
@@ -698,29 +541,167 @@ function highlight(code) {
   return out + esc(code.slice(last));
 }
 
-function writeCode() {
-  document.querySelector('#code-html code').innerHTML = highlight(html());
-  document.querySelector('#code-css code').innerHTML = highlight(css());
+/** The Nimiq Hub, pinned, as the site's own board uses it (assets/board.js). */
+const HUB = 'https://cdn.jsdelivr.net/npm/@nimiq/hub-api@1.15.0/dist/standalone/HubApi.standalone.es.js';
+
+/** The signer's body: outside Nimiq Pay, the Nimiq Hub signs with the user's own wallet. */
+const SIGNER = [
+  "  const hub = new HubApi('https://hub.nimiq.com');",
+  "  const hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');",
+  "  document.querySelector('please-no-bugs').signer = async (message) => {",
+  "    const r = await hub.signMessage({ appName: 'Your app', message }); // your app's name, shown in the wallet",
+  '    return { address: r.signer, publicKey: hex(r.signerPublicKey), signature: hex(r.signature) };',
+  '  };',
+];
+/** Whether the code needs that signer: an app in a browser. */
+const browser = () => state.runs === 'browser' || state.runs === 'both';
+
+/** The signer for an app with a bundler, for the steps and the prompt. */
+function npmSignerOnly() {
+  return [
+    "import { insideNimiqPay } from 'pleasenobugs';",
+    "import HubApi from '@nimiq/hub-api';",
+    '',
+    '// Once the element is in the page. Outside Nimiq Pay,',
+    '// users sign with their Nimiq wallet through the Nimiq Hub.',
+    'if (!insideNimiqPay()) {',
+    ...SIGNER,
+    '}',
+  ].join('\n');
 }
 
-for (const tab of document.querySelectorAll('[role=tab]')) {
-  tab.addEventListener('click', () => {
-    for (const t of document.querySelectorAll('[role=tab]')) {
-      const on = t === tab;
-      t.setAttribute('aria-selected', String(on));
-      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
-    }
+/** Pasted as HTML: the script, the tag, its CSS if any, and in a browser the signer. */
+function htmlRoute() {
+  const style = css() ? `\n<style>\n${css()}\n</style>` : '';
+  const signer = browser()
+    ? [
+        '',
+        '<!-- Outside Nimiq Pay, users sign with their Nimiq wallet through the Nimiq Hub. -->',
+        '<script type="module">',
+        `  import HubApi from '${HUB}';`,
+        '  if (!PleaseNoBugs.insideNimiqPay()) {',
+        ...SIGNER.map((l) => `  ${l}`),
+        '  }',
+        '</script>',
+      ].join('\n')
+    : '';
+  return `${html()}${style}${signer}\n`;
+}
+
+/** With npm: what to install, what to import once, the tag, and in a browser the signer. */
+function npmSteps() {
+  const tag = html().split('\n').slice(1).join('\n');
+  const style = css() ? `\n\n/* In the app's global stylesheet: */\n${css()}` : '';
+  if (!browser()) {
+    return `npm install pleasenobugs@${VERSION}\n\n// Once, at startup:\nimport 'pleasenobugs';\n\n<!-- Where the board goes: -->\n${tag}${style}\n`;
+  }
+  const [imports, signer] = npmSignerOnly().split('\n\n');
+  return `npm install pleasenobugs@${VERSION} @nimiq/hub-api\n\n// Once, at startup:\n${imports}\n\n<!-- Where the board goes: -->\n${tag}\n\n${signer}${style}\n`;
+}
+
+// ---- The prompt ----------------------------------------------------------
+
+/** Where the element goes, per way of showing it. */
+const PLACE = {
+  floating: 'It draws a round button in the bottom-right corner by itself. Put the element once, near the root, so it is on every screen.',
+  inline:
+    'It fills the element it is in. Give the app a Feedback page or panel, for example behind a Feedback item in its menu, and put it there with a height, such as the full height of that page.',
+  overlay:
+    "It covers the screen as soon as it is in the page. Show it from the app's own Feedback button or menu item, and take it away when it fires pleasenobugs:close.",
+};
+
+/**
+ * The last step's first route: one prompt for the developer's AI agent,
+ * whichever it is, with the code and all it needs to put it in any kind of
+ * app and to get a server running.
+ */
+function prompt() {
+  return [
+    `Hi! Please add PleaseNoBugs to this app: a feedback board where its users report bugs, share ideas and write reviews, as one web component. I chose its look and settings on PleaseNoBugs' "Make it yours" page; they are in the code below.`,
+    `Docs: ${REPO}`,
+    '',
+    '1. The server',
+    'The widget talks to a PleaseNoBugs server that I run myself, so nobody else holds the feedback. First ask me whether I have one. If I do, ask me for its project id and its address: it prints both in its log every time it starts.',
+    "If not, show me the four ways below side by side, briefly and without picking one for me: what each depends on and what it asks of me. Let me choose, then walk me through only that one. Whichever it is, the server is one container and every post is in one file, pleasenobugs.db, so I can move later by copying it. Each way needs the same three values: PNB_PROJECT_NAME (what users call this app), PNB_PROJECT_ORIGINS (where it runs, comma-separated, the local dev address too, like https://my.app,http://localhost:5173) and PNB_PROJECT_OWNER (my NQ... wallet address, which answers posts).",
+    '- Railway. Depends on Railway; no command line. I open https://railway.com/deploy/PdvdtB, sign in and fill in the three fields, then paste you what Deploy Logs says.',
+    `- This app's own backend, if it has a Node one (Node 22.13 or newer). Depends on nothing new. npx @pleasenobugs/server create-project --name "..." --origin https://... --owner "NQ...", then npx @pleasenobugs/server. Or mount it in Express: ${REPO}/tree/main/packages/server`,
+    '- Docker on a server I rent (a VPS, or Coolify on one). Depends on whoever rents me the machine, and I can switch. docker-compose.yml from the repo, a .env with PNB_DOMAIN and the three values, then docker compose up -d; Caddy in it gets the HTTPS certificate by itself; the project id is in docker compose logs pleasenobugs.',
+    `- My own hardware (a Raspberry Pi, a NAS). Depends on my internet connection, a domain name, and keeping it switched on. The same Docker setup, with the domain pointing at my connection and ports 80 and 443 open, or behind a Cloudflare Tunnel without Caddy: ${REPO}#readme`,
+    'Never make up my wallet address, the project id or the server address: ask me.',
+    '',
+    '2. The widget',
+    'Add this, with YOUR_PROJECT_ID and https://YOUR_SERVER replaced by the real values:',
+    '',
+    html(),
+    ...(css() ? ['', "And this CSS, in the app's global stylesheet:", '', css()] : []),
+    '',
+    '- Plain HTML: the script once, the element where it goes.',
+    `- With a bundler (React, Vue, Svelte, ...): npm install pleasenobugs@${VERSION}, import 'pleasenobugs' once at startup, and render <please-no-bugs> with the same attributes. It is a custom element: write the attributes as they are.`,
+    `- ${PLACE[state.mode]}`,
+    browser()
+      ? `- It runs ${state.runs === 'both' ? 'in Nimiq Pay and in browsers' : 'in a browser'}, so outside Nimiq Pay users sign with their Nimiq wallet through the Nimiq Hub: add this as well (npm install @nimiq/hub-api), with 'Your app' as this app's name. Inside Nimiq Pay the wallet signs by itself, which the check keeps.\n\n${npmSignerOnly()}`
+      : state.runs === 'pay'
+        ? '- It runs only inside Nimiq Pay: the wallet signs by itself, nothing to add.'
+        : `- Ask me where this app runs. Inside Nimiq Pay the wallet signs by itself: nothing to add. Anywhere else, such as a web app in a desktop browser, give the element a signer so users can post and vote with their Nimiq wallet through the Nimiq Hub (npm install @nimiq/hub-api): ${REPO}/tree/main/packages/widget#signing-outside-nimiq-pay. If the app already signs users in with their Nimiq wallet, reuse that login instead: ${REPO}/tree/main/packages/widget#reusing-your-apps-own-login. Without either, the board can only be read.`,
+    '- If it runs inside Nimiq Pay: Pay draws its own bar over the page and the widget cannot see it. If this app already measures that bar, pass it on: please-no-bugs { --pnb-inset-top: ...; --pnb-inset-bottom: ...; }',
+    '- Keep the version pinned.',
+    '',
+    '3. Check it',
+    'Start the app, open the widget and make sure the board loads. Posting or voting asks the wallet to sign; inside Nimiq Pay that happens by itself, in a browser the Nimiq Hub opens. To answer posts, I open it with the owner wallet and tap "Sign in with your wallet" at the foot of the board.',
+  ].join('\n');
+}
+
+// ---- The last step: ready to add -----------------------------------------
+
+const COPIES = {
+  html: () => [htmlRoute(), 'Code copied'],
+  npm: () => [npmSteps(), 'npm steps copied'],
+  ai: () => [`${prompt()}\n`, "Prompt copied. Paste it into your agent's chat."],
+};
+
+const done = document.querySelector('.nq-done');
+
+/** The prompt, the code and the choices on the last step, kept up to date with every choice. */
+function writeCode() {
+  for (const el of done.querySelectorAll('[data-code]')) {
+    const text = COPIES[el.dataset.code]()[0];
+    if (el.dataset.code === 'ai') el.textContent = text;
+    else el.innerHTML = highlight(text);
+  }
+  paintDone();
+}
+
+/** The choices made, each with a way back to change it. */
+function paintDone() {
+  const rows = [
+    ['Look', state.dark ? 'Dark' : 'Light', 'theme'],
+    ['Opens as', { floating: 'A button in the corner', inline: 'A page in your app', overlay: 'Over your app' }[state.mode], 'opens'],
+    ['Used in', { pay: 'Nimiq Pay', browser: 'A browser', both: 'Nimiq Pay and a browser' }[state.runs] ?? 'Not picked yet', 'runs'],
+  ];
+  const list = document.getElementById('nq-summary');
+  list.innerHTML = rows.map(() => '<div><dt></dt><dd></dd><button type="button" class="nq-change">Change</button></div>').join('');
+  list.querySelectorAll('div').forEach((row, i) => {
+    row.querySelector('dt').textContent = rows[i][0];
+    row.querySelector('dd').textContent = rows[i][1];
+    row.querySelector('button').dataset.goto = rows[i][2];
+    row.querySelector('button').setAttribute('aria-label', `Change ${rows[i][0].toLowerCase()}`);
   });
 }
 
-copyBtn.addEventListener('click', async () => {
-  const style = css().startsWith('/*') ? '' : `\n<style>\n${css()}\n</style>`;
-  const text = `${html()}${style}\n`;
+done.addEventListener('click', async (e) => {
+  // "Change": back to that step, every choice kept.
+  const back = e.target.closest('[data-goto]');
+  if (back) return go(back.dataset.goto);
+  const btn = e.target.closest('[data-copy]');
+  if (!btn) return;
+  const [text, said] = COPIES[btn.dataset.copy]();
   try {
     await navigator.clipboard.writeText(text);
-    toast('Code copied');
+    toast(said);
   } catch {
-    toast('Copying was blocked: select the code above instead');
+    // Blocked: open it in the page, to select by hand.
+    for (const peek of done.querySelectorAll('.nq-peek')) peek.open = true;
+    toast('Copying was blocked: select it below instead');
   }
 });
 
@@ -733,7 +714,20 @@ function toast(text) {
   toastTimer = setTimeout(() => el.classList.remove('toast--on'), 2200);
 }
 
+/**
+ * The preview as a desktop or as a phone: the box narrows to a phone's
+ * width, and the widget, its panel and the three ways follow it.
+ */
+const viewButtons = document.querySelectorAll('[data-view]');
+function setView(kind) {
+  viewport.classList.toggle('viewport--phone', kind === 'phone');
+  for (const b of viewButtons) b.setAttribute('aria-pressed', String(b.dataset.view === kind));
+  measureDeck();
+  update();
+}
+for (const b of viewButtons) b.addEventListener('click', () => setView(b.dataset.view));
+
 mount();
 paintSteps();
-paintSwatches();
 writeCode();
+measureDeck();

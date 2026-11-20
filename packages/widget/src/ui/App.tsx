@@ -1,21 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   createMatcher,
+  isClosed,
+  lastWord,
   sortPosts,
+  waitingOnApp,
   type BoardRead,
   type BoardSort,
+  type Message,
   type Post,
   type PostContext,
   type PostKind,
 } from '@pleasenobugs/core';
 import type { Client } from '../client.js';
+import { NO_FILTER, filtersOn, findIn, matchesFilter, type BoardFilter, type Found, type OwnFilter } from '../filter.js';
 import { forReaders } from '../readonly.js';
 import { insideNimiqPay } from '../signer.js';
 import type { CopyKey, Translate } from '../i18n.js';
 import { Choose, Sent } from './Choose.js';
 import { Compose, type Draft, type Screenshots } from './Compose.js';
-import { KIND, PostCard, Stars } from './PostCard.js';
-import { DeleteSheet, ManageSheet, ShotSheet, type ManageChange } from './Sheets.js';
+import { Badge, CodeLink, PostCard, Stars, doneLabel } from './PostCard.js';
+import { Manage, type ManageChange } from './Manage.js';
+import { DeleteSheet, FilterSheet, ShotSheet, filterLabel } from './Sheets.js';
+import { Talk } from './Talk.js';
+import { Updates, type UpdateDraft } from './Updates.js';
 import * as Icon from './icons.js';
 
 const PER_PAGE = 15;
@@ -23,7 +31,7 @@ const PER_PAGE = 15;
 /**
  * Whether a post's screenshot is on the board, so it can be shown as a plain
  * image. An owner hears about every screenshot, but reads one that is not on
- * the board through the manage sheet, with their proof; nor is one under a
+ * the board through the page where they answer it, with their proof; nor is one under a
  * post they hid.
  */
 const onBoard = (p: Post) => !!p.shot && (p.shotFor ?? 'board') === 'board' && !p.hidden;
@@ -57,7 +65,8 @@ export interface AppProps {
   onClose?: () => void;
   /**
    * What opens first: the board, or the tiles that ask what to write. The
-   * floating button starts on the tiles; the board is one tap under them.
+   * element starts every way on the tiles, the board one tap under them,
+   * unless it says `start="board"`.
    */
   start?: 'board' | 'choose';
   /**
@@ -69,17 +78,17 @@ export interface AppProps {
   onPosted?: (post: { id: string; kind: PostKind }) => void;
 }
 
-export type View = 'board' | 'choose' | 'compose' | 'sent';
+export type View = 'board' | 'choose' | 'compose' | 'sent' | 'updates' | 'talk' | 'manage';
 
 /** Whatever is over the board, as one value so two can never be up at once. */
 type Over =
   | { kind: 'delete'; post: Post }
-  | { kind: 'manage'; post: Post }
   | { kind: 'shot'; post: Post }
+  | { kind: 'filter' }
   | null;
 
 /**
- * The whole board: the list, writing one, and the two sheets.
+ * The whole board: the list, writing one, the pages under it, and the sheets over it.
  *
  * **It owns its data and fetches it when it opens**, then again after anything
  * it did. A feedback board is a page people open now and then; polling it
@@ -116,13 +125,22 @@ export function App({
   const [first, setFirst] = useState(start === 'choose');
   const [writing, setWriting] = useState<PostKind>('bug');
   const [sort, setSort] = useState<BoardSort>('top');
-  const [kind, setKind] = useState<'all' | PostKind>('all');
+  const [filter, setFilterNow] = useState<BoardFilter>(NO_FILTER);
+  const [query, setQueryNow] = useState('');
+  // The post whose conversation is open, on its own page.
+  const [talking, setTalking] = useState<string | null>(null);
+  // The post an owner is answering, on its own page.
+  const [managing, setManaging] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [over, setOver] = useState<Over>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [away, setAway] = useState(false);
   // Whether the last post landed on a board that approves first.
   const [waiting, setWaiting] = useState(false);
+  // The posts of yours whose "it is fixed" note you closed.
+  const [seen, setSeen] = useState<string[]>(() => readSeen(client.project, 'fixed'));
+  // The answers from the app you read or closed the note for, as `post@at`.
+  const [heard, setHeard] = useState<string[]>(() => readSeen(client.project, 'answered'));
   const scroller = useRef<HTMLDivElement>(null);
 
   // Keyed on the words rather than the array, which the element hands over as
@@ -134,15 +152,17 @@ export function App({
   // A refresh that fails after a good read keeps the board on screen; only a
   // first read that fails says the board is unreachable.
   const loaded = useRef(false);
-  const pull = useCallback(async () => {
+  const pull = useCallback(async (): Promise<BoardRead | null> => {
     const res = await client.board();
     if (res.ok) {
       loaded.current = true;
-      setRead(readonly ? forReaders(res.data) : res.data);
+      const board = readonly ? forReaders(res.data) : res.data;
+      setRead(board);
       setFailed(false);
-    } else if (!loaded.current) {
-      setFailed(true);
+      return board;
     }
+    if (!loaded.current) setFailed(true);
+    return null;
   }, [client, readonly]);
 
   useEffect(() => {
@@ -213,16 +233,107 @@ export function App({
     if (screen && kinds.length && !kinds.includes(writing)) setWriting(kinds[0]);
   }, [screen, kindsKey]);
 
-  const shown = useMemo(() => {
-    const here = posts.filter((p) => (owner || !p.hidden) && kindsKey.split(',').includes(p.kind));
-    return sortPosts(kind === 'all' ? here : here.filter((p) => p.kind === kind), sort);
-  }, [posts, kind, sort, owner, kindsKey]);
+  // A new search or filter starts at the first page, which is where its best
+  // match is.
+  const setFilter = (f: BoardFilter) => {
+    setFilterNow(f);
+    setPage(1);
+  };
+  const setQuery = (q: string) => {
+    setQueryNow(q);
+    setPage(1);
+  };
+  const on = filtersOn(filter);
+  const searching = !!query.trim();
+
+  const here = useMemo(
+    () => posts.filter((p) => (owner || !p.hidden) && kindsKey.split(',').includes(p.kind)),
+    [posts, owner, kindsKey],
+  );
+  /** Every post that passes the filter and the search, and where the search found it. */
+  const found = useMemo(() => {
+    const out = new Map<string, Found>();
+    for (const p of here) {
+      if (!matchesFilter(p, filter)) continue;
+      const where = findIn(p, query);
+      if (where) out.set(p.id, where);
+    }
+    return out;
+  }, [here, filter, query]);
+  const shown = useMemo(() => sortPosts(here.filter((p) => found.has(p.id)), sort), [here, found, sort]);
+  /** How many posts a filter would leave, for the panel's button. */
+  const countFor = (f: BoardFilter) => here.filter((p) => matchesFilter(p, f) && findIn(p, query)).length;
+  // What an owner may narrow to. Waiting for approval only where it happens.
+  const ownFilters: OwnFilter[] = owner
+    ? ['waiting', 'hidden', ...(rules?.approve || posts.some((p) => p.pending) ? (['pending'] as const) : [])]
+    : [];
+  /** For an owner: bugs and ideas whose author answered and the app has not since. */
+  const waitingCount = owner ? here.filter((p) => !p.hidden && waitingOnApp(p)).length : 0;
 
   /** The average over the reviews on the board, hidden ones left out for owners too. */
   const rating = useMemo(() => {
     const stars = posts.filter((p) => p.kind === 'review' && !p.hidden && p.rating).map((p) => p.rating as number);
     return stars.length ? { avg: stars.reduce((a, b) => a + b, 0) / stars.length, n: stars.length } : null;
   }, [posts]);
+  /**
+   * One of your own bugs or ideas that is done, which you have not closed
+   * the note for yet: the newest. Worked out from the board, which already
+   * says which posts are yours, so it costs no request and tells the server
+   * nothing.
+   */
+  const news = useMemo(
+    () =>
+      posts
+        .filter((p) => p.mine && p.status === 'done' && (p.kind === 'bug' || p.kind === 'idea') && !seen.includes(p.id))
+        .sort((a, b) => b.at - a.at)[0],
+    [posts, seen],
+  );
+  const closeNews = (id: string) => {
+    const next = [...seen, id].slice(-SEEN_MAX);
+    setSeen(next);
+    writeSeen(client.project, 'fixed', next);
+  };
+
+  /**
+   * One of your own posts the app said something under that you have not
+   * read: the newest. A done one tells you with the note above instead.
+   */
+  const answered = useMemo(() => {
+    const unread = posts
+      .map((p) => ({ p, last: lastWord(p.thread) }))
+      .filter(
+        ({ p, last }) =>
+          p.mine &&
+          last?.from === 'app' &&
+          (p.kind === 'review' || !isClosed(p.status)) &&
+          !heard.includes(`${p.id}@${last.at}`),
+      )
+      .sort((a, b) => (b.last?.at ?? 0) - (a.last?.at ?? 0));
+    return unread[0]?.p;
+  }, [posts, heard]);
+  /** You read what the app said under one of yours, by opening it or closing the note. */
+  const hear = (post: Post) => {
+    const last = lastWord(post.thread);
+    if (!last || last.from !== 'app') return;
+    const next = [...heard.filter((h) => !h.startsWith(`${post.id}@`)), `${post.id}@${last.at}`].slice(-SEEN_MAX);
+    setHeard(next);
+    writeSeen(client.project, 'answered', next);
+  };
+  const openTalk = (post: Post) => {
+    hear(post);
+    setTalking(post.id);
+    setView('talk');
+  };
+
+  /** An owner's way into a post: its page for answering it. */
+  const openManage = (post: Post) => {
+    setManaging(post.id);
+    setView('manage');
+  };
+
+  // An owner always, to write the first one; anybody else once there is one.
+  const hasUpdates = !!rules && (owner || (read?.updates ?? 0) > 0);
+
   const pages = Math.max(1, Math.ceil(shown.length / PER_PAGE));
   const at = Math.min(page, pages);
   const slice = shown.slice((at - 1) * PER_PAGE, at * PER_PAGE);
@@ -289,7 +400,8 @@ export function App({
     setWaiting(!!res.data.pending);
     setView('sent');
     setSort('new');
-    setKind('all');
+    setFilterNow(NO_FILTER);
+    setQueryNow('');
     setPage(1);
     onPosted?.({ id, kind: draft.kind });
     await pull();
@@ -316,17 +428,92 @@ export function App({
   };
 
   const manage = async (post: Post, change: ManageChange) => {
-    setOver(null);
+    // Saved: back to the board, where the card shows what changed.
+    setView('board');
+    const { message, ...rest } = change;
     patch(post.id, {
-      status: change.status,
-      hidden: change.hidden || undefined,
-      reply: change.reply ? { text: change.reply, at: Date.now() } : undefined,
-      ...(change.shotOff !== undefined ? { shotFor: change.shotOff ? 'off' : 'board' } : {}),
-      ...(change.approved ? { pending: undefined } : {}),
+      status: rest.status,
+      hidden: rest.hidden || undefined,
+      fix: rest.status === 'done' && (rest.fix?.version || rest.fix?.link) ? rest.fix : undefined,
+      ...(rest.shotOff !== undefined ? { shotFor: rest.shotOff ? 'off' : 'board' } : {}),
+      ...(rest.approved ? { pending: undefined } : {}),
     });
-    const res = await client.manage(post.id, change);
+    const res = await client.manage(post.id, rest);
     if (!res.ok) sayRefusal(res.error);
+    else if (message) {
+      const said = message.edit
+        ? await client.editMessage(post.id, message.edit, { text: message.text })
+        : await client.say(post.id, { id: newId(), text: message.text });
+      if (!said.ok) refusedInTalk(said.error);
+    }
     void pull();
+  };
+
+  /**
+   * The conversation moved on, or closed, between reading it and answering:
+   * say so and show it as it is now, rather than an error about turns.
+   */
+  const refusedInTalk = (error: string) => {
+    if (error === 'not_your_turn' || error === 'closed' || error === 'not_found' || error === 'no_post') {
+      setToast(t('talk.moved'));
+      void pull();
+    } else {
+      sayRefusal(error);
+    }
+  };
+  /** Each answers whether it landed, so the box keeps the words when it did not. */
+  const sayUnder = async (post: Post, text: string) => {
+    const res = await client.say(post.id, { id: newId(), text });
+    if (!res.ok) {
+      refusedInTalk(res.error);
+      return false;
+    }
+    await pull();
+    return true;
+  };
+  const editUnder = async (post: Post, m: Message, text: string) => {
+    const res = await client.editMessage(post.id, m.id, { text });
+    if (!res.ok) {
+      refusedInTalk(res.error);
+      return false;
+    }
+    await pull();
+    return true;
+  };
+  const unsayUnder = async (post: Post, m: Message) => {
+    const res = await client.unsay(post.id, m.id);
+    if (!res.ok) {
+      refusedInTalk(res.error);
+      return false;
+    }
+    await pull();
+    return true;
+  };
+  /** An owner taking an author's message off the board, or back: at once, and the page follows the board. */
+  const hideMessage = async (post: Post, m: Message, hidden: boolean) => {
+    const res = await client.editMessage(post.id, m.id, { hidden });
+    if (!res.ok) return refusedInTalk(res.error);
+    await pull();
+  };
+
+  /** Seconding a lookalike instead of writing it again: the vote, and back to the board. */
+  const meToo = (id: string) => {
+    const p = posts.find((x) => x.id === id);
+    if (p && !p.voted) void vote(id, true);
+    setFirst(false);
+    setView('board');
+    setToast(t('board.meTooDone'));
+  };
+
+  /** An owner's new update. The posts it fixed change too, so the board is read again. */
+  const publish = async (draft: UpdateDraft) => {
+    const res = await client.postUpdate({ id: newId(), ...draft });
+    if (!res.ok) {
+      sayRefusal(res.error);
+      return false;
+    }
+    await pull();
+    return true;
   };
 
   const reviewed = posts.some((p) => p.mine && p.kind === 'review');
@@ -354,6 +541,69 @@ export function App({
     );
   }
 
+  if (view === 'updates' && rules) {
+    return (
+      <div class="app">
+        <Updates
+          client={client}
+          t={t}
+          locale={locale}
+          appName={name}
+          owner={owner}
+          posts={posts}
+          onBack={toBoard}
+          onPublish={publish}
+          onFail={sayRefusal}
+        />
+        {toast && <div class="toast" role="status">{toast}</div>}
+      </div>
+    );
+  }
+
+  const managed = view === 'manage' && owner ? posts.find((p) => p.id === managing) : undefined;
+  if (managed && rules) {
+    return (
+      <div class="app">
+        <Manage
+          key={managed.id}
+          t={t}
+          post={managed}
+          appName={name}
+          locale={locale}
+          replyMax={rules.replyMax}
+          loadShot={async () => {
+            const res = await client.shot(managed.id);
+            return res.ok ? res.data : null;
+          }}
+          onSave={(change) => void manage(managed, change)}
+          onHideMessage={(m, hidden) => void hideMessage(managed, m, hidden)}
+          onBack={toBoard}
+        />
+        {toast && <div class="toast" role="status">{toast}</div>}
+      </div>
+    );
+  }
+
+  const talkingTo = view === 'talk' ? posts.find((p) => p.id === talking) : undefined;
+  if (talkingTo && rules) {
+    return (
+      <div class="app">
+        <Talk
+          post={talkingTo}
+          appName={name}
+          t={t}
+          locale={locale}
+          replyMax={rules.replyMax}
+          onBack={toBoard}
+          onSay={(text) => sayUnder(talkingTo, text)}
+          onEdit={(m, text) => editUnder(talkingTo, m, text)}
+          onUnsay={(m) => unsayUnder(talkingTo, m)}
+        />
+        {toast && <div class="toast" role="status">{toast}</div>}
+      </div>
+    );
+  }
+
   if (view === 'choose' && (rules || first)) {
     return (
       <div class="app">
@@ -375,7 +625,7 @@ export function App({
             <button type="button" class="icon-btn" aria-label={t('board.back')} onClick={toBoard}>
               <Icon.Back />
             </button>
-            <h2 class="bar__title">{t('board.composeTitle')}</h2>
+            <h2 class="bar__title bar__title--write">{t('board.composeTitle')}</h2>
             <span />
           </header>
         )}
@@ -421,10 +671,11 @@ export function App({
           >
             <Icon.Back />
           </button>
-          <h2 class="bar__title">{t('board.composeTitle')}</h2>
+          <h2 class="bar__title bar__title--write">{t('board.composeTitle')}</h2>
           <span />
         </header>
-        <div class="scroll" ref={scroller} style={{ paddingBottom: '24px' }}>
+        {/* Little under the send button: it sits at the foot, clear of a phone's bar. */}
+        <div class="scroll" ref={scroller} style={{ paddingBottom: 'calc(12px + var(--_bottom))' }}>
           <Compose
             t={t}
             kind={writing}
@@ -437,7 +688,7 @@ export function App({
             appName={name}
             screenshots={shots}
             names={names}
-            onVote={vote}
+            onMeToo={meToo}
             onSend={send}
           />
         </div>
@@ -449,14 +700,19 @@ export function App({
   return (
     <div class="app">
       <header class="bar">
-        {onClose ? (
-          <button type="button" class="icon-btn" aria-label={t('board.close')} onClick={onClose}>
-            <Icon.Close />
-          </button>
-        ) : (
-          <span />
-        )}
-        <h2 class="bar__title">{t('board.title')}</h2>
+        <div class="bar__side">
+          {onClose && (
+            <button type="button" class="icon-btn" aria-label={t('board.close')} onClick={onClose}>
+              <Icon.Close />
+            </button>
+          )}
+          {hasUpdates && (
+            <button type="button" class="icon-btn" aria-label={t('updates.title')} onClick={() => setView('updates')}>
+              <Icon.Updates />
+            </button>
+          )}
+        </div>
+        <h2 class="bar__title bar__title--board">{t('board.title')}</h2>
         {readonly ? (
           <span />
         ) : (
@@ -472,29 +728,134 @@ export function App({
         )}
       </header>
 
-      {kinds.length > 1 && (
-        <div class="filters">
-          {(['all', ...kinds] as const).map((k) => (
+      {/* One row for finding something: the search, and the Filter button
+          that opens everything else. What is on shows under it, each with
+          its own x, so a short board always says why it is short. */}
+      <div class="filters finder">
+        <label class="search">
+          <Icon.Search />
+          <input
+            class="search__input"
+            type="search"
+            value={query}
+            placeholder={t('search.placeholder')}
+            aria-label={t('search.placeholder')}
+            onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
+          />
+          {query && (
+            <button type="button" class="search__clear" aria-label={t('search.clear')} onClick={() => setQuery('')}>
+              <Icon.Close size={16} />
+            </button>
+          )}
+        </label>
+        <button
+          type="button"
+          class="filter-btn"
+          aria-pressed={on > 0}
+          aria-label={on > 0 ? `${t('filter.button')}: ${t('filter.on', { n: on })}` : t('filter.button')}
+          onClick={() => setOver({ kind: 'filter' })}
+        >
+          <Icon.Sliders />
+          <span>{t('filter.button')}</span>
+          {on > 0 && <span class="filter-btn__n">{on}</span>}
+        </button>
+      </div>
+      {on > 0 && (
+        <div class="applied">
+          {[
+            ...filter.kinds.map((k) => ({ label: filterLabel(t, { kind: k }), off: { ...filter, kinds: filter.kinds.filter((x) => x !== k) } })),
+            ...filter.statuses.map((s) => ({
+              label: filterLabel(t, { status: s, kinds: filter.kinds.length ? filter.kinds : kinds }),
+              off: { ...filter, statuses: filter.statuses.filter((x) => x !== s) },
+            })),
+            ...filter.own.map((o) => ({ label: filterLabel(t, { own: o }), off: { ...filter, own: filter.own.filter((x) => x !== o) } })),
+            ...(filter.mine ? [{ label: filterLabel(t, { mine: true }), off: { ...filter, mine: false } }] : []),
+          ].map((chip) => (
             <button
-              key={k}
+              key={chip.label}
               type="button"
-              class="chip-pick"
-              aria-pressed={kind === k}
-              onClick={() => {
-                setKind(k);
-                setPage(1);
-              }}
+              class="applied__chip"
+              aria-label={t('filter.remove', { label: chip.label })}
+              onClick={() => setFilter(chip.off)}
             >
-              {t(k === 'all' ? 'board.all' : KIND[k].plural)}
+              <span>{chip.label}</span>
+              <Icon.Close size={14} />
             </button>
           ))}
+          <button type="button" class="link-btn" onClick={() => setFilter(NO_FILTER)}>
+            {t('filter.clearAll')}
+          </button>
         </div>
       )}
 
       <div class="scroll" ref={scroller}>
+        {/* Yours, and only yours: the bug you reported is fixed. Once, until
+            you close it, whichever filter is on. */}
+        {news && (
+          <div class="news" role="status">
+            <Badge tone="done" icon={() => <Icon.Done />} label={t(doneLabel([news.kind]))} />
+            <div class="news__text">
+              <strong class="news__title">
+                {news.fix?.version
+                  ? t(news.kind === 'idea' ? 'news.ideaIn' : 'news.bugIn', { version: news.fix.version })
+                  : t(news.kind === 'idea' ? 'news.idea' : 'news.bug')}
+              </strong>
+              <span class="news__post">{news.text}</span>
+              {news.fix?.link && <CodeLink href={news.fix.link} t={t} label="news.see" />}
+            </div>
+            <button type="button" class="icon-btn news__close" aria-label={t('board.close')} onClick={() => closeNews(news.id)}>
+              <Icon.Close size={18} />
+            </button>
+          </div>
+        )}
+
+        {/* Yours too: the app said something under one of your posts. Once,
+            until you read it or close this. */}
+        {answered && (
+          <div class="news" role="status">
+            <div class="news__text">
+              <strong class="news__title">
+                {t(answered.kind === 'idea' ? 'answered.idea' : answered.kind === 'review' ? 'answered.review' : 'answered.bug', {
+                  app: name,
+                })}
+              </strong>
+              <button type="button" class="link-btn news__link" onClick={() => openTalk(answered)}>
+                {t('answered.see')}
+              </button>
+            </div>
+            <button type="button" class="icon-btn news__close" aria-label={t('board.close')} onClick={() => hear(answered)}>
+              <Icon.Close size={18} />
+            </button>
+          </div>
+        )}
+
+        {/* For owners: answers that wait for the app, and one tap to see only those. */}
+        {waitingCount > 0 && !filter.own.includes('waiting') && (
+          <div class="news news--owner" role="status">
+            <strong class="news__title news__grow">
+              {waitingCount === 1 ? t('owner.waitingOne') : t('owner.waitingMany', { n: waitingCount })}
+            </strong>
+            <button type="button" class="chip-btn" onClick={() => setFilter({ ...NO_FILTER, own: ['waiting'] })}>
+              {t('owner.showThese')}
+            </button>
+          </div>
+        )}
+
+        {searching && read && (
+          <p class="found-count">
+            {shown.length === 1 ? t('search.countOne', { q: query.trim() }) : t('search.count', { n: shown.length, q: query.trim() })}
+          </p>
+        )}
+
         {/* What people think of the app, on top of the list it is drawn from.
             Only where reviews are in view, and only once there is one. */}
-        {rating && kinds.includes('review') && (kind === 'all' || kind === 'review') && (
+        {rating &&
+          kinds.includes('review') &&
+          (!filter.kinds.length || filter.kinds.includes('review')) &&
+          !filter.statuses.length &&
+          !filter.mine &&
+          !filter.own.length &&
+          !searching && (
           <div class="rating">
             <span class="rating__avg">{rating.avg.toFixed(1)}</span>
             <Stars n={rating.avg} t={t} size={18} />
@@ -514,6 +875,21 @@ export function App({
           <div class="empty" aria-busy="true">
             <span class="spinner" style={{ display: 'inline-block' }} />
           </div>
+        ) : slice.length === 0 && (searching || on > 0) ? (
+          <div class="empty nothing">
+            <strong class="nothing__title">{t('filter.none')}</strong>
+            <p>{t('filter.noneNote')}</p>
+            <button
+              type="button"
+              class="outline-btn"
+              onClick={() => {
+                setQuery('');
+                setFilter(NO_FILTER);
+              }}
+            >
+              {t('filter.clear')}
+            </button>
+          </div>
         ) : slice.length === 0 ? (
           <p class="empty">
             {t(posts.length > 0 ? 'board.emptyFiltered' : readonly ? 'board.emptyRead' : 'board.emptyTitle')}
@@ -529,9 +905,17 @@ export function App({
                 locale={locale}
                 onVote={readonly ? undefined : (up) => void vote(post.id, up)}
                 onDelete={post.mine || owner ? () => setOver({ kind: 'delete', post }) : undefined}
-                onManage={owner ? () => setOver({ kind: 'manage', post }) : undefined}
+                onManage={owner ? () => openManage(post) : undefined}
+                // An owner answers on the manage page, which holds the conversation.
+                onTalk={owner ? () => openManage(post) : () => openTalk(post)}
                 shotUrl={onBoard(post) ? client.shotUrl(post.id) : undefined}
                 onShot={() => setOver({ kind: 'shot', post })}
+                fresh={owner && !post.hidden && waitingOnApp(post)}
+                query={query}
+                found={(() => {
+                  const where = found.get(post.id);
+                  return where?.in === 'thread' ? where.message : undefined;
+                })()}
               />
             ))}
           </ul>
@@ -595,21 +979,23 @@ export function App({
       {over?.kind === 'delete' && (
         <DeleteSheet t={t} onConfirm={() => void remove(over.post)} onClose={() => setOver(null)} />
       )}
-      {over?.kind === 'shot' && (
-        <ShotSheet t={t} src={client.shotUrl(over.post.id)} onClose={() => setOver(null)} />
-      )}
-      {over?.kind === 'manage' && rules && (
-        <ManageSheet
+      {over?.kind === 'filter' && rules && (
+        <FilterSheet
           t={t}
-          post={over.post}
-          replyMax={rules.replyMax}
-          loadShot={async () => {
-            const res = await client.shot(over.post.id);
-            return res.ok ? res.data : null;
+          kinds={kinds}
+          owners={ownFilters}
+          signedIn={!!read?.me}
+          value={filter}
+          count={countFor}
+          onApply={(f) => {
+            setOver(null);
+            setFilter(f);
           }}
-          onSave={(change) => void manage(over.post, change)}
           onClose={() => setOver(null)}
         />
+      )}
+      {over?.kind === 'shot' && (
+        <ShotSheet t={t} src={client.shotUrl(over.post.id)} onClose={() => setOver(null)} />
       )}
     </div>
   );
@@ -619,6 +1005,35 @@ export function App({
 function newId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
   return `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** How many closed notes are remembered: plenty for anybody's own posts on one board. */
+const SEEN_MAX = 200;
+
+/**
+ * The notes this browser closed, per board: posts whose "fixed" note went
+ * (`fixed`), and answers from the app that were read (`answered`, as
+ * `post@time`, so the next answer is news again). In `localStorage`,
+ * because a note that came back on every visit would be nagging; only post
+ * ids and times, nothing about anybody. Where storage throws (private mode,
+ * a sandboxed frame) it is remembered for this visit only.
+ */
+function readSeen(project: string, what: 'fixed' | 'answered'): string[] {
+  try {
+    const raw = globalThis.localStorage?.getItem(`pleasenobugs.${what}.${project}`);
+    const ids = raw ? (JSON.parse(raw) as unknown) : [];
+    return Array.isArray(ids) ? ids.filter((x): x is string => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSeen(project: string, what: 'fixed' | 'answered', ids: string[]) {
+  try {
+    globalThis.localStorage?.setItem(`pleasenobugs.${what}.${project}`, JSON.stringify(ids));
+  } catch {
+    // Remembered in memory for this visit, which is the best there is.
+  }
 }
 
 /** The stricter of two screenshot settings: off, then owners, then the board. */

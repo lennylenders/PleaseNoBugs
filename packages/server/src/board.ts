@@ -1,4 +1,4 @@
-import type { Post, Project, PublicProject } from '@pleasenobugs/core';
+import { latestReply, shownThread, type Post, type Project, type PublicProject } from '@pleasenobugs/core';
 import type { PostWithVotes } from './store.js';
 
 /**
@@ -35,7 +35,16 @@ export function toVisible(
     mine: reader !== null && row.author === reader,
   };
   if (!row.anon && name) out.who = name;
-  if (row.reply) out.reply = row.reply;
+  // A message an owner took off the board is gone for everybody else, its
+  // author included, like a hidden post. Owners get it, marked, to put back.
+  const thread = owner ? (row.thread ?? []) : shownThread(row.thread);
+  if (thread.length) out.thread = thread;
+  // What widgets from before conversations read: the app's latest word.
+  const reply = latestReply(row.thread);
+  if (reply) out.reply = reply;
+  // Only ever stored on a done post; checked again so a fix can never be
+  // read as a promise on something still open.
+  if (row.fix && row.status === 'done') out.fix = row.fix;
   if (row.rating !== undefined) out.rating = row.rating;
   // A screenshot on the board is the board's, like the text under it. Any
   // other one, and who sees it, is for owners only.

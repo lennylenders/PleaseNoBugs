@@ -1,330 +1,292 @@
 /**
- * Every word the widget says, in every language it speaks, side by side so a
- * string added in one language and not the others is a type error.
+ * Every word the widget says, in English.
  *
  * Taken from Shitti's board, where the copy was written for the same two jobs
  * a feedback board has that the rest of an app does not: saying out loud that
  * this is public, and being honest about what "anonymous" does and does not
  * mean. "Shitti" became `{app}`, the project's own name.
  *
- * A developer can override any string, or speak a language this file does not,
- * through the element's `strings` property (see {@link translator}).
+ * The widget ships in English only. A developer can override any string, or
+ * put the whole board in their app's language, through the element's
+ * `strings` property (see {@link translator}), with `lang` set to that
+ * language so dates are written in it too.
  */
 
-export const LANGS = ['en', 'nl', 'de'] as const;
-export type Lang = (typeof LANGS)[number];
-
 const COPY = {
-  'board.title': { en: 'Feedback', nl: 'Feedback', de: 'Feedback' },
-  'board.open': { en: 'Feedback', nl: 'Feedback', de: 'Feedback' },
-  'board.close': { en: 'Close', nl: 'Sluiten', de: 'Schließen' },
-  'board.back': { en: 'Back', nl: 'Terug', de: 'Zurück' },
-  'board.top': { en: 'Top', nl: 'Top', de: 'Top' },
-  'board.new': { en: 'New', nl: 'Nieuw', de: 'Neu' },
-  'board.order': { en: 'Order', nl: 'Volgorde', de: 'Reihenfolge' },
-  'board.all': { en: 'All', nl: 'Alles', de: 'Alles' },
-  'board.bugs': { en: 'Bugs', nl: 'Bugs', de: 'Bugs' },
-  'board.ideas': { en: 'Ideas', nl: 'Ideeën', de: 'Ideen' },
-  'board.reviews': { en: 'Reviews', nl: 'Reviews', de: 'Bewertungen' },
-  'board.kindBug': { en: 'Bug', nl: 'Bug', de: 'Bug' },
-  'board.kindIdea': { en: 'Idea', nl: 'Idee', de: 'Idee' },
-  'board.kindReview': { en: 'Review', nl: 'Review', de: 'Bewertung' },
-  'board.statusOpen': { en: 'Open', nl: 'Open', de: 'Offen' },
-  'board.statusPlanned': { en: 'Planned', nl: 'Gepland', de: 'Geplant' },
-  'board.statusDone': { en: 'Done', nl: 'Klaar', de: 'Fertig' },
-  'board.statusDeclined': { en: 'Not doing', nl: 'Doen we niet', de: 'Machen wir nicht' },
-  'board.anon': { en: 'Anonymous', nl: 'Anoniem', de: 'Anonym' },
-  'board.byYou': { en: 'You', nl: 'Jij', de: 'Du' },
+  'board.title': 'Feedback',
+  'board.open': 'Feedback',
+  'board.close': 'Close',
+  'board.back': 'Back',
+  'board.top': 'Top',
+  'board.new': 'New',
+  'board.order': 'Order',
+  'board.all': 'All',
+  'board.bugs': 'Bugs',
+  'board.ideas': 'Ideas',
+  'board.reviews': 'Reviews',
+  'board.kindBug': 'Bug',
+  'board.kindIdea': 'Idea',
+  'board.kindReview': 'Review',
+  'board.statusOpen': 'Open',
+  'board.statusPlanned': 'Planned',
+  'board.statusDone': 'Done',
+  // A bug is fixed, an idea done: 'done' says which by the kind (doneLabel in PostCard).
+  'board.statusFixed': 'Fixed',
+  'board.statusFixedOrDone': 'Fixed or done',
+  'board.statusFixedAndDone': 'Fixed & done',
+  'board.statusDeclined': 'Not doing',
+  'board.anon': 'Anonymous',
+  'board.byYou': 'You',
   // Named rather than "the owner": a board that answers in the third person
   // reads like a support desk.
-  'board.reply': { en: '{app} says', nl: '{app} zegt', de: '{app} sagt' },
-  'board.upvote': { en: 'I want this too', nl: 'Dit wil ik ook', de: 'Will ich auch' },
+  'board.reply': '{app} says',
+  'board.upvote': 'I want this too',
   // On a review there is nothing to want: you agree with it, or it helped.
-  'board.helpful': { en: 'Helpful', nl: 'Nuttig', de: 'Hilfreich' },
-  'board.stars': { en: '{n} of 5 stars', nl: '{n} van 5 sterren', de: '{n} von 5 Sternen' },
-  'board.ratingOne': { en: '1 review', nl: '1 review', de: '1 Bewertung' },
-  'board.ratingMany': { en: '{n} reviews', nl: '{n} reviews', de: '{n} Bewertungen' },
-  'board.emptyTitle': {
-    en: 'Nothing here yet. Tell us what is broken or what you miss.',
-    nl: 'Hier staat nog niets. Vertel wat er stuk is of wat je mist.',
-    de: 'Hier steht noch nichts. Sag uns, was kaputt ist oder was dir fehlt.',
-  },
+  'board.helpful': 'Helpful',
+  'board.stars': '{n} of 5 stars',
+  'board.ratingOne': '1 review',
+  'board.ratingMany': '{n} reviews',
+  'board.emptyTitle': 'Nothing here yet. Tell us what is broken or what you miss.',
   // A read-only board has no way to write, so it does not ask.
-  'board.emptyRead': {
-    en: 'Nothing here yet.',
-    nl: 'Hier staat nog niets.',
-    de: 'Hier steht noch nichts.',
-  },
-  'board.votes': { en: '{n} votes', nl: '{n} stemmen', de: '{n} Stimmen' },
-  'board.emptyFiltered': {
-    en: 'Nothing of that kind yet.',
-    nl: 'Nog niets van deze soort.',
-    de: 'Von dieser Sorte noch nichts.',
-  },
-  'board.write': { en: 'Write feedback', nl: 'Feedback schrijven', de: 'Feedback schreiben' },
-  'board.loadFailed': {
-    en: 'Could not reach the board.',
-    nl: 'Kon het bord niet bereiken.',
-    de: 'Das Board war nicht erreichbar.',
-  },
-  'board.retry': { en: 'Try again', nl: 'Opnieuw', de: 'Nochmal' },
-  'board.page': { en: 'Page {n}', nl: 'Pagina {n}', de: 'Seite {n}' },
-  'board.signIn': {
-    en: 'Sign in with your wallet',
-    nl: 'Inloggen met je wallet',
-    de: 'Mit deiner Wallet anmelden',
-  },
+  'board.emptyRead': 'Nothing here yet.',
+  'board.votes': '{n} votes',
+  'board.voteOne': '1 vote',
+  'board.emptyFiltered': 'Nothing of that kind yet.',
+  'board.write': 'Write feedback',
+  'board.loadFailed': 'Could not reach the board.',
+  'board.retry': 'Try again',
+  'board.page': 'Page {n}',
+  'board.signIn': 'Sign in with your wallet',
   // Reading works anywhere; writing needs a wallet. Said when somebody tries,
   // not up front, so a reader is never told off for reading.
-  'board.needWallet': {
-    en: 'Open {app} in Nimiq Pay to post and vote.',
-    nl: 'Open {app} in Nimiq Pay om te posten en te stemmen.',
-    de: 'Öffne {app} in Nimiq Pay, um zu posten und abzustimmen.',
-  },
+  'board.needWallet': 'Open {app} in Nimiq Pay to post and vote.',
 
   // ---- Choosing what to write ----
-  'board.chooseTitle': {
-    en: 'What do you want to share?',
-    nl: 'Wat wil je delen?',
-    de: 'Was möchtest du teilen?',
-  },
-  'board.tileBug': { en: 'Report a bug', nl: 'Bug melden', de: 'Fehler melden' },
-  'board.tileBugNote': { en: 'Something does not work', nl: 'Iets werkt niet', de: 'Etwas funktioniert nicht' },
-  'board.tileIdea': { en: 'Share an idea', nl: 'Idee delen', de: 'Idee teilen' },
-  'board.tileIdeaNote': { en: 'Something you miss', nl: 'Iets wat je mist', de: 'Etwas, das dir fehlt' },
-  'board.tileReview': { en: 'Write a review', nl: 'Review schrijven', de: 'Bewertung schreiben' },
-  'board.tileReviewNote': {
-    en: 'What you think of {app}',
-    nl: 'Wat je van {app} vindt',
-    de: 'Was du von {app} hältst',
-  },
-  'board.seeBoard': { en: 'See the board', nl: 'Bekijk het bord', de: 'Zum Board' },
-  'board.tileReviewDone': {
-    en: 'You reviewed {app} already',
-    nl: 'Je hebt {app} al beoordeeld',
-    de: 'Du hast {app} schon bewertet',
-  },
+  'board.chooseTitle': 'What do you want to share?',
+  'board.tileBug': 'Report a bug',
+  'board.tileBugNote': 'Something does not work',
+  'board.tileIdea': 'Share an idea',
+  'board.tileIdeaNote': 'Something you miss',
+  'board.tileReview': 'Write a review',
+  'board.tileReviewNote': 'What you think of {app}',
+  'board.seeBoard': 'See the board',
+  'board.tileReviewDone': 'You reviewed {app} already',
 
   // ---- Writing one ----
-  'board.composeTitle': { en: 'Your feedback', nl: 'Jouw feedback', de: 'Dein Feedback' },
-  'board.whatKind': { en: 'What is it?', nl: 'Wat is het?', de: 'Was ist es?' },
-  'board.placeholder': {
-    en: 'What is broken, or what do you miss?',
-    nl: 'Wat is er stuk, of wat mis je?',
-    de: 'Was ist kaputt, oder was fehlt dir?',
-  },
-  'board.placeholderReview': {
-    en: 'What do you like or dislike about {app}?',
-    nl: 'Wat vind je goed of minder goed aan {app}?',
-    de: 'Was gefällt dir an {app}, was nicht?',
-  },
-  'board.yourRating': { en: 'Your rating', nl: 'Jouw beoordeling', de: 'Deine Bewertung' },
-  'board.public': {
-    en: 'Everybody using {app} can read this.',
-    nl: 'Iedereen die {app} gebruikt kan dit lezen.',
-    de: 'Jeder, der {app} nutzt, kann das lesen.',
-  },
-  'board.showName': { en: 'Show my name', nl: 'Mijn naam tonen', de: 'Meinen Namen zeigen' },
-  'board.namePlaceholder': { en: 'Your name', nl: 'Je naam', de: 'Dein Name' },
+  'board.composeTitle': 'Your feedback',
+  'board.whatKind': 'What is it?',
+  // On a bug; an idea and a review each ask their own question.
+  'board.placeholder': 'What’s broken?',
+  'board.placeholderIdea': 'What’s missing?',
+  'board.placeholderReview': 'What do you think of {app}?',
+  'board.yourRating': 'Your rating',
+  'board.public': 'Everyone using {app} can see this.',
+  'board.showName': 'Show my name',
+  'board.namePlaceholder': 'Your name',
   // The honest version. Anonymous means the name is not shown, never that the
   // wallet is not known: the daily limit and one vote per wallet both have to
   // ask who.
-  'board.anonNote': {
-    en: 'Nobody on the board sees who wrote it, and your wallet address is never shown. The server does know your wallet: votes and the daily limit are counted per wallet.',
-    nl: 'Niemand op het bord ziet wie het schreef, en je wallet-adres wordt nooit getoond. De server kent je wallet wel: stemmen en de daglimiet tellen per wallet.',
-    de: 'Niemand auf dem Board sieht, wer es geschrieben hat, und deine Wallet-Adresse wird nie gezeigt. Der Server kennt deine Wallet schon: Stimmen und das Tageslimit zählen pro Wallet.',
-  },
+  'board.anonNote': 'Your wallet address is never public, but the server uses it to track votes and daily limits.',
   // ---- A screenshot ----
-  'board.shotAdd': { en: 'Add a screenshot', nl: 'Screenshot toevoegen', de: 'Screenshot hinzufügen' },
-  'board.shotRemove': { en: 'Remove screenshot', nl: 'Screenshot weghalen', de: 'Screenshot entfernen' },
+  'board.shotAdd': 'Add screenshot',
+  'board.shotRemove': 'Remove screenshot',
   // Said before somebody picks one, because a screenshot of a wallet app is
   // the easiest way to give away a balance without noticing. On a board that
   // shows screenshots, and the one for `screenshots="owners"`. The address
   // line is there because posting anonymously is undone by a picture of it.
-  'board.shotNoteBoard': {
-    en: 'Everyone who views the board sees it. Check it shows nothing private, like a balance, an address or a name. An address on it shows it was you, even if you post anonymously.',
-    nl: 'Iedereen die het bord bekijkt ziet hem. Kijk of er niets privés op staat, zoals een saldo, een adres of een naam. Een adres erop laat zien dat jij het was, ook als je anoniem post.',
-    de: 'Jeder, der das Board ansieht, sieht ihn. Prüf, dass nichts Privates drauf ist, etwa ein Kontostand, eine Adresse oder ein Name. Eine Adresse darauf zeigt, dass du es warst, auch wenn du anonym postest.',
-  },
+  'board.shotNoteBoard': 'Screenshots are public. Hide personal info and wallet addresses.',
   // Ticked under the picture itself, so the yes is about this one.
-  'board.shotAgree': {
-    en: 'I checked it: everyone may see this screenshot.',
-    nl: 'Ik heb gekeken: iedereen mag deze screenshot zien.',
-    de: 'Ich hab nachgesehen: Jeder darf diesen Screenshot sehen.',
-  },
-  'board.shotNote': {
-    en: 'Only {app} sees it, not the board. Check it shows nothing private, like a balance or an address.',
-    nl: 'Alleen {app} ziet hem, het bord niet. Kijk of er niets privés op staat, zoals een saldo of adres.',
-    de: 'Nur {app} sieht ihn, nicht das Board. Prüf, dass nichts Privates drauf ist, etwa ein Kontostand oder eine Adresse.',
-  },
-  'board.shotFailed': {
-    en: 'That image could not be read. Try another one.',
-    nl: 'Die afbeelding kon niet gelezen worden. Probeer een andere.',
-    de: 'Das Bild ließ sich nicht lesen. Versuch ein anderes.',
-  },
-  'board.shot': { en: 'Screenshot', nl: 'Screenshot', de: 'Screenshot' },
-  'board.shotOpen': { en: 'Open the screenshot', nl: 'Screenshot openen', de: 'Screenshot öffnen' },
+  'board.shotAgree': 'Checked: everyone may see this.',
+  'board.shotNote': 'Only {app} sees it. Hide personal info and wallet addresses.',
+  'board.shotFailed': 'That image could not be read. Try another one.',
+  'board.shot': 'Screenshot',
+  'board.shotOpen': 'Open the screenshot',
   // In the owner's sheet: who sees it now, before what happens to it.
-  'board.shotForBoard': {
-    en: 'On the board for everyone.',
-    nl: 'Voor iedereen op het bord.',
-    de: 'Für alle auf dem Board.',
-  },
-  'board.shotForOff': {
-    en: 'Off the board: only you see it.',
-    nl: 'Van het bord: alleen jij ziet hem.',
-    de: 'Vom Board genommen: Nur du siehst ihn.',
-  },
-  'board.shotForOwners': {
-    en: 'Only you see it: it was sent for your eyes only.',
-    nl: 'Alleen jij ziet hem: hij is alleen voor jou gestuurd.',
-    de: 'Nur du siehst ihn: Er wurde nur für dich geschickt.',
-  },
-  'board.shotOff': {
-    en: 'Take the screenshot off the board',
-    nl: 'Screenshot van het bord halen',
-    de: 'Screenshot vom Board nehmen',
-  },
-  'board.shotOn': {
-    en: 'Put the screenshot back',
-    nl: 'Screenshot terugzetten',
-    de: 'Screenshot zurückstellen',
-  },
-  'board.shotGoes': {
-    en: 'Deleted by itself when you mark this Done or Not doing.',
-    nl: 'Wordt vanzelf verwijderd als je dit op Klaar of Doen we niet zet.',
-    de: 'Wird von selbst gelöscht, wenn du es auf Fertig oder Machen wir nicht setzt.',
-  },
-  'board.shotGone': {
-    en: 'The screenshot could not be loaded.',
-    nl: 'De screenshot kon niet geladen worden.',
-    de: 'Der Screenshot ließ sich nicht laden.',
-  },
+  'board.shotForBoard': 'On the board for everyone.',
+  'board.shotForOff': 'Off the board: only you see it.',
+  'board.shotForOwners': 'Only you see it: it was sent for your eyes only.',
+  'board.shotOff': 'Take the screenshot off the board',
+  'board.shotOn': 'Put the screenshot back',
+  'board.shotGoes': 'Deleted by itself when you mark this Done or Not doing.',
+  'board.shotGone': 'The screenshot could not be loaded.',
 
-  'board.send': { en: 'Put it on the board', nl: 'Op het bord zetten', de: 'Aufs Board setzen' },
-  'board.left': {
-    en: '{n} of {max} left today',
-    nl: 'Nog {n} van {max} vandaag',
-    de: 'Noch {n} von {max} heute',
-  },
-  'board.noneLeft': {
-    en: 'That is today’s {max}. Back tomorrow.',
-    nl: 'Dat waren de {max} van vandaag. Morgen weer.',
-    de: 'Das waren die {max} für heute. Morgen wieder.',
-  },
-  'board.likeThis': {
-    en: 'Said already, maybe?',
-    nl: 'Misschien al gezegd?',
-    de: 'Vielleicht schon gesagt?',
-  },
-  'board.likeThisNote': {
-    en: 'Back one of these instead and it counts for more.',
-    nl: 'Steun er liever een van deze, dan telt het zwaarder.',
-    de: 'Unterstütz lieber eins davon, dann zählt es mehr.',
-  },
+  'board.send': 'Put it on the board',
+  'board.left': '{n} of {max} left today',
+  'board.noneLeft': 'That is today’s {max}. Back tomorrow.',
+  'board.likeThis': 'Already on the board?',
+  'board.likeThisNote': 'Vote instead of sending it again.',
+  // Seconding a lookalike instead of writing it again, which closes the form.
+  'board.meToo': 'Me too',
+  'board.meTooDone': 'Your vote is on it. Thank you.',
+  'board.voted': 'Voted',
   // Two ways a post can be refused, because the answer to one is "go again"
   // and the answer to the other is "come back tomorrow".
-  'board.failed': {
-    en: 'That did not go through. Try again.',
-    nl: 'Dat ging niet door. Probeer het opnieuw.',
-    de: 'Das ist nicht durchgegangen. Versuch es noch mal.',
-  },
-  'board.failedFull': {
-    en: 'Not posted: that was today’s {max}. Back tomorrow.',
-    nl: 'Niet geplaatst: dat waren de {max} van vandaag. Morgen weer.',
-    de: 'Nicht gepostet: das waren die {max} für heute. Morgen wieder.',
-  },
-  'board.reviewed': {
-    en: 'You reviewed {app} already. Throw yours away to write a new one.',
-    nl: 'Je hebt {app} al beoordeeld. Gooi de jouwe weg om een nieuwe te schrijven.',
-    de: 'Du hast {app} schon bewertet. Wirf deine weg, um eine neue zu schreiben.',
-  },
-  'board.sent': { en: 'Feedback sent!', nl: 'Feedback verstuurd!', de: 'Feedback gesendet!' },
-  'board.sentNote': {
-    en: 'Thank you. It is on the board now.',
-    nl: 'Bedankt. Het staat nu op het bord.',
-    de: 'Danke. Es steht jetzt auf dem Board.',
-  },
+  'board.failed': 'That did not go through. Try again.',
+  'board.failedFull': 'Not posted: that was today’s {max}. Back tomorrow.',
+  'board.reviewed': 'You reviewed {app} already. Throw yours away to write a new one.',
+  'board.sent': 'Feedback sent!',
+  'board.sentNote': 'Thank you. It is on the board now.',
   // On a board that approves posts first: it did arrive, it is just not up yet.
-  'board.sentWaiting': {
-    en: 'Thank you. It shows on the board once {app} approved it.',
-    nl: 'Bedankt. Het komt op het bord zodra {app} het heeft goedgekeurd.',
-    de: 'Danke. Es erscheint auf dem Board, sobald {app} es freigegeben hat.',
-  },
-  'board.waiting': { en: 'Waiting for approval', nl: 'Wacht op goedkeuring', de: 'Wartet auf Freigabe' },
-  'board.sentBack': { en: 'Back to the board', nl: 'Terug naar het bord', de: 'Zurück zum Board' },
+  'board.sentWaiting': 'Thank you. It shows on the board once {app} approved it.',
+  'board.waiting': 'Waiting for approval',
+  'board.sentBack': 'Back to the board',
 
   // ---- Throwing your own away ----
-  'board.delete': { en: 'Throw away', nl: 'Weggooien', de: 'Wegwerfen' },
-  'board.deleteTitle': { en: 'Throw this away?', nl: 'Deze weggooien?', de: 'Das hier wegwerfen?' },
-  'board.deleteNote': {
-    en: 'It leaves the board for everybody, with its votes.',
-    nl: 'Hij gaat voor iedereen van het bord, met stemmen en al.',
-    de: 'Es verschwindet für alle vom Board, samt Stimmen.',
-  },
-  'board.cancel': { en: 'Cancel', nl: 'Annuleren', de: 'Abbrechen' },
+  'board.delete': 'Throw away',
+  'board.deleteTitle': 'Throw this away?',
+  'board.deleteNote': 'It leaves the board for everybody, with its votes.',
+  'board.cancel': 'Cancel',
 
   // ---- Answering one (owners only) ----
-  'board.manage': { en: 'Answer this', nl: 'Hier antwoord op geven', de: 'Darauf antworten' },
-  'board.setStatus': { en: 'Where it stands', nl: 'Waar het staat', de: 'Wo es steht' },
-  'board.replyLabel': { en: 'Your answer', nl: 'Jouw antwoord', de: 'Deine Antwort' },
-  'board.replyPlaceholder': { en: 'Say something back', nl: 'Zeg er iets over', de: 'Sag was dazu' },
-  'board.hide': { en: 'Take off the board', nl: 'Van het bord halen', de: 'Vom Board nehmen' },
-  'board.unhide': { en: 'Put it back', nl: 'Terugzetten', de: 'Zurückstellen' },
-  'board.hidden': { en: 'Off the board', nl: 'Van het bord', de: 'Vom Board' },
-  'board.approve': { en: 'Approve: put it on the board', nl: 'Goedkeuren: op het bord zetten', de: 'Freigeben: aufs Board stellen' },
-  'board.unapprove': { en: 'Keep it waiting', nl: 'Laten wachten', de: 'Warten lassen' },
-  'board.save': { en: 'Save', nl: 'Opslaan', de: 'Speichern' },
-  'board.context': { en: 'Sent with', nl: 'Meegestuurd', de: 'Mitgeschickt' },
+  'board.manage': 'Answer this',
+  'board.setStatus': 'Where it stands',
+  'board.replyLabel': 'Your answer',
+  'board.replyPlaceholder': 'Say something back',
+  'board.hide': 'Take off the board',
+  'board.unhide': 'Put it back',
+  'board.hidden': 'Off the board',
+  'board.approve': 'Approve: put it on the board',
+  'board.unapprove': 'Keep it waiting',
+  'board.save': 'Save',
+  'board.context': 'Sent with',
+
+  // ---- Where a fix is ----
+  // In the owner's sheet, once Done is picked. An idea is built, not fixed.
+  'fix.title': 'Fixed in',
+  'fix.titleIdea': 'Built in',
+  'fix.version': 'Version',
+  'fix.versionBad': 'Letters, numbers and dots only, like 1.4.2.',
+  'fix.link': 'Link to the fix',
+  'fix.linkNote': 'A commit, pull request or release on github.com or gitlab.com.',
+  'fix.linkBad': 'That is not a link to a page on github.com or gitlab.com.',
+  'fix.who': 'Whoever reported this sees it on their board.',
+  // On the card, for everybody.
+  'fix.in': 'Fixed in {version}',
+  'fix.inIdea': 'Built in {version}',
+  // {site} is GitHub or GitLab, whichever the link goes to.
+  'fix.view': 'View on {site}',
+
+  // ---- The note for whoever reported it ----
+  'news.bug': 'Your bug is fixed',
+  'news.bugIn': 'Your bug is fixed in {version}',
+  'news.idea': 'Your idea is built',
+  'news.ideaIn': 'Your idea is in {version}',
+  'news.see': 'See the fix',
+
+  // ---- The conversation under a post ----
+  'talk.title': 'Conversation',
+  'talk.open': 'Open the conversation',
+  'talk.count': '{n} messages',
+  'talk.you': 'You say',
+  'talk.who': '{who} says',
+  'talk.edited': 'edited',
+  'talk.answerLabel': 'Your answer to {app}',
+  'talk.placeholder': 'Write your answer…',
+  'talk.send': 'Send',
+  'talk.edit': 'Edit',
+  'talk.remove': 'Remove',
+  'talk.save': 'Save',
+  'talk.next': '{app} answers next.',
+  'talk.closedDone': 'Closed: {app} marked this done.',
+  'talk.closedDeclined': 'Closed: {app} is not doing this.',
+  // Said when what was on screen is no longer what is on the board.
+  'talk.moved': 'Something changed in the meantime. Have a look first.',
+  'talk.hide': 'Hide',
+  'talk.unhide': 'Put back',
+  'talk.label': 'Conversation',
+  'talk.writeTo': 'Write to {who}…',
+  'talk.changeLast': 'Change your last message',
+  'talk.gets': '{who} gets a note on the board.',
+  // How an owner's sheet names the author of an anonymous post.
+  'talk.author': 'the author',
+
+  // ---- The note for whoever wrote it, once the app answered ----
+  'answered.bug': '{app} answered your bug',
+  'answered.idea': '{app} answered your idea',
+  'answered.review': '{app} answered your review',
+  'answered.see': 'See the conversation',
+
+  // ---- For owners: answers waiting ----
+  'owner.newAnswer': 'New answer',
+  'owner.waitingOne': '1 answer waits for you',
+  'owner.waitingMany': '{n} answers wait for you',
+  'owner.showThese': 'Show only these',
+
+  // ---- Search and filter ----
+  'search.placeholder': 'Search bugs and ideas',
+  'search.clear': 'Clear the search',
+  'search.countOne': '1 post matches "{q}"',
+  'search.count': '{n} posts match "{q}"',
+  'search.inThread': 'In the conversation:',
+  'filter.button': 'Filter',
+  'filter.title': 'Filter',
+  'filter.kind': 'Kind',
+  'filter.status': 'Status',
+  'filter.statusNote': 'Reviews have no status, so choosing one hides them.',
+  'filter.own': 'Only for you',
+  'filter.waiting': 'Waiting on you',
+  'filter.mine': 'Only my posts',
+  'filter.reset': 'Reset',
+  'filter.showOne': 'Show 1 post',
+  'filter.show': 'Show {n} posts',
+  'filter.on': '{n} filters on',
+  'filter.remove': 'Turn off {label}',
+  'filter.clearAll': 'Clear all',
+  'filter.none': 'Nothing found',
+  'filter.noneNote': 'Nothing matches your search and filters. Clear them to look everywhere.',
+  'filter.clear': 'Clear search and filters',
+
+  // ---- Updates ----
+  'updates.title': 'Updates',
+  'updates.intro': 'What changed in {app}. Tap one to see the change itself.',
+  'updates.empty': 'No updates yet.',
+  'updates.emptyOwner': 'No updates yet. Write the first one with +.',
+  'updates.bugOne': '1 bug',
+  'updates.bugMany': '{n} bugs',
+  'updates.ideaOne': '1 idea',
+  'updates.ideaMany': '{n} ideas',
+  'updates.fromBoard': '{list} from this board',
+  'updates.write': 'New update',
+  'updates.titleLabel': 'Title',
+  'updates.titlePlaceholder': 'What changed, in a few words',
+  'updates.link': 'Link on GitHub or GitLab',
+  'updates.linkNote': 'Only github.com and gitlab.com links: a release, pull request or commit.',
+  'updates.textLabel': 'What changed',
+  'updates.textPlaceholder': 'A few lines for the people using {app}',
+  'updates.fixes': 'What it fixes',
+  'updates.fixesNote': 'Open and planned bugs and ideas. Ticked ones go to Done, with this version and link.',
+  'updates.fixesNone': 'No open bugs or ideas on the board.',
+  'updates.publish': 'Publish update',
+  'updates.delete': 'Delete update',
+  'updates.deleteTitle': 'Delete this update?',
+  'updates.deleteNote': 'It leaves the Updates page. The posts it fixed stay Done.',
+  'updates.deleteBtn': 'Delete',
 
   // ---- When ----
-  'time.now': { en: 'just now', nl: 'zojuist', de: 'gerade eben' },
-  'time.min': { en: '{n}m ago', nl: '{n}m geleden', de: 'vor {n} Min.' },
-  'time.hour': { en: '{n}h ago', nl: '{n}u geleden', de: 'vor {n} Std.' },
-  'time.day': { en: '{n}d ago', nl: '{n}d geleden', de: 'vor {n} Tg.' },
-} satisfies Record<string, Record<Lang, string>>;
+  'time.now': 'just now',
+  'time.min': '{n}m ago',
+  'time.hour': '{n}h ago',
+  'time.day': '{n}d ago',
+} satisfies Record<string, string>;
 
 export type CopyKey = keyof typeof COPY;
 export type Strings = Partial<Record<CopyKey, string>>;
 export type Translate = (key: CopyKey, vars?: Record<string, string | number>) => string;
 
 /**
- * The language to speak, best guess first: what the element was told, then
- * what Nimiq Pay says the user picked, then the page, then the browser.
- * Anything this file does not speak falls back to English, unless the
- * developer supplied `strings` for it, in which case it is kept.
+ * A `t()` with the developer's overrides on top of the English.
+ *
+ * Overrides win, then English, so a developer translating into French may
+ * translate half the keys and still never show a hole.
  *
  * @example
- * pickLang('nl-BE')   // → 'nl'
- */
-export function pickLang(asked?: string | null): string {
-  const candidates = [
-    asked,
-    typeof window !== 'undefined' ? window.nimiqPay?.language : undefined,
-    typeof document !== 'undefined' ? document.documentElement.lang : undefined,
-    typeof navigator !== 'undefined' ? navigator.language : undefined,
-  ];
-  for (const c of candidates) {
-    if (c) return c.slice(0, 2).toLowerCase();
-  }
-  return 'en';
-}
-
-/**
- * A `t()` for one language with one set of overrides.
- *
- * Overrides win, then the language, then English, so a developer adding French
- * may translate half the keys and still never show a hole.
- *
- * @example
- * const t = translator('nl', { 'board.title': 'Ideeënbus' });
+ * const t = translator({ 'board.title': 'Ideeënbus', 'board.reply': '{app} zegt' });
  * t('board.title')                    // → 'Ideeënbus'
  * t('board.reply', { app: 'Shitti' }) // → 'Shitti zegt'
  */
-export function translator(lang: string, strings: Strings = {}): Translate {
-  const known = (LANGS as readonly string[]).includes(lang) ? (lang as Lang) : 'en';
+export function translator(strings: Strings = {}): Translate {
   return (key, vars) => {
-    let text = strings[key] ?? COPY[key][known] ?? COPY[key].en;
+    let text: string = strings[key] ?? COPY[key];
     if (vars) for (const [k, v] of Object.entries(vars)) text = text.split(`{${k}}`).join(String(v));
     return text;
   };

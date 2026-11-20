@@ -15,14 +15,12 @@ const here = (p) => fileURLToPath(new URL(p, import.meta.url));
 export const ROUTES = [
   // [published prefix, folder on disk]
   ['widget/', here('../packages/widget/dist/')],
-  ['fonts/', here('../node_modules/@fontsource-variable/mulish/files/')],
   ['', here('./src/')],
 ];
 
 /** The files under a prefix that the published site needs; everything for `src`. */
 export const ONLY = {
   'widget/': ['pleasenobugs.iife.js'],
-  'fonts/': ['mulish-latin-wght-normal.woff2'],
 };
 
 /** The widget version the copied code loads from unpkg. */

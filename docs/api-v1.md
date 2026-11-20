@@ -24,11 +24,18 @@ shipped months ago and never touched again.
 widget's markup. It has a name, one or more **owners** (wallet addresses), the
 **origins** the widget may run on, and its **rules**.
 
-**Post.** A `bug`, an `idea` or a `review`, with at most one reply from the
-owners. One reply, never a thread: a conversation between two people belongs
-in a conversation, and this is a noticeboard. Bugs and ideas also have a status
-the owners set; a review has 1 to 5 stars instead (`rating`) and stays `open`,
+**Post.** A `bug`, an `idea` or a `review`. Bugs and ideas have a status the
+owners set; a review has 1 to 5 stars instead (`rating`) and stays `open`,
 since nothing about an opinion gets planned or fixed.
+
+**Conversation** *(0.3.0)*. Under a post, the app (any owner, speaking for
+it) and the post's author write in turns: the app whenever it likes, the
+author **only right after a message from the app**, and only on a bug or an
+idea that is not `done` or `declined`. So an owner can ask what they need to
+know to fix something, and the author can answer, without the board becoming
+a chat between strangers: nobody else writes there. A review gets one answer
+from the app and none back. Before 0.3.0 a post had at most one reply; that
+reply is now the app's first message.
 
 **`kind` grows.** `review` came after 0.1.1, and a client must expect kinds it
 does not know: skip the post rather than fail on it. A project only receives
@@ -169,6 +176,7 @@ The whole board: a `BoardRead`.
   project: PublicProject;
   posts: Post[];
   me?: Me;          // present only when a valid proof was sent
+  updates?: number; // how many updates the project wrote, when it wrote any (0.3.0)
 }
 ```
 
@@ -186,6 +194,14 @@ The whole board: a `BoardRead`.
   `shot: true` on every post with a screenshot, plus `shotFor`: `board` (on
   the board), `off` (an owner took it off) or `owners` (its author never put it
   on the board, so it can never go there).
+- A done bug or idea may carry `fix: { version?, link? }`: the version it
+  shipped in and a page on github.com or gitlab.com, both set by an owner (see `manage`).
+  Sent to everybody. Never on a post that is not done.
+- A post somebody wrote under carries `thread` *(0.3.0)*, oldest first:
+  `{ id, from: 'app' | 'author', text, at, edited?, hidden? }[]`. A message
+  an owner took off the board is left out for everybody but owners, who get
+  it with `hidden: true`. `reply: { text, at }` is the app's latest message,
+  kept for clients from before conversations.
 - Paging may be added later as an optional `cursor` parameter, which is an
   addition rather than a change.
 
@@ -221,13 +237,37 @@ that allows nothing.
 Your own posts that an owner has answered, newest first, at most 10:
 
 ```ts
-{ answers: { id: string; text: string; at: number }[] }
+{ answers: { id: string; text: string; at: number; status?: PostStatus; fix?: PostFix }[] }
 ```
 
-`at` is when it was answered. A status change is an answer too: marking a post
+`at` is when it was answered. `status` and `fix` (0.3.0) say what happened,
+so an app can say "fixed in 1.4.2" rather than only that there is news. A status change is an answer too: marking a post
 Done is a reply in one word. Hiding a post is **not**, since telling somebody
 their post was taken down starts an argument the board has nowhere to hold.
 How long to keep showing an answer is the client's decision.
+
+#### `GET /v1/projects/:pid/updates` *(0.3.0)*
+
+What changed in the app, written by its owners, newest first. Anybody may
+read it, like the board; a proof is not needed, but one that is sent has to
+hold up.
+
+```ts
+{
+  updates: {
+    id: string;
+    title: string;
+    text?: string;
+    version?: string;
+    link: string;       // a page on github.com or gitlab.com: every update has one
+    at: number;
+    posts: string[];    // the bugs and ideas it fixed, of those anybody can see on the board
+  }[];
+}
+```
+
+`posts` leaves out a post that was since hidden, deleted or is waiting for
+approval, so an update never names something the board does not show.
 
 ### Writing
 
@@ -315,11 +355,36 @@ always change it.
 #### `POST /v1/projects/:pid/posts/:id/manage` *(proof, owner)*
 
 ```ts
-{ status?: PostStatus; reply?: string; hidden?: boolean; shotOff?: boolean; approved?: boolean }
+{
+  status?: PostStatus;
+  reply?: string;
+  hidden?: boolean;
+  shotOff?: boolean;
+  approved?: boolean;
+  fix?: { version?: string; link?: string } | null;   // 0.3.0
+}
 ```
 
-Every field is optional and only those present are written. An empty `reply`
-takes the reply back. `{ ok: true }`, or `403 not_owner`.
+Every field is optional and only those present are written. `{ ok: true }`,
+or `403 not_owner`.
+
+- `reply` is how clients from before conversations answer, and still works:
+  the same words as the app's latest message change nothing (such a client
+  sends them with every save); other words change the app's last message
+  while nobody has answered it, or add a new one after the author's answer;
+  empty takes the app's last message back. New clients use the messages
+  routes below.
+
+- `fix` says where the fix is, on a bug or an idea that is `done` once the
+  call is through: `version` as the app numbers its releases (letters, digits
+  and `. + _ -`, at most 24), `link` a page on **github.com or gitlab.com
+  and nowhere else**, not even a GitLab on somebody's own server (at most 300
+  chars). A link without `https://` gets it, `http://` and `www.` are tidied
+  away; anything else, a bare `github.com` included, is
+  `400 bad_request`. `null`, or both parts empty, removes it. A fix on a
+  review, or on a post that will not be done, is `400`. Moving a post away
+  from done removes its fix by itself. A changed fix is an answer, like a
+  status: the author hears it on `/answers`.
 
 - `shotOff: true` takes the post's screenshot off the board and leaves the post
   on it; `false` puts it back. Putting back does nothing to a screenshot whose
@@ -328,6 +393,81 @@ takes the reply back. `{ ok: true }`, or `403 not_owner`.
 
 - `approved: true` lets a waiting post onto the board; `false` sends it back
   to waiting. Like hiding, it is not an answer: the author sees it arrive.
+
+### The conversation under a post *(0.3.0)*
+
+Which side a wallet writes on is decided by who signed: an owner is the app,
+the post's author is the author, and anybody else gets `403 not_yours`. A
+post hidden from you, or waiting and not yours, is `404 no_post`. Every change
+is written only if the conversation is still what the server read, so two
+answers sent at once never both land after the same question: the second is
+`409 not_your_turn`.
+
+#### `POST /v1/projects/:pid/posts/:id/messages` *(proof)*
+
+```ts
+{ id: string; text: string }   // id minted by the client, at most 128; text 1..rules.replyMax
+```
+
+Answers `{ ok: true, message }`.
+
+- The author: only on a bug or an idea that is not `done` or `declined`
+  (`409 closed` otherwise, and always on a review), and only when the last
+  message everybody sees is the app's (`409 not_your_turn`).
+- The app: whenever it likes, except a second answer on a review
+  (`409 not_your_turn`: change the first one instead).
+- The app writing is an answer: the author hears it on `/answers`. The author
+  writing is not news to anybody on that route.
+- An id already in the conversation is `409 duplicate`.
+
+#### `PATCH /v1/projects/:pid/posts/:id/messages/:mid` *(proof)*
+
+```ts
+{ text?: string; hidden?: boolean }
+```
+
+- `text` changes your own message, and only while it is the last one
+  everybody sees: once it was answered, `409 not_your_turn`. It then carries
+  `edited`. An author's, on a post that closed since, is `409 closed`.
+- `hidden` is for owners, on an author's message only: `true` takes it off
+  the board, `false` puts it back. A hidden message does not count for turns,
+  so its author may write again.
+
+Answers `{ ok: true, message }`, or `404 not_found` for a message that is not there.
+
+#### `DELETE /v1/projects/:pid/posts/:id/messages/:mid` *(proof)*
+
+Takes your own last message back, under the same conditions as changing it.
+`{ ok: true }`.
+
+#### `POST /v1/projects/:pid/updates` *(proof, owner, 0.3.0)*
+
+```ts
+{
+  id: string;          // minted by the client, at most 128 chars
+  title: string;       // trimmed, 1..80 chars
+  text?: string;       // at most 300 chars
+  version?: string;    // as on `fix`
+  link: string;        // a page on github.com or gitlab.com, as on `fix`: required
+  posts?: string[];    // at most 50: the bugs and ideas it fixed
+}
+```
+
+Answers `{ ok: true, update }`, the update as it was stored.
+
+- **Every post named goes to done**, with this update's version and link as
+  its fix, and its author is told on `/answers` like any other answer. That is
+  the point of naming it: one write, and everybody whose report shipped
+  hears so. An id that is not on the board, or is a review, is skipped and
+  left out of `update.posts`.
+- Its screenshot goes, as with any post marked done.
+- A second write with the same id is `409 duplicate`, and touches no post.
+
+#### `DELETE /v1/projects/:pid/updates/:id` *(proof, owner, 0.3.0)*
+
+Takes it off the Updates page. The posts it fixed stay done, with their fix:
+taking a page off a list does not un-ship anything. `{ ok: true }`, or
+`404 no_update`.
 - A review takes no `status` other than `open` (`400 bad_request`).
 - Setting `done` or `declined` deletes the post's screenshot: it was there to
   get something fixed, and once that is settled nobody needs a picture of
@@ -379,13 +519,16 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 |---|---|---|
 | 400 | `bad_request` | A field is missing, too long or the wrong type. |
 | 401 | `unauthorized` | No proof where one is needed, or the proof failed a check. |
-| 403 | `not_yours` | Deleting somebody else's post. |
+| 403 | `not_yours` | Deleting somebody else's post, or writing under a post you neither wrote nor own. |
 | 403 | `not_owner` | An owner route, called by a non-owner. |
 | 403 | `origin_not_allowed` | The request comes from an origin the project does not list. |
 | 404 | `no_project` | No such project. |
 | 404 | `no_post` | No such post, or one hidden from you or still waiting for approval. |
-| 409 | `duplicate` | A post with this id exists. |
+| 404 | `no_update` | No such update. |
+| 409 | `duplicate` | A post, or an update, with this id exists. |
 | 409 | `reviewed` | This wallet has a review on this board already. |
+| 409 | `not_your_turn` | The conversation is not yours to write in now: wait for the app, or what you meant to change was answered already. |
+| 409 | `closed` | The post is done, not being done, or a review: its author no longer writes under it. |
 | 429 | `too_many` | The day's posts are used up. Carries `perDay`. |
 | 429 | `rate_limited` | Too many requests. Carries `retryAfter` in seconds. |
 | 404 | `not_found` | No such route. |
@@ -397,11 +540,13 @@ Every error is `{ error: ErrorCode }`, sometimes with extra fields.
 |---|---|---|
 | Posts per wallet per rolling 24 hours | 5 | `rules.perDay` |
 | Post text | 200 chars | `rules.textMax` |
-| Owner reply | 300 chars | `rules.replyMax` |
+| A message under a post, either side | 300 chars | `rules.replyMax` |
 | Display name | 24 chars | `NAME_MAX` |
 | Context | 10 keys, 100 chars per value | `CONTEXT_MAX_KEYS`, `CONTEXT_VALUE_MAX` |
 | Review | 1 per wallet, 1 to 5 stars | `RATING_MIN`, `RATING_MAX` |
 | Screenshot | 1 per bug or idea, 1 MB, JPEG, PNG or WebP | `SHOT_MAX_BYTES`, `SHOT_TYPES` |
+| Fix | a version of 24 chars, a github.com or gitlab.com link of 300 | `VERSION_MAX`, `LINK_MAX` |
+| Update | title 80 chars, text 300, at most 50 posts fixed | `UPDATE_TITLE_MAX`, `UPDATE_TEXT_MAX`, `UPDATE_POSTS_MAX` |
 | Proof lifetime | 30 days | `LOGIN_TTL_MS` |
 | Writing posts | 10 per 15 minutes per wallet | server |
 | Writing posts per IP address | none; a server may set one a day, over all its boards | `PNB_POSTS_PER_IP_DAY` |

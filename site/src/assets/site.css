@@ -1,67 +1,76 @@
 /*
- * The PleaseNoBugs website. Colours and type from the owner's Figma file
- * (iXsmXB5U88GOh86ljQB9L9), in the style of shitti.me: a dark purple page,
- * lighter purple cards and bands, turquoise buttons, white words.
+ * The PleaseNoBugs website (site/src): Home, Why PleaseNoBugs and Make it
+ * yours, in the Nimiq Foundation's 2026 brand ("Brand Styleguide [basics]",
+ * Figma page "PleaseNoBugs · Nimiq 2026").
  *
- * Fonts are served from this site, not Google's or Adobe's, so a visit tells
- * nobody. Museo Sans Rounded is the design's font. Its files are licensed and
- * kept out of git (assets/fonts/), so where they are missing Mulish stands in.
+ * What the brand asks, and where it shows:
+ * - Solid, not cold. Friendly, not playful. Calm, yet alive: no tilts, pops
+ *   or typing; things fade and slide in.
+ * - Navy for text and dark surfaces, its lighter steps for quiet text, lines
+ *   and grounds; gold for the one thing that matters on a screen: the logo,
+ *   the round button. Its darker steps (to red) only for states: a bug's dot.
+ * - Manrope for headings (Medium, -4%) and text (Regular); JetBrains Mono for
+ *   labels (uppercase, +4%), counts and code, never for a paragraph.
+ * - Brackets, the hexagon split open, round one label that matters.
+ * - The hexagon stack (assets/stack.js) only in a hero: Home's navy one with
+ *   the gold glow, and the white intro of Why PleaseNoBugs with fine lines.
+ * - Phosphor icons, Regular, 24 or 32 px (assets/nimiq/icons, MIT).
+ * - Room: at least 96 px at the sides on a wide screen, 24 px on a phone.
  */
+
+/* ---- Fonts -------------------------------------------------------------- */
+
 @font-face {
-  font-family: 'Museo Sans Rounded';
+  font-family: 'Manrope';
   font-style: normal;
   font-display: swap;
-  font-weight: 500;
-  src: url('fonts/museo-sans-rounded-500.otf') format('opentype');
+  font-weight: 200 800;
+  src: url('fonts/manrope.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Museo Sans Rounded';
+  font-family: 'JetBrains Mono';
   font-style: normal;
   font-display: swap;
-  font-weight: 700;
-  src: url('fonts/museo-sans-rounded-700.otf') format('opentype');
+  font-weight: 100 800;
+  src: url('fonts/jetbrains-mono.woff2') format('woff2');
 }
 
-@font-face {
-  font-family: 'Museo Sans Rounded';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 900;
-  src: url('fonts/museo-sans-rounded-900.otf') format('opentype');
-}
-
-@font-face {
-  font-family: 'Mulish';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 200 1000;
-  src: url('../fonts/mulish-latin-wght-normal.woff2') format('woff2-variations');
-}
+/* ---- Tokens and base ---------------------------------------------------- */
 
 :root {
-  color-scheme: dark;
-  --page: #292a56;
-  --card: #5656ac;
-  --card-2: #454689;
-  --row: #33346c;
-  --line: #6d6dc5;
-  --ink: #ffffff;
-  --ink-2: #e8e8f2;
-  --quiet: #d0d0da;
-  /* Subtext, everywhere on the site: white at 70%, so it sits back on any purple. */
-  --sub: rgba(255, 255, 255, 0.7);
-  --faint: #a7a8d0;
-  --button: #1fc7d4;
-  --button-hover: #19b4c0;
-  --band: #5656ac;
-  --device: #1a1a32;
-  --scrim: #0a0a1e;
-  --shadow: 0 12px 32px rgba(10, 10, 30, 0.28);
-  --radius: 10px;
-  --radius-lg: 16px;
-  --gutter: 16px;
-  --font: 'Museo Sans Rounded', 'Mulish', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light;
+  /* The brand's navy, its steps, and gold. */
+  --nq-navy: #040724;
+  --nq-navy-90: #1d203a;
+  --nq-navy-80: #363950;
+  --nq-navy-70: #4f5166;
+  --nq-navy-60: #686a7c;
+  --nq-navy-50: #828392;
+  --nq-navy-40: #9b9ca7;
+  --nq-navy-30: #b4b5bd;
+  --nq-navy-20: #cdcdd3;
+  --nq-navy-10: #e6e6e9;
+  --nq-navy-5: #f2f3f4;
+  --nq-navy-2: #fafaf8;
+  --nq-gold: #ffb700;
+  --nq-gold-400: #ffc758;
+  --nq-red: #cb0015;
+  --nq-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  /* What the parts below are painted with. */
+  --page: #ffffff;
+  --card: var(--nq-navy-2);
+  --card-2: var(--nq-navy-5);
+  --row: var(--nq-navy-5);
+  --line: var(--nq-navy-10);
+  --ink: var(--nq-navy);
+  --sub: var(--nq-navy-60);
+  --faint: var(--nq-navy-40);
+  --button: var(--nq-navy);
+  --shadow: 0 12px 32px rgba(4, 7, 36, 0.08);
+  --radius-lg: 12px;
+  --gutter: clamp(24px, 6.7vw, 96px);
+  --font: 'Manrope', system-ui, Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -71,666 +80,16 @@
 
 html { -webkit-text-size-adjust: 100%; }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--page);
-  color: var(--ink);
-  font: 500 16px/1.4 var(--font);
-}
-
 body > main { flex: 1 0 auto; }
-
-/* The one pager: the hero sits in the middle of what the bars leave. */
-main.one { display: flex; align-items: center; }
-main.one .hero { flex: 1; }
 
 a { color: inherit; }
 
 img, svg { display: block; }
 
-code, pre, kbd { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; }
-
-:focus-visible { outline: 3px solid color-mix(in srgb, var(--button) 70%, transparent); outline-offset: 2px; }
-
-.wrap {
-  width: 100%;
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 0 var(--gutter);
-}
-
-/* ---- Top bar: the logo, then the tabs ---------------------------------- */
-
-.top {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: color-mix(in srgb, var(--page) 90%, transparent);
-  backdrop-filter: blur(10px);
-}
-
-.top__inner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: 72px;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 1.2;
-  text-decoration: none;
-}
-
-.nav { display: flex; gap: 4px; align-items: center; }
-
-.nav a {
-  padding: 8px 12px;
-  border-radius: 999px;
-  color: var(--quiet);
-  text-decoration: none;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.55;
-}
-
-.nav a:hover { color: var(--ink); background: var(--row); }
-.nav a[aria-current='page'] { color: var(--ink); background: var(--card); }
-
-@media (max-width: 560px) {
-  .top__inner { gap: 8px; }
-  .brand span { display: none; }
-  .nav a { padding: 8px 10px; font-size: 14px; }
-}
-
-/* ---- Buttons ----------------------------------------------------------- */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 20px;
-  border: 0;
-  border-radius: 999px;
-  font: inherit;
-  font-weight: 700;
-  line-height: 1;
-  text-decoration: none;
-  cursor: pointer;
-  background: var(--button);
-  color: #fff;
-  transition: transform 120ms ease, background 120ms ease;
-}
-
-.btn:hover { background: var(--button-hover); }
-.btn:active { transform: scale(0.97); }
-
-.btn--quiet { background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line); }
-.btn--quiet:hover { background: #6060b8; }
-
-.btn--small { min-height: 32px; padding: 0 14px; font-size: 14px; }
-.btn--grey { background: var(--card-2); color: var(--ink); }
-.btn--grey:hover { background: #50519a; }
-
-.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
-
-/* ---- Headings and text ------------------------------------------------- */
-
-h1, h2, h3 { margin: 0; line-height: 1.15; }
-h1 { font-size: clamp(34px, 5vw, 52px); font-weight: 900; letter-spacing: -0.01em; }
-h2 { font-size: clamp(26px, 3.4vw, 34px); font-weight: 900; }
-h3 { font-size: 18px; font-weight: 700; }
-
-.lead { color: var(--sub); font-size: 18px; line-height: 1.55; max-width: 34em; margin: 16px 0 0; }
-.quiet { color: var(--sub); }
-
 section { padding: 56px 0; }
 section + section { padding-top: 0; }
-
-.section-head { max-width: 640px; margin-bottom: 28px; }
-.section-head p { color: var(--sub); margin: 10px 0 0; line-height: 1.55; }
-
-/* ---- The one pager: what it is, and the widget to try ----------------- */
-
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
-  gap: 48px;
-  align-items: center;
-  padding-top: 40px;
-  padding-bottom: 56px;
-}
-
-.hero h1 { max-width: 587px; letter-spacing: -0.52px; }
-.hero .lead { font-size: 20px; line-height: 30px; max-width: 660px; }
-.hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-
-.try { display: grid; gap: 24px; justify-items: center; }
-.try p { margin: 0; color: var(--sub); font-size: 14px; text-align: center; }
-
-.device {
-  width: 100%;
-  height: 620px;
-  border-radius: 28px;
-  padding: 10px;
-  background: var(--device);
-  box-shadow: 0 30px 60px rgba(31, 35, 72, 0.22);
-}
-
-.device please-no-bugs {
-  display: block;
-  height: 100%;
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-/* Other apps' boards, read-only (assets/apps.js). On no page yet. */
-.apps { display: grid; gap: 16px; max-width: 420px; width: 100%; margin: 0 auto; }
-.apps__picker { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-.apps__tab {
-  display: grid;
-  gap: 2px;
-  flex: none;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--row);
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.apps__tab[aria-selected='true'] { background: var(--card); border-color: var(--button); }
-.apps__name { font-weight: 800; }
-.apps__counts { color: var(--sub); font-size: 13px; }
-.apps__open { color: var(--button); font-weight: 700; text-align: center; }
-
-@media (max-width: 880px) {
-  .hero { grid-template-columns: minmax(0, 1fr); gap: 36px; }
-  .try { max-width: 420px; width: 100%; margin: 0 auto; }
-  .device { height: 560px; }
-}
-
-/* ---- The table, after the design's list of posts ---------------------- */
-
-.table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 15px; }
-.table th {
-  text-align: left;
-  font-weight: 500;
-  color: var(--faint);
-  padding: 0 16px 12px;
-  border-bottom: 1.5px solid var(--line);
-}
-.table td { padding: 16px; vertical-align: top; }
-.table tbody tr:nth-child(odd) td { background: var(--row); }
-.table td:first-child { border-radius: var(--radius) 0 0 var(--radius); }
-.table td:last-child { border-radius: 0 var(--radius) var(--radius) 0; text-align: right; }
-.table th:last-child { text-align: right; }
-.table .what { color: var(--sub); }
-.table .what b { color: var(--ink); font-weight: 700; }
-
-.kind { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; white-space: nowrap; }
-.kind i {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  color: #fff;
-  font-style: normal;
-  font-size: 14px;
-}
-/* One colour per kind, the same as the widget's pleasenobugs theme and Figma's
-   widget/bug, widget/idea and widget/review. */
-.kind--bug i { background: #e5484d; }
-.kind--idea i { background: #8b5cf6; }
-.kind--review i { background: #e9a00b; }
-.kind--answer i { background: var(--device); }
-
-.pill {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-/* Named by what they say, as Figma's pill/* variables. Done and Not doing
-   are the colours of those statuses on the board. */
-.pill--everyone { background: var(--device); color: #1fc7d4; }
-.pill--only-you { background: var(--device); color: #ffc21f; }
-.pill--done { background: var(--device); color: #21bca5; }
-.pill--not-doing { background: var(--device); color: #8a8fb8; }
-
-@media (max-width: 720px) {
-  .table thead { display: none; }
-  .table, .table tbody, .table tr, .table td { display: block; }
-  .table tr { padding: 12px 16px; border-radius: var(--radius); }
-  .table tbody tr:nth-child(odd) { background: var(--row); }
-  .table tbody tr:nth-child(odd) td { background: none; }
-  .table td { padding: 4px 0; text-align: left !important; }
-}
-
-/* ---- Cards -------------------------------------------------------------- */
-
-.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-
-.card {
-  background: var(--card);
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-}
-
-.card p { color: var(--sub); margin: 8px 0 0; line-height: 1.55; font-size: 15px; }
-.card code { font-size: 14px; color: var(--ink); background: var(--row); padding: 1px 6px; border-radius: 4px; }
-
-@media (max-width: 880px) { .cards { grid-template-columns: 1fr; } }
-
-/* Little drawings of the three modes. */
-.mini {
-  position: relative;
-  height: 132px;
-  border-radius: var(--radius);
-  background: var(--row);
-  border: 1.5px solid var(--line);
-  margin-bottom: 18px;
-  overflow: hidden;
-}
-.mini::before {
-  content: '';
-  position: absolute;
-  left: 14px; right: 40%; top: 16px;
-  height: 8px;
-  border-radius: 4px;
-  background: var(--card-2);
-  box-shadow: 0 16px 0 var(--card-2), 0 32px 0 var(--card-2);
-}
-.mini__board {
-  position: absolute;
-  background: var(--page);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-}
-.mini__board::before {
-  content: '';
-  position: absolute;
-  left: 10px; right: 10px; top: 12px;
-  height: 18px;
-  border-radius: 5px;
-  background: #e5484d;
-  box-shadow: 0 24px 0 #8b5cf6, 0 48px 0 #e9a00b;
-}
-.mini--inline .mini__board { left: 50%; right: 14px; top: 12px; bottom: 12px; }
-.mini--floating .mini__fab {
-  position: absolute;
-  right: 14px; bottom: 14px;
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: var(--button);
-}
-.mini--overlay { background: color-mix(in srgb, var(--scrim) 50%, var(--row)); }
-.mini--overlay .mini__board { right: 14px; bottom: 12px; width: 42%; top: 12px; }
-
-/* ---- Code -------------------------------------------------------------- */
-
-.code {
-  position: relative;
-  background: var(--device);
-  color: #e8e9f5;
-  border-radius: var(--radius-lg);
-  padding: 20px 22px;
-  overflow-x: auto;
-  font-size: 14px;
-  line-height: 1.6;
-  font-variant-ligatures: none;
-  margin: 0;
-}
-.code .t { color: #7fe3ea; }
-.code .a { color: #f3c969; }
-.code .s { color: #f4a3a0; }
-.code .c { color: #8a8fb8; }
-
-/* ---- Footer, a band of its own ---------------------------------------- */
-
-.foot {
-  background: var(--band);
-  border-top: 1.5px solid var(--line);
-  padding: 28px 0 40px;
-  color: var(--sub);
-  font-size: 14px;
-}
-.foot .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
-.foot a { color: var(--ink); }
-
-/* ---- The configurator, in steps ---------------------------------------- */
-
-/* On a wide screen the steps on the left and the widget on the right, where
-   it stays while the left scrolls, so nothing is ever a scroll away from what
-   it changes. On a phone one column, the widget above its card, after the
-   design. */
-.steps { padding-top: 24px; padding-bottom: 56px; }
-.steps .lead { margin-top: 12px; }
-
-.studio {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-  margin-top: 24px;
-}
-
-@media (min-width: 900px) {
-  .studio {
-    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
-    grid-template-rows: auto auto 1fr;
-    grid-template-areas:
-      'progress preview'
-      'edit preview'
-      'actions preview';
-    gap: 16px 32px;
-  }
-  .progress { grid-area: progress; }
-  .edit { grid-area: edit; }
-  .actions { grid-area: actions; align-self: start; }
-  .editor { grid-area: preview; align-self: start; position: sticky; top: 88px; }
-}
-
-.progress { margin: 0; }
-.progress__step { display: flex; align-items: baseline; gap: 8px; margin: 0 0 10px; font-size: 15px; }
-.progress__count {
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-.progress__bars { display: flex; gap: 6px; }
-.progress__bars i { flex: 1; height: 4px; border-radius: 2px; background: var(--card-2); }
-.progress__bars i.done { background: color-mix(in srgb, var(--button) 55%, var(--card-2)); }
-.progress__bars i.now { background: var(--button); }
-.progress__hint { margin: 10px 0 0; font-size: 14px; color: var(--sub); }
-
-.editor {
-  background: var(--row);
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-}
-
-.viewport { position: relative; }
-
-/* The line around the part this step changes, drawn over the widget. */
-.mark {
-  position: absolute;
-  z-index: 1;
-  border: 2px solid var(--button);
-  border-radius: 16px;
-  pointer-events: none;
-}
-.mark__tag {
-  position: absolute;
-  left: 10px;
-  bottom: -12px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: var(--button);
-  color: #12132b;
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.mark--right .mark__tag { left: auto; right: 10px; }
-
-.edit { background: var(--card); border-radius: 12px; padding: 20px; }
-.edit__step h2 { font-size: 18px; font-weight: 700; }
-.edit__hint { margin: 4px 0 18px; font-size: 14px; line-height: 1.5; color: var(--sub); }
-.edit__hint code { font-size: 13px; }
-.edit .field { margin-bottom: 18px; }
-.edit__step > :last-child,
-.edit__step > :last-child > .field:last-child { margin-bottom: 0; }
-.edit .field .input + .input { margin-top: 2px; }
-/* A line under a choice saying what each option means. */
-.field__about { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: var(--sub); }
-.field__about b { color: var(--ink); font-weight: 700; }
-.edit .tabs { margin: 0 0 10px; }
-.edit .tabs button[aria-selected='true'] { background: var(--row); }
-
-.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.actions .spacer { flex: 1; }
-
-.field { display: grid; gap: 6px; margin-bottom: 14px; }
-.field:last-child { margin-bottom: 0; }
-/* A group of word fields keeps its space to what follows. */
-[data-strings]:not(:last-child) { margin-bottom: 14px; }
-.field > span, .field legend { font-size: 13px; color: var(--quiet); padding: 0; }
-fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
-
-.input {
-  width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-  background: var(--row);
-  color: var(--ink);
-  font: inherit;
-  font-size: 15px;
-}
-.input:focus { border-color: var(--button); outline: none; }
+.input:focus { outline: none; border-color: var(--nq-navy); }
 .input::placeholder { color: var(--faint); }
-
-/* A row of choices, one picked. */
-.seg {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 10px;
-  background: var(--row);
-  border: 1.5px solid var(--line);
-}
-.seg label { flex: 1 1 auto; position: relative; }
-.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-.seg span {
-  display: block;
-  text-align: center;
-  padding: 6px 10px;
-  border-radius: 7px;
-  font-size: 14px;
-  color: var(--quiet);
-  white-space: nowrap;
-}
-.seg input:checked + span { background: var(--card); color: var(--ink); box-shadow: 0 1px 4px rgba(10, 10, 30, 0.3); }
-.seg input:focus-visible + span { outline: 3px solid color-mix(in srgb, var(--button) 70%, transparent); }
-
-.checks { display: flex; flex-wrap: wrap; gap: 8px; }
-.check {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px 6px 8px;
-  border-radius: 999px;
-  border: 1.5px solid var(--line);
-  font-size: 14px;
-  cursor: pointer;
-}
-.check input { width: 16px; height: 16px; margin: 0; accent-color: var(--button); }
-
-.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; cursor: pointer; }
-.switch input { width: 40px; height: 22px; margin: 0; accent-color: var(--button); }
-
-/* Colour swatches, after the design's round pickers. */
-.swatches { display: grid; gap: 2px; }
-.swatch {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto 28px;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 0;
-  font-size: 14px;
-}
-.swatch__dot {
-  position: relative;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  overflow: hidden;
-}
-.swatch__dot input { position: absolute; inset: -6px; width: 40px; height: 40px; opacity: 0; cursor: pointer; }
-.swatch__name { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.swatch__name small { display: block; color: var(--sub); font-size: 12px; line-height: 1.4; white-space: normal; }
-.swatch__hex { font-family: ui-monospace, Consolas, monospace; font-size: 13px; color: var(--quiet); }
-.swatch--set .swatch__hex { color: var(--ink); font-weight: 700; }
-.swatch__reset {
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--faint);
-  font: inherit;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  visibility: hidden;
-}
-.swatch--set .swatch__reset { visibility: visible; }
-.swatch__reset:hover { background: var(--row); color: var(--ink); }
-
-/* The main colours of a step: round, with their names under them. */
-/* Equal columns, so the dots sit evenly whatever their names. */
-.dots { display: grid; grid-template-columns: repeat(auto-fill, 76px); gap: 14px 4px; }
-.dot { position: relative; display: grid; justify-items: center; align-content: start; gap: 6px; font-size: 13px; color: var(--ink-2); text-align: center; }
-.dot .swatch__dot { width: 32px; height: 32px; box-shadow: inset 0 0 0 2px #fff; }
-.dot .swatch__reset {
-  position: absolute;
-  top: -8px;
-  right: calc(50% - 30px);
-  width: 20px;
-  height: 20px;
-  font-size: 14px;
-  background: var(--row);
-  color: var(--ink);
-}
-.swatch--set .dot__name { font-weight: 700; color: var(--ink); }
-.colour-about { margin: 12px 0 0; font-size: 13px; line-height: 1.45; color: var(--sub); }
-.colour-about b { color: var(--ink); font-weight: 700; }
-/* The colour a tap in the widget just opened. */
-.picked .swatch__dot { outline: 3px solid var(--button); outline-offset: 2px; }
-
-.more-colours > summary {
-  display: inline-block;
-  margin-top: 12px;
-  cursor: pointer;
-  list-style: none;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--button);
-}
-.more-colours > summary::-webkit-details-marker { display: none; }
-.more-colours[open] > summary { margin-bottom: 6px; }
-
-/*
- * A pretend app page the widget sits on. The transform makes it the box the
- * widget's fixed-position button and panel are placed in, so they land in
- * its corner rather than the site's.
- */
-.screen {
-  position: relative;
-  height: 520px;
-  cursor: pointer;
-  border-radius: 12px;
-  background: var(--page);
-  overflow: hidden;
-  transform: translateZ(0);
-  box-shadow: 0 1px 3px rgba(10, 10, 30, 0.3);
-}
-
-.screen__app { padding: 24px; display: grid; gap: 12px; align-content: start; }
-.screen__app b { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
-.screen__app i {
-  display: block;
-  height: 16px;
-  border-radius: 6px;
-  background: var(--card-2);
-}
-.screen__app i:nth-of-type(1) { width: 62%; }
-.screen__app i:nth-of-type(2) { width: 48%; }
-.screen__app i:nth-of-type(3) { width: 70%; height: 120px; margin-top: 8px; border-radius: 10px; background: var(--row); }
-.screen__app i:nth-of-type(4) { width: 40%; }
-
-.screen--inline .screen__app { display: none; }
-.screen--inline { background: var(--device); }
-.screen--inline please-no-bugs {
-  display: block;
-  width: min(375px, 100%);
-  height: 100%;
-  margin: 0 auto;
-  box-shadow: 0 0 0 1px var(--line);
-}
-
-.screen__again {
-  position: absolute;
-  left: 50%;
-  bottom: 28px;
-  transform: translateX(-50%);
-}
-
-/* While previewing the widget is itself again: its own pointer, its own taps. */
-.screen--live { cursor: auto; }
-
-/* Beside the steps it can be as tall as the window leaves. */
-@media (min-width: 900px) {
-  .screen { height: clamp(480px, calc(100vh - 140px), 680px); }
-}
-
-@media (max-width: 639px) {
-  .editor { padding: 10px; }
-  .edit { padding: 16px; }
-  .screen { height: 640px; }
-}
-
-.tabs { display: flex; gap: 4px; margin: 24px 0 10px; }
-.tabs button {
-  border: 0;
-  background: transparent;
-  font: inherit;
-  font-size: 14px;
-  color: var(--quiet);
-  padding: 6px 12px;
-  border-radius: 999px;
-  cursor: pointer;
-}
-.tabs button[aria-selected='true'] { background: var(--card); color: var(--ink); }
-
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 24px;
-  transform: translate(-50%, 20px);
-  background: var(--device);
-  color: #fff;
-  border: 1px solid var(--line);
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-size: 14px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 160ms ease, transform 160ms ease;
-  z-index: 20;
-}
-.toast--on { opacity: 1; transform: translate(-50%, 0); }
 
 .visually-hidden {
   position: absolute !important;
@@ -740,6 +99,2316 @@ fieldset.field { border: 0; margin: 0 0 14px; padding: 0; min-width: 0; }
   white-space: nowrap;
 }
 
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font: 500 16px/1.4 var(--font);
+  background: #ffffff;
+  color: var(--nq-navy);
+  font-family: var(--font);
+  font-weight: 400;
+}
+
+.wrap {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--gutter); max-width: 1440px; }
+
+:focus-visible { outline: 2px solid var(--nq-navy); outline-offset: 3px; }
+
+code,
+pre,
+kbd { font-family: var(--nq-mono); }
+
+h1,
+h2,
+h3 { margin: 0; font-weight: 500; letter-spacing: -0.04em; }
+
+h1 { font-size: clamp(40px, 5.2vw, 72px); line-height: 1.05; }
+
+h2 { font-size: clamp(30px, 3.4vw, 40px); line-height: 1.15; }
+
+h3 { font-size: 20px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.25; }
+
+.lead { max-width: 34em; margin: 16px 0 0; color: var(--nq-navy-60); font-size: clamp(17px, 1.5vw, 20px); line-height: 1.5; letter-spacing: -0.01em; }
+
+.code {
+  position: relative;
+  padding: 20px 22px;
+  overflow-x: auto;
+  font-variant-ligatures: none;
+  margin: 0; border-radius: 10px; background: var(--nq-navy); color: #ffffff; font-size: 12px; line-height: 1.6; }
+
+.code .t { color: var(--nq-gold-400); }
+
+.code .a { color: var(--nq-navy-20); }
+
+.code .s { color: #ffe3a4; }
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 20px);
+  border: 1px solid var(--line);
+  padding: 10px 18px;
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+  z-index: 20; border-radius: 999px; background: var(--nq-navy); color: #ffffff; }
+
+/* While it plays, the site's own feedback button steps aside: one round
+   button on screen, the demo's. */
+
+body > please-no-bugs { transition: opacity 300ms ease, visibility 0s; }
+
+/* ---- Buttons and labels ------------------------------------------------- */
+
+.btn {
+  cursor: pointer;
+}
+
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
 @media (prefers-reduced-motion: reduce) {
   .btn, .toast { transition: none; }
 }
+
+/* A label in brackets: mono, uppercase, the brackets as tall as its line. */
+
+.nq-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--nq-mono);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nq-label::before,
+.nq-label::after {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 13px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 13'%3E%3Cpath d='M6.4.8H3.7L.9 6.5l2.8 5.7h2.7' fill='none' stroke='%23000' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 13'%3E%3Cpath d='M6.4.8H3.7L.9 6.5l2.8 5.7h2.7' fill='none' stroke='%23000' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.nq-label::after { transform: scaleX(-1); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  font: inherit;
+  line-height: 1;
+  text-decoration: none;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: var(--nq-navy);
+  color: #ffffff;
+  box-shadow: none;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.btn:hover { background: var(--nq-navy-90); }
+
+.btn:active { transform: none; }
+
+.btn--quiet,
+.btn--grey { background: transparent; color: var(--nq-navy); box-shadow: inset 0 0 0 1.4px var(--nq-navy-20); }
+
+.btn--quiet:hover,
+.btn--grey:hover { background: var(--nq-navy-5); }
+
+.btn--small { min-height: 36px; padding: 0 16px; font-size: 14px; }
+
+.btn svg { flex: none; }
+
+/* ---- Header ------------------------------------------------------------- */
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  transition: background-color 250ms ease, backdrop-filter 250ms ease;
+  background: #ffffff;
+  border-bottom: 1px solid var(--nq-navy-10);
+}
+
+.nav a:hover { color: var(--ink); background: var(--nq-navy-5); }
+.nav a[aria-current='page'] { color: var(--ink); }
+
+@media (max-width: 560px) {
+  .brand span { display: none; }
+}
+/* A small phone: the links closer still. */
+@media (max-width: 400px) {
+  .top__inner { gap: 4px; }
+  .nav a { padding: 8px 5px; font-size: 13px; }
+}
+
+.brand__nimiq,
+.foot__nimiq { display: block; }
+
+.top__inner {
+  display: flex;
+  align-items: center; min-height: 76px; gap: 24px; }
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+  text-decoration: none; gap: 10px; font-size: 19px; font-weight: 600; letter-spacing: -0.03em; }
+
+.brand img { width: 27.3px; height: 24px; }
+
+.nav { display: flex; align-items: center; gap: 8px; margin: 0 auto; }
+
+.nav a {
+  border-radius: 999px;
+  text-decoration: none;
+  line-height: 1.55;
+  white-space: nowrap; padding: 8px 12px; color: var(--nq-navy); font-size: 15px; font-weight: 400; }
+
+.nav a[aria-current='page'] { background: transparent; font-weight: 600; }
+
+/* On a phone: the hexagon without the name, the links closer. */
+
+@media (max-width: 560px) {
+  .top__inner { gap: 8px; }
+  .nav { gap: 0; margin: 0; }
+  .nav a { padding: 8px; font-size: 14px; }
+}
+
+@media (max-width: 420px) {
+  .top__inner { gap: 4px; }
+  .nav a { padding: 8px 5px; font-size: 13px; }
+}
+
+/* On Home the bar lies on the navy hero, see-through, in white. */
+
+.page--home .top {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: transparent;
+  border-bottom: 0;
+  backdrop-filter: none;
+  color: #ffffff;
+}
+
+.page--home .nav a { color: #ffffff; }
+
+.page--home .nav a:hover { background: rgba(255, 255, 255, 0.08); }
+
+/* ---- Footer ------------------------------------------------------------- */
+.foot a { color: var(--ink); text-decoration: none; }
+/* One row: who it is for on the left, the links on the right (under it on
+   a phone); under a thin line, what happens to what you post. */
+.foot__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
+.foot__who { display: flex; flex-wrap: wrap; align-items: center; margin: 0; color: var(--ink); gap: 4px 10px; }
+.foot__who img { flex: none; width: 16px; height: 14px; }
+.foot__who span { color: var(--sub); }
+.foot__links { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 28px; }
+
+.foot {
+  padding: 48px 0 56px;
+  background: #ffffff;
+  border-top: 1px solid var(--nq-navy-10);
+  color: var(--nq-navy-60);
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+.foot a:hover { text-decoration: underline; }
+
+.foot__who b { font-weight: 500; }
+
+.foot__note { margin: 16px 0 0; margin-top: 20px; padding-top: 0; border-top: 0; font-size: 14px; }
+
+/* ---- The stage: a pretend app in a box (Home's demo and Make it yours) -- */
+
+.screen__app { padding: 24px; display: grid; gap: 12px; align-content: start; color: var(--nq-navy); }
+.screen__app b { margin-bottom: 6px; font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+.screen__app i {
+  height: 16px;
+  border-radius: 6px;
+}
+.screen__app i:nth-of-type(1) { width: 62%; }
+.screen__app i:nth-of-type(2) { width: 48%; }
+.screen__app i:nth-of-type(3) { width: 70%; }
+.screen__app i:nth-of-type(4) { width: 40%; }
+
+/*
+ * A pretend app page the widget sits on. The transform makes it the box the
+ * widget's fixed-position button and panel are placed in, so they land in
+ * its corner rather than the site's.
+ */
+
+.screen {
+  position: relative;
+  height: 520px;
+  cursor: pointer;
+  overflow: hidden;
+  transform: translateZ(0); border-radius: 20px; background: var(--nq-navy-2); box-shadow: inset 0 0 0 1px var(--nq-navy-10); }
+
+.screen__app i {
+  display: block; background: var(--nq-navy-5); }
+
+.screen__app i:nth-of-type(3) { height: 120px; margin-top: 8px; border-radius: 10px; background: var(--nq-navy-5); }
+
+/* ---- Home: the hero ----------------------------------------------------- */
+
+/* The one pager: the hero sits in the middle of what the bars leave. */
+
+/* The heading lives in the hero here, not on the pretend app. */
+main.one { align-items: center; display: block; }
+
+/* A phone's hero is taller than wide: the stack keeps to its lower half,
+   under the words, so no line runs through them. */
+
+@media (max-width: 700px) {
+  .nq-hero .stack--hero { top: 55%; }
+}
+
+.nq-hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: clamp(620px, 88vh, 800px);
+  padding: 152px 0 136px;
+  overflow: hidden;
+  background: var(--nq-navy);
+  color: #ffffff;
+  text-align: center;
+}
+
+.nq-hero__inner { position: relative; display: grid; justify-items: center; gap: 24px; }
+
+.nq-hero h1 { max-width: 13em; }
+
+.nq-hero .lead { max-width: 560px; margin: 0; color: var(--nq-navy-10); }
+
+.nq-hero__ways { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 16px; }
+
+/* The hexagon stack (assets/stack.js), filling its box. */
+
+.stack { position: absolute; inset: 0; pointer-events: none; }
+
+.stack svg { display: block; width: 100%; height: 100%; }
+
+/* The brand's motion: every layer turns round the stack's middle, 60° in
+   32 s (a whole turn in 192 s), each 0.4 s behind the one in front. */
+
+.stack__layer { animation: nq-turn 192s linear calc(var(--behind) * 0.4s) infinite; }
+
+@keyframes nq-turn { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .stack__layer { animation: none; }
+}
+
+@media (max-width: 760px) {
+  .how-intro .stack { opacity: 0.4; }
+}
+
+/* ---- Home: the demo ----------------------------------------------------- */
+main.one .hero { flex: 1; }
+.tour-start svg { flex: none; }
+/* "Watch demo" turns the stage into the pretend app, "Your app" and its
+   skeleton, for the demo; the cover is back when it is over. */
+.tour-page,
+.tour--app .tour-app {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 240ms ease, visibility 0s;
+}
+/* Gone: faded out first, then out of reach. */
+.tour-app,
+.tour--app .tour-page {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 240ms ease, visibility 0s 240ms;
+}
+
+/* Whose side the tour is on next ("Your user's perspective", "Your
+   perspective"): big, over the app dimmed, the widget with it, for a
+   moment. And how it ends (`.tour-end`), which stays, with where to go next. */
+.tour-title {
+  display: grid;
+  animation: tour-title-in 320ms ease-out;
+  transition: opacity 320ms ease;
+}
+.tour-title[hidden] { display: none; }
+.tour-title--away { opacity: 0; }
+/* The end: the whole story in three steps, and on to making it yours, or
+   watching it again. The board stays in view under it. */
+.tour-end b { max-width: 13em; font-size: clamp(30px, 5vw, 60px); }
+/* A line breaks between the three steps, never inside one. */
+.tour-end b span { white-space: nowrap; }
+.tour-end__ways {
+  animation: tour-title-rise 520ms ease-out;
+}
+.tour.tour--end:not(.tour--playing) please-no-bugs { opacity: 1; visibility: visible; }
+/* The subtitle waits while the title says it. */
+.tour--title .tour-say { opacity: 0; }
+@keyframes tour-title-in {
+  from { opacity: 0; }
+}
+@keyframes tour-title-rise {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-title,
+  .tour-title small,
+  .tour-title b,
+  .tour-end__ways { animation: none; transition: none; }
+  .tour-page,
+  .tour-app { transition: none; }
+}
+.tour-intro {
+  /* The board's width, and so the width of each row on it. */
+  --bw: clamp(168px, 36%, 280px);
+  /* A piece of feedback's width, grown. */
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tour-intro[hidden] { display: none; }
+/* The rows on scene 6's board. */
+/* No subtitle, and no widget: scene 5 draws its round button, and the real
+   one is there, under the title, once the intro is over. Before the demo
+   neither: the home page is the app without PleaseNoBugs yet. */
+.tour[data-intro] .tour-say { opacity: 0; pointer-events: none; }
+.tour[data-intro] please-no-bugs,
+.tour:not(.tour--playing) please-no-bugs { opacity: 0; visibility: hidden; }
+.ti-bubble b {
+  font-size: 11px;
+  font-weight: 900;
+}
+.ti-bubble b > span {
+  grid-area: 1 / 1;
+  padding: 3px 7px;
+  border-radius: 999px;
+  text-align: center;
+}
+.ti-from { background: #e4e4ef; color: #4a4a68; }
+.ti-bubble--left { transform-origin: 100% 100%; }
+/* Grown, then aged with the app: greyed and dull, as left lying too long. */
+/* Still all over the place, and still grey, while the button pops up; each
+   lights up again only as it goes to the board. */
+.tour[data-intro='5'] .ti-bubble { filter: grayscale(1) brightness(0.72) opacity(0.65); }
+.tour[data-intro='6'] .ti-from { animation: ti-fade 200ms ease calc(1600ms + var(--i) * 160ms) reverse both; }
+
+/* Scene 5's round button: the widget's own look, copied in where the real
+   one sits (tour.js), popped up big, with a ring going out from it. */
+.ti-fab {
+  opacity: 0;
+}
+.ti-fab svg { width: 55%; height: 55%; }
+.tour[data-intro='6'] .ti-fab { opacity: 1; }
+.ti-board span { color: var(--sub); font-size: 12px; }
+.ti-caption span { opacity: 0; }
+.ti-caption--away { opacity: 0; transform: translateY(8px); }
+.ti-caption--line span { opacity: 1; }
+/* On a phone, clear of the round button in the corner. */
+@media (max-width: 639px) {
+  .ti-caption { right: 68px; }
+}
+.tour-skip[hidden] { display: none; }
+@keyframes ti-age {
+  from { filter: none; }
+  to { filter: grayscale(1) brightness(0.72) opacity(0.65); }
+}
+@keyframes ti-fly {
+  from {
+    left: var(--x);
+    top: var(--y);
+    width: clamp(110px, 24%, 168px);
+    height: 50px;
+    opacity: 1;
+    transform: rotate(var(--r));
+  }
+  to {
+    left: calc(100% - 16px - var(--bw) + 10px);
+    top: calc(var(--bt, 58px) + 54px + var(--i) * 46px);
+    width: calc(var(--bw) - 20px);
+    height: 40px;
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ti-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-intro * {
+    animation-duration: 1ms !important;
+    animation-delay: 0s !important;
+  }
+  .ti-caption { transition: none; }
+}
+
+/* What each step of the tour is, as a subtitle as big as the
+   intro's words: from 640px in the app's bottom left corner, clear of the
+   widget's panel; on a phone under the screen, where the widget fills it.
+   Only while the tour plays. */
+.tour-say {
+  display: grid;
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 6px 4px 0;
+}
+.tour-say:focus { outline: none; }
+.tour-say__title { line-height: 1.15; }
+.tour-say--away .tour-say__title { opacity: 0; }
+.tour:not(.tour--playing) .tour-say { display: none; }
+@media (min-width: 640px) {
+  .tour-say {
+    position: absolute;
+    z-index: 2;
+    /* Where the intro's words stand (the box sits 12px into the frame)... */
+    left: calc(12px + clamp(20px, 4vw, 36px));
+    bottom: calc(12px + clamp(24px, 4vw, 36px));
+    /* ...and stopping short of the panel: 375 wide, 16 from the box's edge. */
+    right: calc(12px + 16px + 375px + 24px);
+    width: auto;
+    max-width: 560px;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+  }
+  .tour-say__title { font-size: clamp(26px, 3.6vw, 40px); line-height: 1.1; }
+}
+
+/* Where the demo taps: a ring, moved to each thing it taps. */
+.tour-tap {
+  position: absolute;
+  z-index: 2147483646;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  opacity: 0;
+}
+.tour-tap--on { animation: tour-tap 520ms ease-out; }
+@keyframes tour-tap {
+  0% { opacity: 0; transform: scale(0.6); }
+  30% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+@media (max-width: 639px) {
+  .tour { padding: 8px; }
+  .hero .screen--home { height: 600px; }
+  .tour-page { justify-content: flex-start; padding-top: 40px; }
+}
+
+/* On navy: white, and an outline in white. */
+
+.nq-hero .btn,
+.tour-title .btn,
+.pull .btn { background: #ffffff; color: var(--nq-navy); }
+
+.nq-hero .btn:hover,
+.tour-title .btn:hover { background: var(--nq-navy-10); }
+
+.nq-hero .btn--quiet,
+.tour-title .btn--quiet { background: transparent; color: #ffffff; box-shadow: inset 0 0 0 1.4px rgba(255, 255, 255, 0.45); }
+
+.nq-hero .btn--quiet:hover,
+.tour-title .btn--quiet:hover { background: rgba(255, 255, 255, 0.08); }
+
+.hero { padding-top: clamp(56px, 8vw, 120px); padding-bottom: 32px; }
+
+/*
+ * The demo's stage: the box (`.editor`, `.screen`) the width of the page,
+ * the pretend app at its right, and the real widget's round button in its
+ * corner (assets/tour.js). "Make it yours" sits under it.
+ */
+
+.tour { position: relative; padding: 0; }
+/* At least 600px: room for the tour's board, its two bugs and the bar over
+   them, without scrolling. */
+
+/* Scene 1: the app lifted towards you. It settles back when scene 2 starts. */
+
+.hero .screen--home {
+  cursor: default; transition: transform 500ms ease, box-shadow 500ms ease;
+  height: clamp(560px, calc(100vh - 160px), 680px);
+  border-radius: 20px;
+  background: var(--nq-navy-2);
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+}
+
+.tour[data-intro='1'] .screen--home { transform: none; box-shadow: inset 0 0 0 1px var(--nq-navy-10); }
+
+/* The pretend app: a white window at the stage's right, always there. */
+
+.tour-app {
+  position: absolute;
+  top: 22%;
+  bottom: 22%;
+  left: 48%;
+  right: 4%;
+  padding: 0;
+  gap: 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+  opacity: 1;
+  visibility: visible;
+  overflow: hidden;
+}
+
+.tour-app b { transform-origin: 0 50%;
+  justify-self: stretch;
+  margin: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--nq-navy-10);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tour[data-intro='0'] .tour-app b { opacity: 1; }
+
+.tour[data-intro='1'] .tour-app b { animation: none; }
+
+.tour-app i { height: 14px; margin: 0 20px; border-radius: 7px; background: var(--nq-navy-5); }
+
+.tour-app i:nth-of-type(1) { width: 40%; margin-top: 6px; }
+
+.tour-app i:nth-of-type(2) { width: auto; height: 72px; border-radius: 10px; }
+
+.tour-app i:nth-of-type(3) { width: auto; height: 72px; margin-top: 0; border-radius: 10px; background: var(--nq-navy-5); }
+
+.tour-app i:nth-of-type(4) { width: 55%; }
+
+/* While the real widget plays, the app window takes the stage's full height,
+   so its board has room (tour.js measures it as it mounts the widget). */
+
+.tour--playing:not([data-intro]) .tour-app { top: 6%; bottom: 6%; }
+
+/* Before it plays: the first scene still, its line at the left, and "Watch demo". */
+
+/* The cover before it plays. */
+
+.tour-page {
+  position: absolute;
+  display: flex;
+  flex-direction: column; inset: 0 auto 0 0; width: 44%; justify-content: flex-start; padding: 56px; }
+
+.nq-start { display: grid; gap: 16px; margin: 0; }
+
+.nq-start small,
+.ti-caption::before { color: var(--nq-navy-60); font-family: var(--nq-mono); font-size: 12px; letter-spacing: 0.04em; }
+
+.nq-start b { font-size: clamp(28px, 3vw, 40px); font-weight: 500; line-height: 1.1; letter-spacing: -0.04em; }
+
+.tour-start { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+
+.tour-start .btn { min-height: 44px; }
+
+.tour--app .tour-app { opacity: 1; }
+
+/* The scene's words: which of how many, the big line, the small one. */
+
+.ti-caption {
+  position: absolute;
+  max-width: 560px;
+  margin: 0;
+  left: 56px;
+  top: 56px;
+  right: auto;
+  bottom: auto;
+  display: grid;
+  gap: 16px;
+  width: min(40%, 440px);
+  text-align: left;
+  transition: opacity 400ms ease, transform 400ms ease;
+}
+
+.ti-caption::before { content: attr(data-step); }
+
+.ti-caption b { color: var(--nq-navy); font-size: clamp(26px, 3vw, 40px); font-weight: 500; line-height: 1.1; letter-spacing: -0.04em; }
+
+.ti-caption span { color: var(--nq-navy-60); font-size: 18px; line-height: 1.5; transition: opacity 400ms ease; }
+
+/* The users: plain circles with the Phosphor user, around the app. */
+
+/* Scenes 2 to 4: five users pop up, one here, one there; stay while they
+   say something; then go, one after another. */
+
+.ti-person {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  opacity: 0; transition: opacity 500ms ease; }
+
+.ti-tile {
+  display: grid;
+  border-radius: 50%;
+  overflow: hidden;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1.2px var(--nq-navy-20);
+  color: var(--nq-navy);
+}
+
+.ti-tile::before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+  -webkit-mask: url('nimiq/icons/user.svg') center / contain no-repeat;
+  mask: url('nimiq/icons/user.svg') center / contain no-repeat;
+}
+
+.ti-person:nth-of-type(1) { left: 43%; top: 14%; }
+
+.ti-person:nth-of-type(2) { left: 91%; top: 16%; }
+
+.ti-person:nth-of-type(3) { left: 92%; top: 66%; }
+
+.ti-person:nth-of-type(4) { left: 44%; top: 80%; }
+
+.ti-person:nth-of-type(5) { left: 70%; top: 86%; }
+
+.tour[data-intro='2'] .ti-person { animation: nq-in 500ms ease calc(200ms + var(--i) * 400ms) both; }
+
+.tour[data-intro='3'] .ti-person { opacity: 1; animation: none; }
+
+/* Most of them go quiet; one stays. */
+
+.tour[data-intro='4'] .ti-person { opacity: 0.15; animation: nq-fade-to 700ms ease calc(500ms + var(--i) * 300ms) both; }
+
+.tour[data-intro='4'] .ti-person:nth-of-type(3) { opacity: 1; animation: none; }
+
+.tour[data-intro='5'] .ti-person { opacity: 0; animation: none; }
+
+.tour[data-intro='6'] .ti-person { animation: nq-in 500ms ease calc(300ms + var(--i) * 150ms) both; }
+
+/* What each said: a mono tag at their side, where they said it. */
+
+/* What each user said: small beside their head (scene 3), grown where they
+   stood once they are gone (4), all over the place (5), and each on the
+   board as a row (6). `--sx`/`--sy` is where it starts, small, beside the
+   head; `--x`/`--y` where it grows to. It grows from its bottom corner by
+   the head: its left one, or its right one for a bubble left of the head. */
+
+.ti-bubble {
+  position: absolute;
+  z-index: 1;
+  left: var(--x);
+  top: var(--y);
+  transform-origin: 0 100%;
+  grid-template-columns: auto 1fr;
+  align-content: center;
+  gap: 6px 8px;
+  height: 50px;
+  border-radius: 14px;
+  color: #1f2348;
+  display: block;
+  width: auto;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  transform: none;
+  opacity: 0;
+  animation: none;
+}
+
+.ti-bubble b {
+  grid-row: span 2;
+  align-self: center; display: block; }
+
+.ti-bubble .ti-from {
+  position: static;
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-20);
+  color: var(--nq-navy);
+  opacity: 1;
+  font-family: var(--nq-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  animation: none;
+}
+
+.ti-bubble:nth-of-type(6) { left: calc(43% + 62px); top: calc(14% + 13px); }
+
+.ti-bubble:nth-of-type(7) { left: calc(91% - 70px); top: calc(16% + 13px); }
+
+.ti-bubble:nth-of-type(8) { left: calc(92% - 48px); top: calc(66% + 13px); }
+
+.ti-bubble:nth-of-type(9) { left: calc(44% + 62px); top: calc(80% + 13px); }
+
+.ti-bubble:nth-of-type(10) { left: calc(70% + 62px); top: calc(86% + 13px); }
+
+.tour[data-intro='4'] .ti-bubble { opacity: 0.15; animation: nq-fade-to 700ms ease calc(500ms + var(--i) * 300ms) both; }
+
+.tour[data-intro='4'] .ti-bubble:nth-of-type(8) { opacity: 1; animation: none; }
+
+.tour[data-intro='5'] .ti-bubble,
+.tour[data-intro='6'] .ti-bubble { opacity: 0; animation: none; }
+
+/* Scene 6's lines, from each user to the board (tour.js draws them). */
+
+.nq-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+.nq-lines path {
+  fill: none;
+  stroke: var(--nq-navy-20);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  opacity: 0;
+}
+
+.tour[data-intro='6'] .nq-lines path { animation: nq-in 600ms ease calc(700ms + var(--i) * 150ms) both; }
+
+/* The round button, framed by brackets half its height: the one thing. */
+
+.ti-fab {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border-radius: 50%; box-shadow: 0 6px 16px rgba(4, 7, 36, 0.16); }
+
+.ti-fab::before,
+.ti-fab::after {
+  content: '';
+  position: absolute;
+  inset: auto;
+  top: 50%;
+  width: 15px;
+  height: 50%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--nq-navy);
+  opacity: 1;
+  transform: translateY(-50%);
+  animation: none;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 28'%3E%3Cpath d='M14 1H7.7L1 14l6.7 13H14' fill='none' stroke='%23000' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 28'%3E%3Cpath d='M14 1H7.7L1 14l6.7 13H14' fill='none' stroke='%23000' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.ti-fab::before { right: calc(100% + 8px); }
+
+.ti-fab::after { left: calc(100% + 8px); transform: translateY(-50%) scaleX(-1); }
+
+.tour[data-intro='5'] .ti-fab { animation: nq-in 600ms ease 300ms both; }
+
+.tour[data-intro='5'] .ti-fab::after { animation: none; }
+
+.tour[data-intro='6'] .ti-fab::before,
+.tour[data-intro='6'] .ti-fab::after { opacity: 0; transition: opacity 300ms ease; }
+
+/* Scene 6's board: inside the app, at its right, with a row per post. */
+
+/* The board, opened from the round button: right above it, or, where the
+   words are in the way, right above them (tour.js sets `--bt`, its top). */
+
+.ti-board {
+  position: absolute;
+  align-content: start;
+  opacity: 0;
+  transform-origin: 100% 100%;
+  left: auto;
+  right: calc(4% + 16px);
+  top: calc(22% + 60px);
+  bottom: auto;
+  display: grid;
+  gap: 8px;
+  width: min(250px, 30%);
+  height: auto;
+  min-height: 0;
+  padding: 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10), 0 8px 24px rgba(4, 7, 36, 0.1);
+  color: var(--nq-navy);
+  transform: none;
+}
+
+.tour[data-intro='6'] .ti-board { animation: nq-in 500ms ease 200ms both; }
+
+.ti-board b { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+
+.nq-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--nq-navy-2);
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+  font-size: 12px;
+  font-style: normal;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nq-row::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--nq-red); }
+
+.nq-row--idea::before { background: var(--nq-gold); }
+
+.nq-row em { color: var(--nq-navy-60); font-family: var(--nq-mono); font-size: 10px; font-style: normal; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.tour[data-intro='6'] .nq-row { animation: nq-in 400ms ease calc(700ms + var(--i) * 150ms) both; }
+
+/* "Skip intro": a quiet pill. */
+
+/* Over the intro, top right, while it plays. */
+
+.tour-skip {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  right: 14px;
+  padding: 7px 14px;
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-20);
+  color: var(--nq-navy-70);
+  font-family: var(--font);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tour-skip:hover { background: var(--nq-navy-5); color: var(--nq-navy); }
+
+/* Between the parts, and the end: navy over the stage. */
+
+.tour-title {
+  position: absolute;
+  inset: 0;
+  z-index: 2147483646;
+  place-items: center;
+  padding: 24px;
+  border-radius: inherit;
+  color: #fff;
+  text-align: center; place-content: center; background: rgba(4, 7, 36, 0.9); gap: 20px; }
+
+.tour-title small {
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  gap: 8px;
+  color: #ffffff;
+  font-family: var(--nq-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  animation: nq-in 400ms ease both;
+}
+
+.tour-title small::before,
+.tour-title small::after {
+  content: '';
+  width: 7px;
+  height: 13px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 13'%3E%3Cpath d='M6.4.8H3.7L.9 6.5l2.8 5.7h2.7' fill='none' stroke='%23000' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 13'%3E%3Cpath d='M6.4.8H3.7L.9 6.5l2.8 5.7h2.7' fill='none' stroke='%23000' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.tour-title small::after { transform: scaleX(-1); }
+
+.tour-title b { font-size: clamp(32px, 4.6vw, 56px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.08; animation: nq-in 500ms ease 100ms both; }
+
+.tour-end { background: var(--nq-navy); }
+
+.tour-end__ways {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; gap: 12px; margin-top: 12px; }
+
+/* What the tour says under the stage while the widget plays. */
+
+.tour-say {
+  gap: 2px;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  transition: opacity 180ms ease; color: var(--nq-navy); }
+
+.tour-say__title { min-height: 1.15em; font-size: clamp(20px, 2.2vw, 26px); font-weight: 500; letter-spacing: -0.03em; transition: opacity 400ms ease; }
+
+.tour-say::before { content: attr(data-step); display: block; margin-bottom: 6px; color: var(--nq-navy-60); font-family: var(--nq-mono); font-size: 12px; letter-spacing: 0.04em; }
+
+.hero__below { display: flex; justify-content: center; margin-top: 48px; padding-bottom: 72px; }
+
+@keyframes nq-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes nq-fade-to { from { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-intro *,
+  .tour-title * { animation-duration: 1ms !important; animation-delay: 0s !important; }
+}
+
+/* A narrow stage: the words on top, the app under them. */
+
+@media (max-width: 760px) {
+  .hero .screen--home { height: 640px; }
+  .tour-app { left: 24px; right: 24px; top: 210px; bottom: 24px; }
+  .tour-page { width: auto; right: 0; bottom: auto; padding: 28px 24px; }
+  .ti-caption { left: 24px; top: 28px; width: calc(100% - 48px); }
+  .ti-board { right: 40px; top: 270px; width: min(250px, 60%); }
+  .ti-person:nth-of-type(1) { left: 4%; top: 30%; }
+  .ti-person:nth-of-type(2) { left: 80%; top: 30%; }
+  .ti-person:nth-of-type(3) { left: 80%; top: 62%; }
+  .ti-person:nth-of-type(4) { left: 4%; top: 84%; }
+  .ti-person:nth-of-type(5) { left: 42%; top: 88%; }
+}
+
+/* Scene 1: "Your app" comes up towards you once, then settles back, so it
+   is plain what the demo is about. */
+
+.tour[data-intro='1'] .tour-app { animation: nq-lift 1.9s cubic-bezier(0.3, 0.7, 0.3, 1) 350ms both; }
+
+@keyframes nq-lift {
+  0%, 100% { transform: none; box-shadow: inset 0 0 0 1px var(--nq-navy-10); }
+  28%, 68% { transform: translateY(-10px) scale(1.02); box-shadow: inset 0 0 0 1px var(--nq-navy-10), 0 24px 48px rgba(4, 7, 36, 0.16); }
+}
+
+body:has(.tour--playing) > please-no-bugs { opacity: 0; visibility: hidden; transition: opacity 300ms ease, visibility 0s 300ms; }
+
+/* The user's and the owner's side: each step big at the stage's left, as
+   the intro's lines are, which of how many over it. */
+
+@media (min-width: 761px) {
+  .tour-say {
+    left: 56px;
+    top: 56px;
+    right: auto;
+    bottom: auto;
+    width: min(40%, 440px);
+    max-width: none;
+  }
+  .tour-say__title { font-size: clamp(26px, 3vw, 40px); line-height: 1.1; letter-spacing: -0.04em; }
+  .tour-say::before { margin-bottom: 16px; }
+}
+
+/* A phone: the step on top, the app under it. */
+
+@media (max-width: 760px) {
+  .tour-say {
+    position: absolute;
+    z-index: 2;
+    top: 24px;
+    left: 24px;
+    right: 24px;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+  }
+  .tour-say__title { font-size: 22px; line-height: 1.2; letter-spacing: -0.03em; }
+  .tour--playing:not([data-intro]) .tour-app { top: 132px; bottom: 24px; left: 16px; right: 16px; }
+}
+
+.tour[data-intro='3'] .ti-bubble { animation: nq-say-lift 1.5s cubic-bezier(0.3, 0.7, 0.3, 1) calc(250ms + var(--i) * 350ms) both; }
+
+@keyframes nq-say-lift {
+  0% { opacity: 0; transform: translateX(-8px); filter: none; }
+  22% { opacity: 1; transform: none; filter: none; }
+  42%, 62% { opacity: 1; transform: translateY(-6px) scale(1.08); filter: drop-shadow(0 8px 10px rgba(4, 7, 36, 0.18)); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+/* A phone: the tags small, just over their users. */
+
+@media (max-width: 760px) {
+  .ti-bubble { display: block; }
+  .ti-bubble .ti-from { padding: 3px 7px; font-size: 9px; }
+  .ti-bubble:nth-of-type(6) { left: 4%; top: calc(30% - 24px); }
+  .ti-bubble:nth-of-type(7) { left: 80%; top: calc(30% - 24px); }
+  .ti-bubble:nth-of-type(8) { left: 80%; top: calc(62% - 24px); }
+  .ti-bubble:nth-of-type(9) { left: 4%; top: calc(84% - 24px); }
+  .ti-bubble:nth-of-type(10) { left: 42%; top: calc(88% - 24px); }
+}
+
+/* ---- Why PleaseNoBugs --------------------------------------------------- */
+
+.section-head { max-width: 640px; margin-bottom: 28px; }
+.section-head p { color: var(--sub); margin: 10px 0 0; line-height: 1.55; }
+@media (min-width: 900px) {
+  .how__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; }
+}
+.how__text > p { margin: 14px 0 0; }
+.how__points li { position: relative; }
+.how__points li::before {
+  left: 2px;
+  top: 0.55em;
+}
+.how__show { display: flex; justify-content: center; min-width: 0; }
+.pull__quote p::before,
+.pull__quote p::after { color: var(--button); }
+
+/* The widget's own glyphs (the symbols at the top of what-is-it.html). */
+.ico { display: block; flex: none; width: 16px; height: 16px; }
+.board__bar { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 4px; }
+.post__tags { display: flex; gap: 6px; }
+.post__text { margin: 0; font-size: 14px; line-height: 1.3; }
+.post__foot { display: flex; align-items: center; justify-content: space-between; color: var(--s-quiet); font-size: 12px; }
+/* As the widget's: a white glyph half the size of its disc. */
+.badge__dot {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: #fff;
+}
+.badge__dot .ico { width: 8px; height: 8px; }
+.vote .ico { width: 11px; height: 11px; }
+
+/* Your users on the left, the board, you on the right; on a narrow screen
+   you are under the board. Each says something in a bubble that goes into
+   the board, where it is a post. */
+.stage--about { container-type: inline-size; }
+.talk {
+  --send: 48px, -50%;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 52px;
+  grid-template-areas: 'users board you';
+  gap: 16px;
+  width: min(100%, 540px);
+  margin: 0 auto;
+  transition: opacity 400ms ease;
+}
+/* Each user beside their own post: below the board's title, spread as its
+   posts are, before and after the bug gets its answer. */
+.talk__users { grid-area: users; display: grid; align-content: space-between; justify-items: center; padding: 76px 0 8px; }
+.talk__you { grid-area: you; display: grid; align-content: center; justify-items: center; }
+.talk__board {
+  grid-area: board;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 12px 10px;
+  border: 1.5px solid var(--s-line);
+  border-radius: 16px;
+}
+@container (max-width: 459px) {
+  .talk {
+    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-areas: 'users board' '. you';
+    gap: 12px;
+  }
+  .talk__you { justify-items: end; padding-right: 8px; }
+  .talk .person__tile { width: 40px; height: 40px; }
+}
+
+/* A person: Figma's dark blue figure on a light round tile, their name
+   under it. Dimmed, and lit up on their turn: while they say something,
+   read along and vote, or see their bug fixed. */
+.who { display: grid; justify-items: center; gap: 5px; }
+.person { position: relative; }
+.person__tile {
+  opacity: 0.45;
+}
+.is-saying .person__tile,
+.is-reading .person__tile,
+.is-thanked .person__tile {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* What each says: a bubble beside them, that goes off into the board. */
+.bubble {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  opacity: 0;
+  transform: translate(-6px, -50%) scale(0.8);
+  transition: opacity 220ms ease, transform 320ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.is-saying .bubble { opacity: 1; transform: translate(0, -50%) scale(1); }
+.is-sent .bubble {
+  opacity: 0;
+  transform: translate(var(--send)) scale(0.5);
+  transition: opacity 380ms ease-in, transform 380ms ease-in;
+}
+.bubble--stars .star { width: 14px; height: 14px; }
+.bubble--you {
+  left: auto;
+  right: calc(100% + 10px);
+}
+.who__tick .ico { width: 9px; height: 9px; }
+
+.stage--about .post { opacity: 0; transform: translateY(8px); }
+.stage--about .post.is-in { opacity: 1; transform: none; }
+
+.post__stars { display: flex; gap: 1px; margin: 0; }
+.post__stars .star { width: 15px; height: 15px; color: var(--s-line); transition: color 200ms ease; }
+.post__stars .star:nth-child(2) { transition-delay: 120ms; }
+.post__stars .star:nth-child(3) { transition-delay: 240ms; }
+.post__stars .star:nth-child(4) { transition-delay: 360ms; }
+.post__stars .star:nth-child(5) { transition-delay: 480ms; }
+
+/* Your answer: Done, and "Fixed in" under the post. */
+.badge--done { opacity: 0; transform: scale(0.6); transition: opacity 200ms ease, transform 300ms cubic-bezier(0.3, 1.4, 0.5, 1); }
+.post__fix {
+  max-height: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--s-accent);
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0;
+  transition: max-height 350ms ease, opacity 300ms ease;
+}
+@media (min-width: 900px) { .steps-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; }
+}
+/* Three steps: 1 and 3 on the left, the code of 2 tall on the right. */
+@media (min-width: 900px) {
+  .steps-list--three > li:nth-child(2) { grid-column: 2; grid-row: 1 / span 2; }
+  .steps-list--three > li:nth-child(3) { grid-column: 1; grid-row: 2; }
+}
+@media (min-width: 600px) { .nowrap { white-space: nowrap; }
+}
+.steps-list > li {
+  position: relative;
+}
+.steps-list > li::before {
+  left: 20px;
+}
+.steps-list .code { margin-top: 12px; padding: 14px 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .steps-list > li { padding: 20px 16px 20px 56px; }
+  .steps-list > li::before { left: 14px; }
+}
+
+/* Asked for less motion: the last picture, standing still. */
+
+@media (prefers-reduced-motion: reduce) {
+  .stage *,
+  .stage { transition: none !important; }
+}
+
+/* The intro: its own light band, the fine stack at the right. */
+
+/*
+ * The first part is its text and a drawing of the widget, side by side from
+ * 900px, the drawing under the text on a phone. The drawing is not the
+ * widget: it is drawn here in the widget's colours, and assets/how.js plays
+ * it by putting classes on `.stage` once it is in view. With reduced motion
+ * it shows its last picture and stands still.
+ */
+
+.how-intro { padding-bottom: 0;
+  position: relative;
+  overflow: hidden;
+  padding: clamp(72px, 10vw, 128px) 0;
+  background: var(--nq-navy-2);
+}
+
+.how-intro .wrap { position: relative; display: grid; justify-items: start; gap: 24px; }
+
+.how-intro h1 { max-width: 12em; font-size: clamp(40px, 4.6vw, 64px); }
+
+.how-intro .lead { margin-top: 12px; max-width: 560px; margin: 0; }
+
+.how { padding: clamp(72px, 9vw, 120px) 0; }
+
+.how__row { display: grid; align-items: center; gap: clamp(32px, 6vw, 80px); }
+
+.how__text > p { max-width: 30em; color: var(--nq-navy-80); font-size: 18px; line-height: 1.5; }
+
+.how__text a { color: var(--nq-navy); font-weight: 600; text-decoration: underline; }
+
+.stage {
+  position: relative;
+  width: 100%;
+  border-radius: 20px;
+  background: var(--nq-navy-2);
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+  --s-quiet: var(--nq-navy-60);
+  --s-line: var(--nq-navy-10);
+  --s-accent: var(--nq-navy);
+  color: var(--nq-navy);
+}
+
+.person__tile {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  transition: opacity 250ms ease, background-color 250ms ease, transform 250ms cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 250ms ease; display: grid; place-items: center; background: #ffffff; box-shadow: inset 0 0 0 1.2px var(--nq-navy-20); color: var(--nq-navy); }
+
+.person__tile::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  -webkit-mask: url('nimiq/icons/user.svg') center / contain no-repeat;
+  mask: url('nimiq/icons/user.svg') center / contain no-repeat;
+}
+/* A longer name, "App developer", goes onto two lines under its tile. */
+
+.who__name { max-width: 64px; line-height: 1.25; text-align: center; transition: color 250ms ease; color: var(--nq-navy-60); font-family: var(--nq-mono); font-size: 10px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.bubble {
+  z-index: 3;
+  display: flex;
+  gap: 1px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  white-space: nowrap;
+  transform-origin: left center; background: #ffffff; box-shadow: inset 0 0 0 1px var(--nq-navy-10); color: var(--nq-navy); font-weight: 400; }
+
+.bubble--you {
+  transform: translate(6px, -50%) scale(0.8);
+  transform-origin: right center; background: var(--nq-navy); color: #ffffff; }
+
+.talk__board,
+.board { background: #ffffff; box-shadow: inset 0 0 0 1px var(--nq-navy-10); }
+
+.board__bar b { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+
+.post {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  transition: background-color 600ms ease, opacity 300ms ease, transform 300ms ease; background: var(--nq-navy-2); box-shadow: inset 0 0 0 1px var(--nq-navy-10); color: var(--nq-navy); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 3px;
+  border-radius: 999px;
+  transition: background-color 600ms ease; background: transparent; color: var(--nq-navy-60); font-family: var(--nq-mono); font-size: 10px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.badge__dot--bug { background: var(--nq-red); }
+
+.badge__dot--idea { background: var(--nq-gold); color: var(--nq-navy); }
+
+.badge__dot--review { background: var(--nq-navy-60); }
+
+.badge__dot--done { background: var(--nq-navy); }
+
+.vote {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: background-color 300ms ease, color 300ms ease, transform 200ms ease; background: var(--nq-navy-5); color: var(--nq-navy); font-family: var(--nq-mono); }
+
+.vote b { font-weight: 500; }
+
+.is-stars .post__stars .star,
+.bubble--stars .star { color: var(--nq-gold); }
+
+/* Thanked: the one who reported the bug sees it fixed. */
+
+.who__tick {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--page);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 200ms ease, transform 300ms cubic-bezier(0.3, 1.4, 0.5, 1); background: var(--nq-navy); color: #ffffff; }
+
+/* Why Nimiq developers use it: a band of four cards, an icon on each. */
+
+.how--flip { background: var(--nq-navy-2); }
+
+.how--flip .how__row { display: block; }
+
+.how__points { display: grid; padding: 0; list-style: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 48px 0 0; }
+
+@media (min-width: 1120px) { .how__points { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) { .how__points { grid-template-columns: 1fr; }
+}
+
+.how__points li { padding-left: 22px;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 28px 28px 32px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+  color: var(--nq-navy-80);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.how__points li::before {
+  content: '';
+  position: static;
+  width: 32px;
+  height: 32px;
+  border-radius: 0;
+  background: var(--nq-navy);
+  -webkit-mask: url('nimiq/icons/database.svg') center / contain no-repeat;
+  mask: url('nimiq/icons/database.svg') center / contain no-repeat;
+}
+
+.how__points li:nth-child(2)::before { -webkit-mask-image: url('nimiq/icons/wallet.svg'); mask-image: url('nimiq/icons/wallet.svg'); }
+
+.how__points li:nth-child(3)::before { -webkit-mask-image: url('nimiq/icons/caret-up.svg'); mask-image: url('nimiq/icons/caret-up.svg'); }
+
+.how__points li:nth-child(4)::before { -webkit-mask-image: url('nimiq/icons/user-circle.svg'); mask-image: url('nimiq/icons/user-circle.svg'); }
+
+.how__points b { display: block; margin-bottom: 4px; color: var(--nq-navy); font-size: 20px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.25; }
+
+.how--flip .how__text > p { max-width: none; margin-top: 32px; }
+
+/* The goal: one line on navy, its label in brackets. */
+
+.pull { padding: clamp(72px, 9vw, 120px) 0; background: var(--nq-navy); color: #ffffff; }
+
+.pull .wrap { display: grid; justify-items: center; gap: 24px; }
+
+/* The goal in one line, between "why" and "how to add". */
+
+.pull__quote { margin: 0 auto; text-align: center; max-width: 880px; }
+
+.pull__quote p {
+  margin: 0; color: #ffffff; font-size: clamp(30px, 3.6vw, 48px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.15; }
+
+.pull__quote p::before,
+.pull__quote p::after { content: none; }
+
+/* Add it in 3 steps: three cards, numbered in mono. */
+
+.how--add { padding: clamp(72px, 9vw, 120px) 0; }
+
+.how--add .section-head { max-width: 640px; margin-bottom: 48px; }
+
+.how--add .section-head p { color: var(--nq-navy-80); font-size: 18px; line-height: 1.5; }
+
+/* The steps under it. */
+
+.steps-list { display: grid; margin: 40px 0 0; padding: 0; list-style: none; gap: 16px; margin-top: 0; counter-reset: nq-step; }
+
+.steps-list > li {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 28px 28px 32px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+  counter-increment: nq-step;
+}
+
+.steps-list > li::before {
+  top: 18px;
+  place-items: center;
+  content: '0' counter(nq-step);
+  position: static;
+  display: block;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  color: var(--nq-navy-40);
+  font-family: var(--nq-mono);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.steps-list h3 { margin-top: 4px; margin: 0; }
+
+.steps-list p { margin: 0; color: var(--nq-navy-80); font-size: 16px; line-height: 1.5; }
+
+.steps-list p a:not(.btn) { color: var(--nq-navy); font-weight: 600; text-decoration: underline; }
+
+.steps-list p code { padding: 1px 6px; border-radius: 4px; font-size: 13px; background: var(--nq-navy-5); color: var(--nq-navy); }
+
+/* ---- Make it yours ------------------------------------------------------ */
+
+.viewport { position: relative; }
+.edit__step > :last-child,
+.edit__step > :last-child > .field:last-child { margin-bottom: 0; }
+@media (max-width: 639px) {
+  .screen--inline > please-no-bugs { left: 0; top: 72px; }
+  .inline-frame .dk-menu { display: none; }
+  .inline-frame .ph-back { display: block; }
+}
+
+/*
+ * How it opens: each way plays on a phone of its own (`PLAYS` and
+ * `paintWays` in customize.js), over the same pretend app as the preview,
+ * drawn at a phone's size and scaled to its card.
+ *
+ * Each way is one loop. The resting styles are the open state, which is
+ * what shows with reduced motion; the keyframes start from closed.
+ */
+.screen--device { cursor: default; }
+.screen--device > .screen__app,
+.screen--device > please-no-bugs { display: none; }
+
+.play { position: absolute; inset: 0; overflow: hidden; }
+.play please-no-bugs { display: block; height: 100%; }
+.play .screen__app b { display: flex; align-items: center; gap: 14px; }
+.ph-burger {
+  position: relative;
+  width: 22px;
+  height: 17px;
+  background:
+    linear-gradient(var(--ink) 0 0) top / 100% 3px no-repeat,
+    linear-gradient(var(--ink) 0 0) center / 100% 3px no-repeat,
+    linear-gradient(var(--ink) 0 0) bottom / 100% 3px no-repeat;
+}
+.pl-cta {
+  position: relative;
+  justify-self: start;
+  margin-top: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 2px solid var(--button);
+  color: var(--button);
+  font-size: 15px;
+  font-weight: 900;
+}
+.pl-dim { position: absolute; inset: 0; background: rgba(10, 10, 30, 0.5); opacity: 0; }
+
+/* A tap: a light ring, centred on what it taps. */
+.pl-tap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  opacity: 0;
+}
+/* Where the round button is: as in the widget, 16px from the corner on a
+   phone and 24px on a wide screen. */
+.pl-spot { position: absolute; width: 40px; height: 40px; }
+.play--phone .pl-spot { right: 16px; bottom: 16px; }
+
+/* Button on a phone, 6.2 s: tap, the button grows into the panel over the
+   whole box (0.35 s), the panel stays, shrinks back into the button
+   (0.26 s), a pause. As the widget does it (`morph` in element.tsx): the
+   skin is the button at rest, gone the moment it is tapped, so what grows
+   is the panel in its own background; back, with its glyph, once the panel
+   is a disc again. */
+.ph-open,
+.ph-skin { position: absolute; inset: 0; }
+.ph-open { background: var(--ph-bg); animation: ph-grow 6.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
+.ph-open please-no-bugs {
+  transform-origin: calc(100% - 36px) calc(100% - 36px);
+  animation: ph-content 6.2s infinite ease-out;
+}
+.ph-skin {
+  background: var(--ph-fab);
+  opacity: 0;
+  animation: ph-grow 6.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1), ph-skin 6.2s infinite linear;
+}
+.ph-glyph {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--ph-on-fab);
+  opacity: 0;
+  animation: ph-glyph 6.2s infinite linear; right: 16px; bottom: 16px;
+}
+
+@keyframes ph-grow {
+  0%, 12.13% { clip-path: inset(calc(100% - 56px) 16px 16px calc(100% - 56px) round 20px); }
+  17.75%, 46.74% { clip-path: inset(0px 0px 0px 0px round 0px); }
+  50.94%, 100% { clip-path: inset(calc(100% - 56px) 16px 16px calc(100% - 56px) round 20px); }
+}
+@keyframes ph-skin {
+  0%, 12.13% { opacity: 1; }
+  12.14%, 50.94% { opacity: 0; }
+  53.52%, 100% { opacity: 1; }
+}
+@keyframes ph-glyph {
+  0%, 12.13% { opacity: 1; }
+  12.14%, 50.94% { opacity: 0; }
+  53.52%, 100% { opacity: 1; }
+}
+@keyframes ph-content {
+  0%, 12.97% { opacity: 0; transform: scale(0.96); }
+  16.63%, 46.74% { opacity: 1; transform: scale(1); }
+  49.04%, 100% { opacity: 0; transform: scale(0.96); }
+}
+
+/* Inline on a phone, 6.6 s: tap the app's menu, it slides in, tap Feedback,
+   the app's Feedback page slides in with the widget in it, on the tiles,
+   stays, slides away. */
+.ph-menu {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: min(270px, 80%);
+  display: grid;
+  align-content: start;
+  background: var(--row);
+  box-shadow: var(--shadow);
+  transform: translateX(-100%);
+  animation: ph-menu 6.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.ph-menu b { padding: 24px 24px 12px; font-size: 20px; font-weight: 900; }
+.ph-menu > span { position: relative; margin: 0 10px; padding: 12px 14px; border-radius: 12px; font-size: 17px; font-weight: 700; }
+.ph-menu > .ph-menu__pick { animation: ph-pick 6.6s infinite step-end; }
+.ph-page {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--page);
+  animation: ph-page 6.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.ph-back { padding: 24px; font-size: 20px; font-weight: 900; }
+.ph-page please-no-bugs { min-height: 0; }
+
+@keyframes ph-menu {
+  0%, 9.06% { transform: translateX(-100%); }
+  13.66%, 28.02% { transform: translateX(0); }
+  28.09%, 100% { transform: translateX(-100%); }
+}
+@keyframes ph-pick {
+  0%, 19.17% { background: transparent; }
+  19.52%, 28.09% { background: var(--card); }
+  28.16%, 100% { background: transparent; }
+}
+@keyframes ph-page {
+  0%, 22.72% { transform: translateX(100%); }
+  28.02%, 54.57% { transform: translateX(0); }
+  59.1%, 100% { transform: translateX(100%); }
+}
+
+/* Overlay on a phone, 6 s: tap the app's own button, the widget rises from
+   the bottom (0.3 s), stays, slides back down. */
+.ph-sheet {
+  position: absolute;
+  inset: 0;
+  animation: ph-sheet 6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+
+@keyframes ph-sheet {
+  0%, 10% { transform: translateY(100%); }
+  15%, 47.53% { transform: translateY(0); }
+  52.2%, 100% { transform: translateY(100%); }
+}
+
+/* Asked for less motion: each way shows open, and stands still. */
+
+@media (prefers-reduced-motion: reduce) {
+  .play * { animation: none !important; }
+}
+
+@media (max-width: 639px) {
+  .editor { padding: 10px; }
+}
+
+/* The frame around the screen is the home page's (`.editor`). */
+
+.desk .viewport {
+  /* As tall as the home page's screen. */
+  height: clamp(600px, calc(100vh - 220px), 760px);
+  /* The card's width, and where the app starts beside it (inline). */
+  --app-x: calc(var(--deck-w) + 48px);
+}
+
+/* The widget's button and panel ride on the top of everything in the page
+   (z-index in the millions); kept in the app's own layer here, so the card
+   lies over it. */
+
+.screen--make:not(.screen--inline) > please-no-bugs { position: relative; z-index: 1; }
+
+.deck {
+  /* Not a page section's padding: a card's. */
+  display: flex;
+}
+
+.deck__head { padding: 18px 20px 0; }
+
+.deck__fold {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.deck__fold:disabled { cursor: default; }
+
+.deck__short { display: none; }
+
+.deck__chevron { display: none; margin-left: auto; color: var(--ink); transition: transform 200ms ease; }
+
+.deck__bars { display: flex; gap: 6px; margin-top: 10px; }
+
+.deck__bars i { border-radius: 2px; }
+
+.deck__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 20px 4px;
+  overscroll-behavior: contain;
+}
+
+.deck__foot { display: flex; align-items: center; gap: 10px; padding: 14px 20px 18px; }
+
+.stepbar {
+  display: flex;
+  gap: 12px;
+  padding: 10px 16px;
+}
+
+.stepbar[hidden] { display: none; }
+
+.deck[hidden] { display: none; }
+
+/* No card beside it in the steps: an inline widget's app starts at the left. */
+
+.desk .viewport:not(.viewport--card) { --app-x: 0px; }
+
+.ways {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--deck-h, 0px);
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  padding: 20px;
+  background: var(--page);
+}
+
+.ways[hidden] { display: none; }
+
+.ways__track { display: grid; grid-template-columns: repeat(3, minmax(0, 230px)); justify-content: center; gap: 24px; }
+
+.way:hover { transform: translateY(-3px); }
+
+.way__screen {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 320 / 560;
+  margin-bottom: 4px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--page);
+  transform: translateZ(0);
+}
+
+/* The phone the play is drawn on, scaled to the card (`scaleWays`). */
+
+.way__device.play {
+  inset: auto;
+  left: 0;
+  top: 0;
+  width: 320px;
+  height: 560px;
+  transform: scale(var(--s, 0.7));
+  transform-origin: 0 0;
+}
+
+.way__name::after { content: ''; }
+
+.way[aria-pressed='true'] .way__name::after { content: ' \2713'; color: var(--button); }
+
+.ways__dots { display: none; }
+
+/* On a phone one card at a time, swiped, with dots under them. */
+
+@media (max-width: 639px) {
+  .ways { padding: 16px 0; }
+  .ways__track {
+    display: flex;
+    gap: 14px;
+    padding: 0 14%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .ways__track::-webkit-scrollbar { display: none; }
+  .way { flex: 0 0 100%; scroll-snap-align: center; }
+  .ways__dots { display: flex; justify-content: center; gap: 8px; }
+  .ways__dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--card-2); cursor: pointer; }
+  .ways__dots i.on { background: var(--button); }
+  .stepbar { padding: 8px 10px; gap: 8px; }
+}
+
+@media (min-width: 980px) {
+  .deck {
+    left: 24px;
+    top: 72px;
+    width: var(--deck-w);
+    max-height: calc(100% - 96px);
+    border-radius: var(--radius-lg);
+  }
+
+  /* Inline: the app, its menu and its Feedback page, beside the card. */
+  .screen--make.screen--inline > .inline-frame .dk-menu { left: var(--app-x); width: var(--menu-w); }
+  .screen--make.screen--inline > please-no-bugs { left: calc(var(--app-x) + var(--menu-w)); }
+}
+
+@media (max-width: 979px) {
+  /* The panel takes its share of the screen: taller, as far as the device
+     allows, so the app above it keeps room for the widget. */
+  .desk .viewport { height: clamp(600px, calc(100svh - 140px), 900px); }
+  .deck {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: min(58%, 420px);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -8px 24px rgba(10, 10, 30, 0.3);
+  }
+  .deck__head { padding: 0; }
+  .deck__fold { min-height: 48px; padding: 12px 20px 0; cursor: pointer; }
+  .deck__chevron { display: block; transform: rotate(180deg); }
+  .deck__bars { padding: 0 20px; }
+
+  .deck--folded { max-height: none; }
+  .deck--folded .deck__fold { padding-bottom: 12px; }
+  .deck--folded .deck__short { display: inline; }
+  .deck--folded .deck__chevron { transform: none; }
+  .deck--folded .deck__bars,
+  .deck--folded .deck__body,
+  .deck--folded .deck__foot { display: none; }
+
+  .deck__name { font-size: 22px; }
+}
+
+@media (max-width: 639px) {
+  /* As much of the phone as the bar above leaves; the panel a little less of it. */
+  .desk .viewport { height: clamp(600px, calc(100svh - 120px), 820px); }
+  .deck { max-height: 54%; }
+  .deck__body { padding: 14px 16px 4px; }
+  .deck__fold { padding-left: 16px; padding-right: 16px; }
+  .deck__bars { padding: 0 16px; }
+  .deck__foot { padding: 12px 16px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck__chevron { transition: none; }
+}
+
+/* "Test your widget" and an arrow down to it, nudging
+   towards it until it is touched (customize.js, `paintTry`). */
+
+.try {
+  display: flex;
+  animation: try-in 400ms ease-out 1.6s both;
+}
+
+.try[hidden] { display: none; }
+
+.try__arrow { flex: none; animation: try-nudge 1.4s ease-in-out 2s infinite; filter: none; }
+
+@keyframes try-in {
+  from { opacity: 0; transform: translate(-8px, -8px); }
+}
+
+@keyframes try-nudge {
+  50% { transform: translate(4px, 4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .try,
+  .try__arrow { animation: none; }
+}
+
+.make { padding-top: clamp(32px, 4.5vw, 64px); padding-bottom: 96px; }
+
+/* No frame round the stage here: the stage is the frame. */
+
+/* The frame and the pretend app the home page's demo plays in, and Make it
+   yours' screen too. */
+
+.editor {
+  border-radius: var(--radius-lg); padding: 0; border: 0; background: none; }
+
+.desk .viewport {
+  overflow: hidden;
+  --deck-w: clamp(300px, 32%, 360px);
+  --menu-w: 200px;
+  border-radius: 20px;
+  background: var(--nq-navy-2);
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+}
+
+.screen--make {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--deck-h, 0px);
+  height: auto;
+  cursor: default; border-radius: 0; background: transparent; box-shadow: none; }
+
+.deck {
+  position: absolute;
+  z-index: 3;
+  padding: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10), 0 12px 32px rgba(4, 7, 36, 0.08);
+  color: var(--nq-navy);
+}
+
+.deck__count { color: var(--nq-navy-60); font-family: var(--nq-mono); font-size: 12px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.deck__short { font-size: 15px; color: var(--ink); font-weight: 600; }
+
+.deck__bars i { flex: 1; height: 3px; background: var(--nq-navy-10); }
+
+.deck__bars i.done { background: var(--nq-navy-40); }
+
+.deck__bars i.now { background: var(--nq-navy); }
+
+.deck__name { margin: 0; font-size: clamp(28px, 2.6vw, 36px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.1; }
+
+.deck__hint { margin: 6px 0 18px; color: var(--nq-navy-80); font-size: 16px; line-height: 1.5; }
+
+.stepbar {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  align-items: center;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10), 0 8px 24px rgba(4, 7, 36, 0.08);
+}
+
+.stepbar__name { flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--nq-navy-60); font-family: var(--nq-mono); font-size: 12px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.stepbar__name b { color: var(--nq-navy); font-weight: 500; }
+
+.way {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 10px 10px 14px;
+  border: 2px solid transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease; border-radius: 14px; background: #ffffff; box-shadow: inset 0 0 0 1px var(--nq-navy-10); }
+
+.way[aria-pressed='true'] { border-color: var(--nq-navy); box-shadow: inset 0 0 0 2px var(--nq-navy); }
+
+.way__name { font-size: 18px; padding: 0 4px; font-weight: 600; letter-spacing: -0.03em; }
+
+.way__line { padding: 0 4px; font-size: 13px; line-height: 1.45; color: var(--nq-navy-60); }
+
+/* Light or dark: three cards at the stage's left, the widget at its right.
+   The third, making your own, is greyed and does nothing yet. */
+
+.themes[hidden] { display: none; }
+
+.themes {
+  position: absolute;
+  z-index: 3;
+  top: 24px;
+  left: 24px;
+  display: grid;
+  gap: 10px;
+  width: min(340px, calc(100% - 48px));
+  padding: 20px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10), 0 12px 32px rgba(4, 7, 36, 0.12);
+  color: var(--nq-navy);
+}
+
+.themes__title {
+  margin: 0 0 6px;
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.theme-card {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border: 0;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+  color: var(--nq-navy);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 160ms ease;
+}
+
+.theme-card:hover { box-shadow: inset 0 0 0 1px var(--nq-navy-30); }
+
+.theme-card[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--nq-navy); }
+
+.theme-card__preview {
+  grid-row: 1 / 3;
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  height: 58px;
+  padding: 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+}
+
+.theme-card__preview b { width: 60%; height: 5px; border-radius: 3px; }
+
+.theme-card__preview i { height: 8px; border-radius: 3px; }
+
+.theme-card__preview em { position: absolute; right: 6px; bottom: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--nq-gold); }
+
+.theme-card__preview--light { background: #ffffff; }
+
+.theme-card__preview--light b { background: var(--nq-navy); }
+
+.theme-card__preview--light i { background: var(--nq-navy-5); }
+
+.theme-card__preview--dark { background: var(--nq-navy); box-shadow: none; }
+
+.theme-card__preview--dark b { background: #ffffff; }
+
+.theme-card__preview--dark i { background: var(--nq-navy-90); }
+
+.theme-card__preview--soon { background: var(--nq-navy-2); }
+
+.theme-card__preview--soon b,
+.theme-card__preview--soon i,
+.theme-card__preview--soon em { background: var(--nq-navy-10); }
+
+.theme-card__name { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+
+.theme-card__line { color: var(--nq-navy-60); font-size: 13px; line-height: 1.4; }
+
+.theme-card--soon { background: var(--nq-navy-2); color: var(--nq-navy-50); cursor: not-allowed; }
+
+.theme-card--soon:hover { box-shadow: inset 0 0 0 1px var(--nq-navy-10); }
+
+.theme-card--soon .theme-card__line { color: var(--nq-navy-40); }
+
+.theme-card__name small {
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--nq-navy-5);
+  color: var(--nq-navy-60);
+  font-family: var(--nq-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+  white-space: nowrap;
+}
+
+/* A phone: the cards in a row along the bottom, small, over the bar. */
+
+@media (max-width: 760px) {
+  .themes {
+    top: auto;
+    bottom: calc(var(--deck-h, 0px) + 12px);
+    left: 12px;
+    right: 12px;
+    width: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .themes__title { display: none; }
+  .theme-card { grid-template-columns: 1fr; padding: 8px; row-gap: 6px; }
+  .theme-card__preview { grid-row: auto; height: 44px; }
+  .theme-card__line { display: none; }
+  .theme-card__name { font-size: 13px; }
+  .theme-card__name small { display: block; width: max-content; margin: 4px 0 0; }
+}
+
+.make-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 32px;
+  margin-bottom: 32px;
+}
+
+.make-head h1 { font-size: clamp(36px, 4.4vw, 56px); }
+
+.make-head .lead { max-width: 520px; margin: 12px 0 0; }
+
+.view-switch {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--nq-navy-5);
+}
+
+.view-switch button {
+  min-height: 34px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--nq-navy-60);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+}
+
+.view-switch button[aria-pressed='true'] { background: #ffffff; color: var(--nq-navy); box-shadow: 0 1px 3px rgba(4, 7, 36, 0.12); }
+
+/* "Test your widget", pointing at it in the last step: navy, words in white. */
+
+.try {
+  position: absolute;
+  z-index: 4;
+  align-items: flex-end;
+  gap: 2px;
+  pointer-events: none; color: var(--nq-navy); }
+
+.try__text {
+  margin-bottom: 44px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 15px;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(10, 10, 30, 0.35); background: var(--nq-navy); color: #ffffff; font-weight: 600; letter-spacing: -0.02em; }
+
+.nq-panel[hidden] { display: none; }
+
+.nq-panel {
+  position: absolute;
+  z-index: 3;
+  inset: 0 0 var(--deck-h, 0px);
+  overflow-y: auto;
+  padding: clamp(24px, 3.4vw, 48px);
+  border-radius: 20px 20px 0 0;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+  color: var(--nq-navy);
+}
+
+.nq-panel__step { display: grid; align-content: start; gap: 16px; max-width: 1120px; }
+
+.nq-panel h2 { margin: 0; font-size: clamp(28px, 3vw, 40px); }
+
+.nq-panel__lead { max-width: 640px; margin: 0 0 8px; color: var(--nq-navy-70); font-size: 17px; line-height: 1.5; }
+
+.nq-small { margin: 0; color: var(--nq-navy-60); font-size: 13px; line-height: 1.5; }
+
+.nq-small a { color: var(--nq-navy); font-weight: 600; }
+
+/* Where it runs: three big choices. */
+
+.nq-runs { display: grid; grid-template-columns: repeat(3, minmax(0, 300px)); gap: 16px; }
+
+.nq-run {
+  display: grid;
+  gap: 8px;
+  padding: 24px;
+  border: 0;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10);
+  color: var(--nq-navy);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nq-run:hover { box-shadow: inset 0 0 0 1px var(--nq-navy-30); }
+
+.nq-run[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--nq-navy); }
+
+.nq-run b { font-size: 18px; font-weight: 600; letter-spacing: -0.03em; }
+
+.nq-run span { color: var(--nq-navy-60); font-size: 14px; line-height: 1.5; }
+
+@media (max-width: 900px) {
+  .nq-runs { grid-template-columns: 1fr; }
+}
+
+/* Why Next waits, in the bar beside the step's name; gone once chosen. */
+
+.stepbar__why {
+  display: block;
+  margin-top: 2px;
+  color: var(--nq-navy);
+  font-family: var(--font);
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.stepbar .btn[disabled] { background: var(--nq-navy-10); color: var(--nq-navy-40); opacity: 1; cursor: not-allowed; }
+
+/* The card a little wider here, for the prompt and the choices. */
+
+.desk .viewport--card:has(.deck--ready) { --deck-w: clamp(320px, 36%, 420px); }
+
+/* The title with the gold hexagon before it: done choosing. */
+
+.deck--ready .deck__name::before {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 28px;
+  margin-bottom: 14px;
+  background: url('nimiq/hexagon-2026.svg') center / contain no-repeat;
+}
+
+.nq-done { display: grid; gap: 20px; }
+
+.nq-copy { width: 100%; min-height: 48px; font-size: 16px; }
+
+.nq-next { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; counter-reset: nq-next; }
+
+.nq-next li {
+  position: relative;
+  padding-left: 36px;
+  color: var(--nq-navy-70);
+  font-size: 14px;
+  line-height: 1.45;
+  counter-increment: nq-next;
+}
+
+.nq-next li::before {
+  content: counter(nq-next);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--nq-navy-5);
+  color: var(--nq-navy);
+  font-family: var(--nq-mono);
+  font-size: 12px;
+}
+
+.nq-next b { display: block; color: var(--nq-navy); font-weight: 600; }
+
+.nq-summary { display: grid; margin: 0; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--nq-navy-10); }
+
+.nq-summary div { display: grid; grid-template-columns: 76px 1fr auto; align-items: center; gap: 10px; padding: 10px 12px 10px 14px; }
+
+.nq-summary div + div { border-top: 1px solid var(--nq-navy-10); }
+
+.nq-summary dt { color: var(--nq-navy-60); font-family: var(--nq-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.nq-summary dd { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+
+.nq-change {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--nq-navy-70);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.nq-change:hover { background: var(--nq-navy-5); color: var(--nq-navy); }
+
+.nq-peek > summary { color: var(--nq-navy); font-size: 14px; font-weight: 600; cursor: pointer; }
+
+.nq-peek[open] > summary { margin-bottom: 10px; }
+
+.nq-peek .code { max-height: 220px; margin: 0; padding: 12px 14px; overflow: auto; white-space: pre; font-size: 11.5px; }
+
+.nq-peek .nq-small { margin-bottom: 12px; }
+
+.nq-code { display: grid; gap: 8px; margin-top: 12px; }
+
+.nq-code > b { font-family: var(--nq-mono); font-size: 11px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; color: var(--nq-navy-60); }
+
+.nq-code .btn { justify-self: start; }

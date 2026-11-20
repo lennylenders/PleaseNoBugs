@@ -3,53 +3,108 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>PleaseNoBugs: a feedback board for Nimiq mini apps</title>
-    <meta name="description" content="Bugs, ideas and reviews, straight from your users, in one tag. No email, no tracking." />
-    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <title>PleaseNoBugs: a feedback board for everyone building on Nimiq</title>
+    <meta name="description" content="Bugs, ideas and reviews, straight from your users, in one tag. For everyone building on Nimiq. No email, no tracking." />
+    <link rel="icon" href="assets/nimiq/hexagon-2026.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="assets/site.css" />
+    <script src="assets/stack.js" type="module"></script>
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/board.js" type="module"></script>
+    <script src="assets/tour.js" type="module"></script>
   </head>
-  <body>
+  <body class="page--home">
     <header class="top">
       <div class="wrap top__inner">
         <a class="brand" href="./">
-          <img src="assets/logo.svg" alt="" width="32" height="36" />
+          <img class="brand__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="27" height="24" />
           <span>PleaseNoBugs</span>
         </a>
         <nav class="nav" aria-label="Main">
-          <a href="how-it-works.html">How it works</a>
-          <a href="customize.html">Customize</a>
+          <a href="what-is-it.html">Why PleaseNoBugs</a>
+          <a href="customize.html">Make it yours</a>
           <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
         </nav>
       </div>
     </header>
 
     <main class="one">
-      <div class="wrap hero">
-        <div>
-          <h1>Stop guessing what your users want.</h1>
-          <p class="lead">Customize your feedback board with one tag and let your users drive your roadmap.</p>
-          <div class="hero__actions">
-            <a class="btn" href="customize.html">Make it yours</a>
+      <!-- The hero: the brand's navy with its stacks at both sides, the heading, and the way to the demo below it. -->
+      <section class="nq-hero" aria-labelledby="nq-title">
+        <div class="stack stack--hero" data-stack="hero"></div>
+        <div class="wrap nq-hero__inner">
+          <p class="nq-label">For Nimiq builders</p>
+          <h1 id="nq-title">Stop guessing what your users want.</h1>
+          <p class="lead">Free, open-source feedback for Nimiq builders. Live in minutes. And let users drive your roadmap.</p>
+          <div class="nq-hero__ways">
+            <button type="button" class="btn" data-nq-watch>Watch demo<svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></button>
+            <a class="btn btn--quiet" href="what-is-it.html">Why PleaseNoBugs</a>
           </div>
         </div>
-        <div class="try">
-          <div class="device">
-            <please-no-bugs project="%BOARD_PROJECT%" server="%BOARD_SERVER%" theme="pleasenobugs" lang="en" names="off" screenshots="off"></please-no-bugs>
+      </section>
+      <div class="wrap hero">
+        <div class="editor tour" id="tour-frame">
+          <div class="screen screen--home" id="tour">
+            <div class="screen__app tour-app" aria-hidden="true">
+              <b>Your app</b>
+              <i></i><i></i><i></i><i></i>
+            </div>
+            <div class="tour-intro" id="tour-intro" hidden>
+              <svg class="nq-lines" aria-hidden="true"></svg>
+              <span class="ti-person" style="--i: 0; --x: 10%; --y: 46%" aria-hidden="true"><span class="ti-tile"></span></span>
+              <span class="ti-person" style="--i: 1; --x: 44%; --y: 54%" aria-hidden="true"><span class="ti-tile"></span></span>
+              <span class="ti-person" style="--i: 2; --x: 80%; --y: 14%" aria-hidden="true"><span class="ti-tile"></span></span>
+              <span class="ti-person" style="--i: 3; --x: 68%; --y: 38%" aria-hidden="true"><span class="ti-tile"></span></span>
+              <span class="ti-person ti-person--mirrored" style="--i: 4; --x: 28%; --y: 24%" aria-hidden="true"><span class="ti-tile"></span></span>
+              <span class="ti-bubble" style="--i: 0; --x: 6%; --y: 45%; --r: -6deg; --sx: calc(10% + 44px); --sy: calc(46% - 44px)" aria-hidden="true"><b><span class="ti-from">Review</span></b></span>
+              <span class="ti-bubble" style="--i: 1; --x: 38%; --y: 53%; --r: 5deg; --sx: calc(44% + 44px); --sy: calc(54% - 44px)" aria-hidden="true"><b><span class="ti-from">Chat</span></b></span>
+              <span class="ti-bubble ti-bubble--left" style="--i: 2; --x: 64%; --y: 13%; --r: -3deg; --sx: calc(80% + 8px - var(--bw0)); --sy: calc(14% - 44px)" aria-hidden="true"><b><span class="ti-from">DM</span></b></span>
+              <span class="ti-bubble ti-bubble--left" style="--i: 3; --x: 58%; --y: 36%; --r: 7deg; --sx: calc(68% + 8px - var(--bw0)); --sy: calc(38% - 44px)" aria-hidden="true"><b><span class="ti-from">Review</span></b></span>
+              <span class="ti-bubble" style="--i: 4; --x: 20%; --y: 23%; --r: 4deg; --sx: calc(28% + 44px); --sy: calc(24% - 44px)" aria-hidden="true"><b><span class="ti-from">Chat</span></b></span>
+              <span class="ti-board" aria-hidden="true"><b>Feedback</b><i class="nq-row nq-row--bug" style="--i: 0"><em>Bug</em>Save button does nothing</i><i class="nq-row nq-row--idea" style="--i: 1"><em>Idea</em>Dark mode</i><i class="nq-row nq-row--bug" style="--i: 2"><em>Bug</em>Buttons too small</i><i class="nq-row nq-row--idea" style="--i: 3"><em>Idea</em>Export to CSV</i></span>
+              <span class="ti-fab" aria-hidden="true"></span>
+              <p class="ti-caption" aria-hidden="true"><b></b><span></span></p>
+              <p class="visually-hidden" id="ti-said" role="status"></p>
+            </div>
+            <button type="button" class="tour-skip" id="tour-skip" hidden>Skip intro</button>
+            <div class="tour-page">
+              <p class="nq-start"><small>Demo · about a minute</small><b>See how it works.</b></p>
+              <div class="tour-start">
+                <button type="button" class="btn" id="tour-watch"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.5v11a.75.75 0 0 0 1.14.64l9-5.5a.75.75 0 0 0 0-1.28l-9-5.5A.75.75 0 0 0 3 1.5z"/></svg>Watch demo</button>
+              </div>
+            </div>
+            <div class="tour-title" id="tour-title" role="status" hidden><small></small><b></b></div>
+            <div class="tour-title tour-end" id="tour-end" role="group" aria-labelledby="tour-end-title" hidden>
+              <small>PleaseNoBugs</small>
+              <b id="tour-end-title"><span>Your users speak.</span> <span>You fix.</span> <span>Everyone sees.</span></b>
+              <div class="tour-end__ways">
+                <a class="btn" href="customize.html">Make it yours</a>
+                <button type="button" class="btn btn--quiet" id="tour-again">Watch again</button>
+              </div>
+            </div>
           </div>
-          <p>This is the real widget. Tell us what you think of it.</p>
+          <p class="tour-say" id="tour-say" tabindex="-1">
+            <span class="tour-say__title" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status"></span>
+          </p>
+        </div>
+        <div class="hero__below">
+          <a class="btn" href="customize.html">Make it yours</a>
         </div>
       </div>
     </main>
 
     <footer class="foot">
       <div class="wrap">
-        <span>PleaseNoBugs is open source, MIT licensed.</span>
-        <span>No tracking. What you post above goes to our own PleaseNoBugs server, without a name, and shows once we approved it. <a href="https://github.com/lennylenders/PleaseNoBugs">Source on GitHub</a></span>
+        <div class="foot__row">
+          <p class="foot__who"><img class="foot__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="16" height="14" /><b>For everyone building on Nimiq.</b> <span>Free and open source.</span></p>
+          <nav class="foot__links" aria-label="Links">
+            <a href="https://nimiq.dev/">Nimiq docs</a><a href="https://nimiq.dev/mini-apps/">Mini apps</a><a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
+          </nav>
+        </div>
+        <p class="foot__note">No tracking. Posts from the round button go to our own server, without a name, once approved.</p>
       </div>
     </footer>
 
-    <please-no-bugs project="%BOARD_PROJECT%" server="%BOARD_SERVER%" mode="floating" theme="pleasenobugs" lang="en" names="off" screenshots="off"></please-no-bugs>
+    <please-no-bugs project="%BOARD_PROJECT%" server="%BOARD_SERVER%" mode="floating" theme="nimiq" names="off" screenshots="off"></please-no-bugs>
   </body>
 </html>

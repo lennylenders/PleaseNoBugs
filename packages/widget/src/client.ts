@@ -10,10 +10,13 @@ import {
   type ErrorCode,
   type LoginProof,
   type Me,
+  type Message,
   type PostContext,
+  type PostFix,
   type PostKind,
   type PostStatus,
   type ShotType,
+  type Update,
 } from '@pleasenobugs/core';
 import { insideNimiqPay, nimiqPaySigner, SignerError, type Signer } from './signer.js';
 
@@ -274,11 +277,57 @@ export function createClient(options: ClientOptions) {
     remove: (id: string) => request<{ ok: true }>('DELETE', post(id), { auth: 'required' }),
     setName: (name: string) =>
       request<{ ok: true; name?: string }>('PUT', at('/me'), { body: { name }, auth: 'required' }),
+    /**
+     * An owner answering a post. `fix` says where the fix is, on a bug or an
+     * idea set to done: `{ version?, link? }`, the link on github.com or
+     * gitlab.com. Moving a post away from done takes its fix away by itself.
+     */
     manage: (
       id: string,
-      change: { status?: PostStatus; reply?: string; hidden?: boolean; shotOff?: boolean; approved?: boolean },
+      change: {
+        status?: PostStatus;
+        reply?: string;
+        hidden?: boolean;
+        shotOff?: boolean;
+        approved?: boolean;
+        fix?: PostFix | null;
+      },
     ) =>
       request<{ ok: true }>('POST', `${post(id)}/manage`, { body: change, auth: 'required' }),
+
+    /**
+     * Write under a post: an owner for the app, whenever they like; its
+     * author only right after the app, on a bug or an idea that is not done
+     * (`not_your_turn`, `closed` otherwise). `message.id` is yours to mint.
+     */
+    say: (id: string, message: { id: string; text: string }) =>
+      request<{ ok: true; message: Message }>('POST', `${post(id)}/messages`, { body: message, auth: 'required' }),
+    /**
+     * Change your own last message before anybody answered it (`text`), or,
+     * as an owner, take an author's message off the board or put it back
+     * (`hidden`).
+     */
+    editMessage: (id: string, messageId: string, change: { text?: string; hidden?: boolean }) =>
+      request<{ ok: true; message: Message }>('PATCH', `${post(id)}/messages/${encodeURIComponent(messageId)}`, {
+        body: change,
+        auth: 'required',
+      }),
+    /** Take your own last message back, before anybody answered it. */
+    unsay: (id: string, messageId: string) =>
+      request<{ ok: true }>('DELETE', `${post(id)}/messages/${encodeURIComponent(messageId)}`, { auth: 'required' }),
+
+    /** What changed in the app, newest first. Anybody's to read; never prompts. */
+    updates: () => request<{ updates: Update[] }>('GET', at('/updates'), { auth: 'optional' }),
+    /**
+     * An owner writing one. `link` is a page on github.com or gitlab.com;
+     * `posts` are the bugs and ideas it fixed, which go to done with its
+     * version and link.
+     */
+    postUpdate: (u: { id: string; title: string; text?: string; version?: string; link: string; posts?: string[] }) =>
+      request<{ ok: true; update: Update }>('POST', at('/updates'), { body: u, auth: 'required' }),
+    /** An owner taking one off the page. The posts it fixed stay done. */
+    removeUpdate: (id: string) =>
+      request<{ ok: true }>('DELETE', at(`/updates/${encodeURIComponent(id)}`), { auth: 'required' }),
   };
 }
 

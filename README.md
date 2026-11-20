@@ -10,10 +10,10 @@ one place, without asking anybody to send you an email.
   <img src="docs/images/board-light.png" width="250" alt="The board in light mode: ideas and bugs with votes and the app's answers">
   <img src="docs/images/board-dark.png" width="250" alt="The same board in dark mode">
   <img src="docs/images/owner-answer.png" width="250" alt="The owner answering a bug: status, a reply, and the app version it came from">
-  <img src="docs/images/tiles-nimiq.png" width="250" alt="The three tiles behind the plus, in the nimiq theme: report a bug, share an idea, write a review">
+  <img src="docs/images/tiles.png" width="250" alt="The three tiles behind the plus: report a bug, share an idea, write a review">
 </p>
 
-> **Status: 0.2.0, early.** It runs [Shitti](https://shitti.me)'s board.
+> **Status: 0.3.0, early.** It runs [Shitti](https://shitti.me)'s board.
 > This is a community tool, not an official Nimiq product.
 
 ## What it does
@@ -28,6 +28,11 @@ one place, without asking anybody to send you an email.
 - **Lookalikes while typing**: posts that resemble yours appear under the field,
   so people second the existing wish instead of writing it a fifth time.
 - **Your answer under every post**: Planned, Done, Not doing, plus one reply.
+  Done can say where: "Fixed in 1.4.2 · View on GitHub", and whoever reported
+  it gets a note on their board.
+- **An Updates page**: what changed in your app, each update a tap away from
+  its release or pull request on GitHub or GitLab. Ticking the bugs an update fixes
+  marks them Done in one go.
 - **Bug reports carry context** you choose, like your app's version, shown to
   you and nobody else, and optionally **a screenshot on the board**, after the
   user ticks that everyone may see it. You can take one off again, or keep them
@@ -36,8 +41,9 @@ one place, without asking anybody to send you an email.
 - **Anonymous by default.** A name shows only if the author turns it on, and a
   wallet address is never shown to anyone.
 - **Login is the Nimiq wallet your users already have.** No accounts, no email.
-- **Follows the phone**: light or dark, English, Dutch or German, and your
-  accent colour. Or the bright `nimiq` theme.
+- **In Nimiq's look**: the Nimiq Foundation's 2026 brand, light (`nimiq`)
+  or dark (`nimiq-dark`). In English; the `strings` property puts it in your
+  app's own language.
 
 <br clear="right">
 
@@ -96,9 +102,9 @@ you like and move by copying that file.
 
 | Where | What you depend on | Good for |
 |---|---|---|
-| **Railway**, as above | Railway | No command line. About $1 to $1.50 a month. |
+| **Railway**, as above | Railway | No command line. |
 | **A backend you already have** | Nothing new | Apps with a Node server: `npx @pleasenobugs/server`, or mount it into Express. See [packages/server](packages/server). |
-| **Your own server** with Docker (a VPS, or Coolify on one) | Whoever rents you the machine, and you can switch | A few euros a month for a small VPS, with room for other things. |
+| **Your own server** with Docker (a VPS, or Coolify on one) | Whoever rents you the machine, and you can switch | A small VPS, with room for other things. |
 | **Your own hardware** (a Raspberry Pi, a NAS) | Your internet connection and a domain name | Depending on as little as possible, if you can keep it switched on. |
 
 ### With Docker

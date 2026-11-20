@@ -1,5 +1,14 @@
 import { useState } from 'preact/hooks';
-import type { Post, PostKind, PostStatus } from '@pleasenobugs/core';
+import {
+  cleanCodeLink,
+  codeSite,
+  shownThread,
+  type Message,
+  type Post,
+  type PostKind,
+  type PostStatus,
+} from '@pleasenobugs/core';
+import { marks, snippet } from '../filter.js';
 import type { CopyKey, Translate } from '../i18n.js';
 import { whenLabel } from '../when.js';
 import * as Icon from './icons.js';
@@ -71,12 +80,76 @@ const STATUS: Partial<Record<PostStatus, { icon: () => preact.JSX.Element; label
   declined: { icon: () => <Icon.Declined />, label: 'board.statusDeclined' },
 };
 
+/**
+ * What `done` is called for posts of these kinds: a bug is **Fixed**,
+ * something was made; an idea is **Done**, nothing broke, it was carried
+ * out. For both at once, "Fixed or done". The status itself stays `done`,
+ * on the server and in the API; only the word differs.
+ */
+export function doneLabel(kinds: readonly PostKind[]): CopyKey {
+  const some = new Set(kinds.filter((k) => k !== 'review'));
+  if (some.size === 1 && some.has('bug')) return 'board.statusFixed';
+  if (some.size === 1 && some.has('idea')) return 'board.statusDone';
+  return 'board.statusFixedOrDone';
+}
+
+/** A status as the words say it for one post: `done` by its kind. */
+export function statusLabel(post: Pick<Post, 'kind' | 'status'>, label: CopyKey): CopyKey {
+  return post.status === 'done' ? doneLabel([post.kind]) : label;
+}
+
 export function Badge({ tone, icon, label }: { tone: string; icon: () => preact.JSX.Element; label: string }) {
   return (
     <span class="badge">
       <span class={`badge__dot badge__dot--${tone}`}>{icon()}</span>
       {label}
     </span>
+  );
+}
+
+/** The mark of the site a link goes to. */
+export function SiteMark({ site, size = 14 }: { site: 'GitHub' | 'GitLab'; size?: number }) {
+  return site === 'GitLab' ? <Icon.GitLab size={size} /> : <Icon.GitHub size={size} />;
+}
+
+/**
+ * A link to a page on GitHub or GitLab, said as one: the site's mark, the
+ * words, and the arrow that says it opens elsewhere. `label` may name the
+ * site (`{site}`). Only ever drawn for a link that really is on github.com
+ * or gitlab.com, checked again here whatever the server sent.
+ */
+export function CodeLink({ href, t, label = 'fix.view' }: { href: string; t: Translate; label?: CopyKey }) {
+  const safe = cleanCodeLink(href);
+  const site = codeSite(href);
+  if (!safe || !site) return null;
+  return (
+    <a
+      class="code-link"
+      href={safe}
+      target="_blank"
+      rel="noopener noreferrer"
+      // Not a request to open the card, which for an owner is a button.
+      onClick={(e) => e.stopPropagation()}
+    >
+      <SiteMark site={site} />
+      <span>{t(label, { site })}</span>
+      <Icon.Out size={12} />
+    </a>
+  );
+}
+
+/** "Fixed in 1.4.2 · View on GitHub", under a done bug or idea that says where. */
+function FixLine({ post, t }: { post: Post; t: Translate }) {
+  const fix = post.status === 'done' ? post.fix : undefined;
+  if (!fix || (!fix.version && !fix.link)) return null;
+  return (
+    <div class="fix">
+      {fix.version && (
+        <span class="fix__version">{t(post.kind === 'idea' ? 'fix.inIdea' : 'fix.in', { version: fix.version })}</span>
+      )}
+      {fix.version && fix.link && <span class="fix__dot" aria-hidden="true">·</span>}
+      {fix.link && <CodeLink href={fix.link} t={t} />}
+    </div>
   );
 }
 
@@ -128,7 +201,7 @@ export function VoteButton({
  * so where the name would be, because a blank reads as a name that failed to
  * load.
  *
- * The card is a target only for an owner, whose tap opens the sheet that
+ * The card is a target only for an owner, whose tap opens the page that
  * answers it. Shitti hid the bin behind a swipe; here it is a visible button,
  * because a gesture nobody can discover is a feature nobody has, and a widget
  * in somebody else's app cannot teach its own gestures.
@@ -137,23 +210,42 @@ export function VoteButton({
  * means is plain at a glance; a tap opens it whole. It loads only once the
  * card scrolls near, so a long board does not fetch every picture on it. An
  * owner sees a screenshot that is not on the board as a small mark instead,
- * and opens it from the manage sheet.
+ * and opens it from the page where they answer it.
+ *
+ * **The conversation under it is a count, not text**: however long it gets,
+ * the card stays the size of a card, and the count opens it on a page of its
+ * own (see `Talk`). Only a search that found its words there quotes a line.
  */
 export function PostCard({
   post,
-  appName,
   t,
   locale,
   onVote,
   onDelete,
   onManage,
+  onTalk,
   shotUrl,
   onShot,
+  fresh,
+  query = '',
+  found,
+  bare,
 }: {
   post: Post;
-  appName: string;
+  /** What the board calls the app. Unused since the card stopped quoting it; kept so callers need not change. */
+  appName?: string;
   t: Translate;
   locale: string;
+  /** Opens the conversation. Absent → the count is only a count. */
+  onTalk?: () => void;
+  /** For an owner: its author answered, and the app has not since. */
+  fresh?: boolean;
+  /** What the board is searched for, marked in the text. */
+  query?: string;
+  /** The message a search found its words in, quoted under the text. */
+  found?: Message;
+  /** Just the post, as the top of its conversation page: no foot, no screenshot. */
+  bare?: boolean;
   /** Absent on a read-only board: the count shows, with nothing to tap. */
   onVote?: (up: boolean) => void;
   /** Your own post, or any post for an owner. */
@@ -170,6 +262,7 @@ export function PostCard({
   const kind = KIND[post.kind];
   const status = STATUS[post.status];
   const when = whenLabel(post.at, locale);
+  const talk = shownThread(post.thread).length;
 
   return (
     <li
@@ -191,7 +284,7 @@ export function PostCard({
     >
       <div class="card__head">
         <Badge tone={post.kind} icon={kind.icon} label={t(kind.label)} />
-        {status && <Badge tone={post.status} icon={status.icon} label={t(status.label)} />}
+        {status && <Badge tone={post.status} icon={status.icon} label={t(statusLabel(post, status.label))} />}
         {post.rating !== undefined && <Stars n={post.rating} t={t} />}
         {post.shot && !shotUrl && (
           <span class="card__shot" title={t('board.shot')} aria-label={t('board.shot')}>
@@ -200,12 +293,21 @@ export function PostCard({
         )}
         {post.hidden && <span class="card__off">{t('board.hidden')}</span>}
         {post.pending && <span class="card__wait">{t('board.waiting')}</span>}
+        {fresh && <span class="card__new">{t('owner.newAnswer')}</span>}
         <span class="card__when">{'date' in when ? when.date : t(when.key, when.vars)}</span>
       </div>
 
-      <p class="card__text">{post.text}</p>
+      <p class="card__text">
+        <Marked text={post.text} query={query} />
+      </p>
 
-      {shotUrl && !broken && (
+      {found && (
+        <p class="card__found">
+          {t('search.inThread')} “<Marked text={snippet(found.text, query)} query={query} />”
+        </p>
+      )}
+
+      {shotUrl && !broken && !bare && (
         <button
           type="button"
           class="card__pic"
@@ -219,13 +321,9 @@ export function PostCard({
         </button>
       )}
 
-      {post.reply && (
-        <div class="card__reply">
-          <span class="card__reply-who">{t('board.reply', { app: appName })}</span>
-          <p class="card__reply-text">{post.reply.text}</p>
-        </div>
-      )}
+      <FixLine post={post} t={t} />
 
+      {!bare && (
       <div class="card__foot">
         <span class="card__who">{post.mine ? t('board.byYou') : (post.who ?? t('board.anon'))}</span>
         {onDelete && (
@@ -241,6 +339,27 @@ export function PostCard({
             <Icon.Trash />
           </button>
         )}
+        {talk > 0 &&
+          (onTalk ? (
+            <button
+              type="button"
+              class="card__talk"
+              aria-label={`${t('talk.open')}: ${t('talk.count', { n: talk })}`}
+              onClick={(e) => {
+                // Not the owner's manage sheet: the conversation itself.
+                e.stopPropagation();
+                onTalk();
+              }}
+            >
+              <Icon.Messages />
+              <span>{talk}</span>
+            </button>
+          ) : (
+            <span class="card__talk" role="img" aria-label={t('talk.count', { n: talk })}>
+              <Icon.Messages />
+              <span>{talk}</span>
+            </span>
+          ))}
         {onVote ? (
           <VoteButton
             votes={post.votes}
@@ -256,6 +375,17 @@ export function PostCard({
           </span>
         )}
       </div>
+      )}
     </li>
+  );
+}
+
+/** A text with what was searched for marked in it. */
+export function Marked({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  return (
+    <>
+      {marks(text, query).map((part, i) => (part.hit ? <mark key={i}>{part.text}</mark> : part.text))}
+    </>
   );
 }

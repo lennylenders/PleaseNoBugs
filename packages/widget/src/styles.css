@@ -8,54 +8,150 @@
  *   please-no-bugs { --pnb-accent: #e84a5f; --pnb-radius: 4px; }
  *
  * which works because outer styles on a host element beat its own :host rules.
- * Nothing below this first block uses a literal colour, so a token is all a
- * theme ever has to change.
+ * Nothing below the first two blocks uses a literal colour, so a token is all
+ * a look ever has to change.
+ *
+ * The look is the Nimiq Foundation's 2026 brand: navy on white, quiet greys,
+ * and gold for the one thing that matters, the round button. Calm and flat:
+ * no gradients, no raised buttons. `theme="nimiq-dark"` is the same on the
+ * brand's navy.
  */
 
 :host {
   /* Surfaces, from the page up. */
   --pnb-bg: #ffffff;
-  --pnb-surface: #f4f4f7;
-  --pnb-surface-2: #e8e8ef;
-  --pnb-sunken: #e8e8ef;
-  --pnb-line: #dcdce5;
-  /* Ink. Quiet text measures 6.4:1 on the page and 5.9:1 on a card. */
-  --pnb-text: #1b1b24;
-  --pnb-text-quiet: #5a5a6b;
-  /* The one accent, and what is written on it. The fill is what a button is
-     painted with: the accent, unless a theme wants a gradient there. */
-  --pnb-accent: #2563eb;
-  --pnb-accent-fill: var(--pnb-accent);
+  --pnb-surface: #fafaf8;
+  --pnb-surface-2: #f2f3f4;
+  --pnb-sunken: #f2f3f4;
+  --pnb-line: #e6e6e9;
+  /* Ink: the brand's navy, and a quieter step of it for small words. */
+  --pnb-text: #040724;
+  --pnb-text-quiet: #686a7c;
+  /* The one accent, and what is written on it. */
+  --pnb-accent: #040724;
   --pnb-on-accent: #ffffff;
-  --pnb-danger: #d23b2f;
-  /* The chips, the same in every theme but Nimiq's: a bug red, an idea
-     purple, a review orange like its star, Done in teal and the rest a
-     quiet grey. */
-  --pnb-bug: #e5484d;
-  --pnb-idea: #8b5cf6;
-  --pnb-review: #e9a00b;
-  --pnb-planned: #8a8fb8;
-  --pnb-done: #21bca5;
-  --pnb-declined: #8a8fb8;
+  --pnb-danger: #cb0015;
+  /* The chips: a bug in the brand's red step, an idea gold, a review grey,
+     Planned a light gold and Done navy. */
+  --pnb-bug: #cb0015;
+  --pnb-idea: #ffb700;
+  --pnb-review: #4f5166;
+  --pnb-planned: #ffc758;
+  --pnb-done: #040724;
+  --pnb-declined: #9b9ca7;
+  /* The glyph on a chip's coloured dot: white, unless the dot is too
+     light for it. One per kind and status, all following the first. */
+  --pnb-on-dot: #ffffff;
+  --pnb-on-bug: var(--pnb-on-dot);
+  --pnb-on-idea: #040724;
+  --pnb-on-review: var(--pnb-on-dot);
+  --pnb-on-planned: #040724;
+  --pnb-on-done: var(--pnb-on-dot);
+  --pnb-on-declined: var(--pnb-on-dot);
   /* A filled star. */
-  --pnb-star: #f5a524;
+  --pnb-star: #ffb700;
+  /* The chosen filter over the list, and the chosen status where an owner
+     answers: the text colour turned round, unless set otherwise. */
+  --pnb-filter: var(--pnb-text);
+  --pnb-on-filter: var(--pnb-bg);
+  /* Parts that can have a colour of their own, each following the shared
+     one above unless set: the question over the tiles, the title in the
+     board's bar and in the writing screen's, the cards on the board (posts
+     and the rating) with their words and small words, the field you write
+     in, and the line round "Add screenshot". */
+  --pnb-choose-title: var(--pnb-text);
+  --pnb-title-board: var(--pnb-text);
+  --pnb-title-write: var(--pnb-text);
+  --pnb-card: #ffffff;
+  --pnb-card-text: var(--pnb-text);
+  --pnb-card-quiet: var(--pnb-text-quiet);
+  --pnb-field: #f2f3f4;
+  --pnb-shot-line: var(--pnb-line);
+  /* Everywhere you type (the form, the search, an answer, an update) is one
+     family: its ground above, its words, its hint words, its line. */
+  --pnb-field-text: var(--pnb-text);
+  --pnb-field-quiet: var(--pnb-text-quiet);
+  --pnb-field-line: var(--pnb-line);
+  /* The note on top of the board ("... answered your idea"): its ground,
+     line, words, link, and small words and close. */
+  --pnb-news: var(--pnb-surface-2);
+  --pnb-news-line: var(--pnb-accent);
+  --pnb-news-text: var(--pnb-text);
+  --pnb-news-link: var(--pnb-accent);
+  --pnb-news-quiet: var(--pnb-text-quiet);
+  /* The Filter button beside the search: its ground, words and line. */
+  --pnb-filter-btn: #ffffff;
+  --pnb-filter-btn-text: var(--pnb-text);
+  --pnb-filter-btn-line: #cdcdd3;
+  /* The icons in the bars (close, back, updates, new post), one family. */
+  --pnb-bar-icon: var(--pnb-text);
+  /* The Top / New switch: its trough and its other word; the chosen half is
+     --pnb-order-on and --pnb-on-order below. */
+  --pnb-order: var(--pnb-sunken);
+  --pnb-order-text: var(--pnb-text-quiet);
+  /* The vote button on a post, its count, and a vote you gave. */
+  --pnb-vote: #f2f3f4;
+  --pnb-vote-text: var(--pnb-card-text);
+  --pnb-vote-on: var(--pnb-accent);
+  --pnb-on-vote-on: var(--pnb-on-accent);
+  /* "See the board" under the tiles, and the small words in the forms. */
+  --pnb-choose-link: var(--pnb-text-quiet);
+  --pnb-form-quiet: var(--pnb-text-quiet);
+  /* A switch, like "Show my name": off, its line and knob; on, and its knob. */
+  --pnb-switch: var(--pnb-surface-2);
+  --pnb-switch-line: var(--pnb-line);
+  --pnb-switch-knob: var(--pnb-text-quiet);
+  --pnb-switch-on: var(--pnb-accent);
+  --pnb-on-switch-on: var(--pnb-on-accent);
   /* The tiles you pick a kind on, and what is written on them: each painted
      in its kind's colour, as in the design. */
   --pnb-tile-bug: var(--pnb-bug);
   --pnb-tile-idea: var(--pnb-idea);
   --pnb-tile-review: var(--pnb-review);
   --pnb-tile-ink: #ffffff;
-  /* Behind the tick on "Feedback sent!". */
+  /* The words on one tile, for a tile that wants its own (a light tile among
+     dark ones): all three follow the one above unless set. */
+  --pnb-tile-ink-bug: var(--pnb-tile-ink);
+  --pnb-tile-ink-idea: #040724;
+  --pnb-tile-ink-review: var(--pnb-tile-ink);
+  /* A disc behind each tile's glyph, and the glyph's colour on it, the
+     tile's words' unless set. No disc unless one is set: then the
+     glyph sits on it like on a chip. */
+  --pnb-tile-dot-bug: transparent;
+  --pnb-tile-dot-idea: transparent;
+  --pnb-tile-dot-review: transparent;
+  --pnb-tile-glyph-bug: var(--pnb-tile-ink-bug);
+  --pnb-tile-glyph-idea: var(--pnb-tile-ink-idea);
+  --pnb-tile-glyph-review: var(--pnb-tile-ink-review);
+  /* The box the tile's glyph sits in: room for a disc, or just the glyph. */
+  --pnb-tile-icon: 44px;
+  /* The chosen half of Top/New, and its words. */
+  --pnb-order-on: var(--pnb-surface);
+  --pnb-on-order: var(--pnb-text);
+  /* "Feedback sent!": what is behind it, and its own title, small words
+     (the note and "Back to the board") and tick disc, so they can change
+     without changing the text and Done everywhere else. */
   --pnb-sent: var(--pnb-bg);
+  --pnb-sent-title: var(--pnb-text);
+  --pnb-sent-note: var(--pnb-text-quiet);
+  --pnb-sent-check: #040724;
+  --pnb-on-sent-check: #ffffff;
   /* The round floating button, and its glyph. */
-  --pnb-fab: var(--pnb-accent-fill);
-  --pnb-on-fab: var(--pnb-on-accent);
+  --pnb-fab: #ffb700;
+  --pnb-on-fab: #040724;
+  /* Its shadow, at rest and pressed, and how small it gets pressed. */
+  --pnb-fab-shadow: var(--pnb-shadow);
+  --pnb-fab-shadow-pressed: var(--pnb-fab-shadow);
+  --pnb-fab-squeeze: 0.94;
   /* Shape. The panel is the board in the corner of a wide screen. */
-  --pnb-radius: 8px;
+  --pnb-radius: 10px;
   --pnb-radius-sheet: 16px;
   --pnb-radius-panel: 16px;
-  --pnb-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
-  --pnb-scrim: rgba(10, 10, 20, 0.5);
+  /* Pills: filters, chips, votes, Top/New and the big buttons. Round, unless
+     set squarer. */
+  --pnb-radius-pill: 999px;
+  --pnb-shadow: 0 8px 24px rgba(4, 7, 36, 0.14);
+  --pnb-scrim: rgba(4, 7, 36, 0.5);
   /* Type. Inherits the app's own font: the widget should look like it belongs. */
   --pnb-font: inherit;
   /* How high the overlay and the floating button sit. */
@@ -79,91 +175,33 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-@media (prefers-color-scheme: dark) {
-  :host(:not([theme])),
-  :host([theme='auto']) {
-    --pnb-bg: #15151c;
-    --pnb-surface: #22222c;
-    --pnb-surface-2: #2e2e3a;
-    --pnb-sunken: #0d0d12;
-    --pnb-line: #383846;
-    --pnb-text: #f2f2f7;
-    --pnb-text-quiet: #a9a9ba;
-    --pnb-accent: #6b93ff;
-    --pnb-on-accent: #0b0b12;
-    --pnb-danger: #ff6b5e;
-    --pnb-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
-    --pnb-scrim: rgba(0, 0, 0, 0.6);
-  }
-}
-
-:host([theme='dark']) {
-  --pnb-bg: #15151c;
-  --pnb-surface: #22222c;
-  --pnb-surface-2: #2e2e3a;
-  --pnb-sunken: #0d0d12;
-  --pnb-line: #383846;
-  --pnb-text: #f2f2f7;
-  --pnb-text-quiet: #a9a9ba;
-  --pnb-accent: #6b93ff;
-  --pnb-on-accent: #0b0b12;
-  --pnb-danger: #ff6b5e;
-  --pnb-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
-  --pnb-scrim: rgba(0, 0, 0, 0.6);
-}
-
-/* Nimiq: bright and light, the colours of the feedback design this widget's
-   tiles came from. Painted tiles, a gradient on the buttons, and a green
-   "sent". */
-:host([theme='nimiq']) {
-  --pnb-bg: #ffffff;
-  --pnb-surface: #f5f5f8;
-  --pnb-surface-2: #e9e9f0;
-  --pnb-sunken: #e9e9f0;
-  --pnb-line: #dedee7;
-  --pnb-text: #1f2348;
-  --pnb-text-quiet: #5c5f7a;
-  --pnb-accent: #0582ca;
-  --pnb-accent-fill: linear-gradient(274deg, #265dd7 0%, #0582ca 100%);
-  --pnb-on-accent: #ffffff;
-  --pnb-danger: #d94432;
-  --pnb-bug: #d94432;
-  --pnb-idea: #21bca5;
-  --pnb-review: #e9a113;
-  --pnb-planned: #0582ca;
-  --pnb-done: #21bca5;
-  --pnb-declined: #8b8d98;
-  --pnb-star: #e9a113;
-  --pnb-tile-bug: linear-gradient(274deg, #cc3047 0%, #e9564a 100%);
-  --pnb-tile-idea: linear-gradient(274deg, #41a38e 0%, #21bca5 100%);
-  --pnb-tile-review: linear-gradient(274deg, #ec991c 0%, #e9b213 100%);
-  --pnb-sent: linear-gradient(274deg, #41a38e 0%, #21bca5 100%);
-  --pnb-fab: #1f2348;
-  --pnb-on-fab: #ffffff;
-  --pnb-radius: 10px;
-  --pnb-radius-sheet: 20px;
-  --pnb-radius-panel: 10px;
-  --pnb-shadow: 0 8px 24px rgba(31, 35, 72, 0.16);
-  --pnb-scrim: rgba(31, 35, 72, 0.5);
-}
-
-/* PleaseNoBugs' own colours, the same as its website. They started as
-   Shitti's, and `shitti`, the name 0.1 shipped them under, still works. Also
-   the worked example of a whole theme in twelve lines. */
-:host([theme='pleasenobugs']),
-:host([theme='shitti']) {
-  --pnb-bg: #292a56;
-  --pnb-surface: #5656ac;
-  --pnb-surface-2: #454689;
-  --pnb-sunken: #1a1a32;
-  --pnb-line: #6d6dc5;
+/* Dark: the same brand on its navy, for an app with a dark look. */
+:host([theme='nimiq-dark']) {
+  --pnb-bg: #040724;
+  --pnb-surface: #1d203a;
+  --pnb-surface-2: #363950;
+  --pnb-sunken: #02030f;
+  --pnb-line: #363950;
   --pnb-text: #ffffff;
-  --pnb-text-quiet: rgba(255, 255, 255, 0.78);
-  --pnb-accent: #1fc7d4;
-  --pnb-on-accent: #12132b;
-  --pnb-danger: #ff7a6b;
-  --pnb-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
-  --pnb-scrim: rgba(10, 10, 30, 0.6);
+  --pnb-text-quiet: #9b9ca7;
+  --pnb-accent: #ffffff;
+  --pnb-on-accent: #040724;
+  --pnb-danger: #e93700;
+  --pnb-bug: #e93700;
+  --pnb-review: #b4b5bd;
+  --pnb-on-review: #040724;
+  --pnb-done: #ffffff;
+  --pnb-on-done: #040724;
+  --pnb-declined: #686a7c;
+  --pnb-card: #1d203a;
+  --pnb-field: #363950;
+  --pnb-filter-btn: #1d203a;
+  --pnb-filter-btn-line: #4f5166;
+  --pnb-vote: #363950;
+  --pnb-sent-check: #ffffff;
+  --pnb-on-sent-check: #040724;
+  --pnb-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --pnb-scrim: rgba(0, 0, 0, 0.6);
 }
 
 *,
@@ -207,15 +245,30 @@ button {
   overflow: hidden;
 }
 
+/* Two equal sides keep the title in the middle, however many buttons one
+   side holds: the board's left has Close and Updates. */
 .bar {
   display: grid;
-  grid-template-columns: 48px 1fr 48px;
+  grid-template-columns: minmax(48px, 1fr) auto minmax(48px, 1fr);
   align-items: center;
   min-height: 56px;
   padding: 0 4px;
   padding-top: var(--_top);
   flex-shrink: 0;
 }
+
+.bar > :last-child {
+  justify-self: end;
+}
+
+.bar__side {
+  display: flex;
+  align-items: center;
+}
+
+/* The board's and the writing screen's titles can each have their own colour. */
+.bar__title--board { color: var(--pnb-title-board); }
+.bar__title--write { color: var(--pnb-title-write); }
 
 .bar__title {
   margin: 0;
@@ -240,6 +293,10 @@ button {
   background: var(--pnb-surface);
 }
 
+.bar .icon-btn {
+  color: var(--pnb-bar-icon);
+}
+
 .filters {
   display: flex;
   gap: 8px;
@@ -253,7 +310,7 @@ button {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  border-radius: 999px;
+  border-radius: var(--pnb-radius-pill);
   background: var(--pnb-surface);
   color: var(--pnb-text-quiet);
   font-size: 14px;
@@ -262,8 +319,8 @@ button {
 
 .chip-pick[aria-pressed='true'],
 .chip-pick[aria-checked='true'] {
-  background: var(--pnb-text);
-  color: var(--pnb-bg);
+  background: var(--pnb-filter);
+  color: var(--pnb-on-filter);
 }
 
 .scroll {
@@ -272,6 +329,19 @@ button {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding: 0 16px calc(96px + var(--_bottom));
+}
+
+/* No scrollbar where the widget scrolls: a computer's would take a strip of
+   the panel for something a wheel, a finger or a cut-off card already says.
+   Scrolling itself is unchanged. */
+.scroll,
+.sheet {
+  scrollbar-width: none;
+}
+
+.scroll::-webkit-scrollbar,
+.sheet::-webkit-scrollbar {
+  display: none;
 }
 
 .list {
@@ -301,8 +371,9 @@ button {
   position: relative;
   padding: 16px;
   border-radius: var(--pnb-radius);
-  background: var(--pnb-surface);
+  background: var(--pnb-card);
   border: 1px solid var(--pnb-line);
+  color: var(--pnb-card-text);
 }
 
 .card--owner {
@@ -325,7 +396,7 @@ button {
   align-items: center;
   gap: 6px;
   padding: 4px 10px 4px 4px;
-  border-radius: 999px;
+  border-radius: var(--pnb-radius-pill);
   background: var(--pnb-surface-2);
   font-size: 12px;
   font-weight: 800;
@@ -337,15 +408,14 @@ button {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  color: #fff;
 }
 
-.badge__dot--bug { background: var(--pnb-bug); }
-.badge__dot--idea { background: var(--pnb-idea); }
-.badge__dot--review { background: var(--pnb-review); }
-.badge__dot--planned { background: var(--pnb-planned); }
-.badge__dot--done { background: var(--pnb-done); }
-.badge__dot--declined { background: var(--pnb-declined); }
+.badge__dot--bug { background: var(--pnb-bug); color: var(--pnb-on-bug); }
+.badge__dot--idea { background: var(--pnb-idea); color: var(--pnb-on-idea); }
+.badge__dot--review { background: var(--pnb-review); color: var(--pnb-on-review); }
+.badge__dot--planned { background: var(--pnb-planned); color: var(--pnb-on-planned); }
+.badge__dot--done { background: var(--pnb-done); color: var(--pnb-on-done); }
+.badge__dot--declined { background: var(--pnb-declined); color: var(--pnb-on-declined); }
 
 .card__shot {
   display: grid;
@@ -380,19 +450,20 @@ button {
   margin-bottom: 12px;
   padding: 12px 16px;
   border-radius: var(--pnb-radius);
-  background: var(--pnb-surface);
+  background: var(--pnb-card);
   border: 1px solid var(--pnb-line);
 }
 
 .rating__avg {
   font-size: 22px;
   font-weight: 700;
+  color: var(--pnb-card-text);
 }
 
 .rating__n {
   margin-left: auto;
   font-size: 14px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-card-quiet);
 }
 
 .card__off {
@@ -410,11 +481,12 @@ button {
 .card__when {
   margin-left: auto;
   font-size: 12px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-card-quiet);
 }
 
 .card__text {
   margin: 12px 0 0;
+  color: var(--pnb-card-text);
   font-size: 16px;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -461,6 +533,84 @@ button {
   white-space: pre-wrap;
 }
 
+/* "Fixed in 1.4.2 · View on GitHub": under the answer, or on its own. */
+.fix {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.card__reply .fix {
+  margin-top: 8px;
+}
+
+.fix__dot {
+  color: var(--pnb-text-quiet);
+}
+
+.code-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--pnb-accent);
+  text-decoration: none;
+}
+
+.code-link:hover span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The note for whoever reported it, over the list. Bordered in the accent:
+   it is the one thing on the board that is about you. */
+.news {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 6px 10px 12px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-news);
+  border: 1.5px solid var(--pnb-news-line);
+  color: var(--pnb-news-text);
+}
+
+.news__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  /* No width of its own, or the post's one long line would widen the whole
+     widget wherever the app lets it size to its content. */
+  width: 0;
+}
+
+.news__title {
+  font-size: 14px;
+}
+
+.news__post {
+  font-size: 12px;
+  color: var(--pnb-news-quiet);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.news__close {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  color: var(--pnb-news-quiet);
+}
+
 .card__foot {
   display: flex;
   align-items: center;
@@ -472,7 +622,7 @@ button {
   flex: 1;
   min-width: 0;
   font-size: 14px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-card-quiet);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -491,8 +641,9 @@ button {
   min-width: 56px;
   height: 36px;
   padding: 0 12px;
-  border-radius: 999px;
-  background: var(--pnb-surface-2);
+  border-radius: var(--pnb-radius-pill);
+  background: var(--pnb-vote);
+  color: var(--pnb-vote-text);
   font-size: 14px;
   font-weight: 700;
   justify-content: center;
@@ -501,12 +652,12 @@ button {
 /* The count on a read-only board: the same pill, nothing to press. */
 .vote--count {
   background: transparent;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-card-quiet);
 }
 
 .vote[aria-pressed='true'] {
-  background: var(--pnb-accent);
-  color: var(--pnb-on-accent);
+  background: var(--pnb-vote-on);
+  color: var(--pnb-on-vote-on);
 }
 
 /* ---- The order, floating over the foot of the list ---------------------- */
@@ -534,21 +685,21 @@ button {
   width: min(240px, calc(100% - 32px));
   height: 48px;
   padding: 4px;
-  border-radius: 999px;
-  background: var(--pnb-sunken);
+  border-radius: var(--pnb-radius-pill);
+  background: var(--pnb-order);
   box-shadow: var(--pnb-shadow);
 }
 
 .order__tab {
-  border-radius: 999px;
+  border-radius: max(0px, calc(var(--pnb-radius-pill) - 4px));
   font-weight: 700;
   font-size: 15px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-order-text);
 }
 
 .order__tab[aria-selected='true'] {
-  background: var(--pnb-surface);
-  color: var(--pnb-text);
+  background: var(--pnb-order-on);
+  color: var(--pnb-on-order);
 }
 
 .pager {
@@ -561,7 +712,7 @@ button {
 .pager button {
   min-width: 36px;
   height: 36px;
-  border-radius: 999px;
+  border-radius: var(--pnb-radius-pill);
   color: var(--pnb-text-quiet);
   font-weight: 700;
 }
@@ -593,8 +744,8 @@ button {
   width: 100%;
   height: 48px;
   padding: 0 24px;
-  border-radius: 999px;
-  background: var(--pnb-accent-fill);
+  border-radius: var(--pnb-radius-pill);
+  background: var(--pnb-accent);
   color: var(--pnb-on-accent);
   font-size: 16px;
   font-weight: 700;
@@ -605,9 +756,12 @@ button {
   cursor: default;
 }
 
-.btn--danger {
+.btn--danger,
+.btn--danger:active:not(:disabled) {
   background: var(--pnb-danger);
   color: #fff;
+  box-shadow: none;
+  translate: none;
 }
 
 .text-btn {
@@ -632,11 +786,15 @@ button {
 
 /* ---- Writing one -------------------------------------------------------- */
 
+/* As tall as the screen at least, so the send button and the line under it
+   sit at the foot of the panel when there is little to write in, as on a
+   form's own page; with more, they follow it. */
 .compose {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-bottom: 24px;
+  min-height: 100%;
+  padding-bottom: 4px;
 }
 
 .label {
@@ -694,7 +852,7 @@ button {
   gap: 6px;
   min-height: 88px;
   border-radius: var(--pnb-radius);
-  border: 1.5px dashed var(--pnb-line);
+  border: 1.5px dashed var(--pnb-shot-line);
   color: var(--pnb-text-quiet);
   font-size: 14px;
   font-weight: 700;
@@ -748,6 +906,7 @@ button {
 
 .choose__title {
   margin: 8px 0 16px;
+  color: var(--pnb-choose-title);
   font-size: 20px;
   font-weight: 700;
   text-align: center;
@@ -787,15 +946,18 @@ button {
   cursor: default;
 }
 
-.tile--bug { background: var(--pnb-tile-bug); }
-.tile--idea { background: var(--pnb-tile-idea); }
-.tile--review { background: var(--pnb-tile-review); }
+.tile--bug { background: var(--pnb-tile-bug); color: var(--pnb-tile-ink-bug); --_dot: var(--pnb-tile-dot-bug); --_glyph: var(--pnb-tile-glyph-bug); }
+.tile--idea { background: var(--pnb-tile-idea); color: var(--pnb-tile-ink-idea); --_dot: var(--pnb-tile-dot-idea); --_glyph: var(--pnb-tile-glyph-idea); }
+.tile--review { background: var(--pnb-tile-review); color: var(--pnb-tile-ink-review); --_dot: var(--pnb-tile-dot-review); --_glyph: var(--pnb-tile-glyph-review); }
 
 .tile__icon {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--pnb-tile-icon);
+  height: var(--pnb-tile-icon);
+  border-radius: 50%;
+  background: var(--_dot);
+  color: var(--_glyph);
   /* The design's soft shadow under the glyph. */
   filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.05)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.07));
 }
@@ -824,6 +986,7 @@ button {
 }
 
 .choose__board .text-btn {
+  color: var(--pnb-choose-link);
   font-size: 14px;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -850,8 +1013,8 @@ button {
   width: 88px;
   height: 88px;
   border-radius: 50%;
-  background: var(--pnb-done);
-  color: #fff;
+  background: var(--pnb-sent-check);
+  color: var(--pnb-on-sent-check);
   animation: pop 320ms cubic-bezier(0.2, 0.9, 0.3, 1.3);
 }
 
@@ -859,25 +1022,16 @@ button {
   margin: 12px 0 0;
   font-size: 22px;
   font-weight: 700;
+  color: var(--pnb-sent-title);
+}
+
+.sent__note,
+.sent__back {
+  color: var(--pnb-sent-note);
 }
 
 .sent__note {
   margin: 0;
-  color: var(--pnb-text-quiet);
-}
-
-/* On a painted "sent" the words go white and the tick needs no disc. */
-:host([theme='nimiq']) .sent {
-  color: #fff;
-}
-
-:host([theme='nimiq']) .sent__check {
-  background: transparent;
-}
-
-:host([theme='nimiq']) .sent__note,
-:host([theme='nimiq']) .sent__back {
-  color: rgba(255, 255, 255, 0.9);
 }
 
 @keyframes pop {
@@ -887,7 +1041,7 @@ button {
 .public {
   margin: 12px 0 0;
   font-size: 14px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-form-quiet);
 }
 
 .field {
@@ -895,8 +1049,9 @@ button {
   min-height: 140px;
   padding: 12px 14px;
   border-radius: var(--pnb-radius);
-  border: 1px solid var(--pnb-line);
-  background: var(--pnb-surface);
+  border: 1px solid var(--pnb-field-line);
+  background: var(--pnb-field);
+  color: var(--pnb-field-text);
   font-size: 16px;
   line-height: 1.4;
   resize: vertical;
@@ -911,7 +1066,7 @@ button {
    colour is made to be read on it. Firefox also dims it by itself. */
 .field::placeholder,
 .input::placeholder {
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-field-quiet);
   opacity: 1;
 }
 
@@ -920,8 +1075,9 @@ button {
   height: 44px;
   padding: 0 14px;
   border-radius: var(--pnb-radius);
-  border: 1px solid var(--pnb-line);
-  background: var(--pnb-surface);
+  border: 1px solid var(--pnb-field-line);
+  background: var(--pnb-field);
+  color: var(--pnb-field-text);
   font-size: 16px;
 }
 
@@ -933,7 +1089,7 @@ button {
 .count {
   align-self: flex-end;
   font-size: 12px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-form-quiet);
 }
 
 .alike {
@@ -993,8 +1149,8 @@ button {
   width: 48px;
   height: 28px;
   border-radius: 999px;
-  background: var(--pnb-surface-2);
-  border: 1px solid var(--pnb-line);
+  background: var(--pnb-switch);
+  border: 1px solid var(--pnb-switch-line);
   transition: background 160ms ease;
 }
 
@@ -1006,25 +1162,183 @@ button {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--pnb-text-quiet);
+  background: var(--pnb-switch-knob);
   transition: transform 160ms ease, background 160ms ease;
 }
 
 .switch[aria-checked='true'] {
-  background: var(--pnb-accent);
-  border-color: var(--pnb-accent);
+  background: var(--pnb-switch-on);
+  border-color: var(--pnb-switch-on);
 }
 
 .switch[aria-checked='true']::after {
   transform: translateX(20px);
-  background: var(--pnb-on-accent);
+  background: var(--pnb-on-switch-on);
 }
 
 .note {
   margin: 4px 0 0;
   font-size: 12px;
   line-height: 1.45;
+  color: var(--pnb-form-quiet);
+}
+
+.note--bad {
+  color: var(--pnb-danger);
+}
+
+/* ---- Updates ------------------------------------------------------------ */
+
+.updates__intro {
+  margin: 0 0 12px;
+  font-size: 13px;
   color: var(--pnb-text-quiet);
+}
+
+.update {
+  position: relative;
+}
+
+/* The whole card is the link: one target for the one thing to do with it. */
+.update__link {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-surface);
+  border: 1px solid var(--pnb-line);
+  color: inherit;
+  text-decoration: none;
+}
+
+.update__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.update__version {
+  padding: 4px 10px;
+  border-radius: var(--pnb-radius-pill);
+  background: var(--pnb-surface-2);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.update__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.update__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--pnb-text-quiet);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.update__fixed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--pnb-text-quiet);
+}
+
+.update__link .code-link {
+  margin-top: 4px;
+}
+
+/* An owner's bin, beside the link rather than in it. */
+.update__bin {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 36px;
+  height: 36px;
+  color: var(--pnb-text-quiet);
+}
+
+/* Picking what an update fixed. */
+.picks {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-surface);
+}
+
+.pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.pick input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--pnb-accent);
+}
+
+.pick .badge {
+  flex: none;
+}
+
+.pick__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* "Fixed in" in the owner's sheet, once Done is picked. */
+.fix-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-surface);
+}
+
+.fix-box__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.fix-box__label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--pnb-text-quiet);
+}
+
+.fix-box__label .input {
+  font-weight: 400;
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--pnb-danger);
 }
 
 .send {
@@ -1035,9 +1349,15 @@ button {
   margin-top: 20px;
 }
 
+/* In the form, pushed down to the foot when there is room for it. */
+.compose .send {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
 .left {
   font-size: 13px;
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-form-quiet);
   text-align: center;
 }
 
@@ -1079,7 +1399,8 @@ button {
   overflow-wrap: anywhere;
 }
 
-.sheet__actions {
+.sheet__actions,
+.manage__actions {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1264,8 +1585,8 @@ button {
   border-radius: 50%;
   background: var(--pnb-fab);
   color: var(--pnb-on-fab);
-  box-shadow: var(--pnb-shadow);
-  transition: transform 120ms ease;
+  box-shadow: var(--pnb-fab-shadow);
+  transition: transform 120ms ease, translate 120ms ease, box-shadow 120ms ease;
 }
 
 .fab:hover {
@@ -1273,7 +1594,26 @@ button {
 }
 
 .fab:active {
-  transform: scale(0.94);
+  transform: scale(var(--pnb-fab-squeeze));
+  box-shadow: var(--pnb-fab-shadow-pressed);
+}
+
+/* While it is the panel: still in the page, so the panel knows where to
+   shrink back to, but out of sight and out of reach. */
+.fab--away {
+  visibility: hidden;
+}
+
+/* The button growing into the panel and back: the panel animates itself
+   (see `morph` in element.tsx) instead of sliding. */
+.overlay.overlay--morph,
+.overlay.overlay--morph.overlay--leaving {
+  animation: none;
+}
+
+/* What grows is the panel's own background: the content fades in on it. */
+.overlay--morph {
+  background: var(--pnb-bg);
 }
 
 @media (min-width: 640px) {
@@ -1336,4 +1676,399 @@ button {
   .spinner {
     animation-duration: 1.6s;
   }
+}
+
+/* ---- Search and filter -------------------------------------------------- */
+
+/* One row instead of a row of chips: the search, and the button that opens
+   everything else. Still `.filters` too, which pages driving the widget
+   (the website's tour) know the board by. */
+.finder {
+  flex-wrap: nowrap;
+  align-items: center;
+  padding: 4px 16px 10px;
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 6px 0 12px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-field);
+  border: 1px solid var(--pnb-field-line);
+  color: var(--pnb-field-quiet);
+}
+
+.search:focus-within {
+  border-color: var(--pnb-accent);
+}
+
+.search__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pnb-field-text);
+  font-size: 15px;
+  outline: none;
+}
+
+.search__input::placeholder {
+  color: var(--pnb-field-quiet);
+  opacity: 1;
+}
+
+/* Our own x, the same in every browser. */
+.search__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search__clear {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--pnb-text-quiet);
+}
+
+.filter-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-filter-btn);
+  border: 1px solid var(--pnb-filter-btn-line);
+  color: var(--pnb-filter-btn-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.filter-btn[aria-pressed='true'] {
+  padding-right: 8px;
+  border-color: var(--pnb-accent);
+}
+
+.filter-btn__n {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--pnb-accent);
+  color: var(--pnb-on-accent);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* What is on, each with its own x, so a short board says why it is short. */
+.applied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px 10px;
+  flex-shrink: 0;
+}
+
+.applied__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px 5px 12px;
+  border-radius: var(--pnb-radius-pill);
+  background: var(--pnb-surface);
+  border: 1px solid var(--pnb-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* A small action in words, in the accent: Clear all, Edit, Hide. */
+.link-btn {
+  padding: 4px 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pnb-accent);
+}
+
+.found-count {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--pnb-text-quiet);
+}
+
+/* A searched word, wherever it was found. */
+mark {
+  background: transparent;
+  color: var(--pnb-accent);
+  font-weight: 800;
+}
+
+.nothing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.nothing p {
+  margin: 0;
+}
+
+.nothing__title {
+  font-size: 16px;
+  color: var(--pnb-text);
+}
+
+.outline-btn {
+  margin-top: 4px;
+  padding: 10px 16px;
+  border-radius: var(--pnb-radius);
+  border: 1.5px solid var(--pnb-accent);
+  color: var(--pnb-accent);
+  font-weight: 700;
+}
+
+/* The owner's "answers wait for you", with its one button. */
+.news--owner {
+  padding-right: 8px;
+}
+
+.news__grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.news__link {
+  align-self: flex-start;
+  padding: 0;
+  color: var(--pnb-news-link);
+}
+
+.chip-btn {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: var(--pnb-radius-pill);
+  background: var(--pnb-accent);
+  color: var(--pnb-on-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.card__new {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pnb-accent);
+}
+
+.card__found {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--pnb-text-quiet);
+  overflow-wrap: anywhere;
+}
+
+/* How many messages: quieter than the vote, which is the card's one control for everybody. */
+.card__talk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--pnb-radius-pill);
+  color: var(--pnb-text-quiet);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+button.card__talk:active {
+  background: var(--pnb-surface-2);
+}
+
+/* ---- The conversation --------------------------------------------------- */
+
+.talk .list {
+  margin-bottom: 12px;
+}
+
+.thread {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* The app's words keep the accent line its answer always had; an author's
+   sit on the surface colour, so who said what reads before the names do. */
+.msg {
+  padding: 10px 12px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-bg);
+  box-shadow: inset 0 0 0 1px var(--pnb-line);
+  border-left: 3px solid var(--pnb-accent);
+}
+
+.msg--author {
+  background: var(--pnb-surface-2);
+  box-shadow: none;
+  border-left-color: var(--pnb-line);
+}
+
+.msg--hidden {
+  opacity: 0.55;
+}
+
+.msg__who {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pnb-text-quiet);
+}
+
+.msg__text {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.msg__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--pnb-text-quiet);
+}
+
+.answer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.answer__field {
+  min-height: 96px;
+}
+
+.answer__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.answer__row .count {
+  flex: 1;
+  align-self: center;
+}
+
+.answer__send {
+  width: auto;
+  height: 36px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+.answer__cancel {
+  padding: 8px;
+}
+
+.talk__next {
+  margin-top: 12px;
+}
+
+/* ---- The filter panel --------------------------------------------------- */
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -10px -12px 0 0;
+}
+
+.pick-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* An owner's own group, boxed: nobody else has it. */
+.pick-own {
+  margin-top: 16px;
+  padding: 0 12px 12px;
+  border: 1px solid var(--pnb-line);
+  border-radius: var(--pnb-radius);
+}
+
+.pick-own .pick-group {
+  margin-top: 12px;
+}
+
+.switch-row--box {
+  padding: 12px 12px 12px 14px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-surface);
+}
+
+.sheet__foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.sheet__foot .btn {
+  flex: 1;
+}
+
+.filter-reset {
+  padding: 12px 4px;
+  color: var(--pnb-accent);
+}
+
+/* ---- Already on the board? ---------------------------------------------- */
+
+.alike__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alike__meta {
+  font-size: 12px;
+  color: var(--pnb-text-quiet);
+}
+
+.me-too {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 7px 10px;
+  border-radius: var(--pnb-radius-pill);
+  border: 1px solid var(--pnb-accent);
+  background: var(--pnb-surface-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.me-too:disabled {
+  border-color: var(--pnb-line);
+  color: var(--pnb-text-quiet);
 }

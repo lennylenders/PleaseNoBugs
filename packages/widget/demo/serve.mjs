@@ -44,14 +44,16 @@ await store.putProject(
 
 // A board with something on it: every kind, every status, a reply, a name,
 // votes, reviews, a bug with a screenshot on the board, an idea with one kept
-// for the owner, and one post hidden by the owner.
+// for the owner, one post hidden by the owner, a done idea that says where it
+// shipped, and two conversations: one where Alice answered and the owner is
+// next, one where the app asked Alice something and she is next.
 const key = (w) => w.address.replace(/\s+/g, '').toUpperCase();
 const ago = (h) => Date.now() - h * 3_600_000;
 const seed = [
   { id: 's1', author: 'bob', kind: 'idea', text: 'Dark mode please. My eyes at 2am.', at: ago(50), votes: ['alice', 'owner'], status: 'planned', reply: 'On the list for the next release.' },
-  { id: 's2', author: 'alice', kind: 'bug', text: 'The camera opens black the first time, the second time it works.', at: ago(5), votes: [], status: 'open', anon: false },
-  { id: 's3', author: 'bob', kind: 'idea', text: 'Let me pay in NIM with a QR code from another phone.', at: ago(200), votes: ['alice'], status: 'done', reply: 'Shipped in 1.3!' },
-  { id: 's4', author: 'alice', kind: 'bug', text: 'Dutch translation cuts off the send button on small phones.', at: ago(0.2), votes: ['bob'], status: 'open', context: { version: '1.4.0', host: 'nimiq-pay' } },
+  { id: 's2', author: 'alice', kind: 'bug', text: 'The camera opens black the first time, the second time it works.', at: ago(5), votes: [], status: 'open', anon: false, thread: [['app', 'Thanks! Does it happen on every phone, or only on one?'], ['author', 'Only on my old Samsung. My new phone is fine.']] },
+  { id: 's3', author: 'bob', kind: 'idea', text: 'Let me pay in NIM with a QR code from another phone.', at: ago(200), votes: ['alice'], status: 'done', reply: 'Shipped in 1.3!', fix: { version: '1.3.0', link: 'https://github.com/lennylenders/PleaseNoBugs/releases' } },
+  { id: 's4', author: 'alice', kind: 'bug', text: 'The send button is cut off on small phones.', at: ago(0.2), votes: ['bob'], status: 'open', context: { version: '1.4.0', host: 'nimiq-pay' }, thread: [['app', 'Which phone is it, and does it happen on every screen?']] },
   { id: 's5', author: 'bob', kind: 'idea', text: 'Push notifications when somebody answers my post.', at: ago(30), votes: [], status: 'declined', reply: 'Not possible inside Nimiq Pay yet, sorry.' },
   { id: 's6', author: 'bob', kind: 'idea', text: 'Buy cheap followers here!!!', at: ago(3), votes: [], status: 'open', hidden: true },
   { id: 's7', author: 'alice', kind: 'review', rating: 5, text: 'Paying at the market with a QR code is so quick. Love it.', at: ago(20), votes: ['bob'], status: 'open', anon: false },
@@ -70,13 +72,43 @@ for (const p of seed) {
     text: p.text,
     at: p.at,
     status: p.status,
-    ...(p.reply ? { reply: { text: p.reply, at: p.at + 3_600_000 }, answeredAt: p.at + 3_600_000 } : {}),
+    ...(p.reply ? { thread: [{ id: `${p.id}-r`, from: 'app', text: p.reply, at: p.at + 3_600_000 }], answeredAt: p.at + 3_600_000 } : {}),
+    // A few minutes apart, in the order written.
+    ...(p.thread
+      ? {
+          thread: p.thread.map(([from, text], i) => ({ id: `${p.id}-m${i}`, from, text, at: p.at + (i + 1) * 300_000 })),
+          answeredAt: p.at + 300_000,
+        }
+      : {}),
     ...(p.hidden ? { hidden: true } : {}),
     ...(p.context ? { context: p.context } : {}),
     ...(p.rating ? { rating: p.rating } : {}),
+    ...(p.fix ? { fix: p.fix } : {}),
   }, p.shot ? { type: 'image/png', data: fakeScreenshot(), board: p.shot === 'board' } : undefined);
   for (const v of p.votes) await store.vote('demo', p.id, key(WALLETS[v]), true);
 }
+
+// The Updates page, so it is there from the start: one linking to GitHub,
+// one to GitLab, both real pages. The first shipped Bob's idea, so Bob sees
+// the "it is built" note on his board.
+await store.createUpdate('demo', {
+  id: 'u1',
+  title: 'Pay with a QR code from another phone',
+  text: 'Scan the code on somebody else’s screen and pay in NIM.',
+  version: '1.3.0',
+  link: 'https://github.com/lennylenders/PleaseNoBugs/releases',
+  at: ago(190),
+  posts: ['s3'],
+});
+await store.createUpdate('demo', {
+  id: 'u2',
+  title: 'Faster first load',
+  text: 'The app opens about twice as fast on older phones.',
+  version: '1.3.1',
+  link: 'https://gitlab.com/gitlab-org/gitlab/-/releases',
+  at: ago(60),
+  posts: [],
+});
 
 /**
  * A made-up phone screenshot for the seeded bug: a header, a big "balance"
@@ -137,6 +169,9 @@ app.post('/demo/sign', (req, res) => {
 });
 
 app.use('/dist', express.static(here('../dist')));
+// The website's font, so the demo page looks like PleaseNoBugs and the
+// widget, which takes the page's font, does too.
+app.use('/fonts', express.static(here('../../../site/src/assets/fonts')));
 app.get('/', (_req, res) => res.sendFile(here('./index.html')));
 app.use(createApp({ store }));
 

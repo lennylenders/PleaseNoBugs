@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Why PleaseNoBugs</title>
+    <meta name="description" content="What the PleaseNoBugs widget is about, what it does for you as a Nimiq developer, and how to add it to your app in a few lines." />
+    <link rel="icon" href="assets/nimiq/hexagon-2026.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/site.css" />
+    <script src="assets/stack.js" type="module"></script>
+    <script src="assets/how.js" type="module"></script>
+  </head>
+  <body>
+    <!-- The widget's own glyphs, path for path from packages/widget/src/ui/icons.tsx, used by everything below. -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-bug" viewBox="32 24 28 28"><path fill="currentColor" d="M46.5 24C47.9547 24 49.125 25.1703 49.125 26.625V38.875C49.125 40.3297 47.9547 41.5 46.5 41.5C45.0453 41.5 43.875 40.3297 43.875 38.875V26.625C43.875 25.1703 45.0453 24 46.5 24ZM43 48.5C43 47.5717 43.3687 46.6815 44.0251 46.0251C44.6815 45.3687 45.5717 45 46.5 45C47.4283 45 48.3185 45.3687 48.9749 46.0251C49.6313 46.6815 50 47.5717 50 48.5C50 49.4283 49.6313 50.3185 48.9749 50.9749C48.3185 51.6313 47.4283 52 46.5 52C45.5717 52 44.6815 51.6313 44.0251 50.9749C43.3687 50.3185 43 49.4283 43 48.5Z"/></symbol>
+      <symbol id="i-idea" viewBox="32 24 27.18 27.18"><path fill="currentColor" d="M59.182 31.1652V34.6498C59.182 35.8396 58.9535 37.0177 58.5095 38.117C58.0656 39.2162 57.4149 40.2149 56.5947 41.0562C55.7744 41.8975 54.8006 42.5649 53.7289 43.0202C52.6572 43.4755 51.5085 43.7098 50.3485 43.7098H46.951V50.6791H44.233V40.9222L44.2588 39.5283C44.4299 37.2528 45.4321 35.1274 47.065 33.5769C48.6979 32.0264 50.8412 31.1651 53.0665 31.1652H59.182ZM37.438 25.5898C39.4348 25.59 41.3811 26.2343 43.0012 27.4315C44.6214 28.6287 45.8334 30.3181 46.4658 32.2608C45.4259 33.1646 44.5739 34.2738 43.9605 35.5224C43.3472 36.7709 42.9851 38.1333 42.8957 39.5283H41.515C38.9919 39.5283 36.5723 38.5003 34.7882 36.6706C33.0042 34.8408 32.002 32.3591 32.002 29.7714V25.5898H37.438Z"/></symbol>
+      <symbol id="i-review" viewBox="32 24 27.188 27.188"><path fill="currentColor" d="M53.8936 40.0933C53.547 40.4266 53.387 40.9186 53.4683 41.3866L54.6536 47.9466C54.7483 48.5066 54.5216 49.0653 54.0536 49.3866C53.6003 49.7199 53.0003 49.7599 52.4936 49.4933L46.5883 46.4133C46.3736 46.3066 46.147 46.2386 45.9216 46.2386H45.5603C45.427 46.2519 45.3083 46.3066 45.2003 46.3586L39.2936 49.4533C39.0003 49.5999 38.667 49.6533 38.347 49.5999C37.547 49.4399 37.0283 48.6919 37.1603 47.9053L38.347 41.3453C38.427 40.8666 38.267 40.3866 37.9216 40.0399L33.107 35.3733C32.707 34.9733 32.5603 34.3986 32.7483 33.8666C32.9216 33.3453 33.3736 32.9586 33.9336 32.8666L40.5603 31.9053C41.067 31.8519 41.507 31.5466 41.7336 31.0933L44.6536 25.1066C44.7203 24.9733 44.8136 24.8519 44.9216 24.7466L45.0403 24.6533C45.0936 24.5853 45.1736 24.5333 45.255 24.4799L45.4003 24.4266L45.627 24.3333H46.1883C46.695 24.3866 47.135 24.6919 47.3616 25.1319L50.3203 31.0933C50.5336 31.5333 50.947 31.8266 51.427 31.9053L58.0536 32.8666C58.6136 32.9466 59.0816 33.3333 59.267 33.8666C59.4403 34.3986 59.2936 34.9866 58.8803 35.3733L53.8936 40.0933Z"/></symbol>
+      <symbol id="i-done" viewBox="-0.2 -1.8 12 12"><path fill="none" stroke="currentColor" stroke-width="1.607" stroke-linecap="round" stroke-linejoin="round" d="M0.803574 4.3749L4.01786 7.58918L10.8036 0.803467"/></symbol>
+      <symbol id="i-caret" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6.5l7.2 9a1 1 0 0 1-.78 1.6H5.58a1 1 0 0 1-.78-1.6L12 6.5z"/></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9L12 3.5z"/></symbol>
+      <symbol id="i-feedback" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6C12 5.45 11.55 5 11 5H5.815L6.48 1.825c.015-.075.025-.155.025-.235 0-.31-.125-.59-.33-.795L5.38 0 .44 4.94C.17 5.21 0 5.585 0 6v6.5c0 .83.67 1.5 1.5 1.5h6.75c.62 0 1.155-.375 1.38-.915l2.265-5.29c.065-.17.105-.35.105-.545V6zm10.5 4h-6.75c-.62 0-1.155.375-1.38.915l-2.265 5.29c-.065.17-.105.35-.105.545V18c0 .55.45 1 1 1h5.185l-.665 3.175c-.015.075-.025.155-.025.235 0 .31.125.59.33.795L18.62 24l4.94-4.94c.27-.27.44-.645.44-1.06v-6.5c0-.83-.67-1.5-1.5-1.5z"/></symbol>
+    </svg>
+
+    <header class="top">
+      <div class="wrap top__inner">
+        <a class="brand" href="./">
+          <img class="brand__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="27" height="24" />
+          <span>PleaseNoBugs</span>
+        </a>
+        <nav class="nav" aria-label="Main">
+          <a href="what-is-it.html" aria-current="page">Why PleaseNoBugs</a>
+          <a href="customize.html">Make it yours</a>
+          <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="how-intro">
+        <div class="stack stack--page" data-stack="page"></div>
+        <div class="wrap">
+          <p class="nq-label">Why PleaseNoBugs</p>
+          <h1>Your users talk. You answer. <span class="nowrap">Everyone sees it.</span></h1>
+          <p class="lead">A free, open-source feedback widget for apps built on Nimiq. Bugs, ideas and reviews, right inside your app.</p>
+        </div>
+      </section>
+
+      <!-- 1. What it is about. The drawing plays it: your users say something, the board keeps it, you answer. -->
+      <section class="how" aria-labelledby="about-title">
+        <div class="wrap how__row">
+          <div class="how__text">
+            <h2 id="about-title">Feedback without the black hole</h2>
+            <p>Your users know what's broken and what's missing. They rarely tell you, and when they do, it vanishes in a chat or an inbox.</p>
+            <p>With the widget they say it where they already are: in your app, signing with the wallet they already have. Others vote. You answer underneath, in public.</p>
+          </div>
+
+          <div class="how__show">
+            <div class="stage stage--about" id="about" aria-hidden="true">
+              <div class="talk">
+                <div class="talk__users">
+                  <div class="who" data-who="fons"><span class="person"><span class="person__tile"></span><span class="bubble">Save button does nothing</span><span class="who__tick"><svg class="ico" aria-hidden="true"><use href="#i-done"/></svg></span></span><span class="who__name">Fons</span></div>
+                  <div class="who" data-who="ines"><span class="person"><span class="person__tile"></span><span class="bubble">Dark mode?</span></span><span class="who__name">Inês</span></div>
+                  <div class="who" data-who="micha"><span class="person"><span class="person__tile"></span><span class="bubble bubble--stars"><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg></span></span><span class="who__name">Micha</span></div>
+                </div>
+                <div class="talk__board">
+                  <div class="board__bar"><b>Feedback</b></div>
+                  <div class="post" data-post="bug">
+                    <div class="post__tags"><span class="badge"><i class="badge__dot badge__dot--bug"><svg class="ico" aria-hidden="true"><use href="#i-bug"/></svg></i>Bug</span><span class="badge badge--done"><i class="badge__dot badge__dot--done"><svg class="ico" aria-hidden="true"><use href="#i-done"/></svg></i>Done</span></div>
+                    <p class="post__text">Save button does nothing</p>
+                    <p class="post__fix">Fixed in 1.4.3 · View on GitHub</p>
+                    <div class="post__foot"><span>Fons</span><span class="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b>1</b></span></div>
+                  </div>
+                  <div class="post" data-post="idea">
+                    <div class="post__tags"><span class="badge"><i class="badge__dot badge__dot--idea"><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i>Idea</span></div>
+                    <p class="post__text">Dark mode?</p>
+                    <div class="post__foot"><span>Inês</span><span class="vote" data-vote><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>1</b></span></div>
+                  </div>
+                  <div class="post" data-post="review">
+                    <div class="post__tags"><span class="badge"><i class="badge__dot badge__dot--review"><svg class="ico" aria-hidden="true"><use href="#i-review"/></svg></i>Review</span></div>
+                    <p class="post__stars"><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg><svg class="star" aria-hidden="true"><use href="#i-star"/></svg></p>
+                    <div class="post__foot"><span>Micha</span></div>
+                  </div>
+                </div>
+                <div class="talk__you">
+                  <div class="who who--you" data-who="you"><span class="person"><span class="person__tile"></span><span class="bubble bubble--you">Fixed in 1.4.3</span></span><span class="who__name">App developer</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. What it does for you. -->
+      <section class="how how--flip" aria-labelledby="why-title">
+        <div class="wrap how__row">
+          <div class="how__text">
+            <h2 id="why-title">Why Nimiq developers use it</h2>
+            <ul class="how__points">
+              <li><b>Your data, your server.</b> Feedback lives on a server you run. Posts, wallets and names never leave it. Only a daily count of bugs and ideas does, and you can switch that off.</li>
+              <li><b>No sign-up.</b> Users sign with their Nimiq wallet. No email, no password.</li>
+              <li><b>Votes show what matters.</b> The most wanted ideas and the most annoying bugs rise to the top. Duplicates get caught while typing.</li>
+              <li><b>You own the board.</b> Your wallet address is the owner. Your answer, the status and the fix version sit under the post.</li>
+            </ul>
+            <p>Free and MIT licensed, in Nimiq's look, light or dark. <a href="customize.html">Try it in Make it yours &rarr;</a></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- The goal in one line. -->
+      <section class="pull" aria-label="The goal">
+        <div class="wrap">
+          <p class="nq-label">The goal</p>
+          <blockquote class="pull__quote"><p>Make feedback effortless for users and actionable for developers.</p></blockquote>
+        </div>
+      </section>
+
+      <!-- 3. How to add it. -->
+      <section class="how how--add" aria-labelledby="add-title">
+        <div class="wrap">
+          <div class="section-head">
+            <h2 id="add-title">Add it in 3 steps</h2>
+            <p>A server, a script and one tag. Paste it in, and your app has a feedback board.</p>
+          </div>
+
+          <ol class="steps-list steps-list--three">
+            <li>
+              <h3>Start your server</h3>
+              <p>Your board lives on a server of your own. On Railway that is one button and three fields; Node and Docker work too. It prints your project id and address.</p>
+              <p><a href="https://github.com/lennylenders/PleaseNoBugs#get-it-running">Set up a server</a></p>
+            </li>
+            <li>
+              <h3>Paste the script and the tag</h3>
+              <pre class="code"><code><span class="t">&lt;script</span> <span class="a">src</span>=<span class="s">"https://unpkg.com/pleasenobugs@%VERSION%"</span><span class="t">&gt;</span><span class="t">&lt;/script</span><span class="t">&gt;</span>
+<span class="t">&lt;please-no-bugs</span>
+  <span class="a">project</span>=<span class="s">"YOUR_PROJECT_ID"</span>
+  <span class="a">server</span>=<span class="s">"https://YOUR_SERVER"</span>
+  <span class="a">mode</span>=<span class="s">"floating"</span>
+<span class="t">&gt;</span><span class="t">&lt;/please-no-bugs</span><span class="t">&gt;</span></code></pre>
+              <p>With a bundler: <code>npm install pleasenobugs</code>, then <code>import 'pleasenobugs'</code> once.</p>
+            </li>
+            <li>
+              <h3>Make it yours</h3>
+              <p>A button in the corner (<code>floating</code>), on a page of your own (<code>inline</code>), or over your page (<code>overlay</code>). Pick that, and light or dark, in Make it yours. It writes the code for you, or a prompt for your AI agent.</p>
+              <p><a class="btn btn--small" href="customize.html">Make it yours</a></p>
+            </li>
+          </ol>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="foot__row">
+          <p class="foot__who"><img class="foot__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="16" height="14" /><b>For everyone building on Nimiq.</b> <span>Free and open source.</span></p>
+          <nav class="foot__links" aria-label="Links">
+            <a href="https://nimiq.dev/">Nimiq docs</a><a href="https://nimiq.dev/mini-apps/">Mini apps</a><a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
+          </nav>
+        </div>
+        <p class="foot__note">No tracking.</p>
+      </div>
+    </footer>
+  </body>
+</html>

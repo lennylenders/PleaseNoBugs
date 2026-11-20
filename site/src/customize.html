@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Customize PleaseNoBugs</title>
+    <title>Make it yours · PleaseNoBugs</title>
     <meta name="description" content="Make the PleaseNoBugs widget yours in a few short steps, see it live, and copy the code into your app." />
-    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <link rel="icon" href="assets/nimiq/hexagon-2026.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="assets/site.css" />
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/customize.js" defer></script>
@@ -14,137 +14,157 @@
     <header class="top">
       <div class="wrap top__inner">
         <a class="brand" href="./">
-          <img src="assets/logo.svg" alt="" width="32" height="36" />
+          <img class="brand__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="27" height="24" />
           <span>PleaseNoBugs</span>
         </a>
         <nav class="nav" aria-label="Main">
-          <a href="how-it-works.html">How it works</a>
-          <a href="customize.html" aria-current="page">Customize</a>
+          <a href="what-is-it.html">Why PleaseNoBugs</a>
+          <a href="customize.html" aria-current="page">Make it yours</a>
           <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
         </nav>
       </div>
     </header>
 
-    <main class="wrap steps">
-      <h1>Make it yours</h1>
-      <p class="lead">Your choices end up in the code at the end, and nowhere else.</p>
-
-      <div class="studio">
-      <div class="progress">
-        <p class="progress__step" aria-live="polite">
-          <span class="progress__count" id="count">Step 1 of 7</span>
-          <b id="step-name">Settings</b>
-        </p>
-        <div class="progress__bars" id="bars" aria-hidden="true"></div>
-        <p class="progress__hint" id="hint">Tap a part of the widget to change it.</p>
-      </div>
-
-      <div class="editor">
+    <main class="wrap make">
+      <!-- The heading, and whether the preview is a desktop or a phone (customize.js, `setView`). -->
+      <header class="make-head">
+        <div>
+          <h1>Make it yours</h1>
+          <p class="lead">Pick light or dark and how it opens, try it right here, then take the code.</p>
+        </div>
+        <div class="view-switch" role="group" aria-label="Preview on">
+          <button type="button" data-view="desk" aria-pressed="true">Desktop</button>
+          <button type="button" data-view="phone" aria-pressed="false">Phone</button>
+        </div>
+      </header>
+      <!-- One screen, as the home page's demo: the pretend app, the widget at
+           its own place in it, and the steps on a card inside it. -->
+      <div class="editor desk">
         <div class="viewport">
-          <div class="screen" id="screen">
+          <div class="screen screen--make" id="screen">
             <div class="screen__app" aria-hidden="true">
               <b>Your app</b>
               <i></i><i></i><i></i><i></i>
             </div>
           </div>
-          <div class="mark" id="mark" hidden><span class="mark__tag" id="mark-tag"></span></div>
-        </div>
-      </div>
 
-        <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
-          <div class="edit__step" data-step="settings">
-            <h2>Settings</h2>
-            <p class="edit__hint">How the widget shows up in your app.</p>
-            <fieldset class="field">
-              <legend>Shown as</legend>
-              <div class="seg">
-                <label><input type="radio" name="mode" value="floating" checked /><span>Button</span></label>
-                <label><input type="radio" name="mode" value="inline" /><span>Inline</span></label>
-                <label><input type="radio" name="mode" value="overlay" /><span>Overlay</span></label>
-              </div>
-            </fieldset>
-          </div>
-
-          <div class="edit__step" data-step="button" hidden>
-            <h2>Feedback button</h2>
-            <p class="edit__hint">The button in the corner that opens the feedback feature.</p>
-            <div data-colours="button"></div>
-          </div>
-
-          <div class="edit__step" data-step="tiles" hidden>
-            <h2>Tiles</h2>
-            <p class="edit__hint">The buttons people pick from when they tap Feedback. These are PleaseNoBugs' own colours: tap one to change it.</p>
-            <div data-colours="tiles"></div>
-            <fieldset class="field">
-              <legend>Which ones</legend>
-              <div class="checks">
-                <label class="check"><input type="checkbox" name="kinds" value="bug" checked />Bugs</label>
-                <label class="check"><input type="checkbox" name="kinds" value="idea" checked />Ideas</label>
-                <label class="check"><input type="checkbox" name="kinds" value="review" checked />Reviews</label>
-              </div>
-            </fieldset>
-            <div data-strings="tiles"></div>
-          </div>
-
-          <div class="edit__step" data-step="board" hidden>
-            <h2>Board</h2>
-            <p class="edit__hint">The list of posts people read and vote on, with your answers under them.</p>
-            <div data-strings="board"></div>
-            <div data-colours="board"></div>
-          </div>
-
-          <div class="edit__step" data-step="write" hidden>
-            <h2>Write and send</h2>
-            <p class="edit__hint">The screen where people write, and the button that puts it on the board.</p>
-            <div data-strings="write"></div>
-            <fieldset class="field">
-              <legend>Screenshots on bugs and ideas</legend>
-              <div class="seg">
-                <label><input type="radio" name="screenshots" value="board" checked /><span>Everyone</span></label>
-                <label><input type="radio" name="screenshots" value="owners" /><span>Only you</span></label>
-                <label><input type="radio" name="screenshots" value="off" /><span>Off</span></label>
-              </div>
-              <p class="field__about"><b>Everyone</b>: on the board, once the user ticks that everyone may see it. <b>Only you</b>: never on the board.</p>
-            </fieldset>
-            <div data-colours="write"></div>
-          </div>
-
-          <div class="edit__step" data-step="sent" hidden>
-            <h2>Feedback sent!</h2>
-            <p class="edit__hint">What people see right after they send.</p>
-            <div data-strings="sent"></div>
-            <div data-colours="sent"></div>
-          </div>
-
-          <div class="edit__step" data-step="code" hidden>
-            <h2>Your code</h2>
-            <p class="edit__hint">
-              Paste this into your app. Swap <code>YOUR_PROJECT_ID</code> and <code>YOUR_SERVER</code> for what your
-              server printed when it started. <a href="https://github.com/lennylenders/PleaseNoBugs#readme">No server yet?</a>
-            </p>
-            <div class="tabs" role="tablist" aria-label="Code">
-              <button type="button" role="tab" aria-selected="true" aria-controls="code-html" id="tab-html">HTML</button>
-              <button type="button" role="tab" aria-selected="false" aria-controls="code-css" id="tab-css">CSS</button>
+          <section class="deck" id="deck" aria-labelledby="step-name">
+            <div class="deck__head">
+              <button type="button" class="deck__fold" id="fold" aria-expanded="true" aria-controls="deck-body">
+                <span class="deck__count" id="count" aria-live="polite">Step 4 of 4</span>
+                <span class="deck__short" id="short" aria-hidden="true"></span>
+                <svg class="deck__chevron" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 9l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="visually-hidden" id="fold-label">Fold the steps away</span>
+              </button>
+              <div class="deck__bars" id="bars" aria-hidden="true"></div>
             </div>
-            <pre class="code" id="code-html" role="tabpanel" aria-labelledby="tab-html"><code></code></pre>
-            <pre class="code" id="code-css" role="tabpanel" aria-labelledby="tab-css" hidden><code></code></pre>
-          </div>
-        </form>
 
-        <div class="actions">
-          <button type="button" class="btn btn--small btn--grey" id="back">Back</button>
-          <span class="spacer"></span>
-          <button type="button" class="btn btn--small btn--grey" id="preview">Preview</button>
-          <button type="button" class="btn btn--small" id="next">Next</button>
-          <button type="button" class="btn btn--small" id="copy" hidden>Copy code</button>
+            <div class="deck__body" id="deck-body">
+              <h1 class="deck__name" id="step-name">Your widget is ready to add.</h1>
+              <p class="deck__hint" id="hint"></p>
+
+              <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
+                <div class="edit__step ready">
+                  <!-- The choices are made; hand them to your AI agent (customize.js, `paintDone`). -->
+                  <div class="nq-done">
+                    <button type="button" class="btn nq-copy" data-copy="ai">Copy prompt for your AI agent</button>
+                    <ol class="nq-next" aria-label="What happens next">
+                      <li><b>Paste it into your AI agent.</b> Claude, Cursor, ChatGPT: any of them will do.</li>
+                      <li><b>Answer its questions.</b> It asks which server you want to use and sets it up with you.</li>
+                      <li><b>Try it in your app.</b> Post something, then answer it as the owner.</li>
+                    </ol>
+                    <dl class="nq-summary" id="nq-summary"></dl>
+                    <details class="nq-peek">
+                      <summary>See the prompt</summary>
+                      <pre class="code"><code data-code="ai"></code></pre>
+                    </details>
+                    <details class="nq-peek">
+                      <summary>Prefer to add it yourself? Show the code</summary>
+                      <p class="nq-small">Paste it in your page, or install it with npm. The project id and server address come from your own PleaseNoBugs server: <a href="https://github.com/lennylenders/PleaseNoBugs#get-it-running" target="_blank" rel="noopener">set one up</a>.</p>
+                      <div class="nq-code">
+                        <b>HTML</b>
+                        <pre class="code"><code data-code="html"></code></pre>
+                        <button type="button" class="btn btn--small btn--quiet" data-copy="html">Copy HTML</button>
+                      </div>
+                      <div class="nq-code">
+                        <b>npm</b>
+                        <pre class="code"><code data-code="npm"></code></pre>
+                        <button type="button" class="btn btn--small btn--quiet" data-copy="npm">Copy npm steps</button>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div class="deck__foot">
+              <button type="button" class="btn btn--small btn--grey" id="back">Back</button>
+            </div>
+          </section>
+          <!-- How it opens: the three ways side by side, each playing (customize.js, `paintWays`). -->
+          <div class="ways" id="ways" hidden>
+            <div class="ways__track" id="ways-track"></div>
+            <div class="ways__dots" id="ways-dots" aria-hidden="true"></div>
+          </div>
+
+          <!-- The first step: light or dark, and making your own, coming soon (customize.js, `paintThemes`). -->
+          <div class="themes" id="themes" role="group" aria-labelledby="themes-title" hidden>
+            <p class="themes__title" id="themes-title">Light or dark</p>
+            <button type="button" class="theme-card" data-theme="light" aria-pressed="true">
+              <span class="theme-card__preview theme-card__preview--light" aria-hidden="true"><b></b><i></i><i></i><i></i><em></em></span>
+              <span class="theme-card__name">Light</span>
+              <span class="theme-card__line">Navy on white.</span>
+            </button>
+            <button type="button" class="theme-card" data-theme="dark" aria-pressed="false">
+              <span class="theme-card__preview theme-card__preview--dark" aria-hidden="true"><b></b><i></i><i></i><i></i><em></em></span>
+              <span class="theme-card__name">Dark</span>
+              <span class="theme-card__line">White on navy.</span>
+            </button>
+            <div class="theme-card theme-card--soon" aria-disabled="true">
+              <span class="theme-card__preview theme-card__preview--soon" aria-hidden="true"><b></b><i></i><i></i><i></i><em></em></span>
+              <span class="theme-card__name">Customize your own <small>Coming soon</small></span>
+              <span class="theme-card__line">Your own colours, part by part.</span>
+            </div>
+          </div>
+
+          <!-- The third step, wide over the stage: where the app runs, in plain words (customize.js, `paintPanel`). -->
+          <section class="nq-panel" id="nq-panel" hidden>
+            <div class="nq-panel__step" data-panel="runs">
+              <h2>Where will people use your app?</h2>
+              <p class="nq-panel__lead">So posting and voting work there. Not sure? Pick both.</p>
+              <div class="nq-runs">
+                <button type="button" class="nq-run" data-runs="pay" aria-pressed="false"><b>Only in Nimiq Pay</b><span>A mini app inside the Nimiq Pay wallet.</span></button>
+                <button type="button" class="nq-run" data-runs="browser" aria-pressed="false"><b>Only in a browser</b><span>A website or web app, on a phone or a computer.</span></button>
+                <button type="button" class="nq-run" data-runs="both" aria-pressed="false"><b>Both</b><span>In Nimiq Pay and in a browser.</span></button>
+              </div>
+            </div>
+          </section>
+
+          <!-- In the last step: where to try it, till it is tried (customize.js, `paintTry`). -->
+          <div class="try" id="try" aria-hidden="true" hidden>
+            <span class="try__text">Test your widget</span>
+            <svg class="try__arrow" width="64" height="56" viewBox="0 0 64 56" fill="none"><path d="M4 6c18 0 38 8 50 34" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><path d="M44 36l11 8 3-13" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+
+          <!-- The steps, as a slim bar along the bottom: no card, the widget is the place to work. -->
+          <nav class="stepbar" id="stepbar" aria-label="Steps" hidden>
+            <button type="button" class="btn btn--small btn--grey" id="bar-back">&larr; Back</button>
+            <span class="stepbar__name" id="bar-name" aria-live="polite"></span>
+            <button type="button" class="btn btn--small" id="bar-next">Next &rarr;</button>
+          </nav>
         </div>
       </div>
     </main>
 
     <footer class="foot">
       <div class="wrap">
-        <span>PleaseNoBugs is open source, MIT licensed.</span>
-        <span>No tracking. <a href="https://github.com/lennylenders/PleaseNoBugs">Source on GitHub</a></span>
+        <div class="foot__row">
+          <p class="foot__who"><img class="foot__nimiq" src="assets/nimiq/hexagon-2026.svg" alt="" width="16" height="14" /><b>For everyone building on Nimiq.</b> <span>Free and open source.</span></p>
+          <nav class="foot__links" aria-label="Links">
+            <a href="https://nimiq.dev/">Nimiq docs</a><a href="https://nimiq.dev/mini-apps/">Mini apps</a><a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
+          </nav>
+        </div>
+        <p class="foot__note">No tracking.</p>
       </div>
     </footer>
 

@@ -1,4 +1,4 @@
-import type { Answer, PostKind, Project } from '@pleasenobugs/core';
+import type { Answer, Message, PostKind, Project, Update } from '@pleasenobugs/core';
 import { shotFor } from './store.js';
 import type { PostPatch, PostRow, PostWithVotes, ProjectStats, Shot, Store, StoredShot, TelemetryRow } from './store.js';
 
@@ -27,6 +27,8 @@ export class MemoryStore implements Store {
   private meta = new Map<string, string>();
   /** `${instance}|${project}` → latest row */
   private telemetryRows = new Map<string, TelemetryRow>();
+  /** projectId → updateId → update */
+  private updateRows = new Map<string, Map<string, Update>>();
 
   async projects() {
     return [...this.projectMap.values()].map((p) => structuredClone(p));
@@ -123,8 +125,8 @@ export class MemoryStore implements Store {
     const row = this.board(projectId).get(id);
     if (!row) return;
     if (patch.status !== undefined) row.status = patch.status;
-    if (patch.reply === null) delete row.reply;
-    else if (patch.reply !== undefined) row.reply = { ...patch.reply };
+    if (patch.fix === null) delete row.fix;
+    else if (patch.fix !== undefined) row.fix = { ...patch.fix };
     if (patch.hidden !== undefined) {
       if (patch.hidden) row.hidden = true;
       else delete row.hidden;
@@ -134,6 +136,14 @@ export class MemoryStore implements Store {
       else delete row.pending;
     }
     if (patch.answeredAt !== undefined) row.answeredAt = patch.answeredAt;
+  }
+
+  async setThread(projectId: string, id: string, next: Message[], prev: Message[]) {
+    const row = this.board(projectId).get(id);
+    if (!row || JSON.stringify(row.thread ?? []) !== JSON.stringify(prev)) return false;
+    if (next.length) row.thread = structuredClone(next);
+    else delete row.thread;
+    return true;
   }
 
   async deletePost(projectId: string, id: string) {
@@ -191,7 +201,34 @@ export class MemoryStore implements Store {
       .filter((r) => r.author === author && r.answeredAt !== undefined)
       .sort((a, b) => (b.answeredAt ?? 0) - (a.answeredAt ?? 0))
       .slice(0, limit)
-      .map((r) => ({ id: r.id, text: r.text, at: r.answeredAt as number }));
+      .map((r) => ({
+        id: r.id,
+        text: r.text,
+        at: r.answeredAt as number,
+        status: r.status,
+        ...(r.fix ? { fix: { ...r.fix } } : {}),
+      }));
+  }
+
+  private updateBoard(projectId: string) {
+    let b = this.updateRows.get(projectId);
+    if (!b) this.updateRows.set(projectId, (b = new Map()));
+    return b;
+  }
+
+  async updates(projectId: string) {
+    return [...this.updateBoard(projectId).values()].sort((a, b) => b.at - a.at).map((u) => structuredClone(u));
+  }
+
+  async createUpdate(projectId: string, update: Update) {
+    const b = this.updateBoard(projectId);
+    if (b.has(update.id)) return false;
+    b.set(update.id, structuredClone(update));
+    return true;
+  }
+
+  async deleteUpdate(projectId: string, id: string) {
+    return this.updateBoard(projectId).delete(id);
   }
 
   async names(projectId: string, addresses: string[]) {

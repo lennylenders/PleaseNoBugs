@@ -1,11 +1,12 @@
 import { render } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { POST_KINDS, type AppLogin, type PostContext, type PostKind } from '@pleasenobugs/core';
 import { createClient, type Client } from './client.js';
-import { pickLang, translator, type Strings } from './i18n.js';
+import { translator, type Strings } from './i18n.js';
 import type { Signer } from './signer.js';
 import { App, type View } from './ui/App.js';
 import type { Screenshots } from './ui/Compose.js';
+import type { DemoSample } from './demo.js';
 import * as Icon from './ui/icons.js';
 import css from './styles.css?inline';
 
@@ -22,19 +23,23 @@ export const TAG = 'please-no-bugs';
  *   whole screen. The "paste one line and done" route.
  * - `overlay`: the board over the whole screen, now. What {@link open} uses.
  *
+ * Each opens on the tiles that ask what to write, with the board one tap
+ * under them; `start="board"` opens on the board instead.
+ *
  * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
- * `lang`, `theme` (`auto` | `light` | `dark` | `pleasenobugs` | `nimiq`), `accent`
- * (a colour), `app-name`, `name` (a display name to suggest), `kinds` (which
+ * `start` (`tiles` or `board`), `theme` (`nimiq`, the default, or `nimiq-dark`),
+ * `lang` (the language of your `strings`, for dates; English by default), `app-name`, `name` (a display name to suggest), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
  * the board, for the app's owners only; `off` to leave them out), `names`
  * (`off` leaves out "Show my name", so every post is anonymous),
  * `readonly` (the board to scroll through and nothing else: see
  * `readonly.ts`), `demo` (sample posts in the page's memory, no server: see
- * `demo.ts`) and, with `demo` only, `screen` (`button`, `tiles`, `board`,
- * `write` or `sent`: that screen, held, for the website's configurator).
+ * `demo.ts`; `demo="owner"` is the owner's side of it) and, with `demo` only, `screen` (`button`, `tiles`, `board`,
+ * `write`, `sent` or `updates`: that screen, held, for the website's
+ * Make it yours).
  *
  * Properties, for things an attribute cannot carry: `signer`, `appLogin`,
- * `context`, `noise`, `strings`.
+ * `context`, `noise`, `strings` and, with `demo`, `samples`.
  *
  * Events: `pleasenobugs:posted` (`detail: { id, kind }`) and
  * `pleasenobugs:close`.
@@ -48,9 +53,9 @@ export class PleaseNoBugsElement extends HTMLElement {
     'project',
     'server',
     'mode',
+    'start',
     'lang',
     'theme',
-    'accent',
     'app-name',
     'name',
     'kinds',
@@ -71,6 +76,7 @@ export class PleaseNoBugsElement extends HTMLElement {
   #noise?: string[];
   #strings?: Strings;
   #warnLater?: ReturnType<typeof setTimeout>;
+  #samples?: DemoSample[];
   /** The demo board's code, fetched the first time `demo` is set. */
   #demo?: typeof import('./demo.js');
 
@@ -117,12 +123,26 @@ export class PleaseNoBugsElement extends HTMLElement {
     this.#render();
   }
 
-  /** Override any string, or supply a language: `{ 'board.title': 'Ideas box' }`. */
+  /** Override any string, or put the whole board in your app's language: `{ 'board.title': 'Ideas box' }`. */
   get strings() {
     return this.#strings;
   }
   set strings(v: Strings | undefined) {
     this.#strings = v;
+    this.#render();
+  }
+
+  /**
+   * With `demo` only: the posts the demo board starts with, instead of its
+   * own, and no updates: `[{ kind: 'idea', text: 'Pin my contacts', votes: 12 }]`.
+   */
+  get samples() {
+    return this.#samples;
+  }
+  set samples(v: DemoSample[] | undefined) {
+    this.#samples = v;
+    // A fresh board, starting from these.
+    this.#clientKey = '';
     this.#render();
   }
 
@@ -144,7 +164,6 @@ export class PleaseNoBugsElement extends HTMLElement {
 
   attributeChangedCallback(name: string) {
     if (name === 'project' || name === 'server' || name === 'demo' || name === 'readonly') this.#clientKey = '';
-    if (name === 'accent') this.#paintAccent();
     this.#render();
   }
 
@@ -153,23 +172,9 @@ export class PleaseNoBugsElement extends HTMLElement {
     this.dispatchEvent(new CustomEvent('pleasenobugs:close', { bubbles: true, composed: true }));
   }
 
-  #paintAccent() {
-    const accent = this.getAttribute('accent');
-    // The fill too, so one colour beats a theme's gradient on the buttons.
-    if (accent) {
-      this.style.setProperty('--pnb-accent', accent);
-      this.style.setProperty('--pnb-accent-fill', accent);
-      this.style.setProperty('--pnb-on-accent', readableOn(accent));
-    } else {
-      this.style.removeProperty('--pnb-accent');
-      this.style.removeProperty('--pnb-accent-fill');
-      this.style.removeProperty('--pnb-on-accent');
-    }
-  }
-
   #render() {
     if (!this.#mount || !this.isConnected) return;
-    const lang = pickLang(this.getAttribute('lang'));
+    const lang = this.getAttribute('lang') || 'en';
     if (this.hasAttribute('demo')) {
       // Its own chunk in the module build, so an app that never sets `demo`
       // never downloads the sample posts.
@@ -180,10 +185,11 @@ export class PleaseNoBugsElement extends HTMLElement {
         });
         return;
       }
-      // Keyed on the language too: the sample posts speak the board's.
-      const key = `demo|${lang}`;
+      // `demo="owner"`: the same board, seen by the app's owner.
+      const owner = this.getAttribute('demo') === 'owner';
+      const key = `demo|${owner}`;
       if (!this.#client || this.#clientKey !== key) {
-        this.#client = this.#demo.createDemoClient(lang);
+        this.#client = this.#demo.createDemoClient({ owner, samples: this.#samples });
         this.#clientKey = key;
       }
       this.#show(this.#client, lang);
@@ -223,7 +229,7 @@ export class PleaseNoBugsElement extends HTMLElement {
     const mode = this.getAttribute('mode') ?? 'inline';
     const app = {
       client,
-      t: translator(lang, this.#strings),
+      t: translator(this.#strings),
       locale: lang,
       appName: this.getAttribute('app-name') ?? undefined,
       suggestName: this.getAttribute('name') ?? undefined,
@@ -242,13 +248,16 @@ export class PleaseNoBugsElement extends HTMLElement {
     const screen =
       this.hasAttribute('demo') && !app.readonly ? readScreen(this.getAttribute('screen')) : undefined;
     const held = screen === 'button' ? undefined : screen;
+    // The tiles first, whichever way it is shown: somebody who opens a
+    // feedback feature mostly came to say something. The board is one tap on.
+    const start = this.getAttribute('start') === 'board' ? 'board' : 'choose';
 
     if (mode === 'floating') {
-      render(<Floating app={app} label={app.t('board.open')} screen={screen} />, this.#mount);
+      render(<Floating app={app} label={app.t('board.open')} screen={screen} start={start} />, this.#mount);
     } else if (mode === 'overlay') {
-      render(<Overlay app={app} screen={held} onGone={() => this.close()} />, this.#mount);
+      render(<Overlay app={app} start={start} screen={held} onGone={() => this.close()} />, this.#mount);
     } else {
-      render(<App {...app} screen={held} />, this.#mount);
+      render(<App {...app} start={start} screen={held} />, this.#mount);
     }
   }
 }
@@ -266,7 +275,14 @@ type Screen = 'button' | View;
  * readScreen('nope')    // → undefined
  */
 export function readScreen(v: string | null): Screen | undefined {
-  const views: Record<string, Screen> = { button: 'button', tiles: 'choose', board: 'board', write: 'compose', sent: 'sent' };
+  const views: Record<string, Screen> = {
+    button: 'button',
+    tiles: 'choose',
+    board: 'board',
+    write: 'compose',
+    sent: 'sent',
+    updates: 'updates',
+  };
   return v ? views[v.trim().toLowerCase()] : undefined;
 }
 
@@ -285,18 +301,34 @@ function Overlay({
   onGone,
   start,
   screen,
+  button,
+  grow,
 }: {
   app: AppBase;
   onGone: () => void;
   start?: 'board' | 'choose';
   screen?: View;
+  /** The round button it belongs to: it shrinks back into that one on close. */
+  button?: () => HTMLElement | null;
+  /** Opened by a tap on that button: it grows out of it. */
+  grow?: boolean;
 }) {
   const [leaving, setLeaving] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const leave = () => {
+    if (leaving) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return onGone();
     setLeaving(true);
+    const from = button?.();
+    if (from && panel.current) morph(panel.current, from, 'close').then(onGone);
   };
+
+  useLayoutEffect(() => {
+    const from = button?.();
+    if (grow && from && panel.current && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      void morph(panel.current, from, 'open');
+    }
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -312,7 +344,7 @@ function Overlay({
       <div class={`backdrop${leaving ? ' backdrop--leaving' : ''}`} onClick={leave} />
       <div
         ref={panel}
-        class={`overlay${leaving ? ' overlay--leaving' : ''}`}
+        class={`overlay${button ? ' overlay--morph' : ''}${leaving ? ' overlay--leaving' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={app.t('board.title')}
@@ -326,24 +358,146 @@ function Overlay({
   );
 }
 
-/** A round button in the corner, and the panel it opens on the tiles. */
-function Floating({ app, label, screen }: { app: AppBase; label: string; screen?: Screen }) {
+/**
+ * A round button in the corner, and the panel it opens on the tiles.
+ *
+ * **The button becomes the panel**: a tap grows it out of its corner into
+ * the panel, and closing shrinks the panel back into it (see {@link morph}).
+ * So the button stays in the page while the panel is open, out of sight, to
+ * measure where to grow from and shrink to.
+ */
+function Floating({
+  app,
+  label,
+  screen,
+  start,
+}: {
+  app: AppBase;
+  label: string;
+  screen?: Screen;
+  start: 'board' | 'choose';
+}) {
   const [open, setOpen] = useState(!!screen && screen !== 'button');
+  // Only a tap grows it; a screen the demo holds open is simply there.
+  const [grow, setGrow] = useState(false);
+  const fab = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (screen) setOpen(screen !== 'button');
   }, [screen]);
-  return open ? (
-    <Overlay
-      app={app}
-      start="choose"
-      screen={screen === 'button' ? undefined : screen}
-      onGone={() => setOpen(false)}
-    />
-  ) : (
-    <button type="button" class="fab" aria-label={label} title={label} onClick={() => setOpen(true)}>
-      <Icon.Feedback />
-    </button>
+  return (
+    <>
+      <button
+        ref={fab}
+        type="button"
+        class={`fab${open ? ' fab--away' : ''}`}
+        aria-label={label}
+        title={label}
+        aria-hidden={open}
+        tabIndex={open ? -1 : 0}
+        onClick={() => {
+          setGrow(true);
+          setOpen(true);
+        }}
+      >
+        <Icon.Feedback />
+      </button>
+      {open && (
+        <Overlay
+          app={app}
+          start={start}
+          screen={screen === 'button' ? undefined : screen}
+          button={() => fab.current}
+          grow={grow}
+          onGone={() => {
+            setOpen(false);
+            setGrow(false);
+          }}
+        />
+      )}
+    </>
   );
+}
+
+/** How long the button takes to become the panel, and the panel the button. */
+const MORPH_OPEN_MS = 340;
+const MORPH_CLOSE_MS = 260;
+/** How long the button takes to come back once the panel is a disc again. */
+const FAB_BACK_MS = 160;
+
+/**
+ * Grow the panel out of the round button, or shrink it back in.
+ *
+ * The panel is cut to the button's disc and the cut opens to the whole
+ * panel (`clip-path`), so what grows is the panel itself, in its own
+ * background: the button is gone the moment it is tapped, never stretched.
+ * What is in the panel fades in as it opens, scaled up a little from the
+ * button's corner. Closing runs it backwards, quicker, and the button comes
+ * back only once the panel is a disc where it was. Resolves once it is
+ * done; the closing state is held until then, so nothing flashes before the
+ * panel is taken away.
+ *
+ * Opacity, scale and the cut only, no blur: those a browser can draw every
+ * frame, so it stays smooth on a phone too.
+ *
+ * With the Web Animations API rather than CSS, because where the button is,
+ * relative to the panel, is only known once both are on the screen.
+ */
+function morph(panel: HTMLElement, button: HTMLElement, way: 'open' | 'close'): Promise<void> {
+  if (typeof panel.animate !== 'function') return Promise.resolve();
+  const box = panel.getBoundingClientRect();
+  const fab = button.getBoundingClientRect();
+  const round = fab.width / 2;
+  const small = `inset(${fab.top - box.top}px ${box.right - fab.right}px ${box.bottom - fab.bottom}px ${fab.left - box.left}px round ${round}px)`;
+  const big = `inset(0px 0px 0px 0px round ${getComputedStyle(panel).borderTopLeftRadius})`;
+  const open = way === 'open';
+  const timing: KeyframeAnimationOptions = {
+    duration: open ? MORPH_OPEN_MS : MORPH_CLOSE_MS,
+    easing: open ? 'cubic-bezier(0.3, 0.9, 0.3, 1)' : 'cubic-bezier(0.5, 0, 0.75, 0)',
+    fill: open ? 'none' : 'forwards',
+  };
+
+  const content = panel.firstElementChild as HTMLElement | null;
+  if (content) content.style.transformOrigin = `${fab.left + round - box.left}px ${fab.top + round - box.top}px`;
+
+  const cut = open ? [{ clipPath: small }, { clipPath: big }] : [{ clipPath: big }, { clipPath: small }];
+  const runs = [panel.animate(cut, timing)];
+  if (content) {
+    runs.push(
+      content.animate(
+        open
+          ? [
+              { opacity: 0, transform: 'scale(0.96)', offset: 0 },
+              { opacity: 0, transform: 'scale(0.96)', offset: 0.15 },
+              { opacity: 1, transform: 'scale(1)', offset: 0.8 },
+              { opacity: 1, transform: 'scale(1)', offset: 1 },
+            ]
+          : [
+              { opacity: 1, transform: 'scale(1)', offset: 0 },
+              { opacity: 0, transform: 'scale(0.96)', offset: 0.55 },
+              { opacity: 0, transform: 'scale(0.96)', offset: 1 },
+            ],
+        { ...timing, easing: open ? 'ease-out' : 'ease-in' },
+      ),
+    );
+  }
+  return Promise.all(runs.map((r) => r.finished))
+    .catch(() => undefined)
+    .then(() => {
+      if (open) {
+        if (content) content.style.transformOrigin = '';
+        return;
+      }
+      // The button back where the disc ends, before the panel goes: no
+      // frame without either.
+      button.classList.remove('fab--away');
+      panel.style.visibility = 'hidden';
+      if (typeof button.animate === 'function') {
+        button.animate([{ opacity: 0, transform: 'scale(0.8)' }, { opacity: 1, transform: 'scale(1)' }], {
+          duration: FAB_BACK_MS,
+          easing: 'ease-out',
+        });
+      }
+    });
 }
 
 /**
@@ -370,24 +524,6 @@ export function readKinds(v: string | null): PostKind[] | undefined {
     .split(',')
     .map((s) => s.trim().toLowerCase())
     .filter((s): s is PostKind => (POST_KINDS as readonly string[]).includes(s));
-}
-
-/**
- * Black or white, whichever reads better on `color`. So `accent="#ffd400"`
- * gets dark text and `accent="#1f2348"` gets white, without the developer
- * having to know there was a question.
- */
-export function readableOn(color: string): string {
-  const hex = color.trim().replace('#', '');
-  const full = hex.length === 3 ? [...hex].map((c) => c + c).join('') : hex.slice(0, 6);
-  if (!/^[0-9a-f]{6}$/i.test(full)) return '#ffffff';
-  const channel = (i: number) => {
-    const v = parseInt(full.slice(i, i + 2), 16) / 255;
-    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-  };
-  const lum = 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
-  // White wins when it out-contrasts black: (1.05) / (L + 0.05) vs (L + 0.05) / 0.05.
-  return 1.05 / (lum + 0.05) >= (lum + 0.05) / 0.05 ? '#ffffff' : '#111118';
 }
 
 /** Register the element once, however many times the script is loaded. */

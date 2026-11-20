@@ -43,12 +43,13 @@ describe('importBoard', () => {
     const posts = await store.posts('p', B.key);
     const one = posts.find((p) => p.id === 'post-1')!;
     expect(one).toMatchObject({ votes: 2, voted: true, status: 'planned', anon: false, answeredAt: 2000 });
-    expect(one.reply).toEqual({ text: 'Soon', at: 2000 });
+    // The old board's one reply is the app's first message here.
+    expect(one.thread).toEqual([{ id: 'reply', from: 'app', text: 'Soon', at: 2000 }]);
     const two = posts.find((p) => p.id === 'post-2')!;
     expect(two).toMatchObject({ votes: 1, hidden: true, anon: true, context: { host: 'nimiq-pay' } });
     expect((await store.names('p', [A.key])).get(A.key)).toBe('Alice');
     // The author's answer reaches them on /answers like any other.
-    expect(await store.answersFor('p', A.key, 10)).toEqual([{ id: 'post-1', text: 'Dark mode', at: 2000 }]);
+    expect(await store.answersFor('p', A.key, 10)).toEqual([{ id: 'post-1', text: 'Dark mode', at: 2000, status: 'planned' }]);
   });
 
   it('is harmless to run twice', async () => {

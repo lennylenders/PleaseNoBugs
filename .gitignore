@@ -6,5 +6,3 @@ dist/
 *.db-journal
 .DS_Store
 site/_site/
-# Museo Sans Rounded is licensed, not free: its files stay off the public repo.
-site/src/assets/fonts/
