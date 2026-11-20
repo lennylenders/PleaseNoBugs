@@ -1603,11 +1603,33 @@ For sharing with a team, the project is one thing: the Nimiq look.
   `classic-2026-11-19`.
 - Versions go to 0.3.0: an app on 0.2.0 keeps its look until it updates.
 
+## 2026-11-20: The first app is stopped, our own server is back
+
+The owner stopped the first app to work on PleaseNoBugs alone, and the
+Railway project it shared with our own server is now called `PleaseNoBugs`
+(only the project's name: the services and their domains stayed).
+
+- **The first app**: its address shows one page that says it has stopped and
+  points here, with a service worker that removes the app's own. Its backend
+  (`shitti`) and its Nimiq node (`nimiq-node`) have no deployment, their
+  volumes and variables kept, so it could come back. Its repository is
+  archived.
+- **Our own server** (`pleasenobugs`) had had no deployment for about a month,
+  found while doing this: the telemetry address and the first app's board
+  answered 404. It runs again, now from the published image
+  `ghcr.io/lennylenders/pleasenobugs:0.3.0` rather than `railway up`, on the
+  same volume (0.3.0 only adds columns and tables to an older file). A new
+  release is a new image tag set on the service. Railway's Hobby plan takes no
+  volume backups.
+- The first app's board stays on it, with its posts, though nothing writes
+  to it any more.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
 board is project `vxgxf5j6xz` on https://pleasenobugs-production.up.railway.app
-(Railway service `pleasenobugs` in project `shitty-tasks`, volume on `/data`),
+(Railway service `pleasenobugs` in the Railway project `PleaseNoBugs`, called
+`shitty-tasks` until 2026-11-20, volume on `/data`),
 the old posts were imported, and the app's own copy of them is gone. Its
 branch `feature/pleasenobugs` was fast-forwarded into
 `feature/task-input-redesign`, which is what its production runs.
@@ -1701,9 +1723,8 @@ Source: "GitHub Actions".
 
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.
 - Ask the Nimiq team whether they want to point mini app developers at it.
-- PleaseNoBugs' own server could move out of the `shitty-tasks` Railway
-  project into one of its own (asked 2026-10-24). Not done: its generated
-  domain is the telemetry address in every published version and the address
-  the first app's board uses, so it would mean moving the data and claiming the same
-  `pleasenobugs-production` subdomain for the new service. A job of its own,
-  at a quiet moment for the first app.
+- The Railway project `PleaseNoBugs` still holds the first app's two
+  stopped services (`shitti`, `nimiq-node`) next to our own server. They can
+  be deleted once nobody needs the first app back; the server stays where it
+  is, as its generated domain is the telemetry address in every published
+  version.
