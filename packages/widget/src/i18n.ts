@@ -1,10 +1,11 @@
 /**
  * Every word the widget says, in English.
  *
- * Taken from Shitti's board, where the copy was written for the same two jobs
- * a feedback board has that the rest of an app does not: saying out loud that
- * this is public, and being honest about what "anonymous" does and does not
- * mean. "Shitti" became `{app}`, the project's own name.
+ * Taken from the board of the app PleaseNoBugs grew out of, where the copy
+ * was written for the same two jobs a feedback board has that the rest of an
+ * app does not: saying out loud that this is public, and being honest about
+ * what "anonymous" does and does not mean. That app's name became `{app}`,
+ * the project's own name.
  *
  * The widget ships in English only. A developer can override any string, or
  * put the whole board in their app's language, through the element's
@@ -282,7 +283,7 @@ export type Translate = (key: CopyKey, vars?: Record<string, string | number>) =
  * @example
  * const t = translator({ 'board.title': 'Ideeënbus', 'board.reply': '{app} zegt' });
  * t('board.title')                    // → 'Ideeënbus'
- * t('board.reply', { app: 'Shitti' }) // → 'Shitti zegt'
+ * t('board.reply', { app: 'My app' }) // → 'My app zegt'
  */
 export function translator(strings: Strings = {}): Translate {
   return (key, vars) => {

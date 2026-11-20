@@ -57,8 +57,8 @@ export interface Draft {
  *   noticing. Sending stays off until the box is ticked or the picture
  *   removed, so nobody posts one by tapping past the warning.
  *
- * **One column that scrolls, with the button at the end of it.** Shitti pinned
- * a footer and then spent a page of notes on what a phone keyboard does to a
+ * **One column that scrolls, with the button at the end of it.** The app this
+ * grew out of pinned a footer and then spent a page of notes on what a phone keyboard does to a
  * pinned footer. A widget lives in apps whose keyboards it has never met, so it
  * takes the arrangement that has nothing to get wrong.
  *

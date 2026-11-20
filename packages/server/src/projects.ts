@@ -53,7 +53,7 @@ export function cleanName(v: unknown): string | null {
  * five minutes the worst ones.
  *
  * @example
- * parseOrigin('https://Shitti.me/board')   // → 'https://shitti.me'
+ * parseOrigin('https://My.App/board')   // → 'https://my.app'
  * parseOrigin('javascript:alert(1)')        // → null
  */
 export function parseOrigin(v: unknown): string | null {
@@ -103,7 +103,7 @@ export const LOGIN_MESSAGE_MAX = 200;
  * it here.
  *
  * @example
- * cleanLoginMessages(['Sign in to Shitti'])   // → ['Sign in to Shitti']
+ * cleanLoginMessages(['Sign in to My app'])   // → ['Sign in to My app']
  * cleanLoginMessages(['PleaseNoBugs login…']) // → null
  */
 export function cleanLoginMessages(v: unknown): string[] | null {

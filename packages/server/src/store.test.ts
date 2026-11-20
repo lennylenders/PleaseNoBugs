@@ -314,13 +314,13 @@ describe.each(STORES)('%s', (_name, make) => {
 
   it('keeps the latest telemetry per installation and project', async () => {
     const s = make();
-    const t = { instance: 'i1', project: 'Shitti', version: '0.1.0', bugs: 1, ideas: 2, bugsDone: 0, ideasDone: 1, receivedAt: 10 };
+    const t = { instance: 'i1', project: 'My app', version: '0.1.0', bugs: 1, ideas: 2, bugsDone: 0, ideasDone: 1, receivedAt: 10 };
     await s.putTelemetry(t);
     await s.putTelemetry({ ...t, bugs: 5, receivedAt: 20 });
     await s.putTelemetry({ ...t, project: 'Other' });
     const rows = await s.telemetry();
     expect(rows).toHaveLength(2);
-    expect(rows.find((r) => r.project === 'Shitti')).toMatchObject({ bugs: 5, receivedAt: 20 });
+    expect(rows.find((r) => r.project === 'My app')).toMatchObject({ bugs: 5, receivedAt: 20 });
   });
 
   it('remembers what each owner has seen', async () => {

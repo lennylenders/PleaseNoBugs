@@ -11,7 +11,7 @@ import { serve, wallet } from './test-helpers.js';
  * who voted, the owner-only fields. Those are promises made in the widget's
  * copy ("nobody sees who wrote it"), and copy is not enforcement.
  *
- * The rest is the part that is new since Shitti: a proof belongs to one
+ * The rest is the part that is new since the app this grew out of: a proof belongs to one
  * project and one origin, and is worth nothing anywhere else.
  */
 
@@ -199,7 +199,7 @@ describe('proofs belong to one project and one origin', () => {
 });
 
 describe('app logins', () => {
-  const LOGIN = 'Sign in to Shitti';
+  const LOGIN = 'Sign in to My app';
 
   async function withAppLogin() {
     const env = await setup({ dashboard: true });

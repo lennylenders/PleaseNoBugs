@@ -11,14 +11,14 @@ import {
 
 describe('loginMessage', () => {
   it('is exactly the v1 text, since changing it breaks every proof in the wild', () => {
-    expect(loginMessage({ project: 'shitti', origin: 'https://shitti.me', issued: 0 })).toBe(
-      'PleaseNoBugs login\nProject: shitti\nOrigin: https://shitti.me\nIssued: 1970-01-01T00:00:00.000Z',
+    expect(loginMessage({ project: 'myapp', origin: 'https://my.app', issued: 0 })).toBe(
+      'PleaseNoBugs login\nProject: myapp\nOrigin: https://my.app\nIssued: 1970-01-01T00:00:00.000Z',
     );
   });
 
   it('spells the origin one way, so a trailing slash cannot make two messages', () => {
-    const a = loginMessage({ project: 'p', origin: 'https://Shitti.me/', issued: 1 });
-    const b = loginMessage({ project: 'p', origin: 'https://shitti.me', issued: 1 });
+    const a = loginMessage({ project: 'p', origin: 'https://My.App/', issued: 1 });
+    const b = loginMessage({ project: 'p', origin: 'https://my.app', issued: 1 });
     expect(a).toBe(b);
   });
 
@@ -69,7 +69,7 @@ describe('encodeProof / decodeProof', () => {
   });
 
   it('round-trips an app login, message included', () => {
-    const app = { ...proof, issued: 0, message: 'Sign in to Shitti' };
+    const app = { ...proof, issued: 0, message: 'Sign in to My app' };
     expect(decodeProof(encodeProof(app))).toEqual(app);
   });
 

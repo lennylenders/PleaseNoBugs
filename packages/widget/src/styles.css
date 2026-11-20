@@ -162,7 +162,7 @@
    *
    * Inside Nimiq Pay that is not enough: Pay draws its own bar over the page,
    * and `env()` cannot see another app's interface. An app that measures it
-   * (Shitti does, from `visualViewport`) hands its numbers in here:
+   * (from `visualViewport`, for example) hands its numbers in here:
    *
    *   please-no-bugs { --pnb-inset-top: var(--my-top); --pnb-inset-bottom: var(--my-bottom); }
    */

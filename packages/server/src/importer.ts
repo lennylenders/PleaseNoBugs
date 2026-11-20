@@ -13,8 +13,8 @@ import type { PostRow, Store } from './store.js';
 
 /**
  * Bring an existing board in: posts, their votes and the names that go with
- * them. For anybody moving from a board of their own, which is how Shitti got
- * here.
+ * them. For anybody moving from a board of their own, which is how the first
+ * app on PleaseNoBugs got here.
  *
  * The file is one JSON object:
  *

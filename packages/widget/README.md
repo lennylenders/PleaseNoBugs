@@ -42,7 +42,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board. |
 | `theme` | `nimiq` (default): the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
 | `lang` | The language of your `strings`, so dates follow it: `nl` writes "14 sep". English by default. |
-| `app-name` | What answers are signed with ("Shitti says"). Defaults to the project's name. |
+| `app-name` | What answers are signed with ("My app says"). Defaults to the project's name. |
 | `name` | A display name you already know, offered when the user chooses to show theirs. |
 | `kinds` | Which kinds to offer, of the ones your project takes: `bug,idea,review` by default. `kinds="bug,idea"` leaves reviews off the tiles and out of the list. |
 | `screenshots` | Who sees screenshots on bugs and ideas. On the board for everyone by default, each one only after its author ticks that everyone may see it. `owners` keeps them for your eyes only; `off` leaves the "Add a screenshot" button out. An unknown value counts as `owners`. The project's own rule (`PNB_PROJECT_SCREENSHOTS` on the server) wins when it is stricter. |

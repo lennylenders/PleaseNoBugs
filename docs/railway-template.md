@@ -54,7 +54,7 @@ adds `PNB_TELEMETRY=off` (the README says how).
 ## Test it again
 
 After any change to the template: deploy it from the template page into a
-**new project** (never `shitty-tasks`) with test values (`Test board`,
+**new project** (never `shitty-tasks`, where our own server runs) with test values (`Test board`,
 `https://example.com`, `NQ07 0000 0000 0000 0000 0000 0000 0000 0000`),
 check that Deploy Logs shows `created project` and the lines to paste, that
 `/health` answers on the domain, and delete the project again. Its first

@@ -126,14 +126,14 @@ failed.
 ### App logins
 
 An app that already has a wallet login has its users sign a fixed sentence of
-its own ("Sign in to Shitti"). Asking them to sign a second one for the board
+its own ("Sign in to My app"). Asking them to sign a second one for the board
 is friction, and in a browser it can mean a Hub popup that strands people on
 phones. So a project may list its own login messages (`loginMessages`, set by
 an owner), and a proof over one of those is accepted **on that project and no
 other**:
 
 ```ts
-{ address, publicKey, signature, origin, issued: 0, message: 'Sign in to Shitti' }
+{ address, publicKey, signature, origin, issued: 0, message: 'Sign in to My app' }
 ```
 
 - The server verifies the signature over `message` itself, and only if the
@@ -141,8 +141,8 @@ other**:
 - **It does not expire**, because the message has no timestamp. That is what
   the owner accepts by listing it, and why the feature is off by default.
 - The origin rules apply exactly as for a scoped proof.
-- What it costs: anything that can get a user to sign "Sign in to Shitti" can
-  post on Shitti's board as them. It can already use Shitti itself as them with
+- What it costs: anything that can get a user to sign "Sign in to My app" can
+  post on My app's board as them. It can already use My app itself as them with
   that signature, so the board adds nothing to that risk.
 - Never accepted on the dashboard, and our own `PleaseNoBugs login` format can
   never be listed, so a scoped proof cannot be made permanent this way.

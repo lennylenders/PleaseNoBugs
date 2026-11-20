@@ -12,8 +12,9 @@ See the entry of that day.
 
 ## 2026-10-14: Where it comes from
 
-Extracted from the feedback board in [Shitti](https://shitti.me), a Nimiq Pay
-mini app, where it had been running since August 2026. Shitti will consume the
+Extracted from the feedback board in the owner's own Nimiq Pay mini app,
+called "the first app" in this log, where it had been running since August
+2026. The first app will consume the
 published package instead of its own copy, so there is one version and every
 improvement lands in both.
 
@@ -34,7 +35,7 @@ the only one.
 
 ## 2026-10-14: Proofs are scoped to a project and an origin
 
-Shitti signs one fixed sentence, which is safe with one app. On a shared server
+The first app signs one fixed sentence, which is safe with one app. On a shared server
 it would let any app reuse its users' signatures on every other board. The
 signed message names the project and the origin. Cost: a user of an app that
 already signed them in signs once more, the first time they post or vote.
@@ -93,13 +94,13 @@ console.
 
 ## 2026-10-14: Anonymous by default on the wire
 
-A post with no `anon` field is anonymous. Shitti did the opposite (shown unless
+A post with no `anon` field is anonymous. The first app did the opposite (shown unless
 `anon: true`), which was fine with one client written by the same person. With
 many clients, a forgotten field should fail private.
 
 ## 2026-10-14: The widget is Preact in a shadow root
 
-Preact because Shitti's board is React and ports almost line for line, at 4 kB.
+Preact because the first app's board is React and ports almost line for line, at 4 kB.
 A shadow root because the widget lives in other people's apps: their CSS must
 not break it and its CSS must not leak. Everything is bundled in, so a host on
 React 18, Vue or Svelte never reconciles a second copy of anything. 19 kB
@@ -108,8 +109,8 @@ gzipped for the script-tag build, three languages included.
 ## 2026-10-14: Neutral look, light and dark, themed by custom properties
 
 Follows the phone's light/dark setting, one `accent` attribute, and every
-colour is a `--pnb-*` property that is part of the public API. Shitti's look
-ships as `theme="shitti"`. The owner wants to revisit the look; the properties
+colour is a `--pnb-*` property that is part of the public API. The first
+app's look ships as a theme of its own, named after that app. The owner wants to revisit the look; the properties
 are what make that possible without touching the components.
 
 Museo Sans Rounded is not used: it is licensed to the owner and cannot be
@@ -124,19 +125,19 @@ redistributed. The widget inherits the host app's font instead.
 
 Inside Nimiq Pay the widget signs through the injected provider by itself.
 Elsewhere the app passes a signer, because it already has a wallet integration
-and the Hub's popups are exactly what broke on phones in Shitti. Without one the
+and the Hub's popups are exactly what broke on phones in the first app. Without one the
 board is read-only, and says so only when somebody tries to write.
 
 ## 2026-10-14: The composer is one scrolling column
 
-Shitti pinned a footer and then wrote a page about what phone keyboards do to
+The first app pinned a footer and then wrote a page about what phone keyboards do to
 pinned footers. A widget meets keyboards it has never been tested against, so
 it takes the arrangement with nothing to get wrong. Cost: the send button can
 scroll out of view on a short screen.
 
 ## 2026-10-14: The bin is a button, not a swipe
 
-Shitti hid deleting behind a swipe. A widget cannot teach gestures in somebody
+The first app hid deleting behind a swipe. A widget cannot teach gestures in somebody
 else's app, so it is a visible button on your own posts.
 
 ## 2026-10-14: A quiet "Sign in" at the foot of the board
@@ -150,9 +151,9 @@ telling the widget who the owner is.
 
 ## 2026-10-14: App logins, per project, off by default
 
-Found while moving Shitti across: its browser-wallet users could not have
+Found while moving the first app across: its browser-wallet users could not have
 posted at all, since a second signature in a browser means a Hub popup and
-Shitti already learned those strand people on phones. A project may now list
+the first app already learned those strand people on phones. A project may now list
 its app's own fixed login message, and the widget reuses the signature the app
 already has. Nobody signs twice, in Nimiq Pay or a browser.
 
@@ -178,7 +179,7 @@ three environment variables (`PNB_PROJECT_*`), so there is no command line
 between clicking and pasting a project id. Cost to the developer: their own
 small Railway bill; what it comes to depends on their host and their use.
 
-Shitti runs its own server like anybody else, and that server is also where the
+The first app runs its own server like anybody else, and that server is also where the
 counts arrive.
 
 ## 2026-10-14: Telemetry: four numbers per project, once a day, opt-out
@@ -196,7 +197,7 @@ counted.
 - **Project names travel**, the owner's call, so the tool's reach can be shown.
   The public summary route answers totals only; the names of other people's
   apps are read on the collecting server with `pleasenobugs-server telemetry`.
-- **Collected on Shitti's server** (`PNB_COLLECT=on`) rather than a service of
+- **Collected on the first app's server** (`PNB_COLLECT=on`) rather than a service of
   its own: a hundred tiny reports a day cost nothing on a server that is
   running anyway.
 - Anybody can post a report, so the totals are vanity numbers that a liar can
@@ -297,8 +298,8 @@ because that chip happened to be selected. After posting, a full screen says
 "Feedback sent!" for a moment and returns to the board; the toast it replaces
 was easy to miss.
 
-The design's colours are a theme, `vivid`, rather than the new default: Shitti
-and anybody else already using the widget keep the look they chose. Two tokens
+The design's colours are a theme, `vivid`, rather than the new default: the first
+app and anybody else already using the widget keep the look they chose. Two tokens
 made it possible without touching components: `--pnb-accent-fill` (a button
 may be a gradient while the accent stays a colour for outlines) and the
 `--pnb-tile-*` set.
@@ -360,14 +361,14 @@ The preview box gives the widget's fixed-position button and panel a box of
 their own (`transform` on `.screen`), so they open in its corner as they
 would in an app. "Preview full size" puts the same widget on the real page.
 
-**Later the same week: one page, and the shitti look.** The owner found the
+**Later the same week: one page, and the first app's look.** The owner found the
 long landing page too much. The home page is now one screen (Figma node
 48:9261): one line on what it is, one button to the configurator, and the
 widget to try. The tabs lead on: How it works (the kinds of feedback and the
 three modes), Customize, and GitHub. The code to paste lives only on
 Customize, where developers make it. The whole site, configurator included,
-is in the style of shitti.me, dark purple with turquoise buttons, and the
-widget on it uses `theme="shitti"`. The design's font is Museo Sans Rounded,
+is in the style of the first app, dark purple with turquoise buttons, and
+the widget on it uses that app's theme. The design's font is Museo Sans Rounded,
 served from the site like Mulish, not from Adobe Fonts, which would tell
 Adobe of every visit. Its files are "all rights reserved", so they live in
 `site/src/assets/fonts/`, which git ignores: a public repo would hand them
@@ -375,15 +376,16 @@ out to anyone. Where they are missing, as in the GitHub Pages build for now,
 Mulish stands in. Putting them online needs a web licence, and a way to get
 them into the build that does not go through the repo.
 
-In the shitti theme an idea is purple and a review orange, like its star,
+In the first app's theme an idea is purple and a review orange, like its star,
 the owner's choice in Figma; Done is teal, Planned and Not doing a quiet grey.
 One kind has one colour everywhere: the badge's dot, the tile, the icon in
 the site's table, and the pill that names it.
 
 **2026-10-29: the themes are named after what they look like.** That dark
-purple is the website's own look now, so `shitti` became `pleasenobugs`, and
+purple is the website's own look now, so the theme named after the first app
+became `pleasenobugs`, and
 `vivid`, whose colours come from a Nimiq feedback design, became `nimiq`.
-`vivid` was never released and is simply gone. `shitti` is in 0.1.0 and
+`vivid` was never released and is simply gone. The old name is in 0.1.0 and
 0.1.1, so it stays as a second name for `pleasenobugs`: an app that has it
 keeps its look on 0.2.0. The configurator offers PleaseNoBugs, Nimiq, Light
 and Dark, and no longer Auto or a language: leaving `theme` out already
@@ -426,8 +428,8 @@ configurator also writes `--pnb-fab`.
 
 The `pleasenobugs` theme's tiles are now the design's: each painted in its
 kind's colour, a white glyph without a disc, and no note under the name
-unless there is something to say (a review already written). `shitti`, its
-old name, gets the same.
+unless there is something to say (a review already written). Its old name gets
+the same.
 
 The three kind glyphs are the design's too, path for path: a mark of alarm
 for a bug, a sprout for an idea, a star for a review. They replace the old
@@ -532,13 +534,13 @@ redraw on the phone leaves behind (the widget never falls back to sending the
 original). A picture can still show other people (names and addresses in a
 transaction list, a message in a notification), who never agreed to anything;
 the warning names a name for that reason. A self-hoster, and the owner for
-Shitti's board, now serves images their users chose to make public, which a
+the first app's board, now serves images their users chose to make public, which a
 privacy statement may need to mention.
 
 ## 2026-10-29: Later, other apps' boards on the site. The frame now
 
 The owner wants, one day, the website to show the feedback of every app that
-uses PleaseNoBugs, Shitti first, so people can scroll through it and see
+uses PleaseNoBugs, the first app first, so people can scroll through it and see
 which app hears what. Not switched on yet; what it needs is built now, so it
 ships in 0.2.0 and turning it on later needs no new widget.
 
@@ -564,8 +566,9 @@ ships in 0.2.0 and turning it on later needs no new widget.
   No page has one.
 
 Before switching it on: whether search engines may index the boards
-(`noindex`, or not), and telling Shitti's users, in Shitti, that their
-feedback can be read on the PleaseNoBugs site too. Shitti is not on the list
+(`noindex`, or not), and telling the first app's users, in that app, that
+their feedback can be read on the PleaseNoBugs site too. The first app is not
+on the list
 until then.
 
 ## 2026-10-29: The home page's board is real
@@ -577,7 +580,7 @@ colours should not post anything. Reverses, for the home page only, "a board
 that lives in the page" of 2026-10-28.
 
 - **Its own server**, a Railway service in a project of its own, not
-  Shitti's. A public page draws spam, and Shitti's service is also the
+  the first app's. A public page draws spam, and that app's service is also the
   telemetry address, which nothing may put at risk. The site reads it from `site/board.json`, filled in once the server
   exists; `site/build.mjs` refuses to build without it, so the site cannot go
   out with a board that is not there. On this machine the home page talks to
@@ -592,7 +595,7 @@ that lives in the page" of 2026-10-28.
   *browser*, not per person; a private window is somebody new. Inside Nimiq
   Pay the wallet signs as anywhere.
   Options weighed: the Nimiq Hub for everybody (most visitors have no Nimiq
-  account, and its popups are what Shitti learned to avoid on phones), and a
+  account, and its popups are what the first app learned to avoid on phones), and a
   new kind of guest login on the server (more code, nothing gained).
 - **Approved before anybody sees it** (`rules.approve`, new in the server).
   The owner sees no notification, so without it rubbish would sit on the home
@@ -744,7 +747,7 @@ timings), built after the owner approved it. For 0.3.0.
   keyframes in `site.css`, resting on the open state, which is what shows
   with reduced motion. Preview still shows the real widget, morph and all.
 - The morph is checked on the local site at both widths, not inside Nimiq
-  Pay: that waits for Shitti to take 0.3.0.
+  Pay: that waits for the first app to take 0.3.0.
 
 ## 2026-11-01: Every way opens on the tiles, and step 1 shows the wide screen too
 
@@ -760,7 +763,7 @@ following the frames approved above.
   on ("See the board"). A new attribute, `start="board"`, keeps the old way;
   a `readonly` board is always the board. The site's home page board, which
   is there to be read, and the widget's demo page (the README's screenshots)
-  say `start="board"`. Shitti's users see the tiles first too once Shitti
+  say `start="board"`. The first app's users see the tiles first too once it
   takes 0.3.0. Weighed: a choice in step 1, with the board as the default;
   and the tiles in the animation only, which would have shown something the
   widget does not do.
@@ -865,7 +868,7 @@ where they take the code.
   widget in the box is itself in the last step, Code, every tap its own;
   the line over the box says to check the colours and words there, then
   take the code.
-- **"You're ready!"** is Shitti's fanfare, the one it shows when you invite
+- **"You're ready!"** is the first app's fanfare, the one it shows when you invite
   somebody, the owner's choice: the page dims, one big line lands with a
   small bounce, and paper is thrown from its middle in the site's colours.
   It clears itself after 2.6 seconds, sooner on a tap, and with reduced
@@ -1589,24 +1592,25 @@ For sharing with a team, the project is one thing: the Nimiq look.
   customize.css and a nimiq.css on top). Visitors see the same pages as
   before: every state was compared screenshot by screenshot.
 - **The widget** has two themes, `nimiq` (now the default) and
-  `nimiq-dark`. `auto`, `light`, `dark`, `pleasenobugs` and `shitti`, the
+  `nimiq-dark`. `auto`, `light`, `dark`, `pleasenobugs` and its old name, the
   `accent` attribute and `readableOn` are gone; the `--pnb-*` custom
   properties still override any colour.
 - **English only.** Dutch and German left the widget. A developer puts it in
   their app's language with the `strings` property, and `lang` now only says
-  which language that is, for dates. Shitti becomes English when it updates.
+  which language that is, for dates. The first app becomes English when it
+  updates.
 - Everything as it was is parked on the branch `classic` and the tag
   `classic-2026-11-19`.
 - Versions go to 0.3.0: an app on 0.2.0 keeps its look until it updates.
 
 ## Where it stands
 
-Shitti moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
+The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
 board is project `vxgxf5j6xz` on https://pleasenobugs-production.up.railway.app
 (Railway service `pleasenobugs` in project `shitty-tasks`, volume on `/data`),
-the old posts were imported, and Shitti's own copy of them is gone. Shitti's
+the old posts were imported, and the app's own copy of them is gone. Its
 branch `feature/pleasenobugs` was fast-forwarded into
-`feature/task-input-redesign`, which is what Shitti's production runs.
+`feature/task-input-redesign`, which is what its production runs.
 
 Docs, demo and the preparation of the Deploy-on-Railway button were finished
 on 2026-10-22: the README goes from nothing to a working board in three steps,
@@ -1635,10 +1639,10 @@ Published 0.1.0 on 2026-10-23 to 2026-10-25, and 0.1.1 on 2026-10-26:
 - **Railway template**: https://railway.com/deploy/PdvdtB, linked from the
   README's button. Tested end to end with a throwaway project, since deleted;
   see [railway-template.md](railway-template.md) for what that turned up.
-- **Shitti** takes `pleasenobugs@^0.1.1` from npm: commits `8a74708` and
+- **The first app** takes `pleasenobugs@^0.1.1` from npm: commits `8a74708` and
   `6afaed5` on `feature/task-input-redesign`, pushed, not deployed on purpose.
-  The build is byte for byte what shitti.me already serves, so it ships with
-  Shitti's next ordinary deploy.
+  The build is byte for byte what the app already serves, so it ships with
+  its next ordinary deploy.
 - The container image is still `0.1.0` (it never carried the email). The next
   tag brings it level with npm.
 
@@ -1690,7 +1694,7 @@ Source: "GitHub Actions".
   over previously staged version".
 - The template's test deploy left one extra installation, with no posts, on
   the collector's totals.
-- Commits here end with `Co-Authored-By: Claude Opus 5.5`; Shitti's CLAUDE.md
+- Commits here end with `Co-Authored-By: Claude Opus 5.5`; the first app's CLAUDE.md
   asks for `Claude Opus 4.8`.
 
 ## Open
@@ -1700,6 +1704,6 @@ Source: "GitHub Actions".
 - PleaseNoBugs' own server could move out of the `shitty-tasks` Railway
   project into one of its own (asked 2026-10-24). Not done: its generated
   domain is the telemetry address in every published version and the address
-  Shitti's board uses, so it would mean moving the data and claiming the same
+  the first app's board uses, so it would mean moving the data and claiming the same
   `pleasenobugs-production` subdomain for the new service. A job of its own,
-  at a quiet moment for Shitti.
+  at a quiet moment for the first app.

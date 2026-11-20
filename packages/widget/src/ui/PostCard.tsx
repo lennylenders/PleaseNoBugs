@@ -202,7 +202,7 @@ export function VoteButton({
  * load.
  *
  * The card is a target only for an owner, whose tap opens the page that
- * answers it. Shitti hid the bin behind a swipe; here it is a visible button,
+ * answers it. The app this grew out of hid the bin behind a swipe; here it is a visible button,
  * because a gesture nobody can discover is a feature nobody has, and a widget
  * in somebody else's app cannot teach its own gestures.
  *

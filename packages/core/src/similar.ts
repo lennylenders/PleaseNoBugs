@@ -2,7 +2,7 @@
  * Words too common to say anything about what a post is about, one group per
  * language the widget speaks.
  *
- * **A new language owes this table a group.** Shitti added German without one,
+ * **A new language owes this table a group.** German was once added without one,
  * which left "aufgabe" significant where its Dutch and English twins were not:
  * two unrelated German posts sharing it and one filler word matched, and the
  * suggestions filled with lookalikes nobody meant.
@@ -52,7 +52,7 @@ export interface Matchable {
  * @param projectNoise  words common in *this* app, like its own name
  *
  * @example
- * const likeThis = createMatcher(['shitti', 'nim', 'taak', 'task']);
+ * const likeThis = createMatcher(['nim', 'wallet', 'task']);
  * likeThis(posts, 'de camera opent niet bij het bewijs');
  * // → the existing "camera opent niet" post, if there is one
  */
