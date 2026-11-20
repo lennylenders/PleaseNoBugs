@@ -16,7 +16,7 @@ afterEach(() => {
 
 async function boardWithPosts() {
   const store = new MemoryStore();
-  await store.putProject(newProject({ id: 'p', name: 'Shitti', origins: ['https://shitti.me'], owner: OWNER.address }));
+  await store.putProject(newProject({ id: 'p', name: 'My app', origins: ['https://my.app'], owner: OWNER.address }));
   const post = (id: string, kind: 'bug' | 'idea', status: 'open' | 'done', extra = {}) =>
     store.createPost({ projectId: 'p', id, author: 'NQSECRETWALLET', anon: false, kind, text: `secret text ${id}`, at: 1, status, ...extra });
   await post('a', 'bug', 'done');
@@ -31,12 +31,12 @@ describe('the report a server sends', () => {
   it('is names and numbers, and nothing that identifies a person', async () => {
     const store = await boardWithPosts();
     const report = await buildReport(store, '0.1.0');
-    expect(report.projects).toEqual([{ name: 'Shitti', bugs: 2, ideas: 1, bugsDone: 1, ideasDone: 1 }]);
+    expect(report.projects).toEqual([{ name: 'My app', bugs: 2, ideas: 1, bugsDone: 1, ideasDone: 1 }]);
     const wire = JSON.stringify(report);
     expect(wire).not.toContain('secret');
     expect(wire).not.toContain('NQSECRETWALLET');
     expect(wire).not.toContain('Secret Name');
-    expect(wire).not.toContain('shitti.me');
+    expect(wire).not.toContain('my.app');
     expect(wire).not.toContain(OWNER.key);
   });
 
@@ -70,9 +70,9 @@ describe('the collector', () => {
     const res = await fetch(`${url}/telemetry/summary`);
     const raw = await res.text();
     expect(JSON.parse(raw)).toEqual({ installations: 1, projects: 1, bugs: 2, ideas: 1, bugsDone: 1, ideasDone: 1 });
-    expect(raw).not.toContain('Shitti');
+    expect(raw).not.toContain('My app');
     // The names are on the server, for the CLI.
-    expect((await store.telemetry())[0].project).toBe('Shitti');
+    expect((await store.telemetry())[0].project).toBe('My app');
   });
 
   it('refuses nonsense', async () => {

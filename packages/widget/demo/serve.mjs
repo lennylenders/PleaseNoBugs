@@ -38,7 +38,7 @@ await store.putProject(
     name: 'Demo app',
     origins: [ORIGIN, ...EXTRA],
     owner: WALLETS.owner.address,
-    loginMessages: ['Sign in to Shitti'],
+    loginMessages: ['Sign in to My app'],
   }),
 );
 

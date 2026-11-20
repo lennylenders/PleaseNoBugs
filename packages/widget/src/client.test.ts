@@ -162,9 +162,9 @@ describe('createClient', () => {
 
   it('reuses the app’s own login and never asks the wallet', async () => {
     const { url, store } = await server();
-    await store.putProject({ ...(await store.getProject('board1'))!, loginMessages: ['Sign in to Shitti'] });
+    await store.putProject({ ...(await store.getProject('board1'))!, loginMessages: ['Sign in to My app'] });
     const s = signerFor('a1');
-    const login = wallet('a1').appLogin('Sign in to Shitti');
+    const login = wallet('a1').appLogin('Sign in to My app');
     const client = createClient({ server: url, project: 'board1', origin: APP, signer: s.sign, appLogin: () => login, storage: null });
     expect(client.address()).not.toBeNull();
     expect((await client.post({ id: 'p1', kind: 'idea', text: 'One signature, ever' })).ok).toBe(true);
@@ -176,7 +176,7 @@ describe('createClient', () => {
   it('falls back to the signer once when the project does not accept the app login', async () => {
     const { url } = await server();
     const s = signerFor('a1');
-    const login = wallet('a1').appLogin('Sign in to Shitti');
+    const login = wallet('a1').appLogin('Sign in to My app');
     const client = createClient({ server: url, project: 'board1', origin: APP, signer: s.sign, appLogin: login, storage: null });
     expect((await client.vote('nope', true)).status).toBe(404);
     expect(s.asked()).toBe(1);

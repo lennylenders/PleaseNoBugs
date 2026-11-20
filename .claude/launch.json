@@ -18,12 +18,6 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["site/board.mjs"],
       "port": 8790
-    },
-    {
-      "name": "shitti-preview",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview", "--prefix", "../shitty-tasks", "--", "--port", "4173"],
-      "port": 4173
     }
   ]
 }

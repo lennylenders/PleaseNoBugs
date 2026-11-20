@@ -1,8 +1,8 @@
 import type { PostFix, PostKind, PostStatus, Rules, ShotRule } from './types.js';
 
 /**
- * The limits a new project starts with. These are the numbers Shitti's board
- * ran on, where they had been tried on real people before being written here.
+ * The limits a new project starts with. These are the numbers the board of
+ * the app PleaseNoBugs grew out of ran on, where they had been tried on real people before being written here.
  */
 export const DEFAULT_RULES: Readonly<Rules> = Object.freeze({
   perDay: 5,

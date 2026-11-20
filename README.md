@@ -1,6 +1,6 @@
 # PleaseNoBugs
 
-**Bugs and ideas, straight from your users. By [Shitti](https://shitti.me).**
+**Bugs and ideas, straight from your users. Free and open source, for everyone building on Nimiq.**
 
 A feedback board you drop into your Nimiq mini app. Your users post what is
 broken and what is missing, second each other's wishes, and you answer them in
@@ -13,7 +13,7 @@ one place, without asking anybody to send you an email.
   <img src="docs/images/tiles.png" width="250" alt="The three tiles behind the plus: report a bug, share an idea, write a review">
 </p>
 
-> **Status: 0.3.0, early.** It runs [Shitti](https://shitti.me)'s board.
+> **Status: 0.3.0, early.** It already runs the board of a Nimiq Pay mini app.
 > This is a community tool, not an official Nimiq product.
 
 ## What it does

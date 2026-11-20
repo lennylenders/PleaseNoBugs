@@ -32,8 +32,8 @@ export const DASHBOARD_PROJECT = 'dashboard';
  * the v1 contract.
  *
  * @example
- * loginMessage({ project: 'shitti', origin: 'https://shitti.me', issued: 0 })
- * // → 'PleaseNoBugs login\nProject: shitti\nOrigin: https://shitti.me\nIssued: 1970-01-01T00:00:00.000Z'
+ * loginMessage({ project: 'myapp', origin: 'https://my.app', issued: 0 })
+ * // → 'PleaseNoBugs login\nProject: myapp\nOrigin: https://my.app\nIssued: 1970-01-01T00:00:00.000Z'
  */
 export function loginMessage(args: { project: string; origin: string; issued: number }): string {
   return [
@@ -49,7 +49,7 @@ export function loginMessage(args: { project: string; origin: string; issued: nu
  * if it is not a URL at all (which then simply never matches anything).
  *
  * @example
- * normalizeOrigin('https://Shitti.me/')  // → 'https://shitti.me'
+ * normalizeOrigin('https://My.App/')  // → 'https://my.app'
  */
 export function normalizeOrigin(origin: string): string {
   try {
