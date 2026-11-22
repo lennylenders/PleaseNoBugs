@@ -624,6 +624,29 @@ the same real board. The footer no longer says the site stores nothing: what
 you post goes to that server, without a name, and the guest key stays in the
 browser.
 
+## 2026-10-29: Railway settings live in the template, not in `railway.json`
+
+Railway deprecated Config as Code (`railway.json`). Services in new projects
+stopped reading it on 2026-08-28, and a template deploy is always a new
+project, so every installation from the button already ran without it: the
+`Dockerfile` was still found (Railway uses one at the root by itself) and the
+restart policy was Railway's default anyway, but there was no health check.
+Services that used it before read it until 2026-12-01.
+
+The health check now lives in the template: Healthcheck Path `/health`, and
+`RAILWAY_HEALTHCHECK_TIMEOUT_SEC=60` as a variable that is set, not asked.
+`railway.json` is gone, so the repository no longer claims a setting that
+nothing reads. [railway-template.md](railway-template.md) says what to set,
+also on Railway services the owner runs from this repository.
+
+Not chosen: Railway's successor, Infrastructure as Code
+(`.railway/railway.ts`). A deploy does not read it; the Railway CLI or a
+GitHub Action applies it to a project that already exists, so it does nothing
+for somebody clicking the button. For the owner's own servers it would mean
+another npm dependency and a CLI step for three settings, and in the
+Railway project it then shared with the first app it would sit next to that
+app's services.
+
 ## 2026-10-31: Fixed, with a link to GitHub or GitLab, and an Updates page
 
 The owner wants a board to show what came of what people reported: an app's
@@ -1720,8 +1743,11 @@ Source: "GitHub Actions".
   publishing anything new. A publish whose browser confirmation times out can
   still have gone through: npm then answers the retry with "Cannot publish
   over previously staged version".
-- The template's test deploy left one extra installation, with no posts, on
-  the collector's totals.
+- `pleasenobugs` in the project `PleaseNoBugs` has Healthcheck Path `/health`
+  and `RAILWAY_HEALTHCHECK_TIMEOUT_SEC=60` (set by hand on 2026-10-31); its
+  image deploy of 2026-11-20 is the first that ran the check, and passed.
+- The template's test deploys (2026-10-24 and 2026-10-31) left two extra
+  installations, with no posts, on the collector's totals.
 - Commits here end with `Co-Authored-By: Claude Opus 5.5`; the first app's CLAUDE.md
   asks for `Claude Opus 4.8`.
 
