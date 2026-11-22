@@ -1624,6 +1624,12 @@ Railway project it shared with our own server is now called `PleaseNoBugs`
 - The first app's board stays on it, with its posts, though nothing writes
   to it any more.
 
+**Later the same day: deleted.** The owner took the payout wallet's recovery
+words out first and opened it elsewhere, then `shitti` (with its volume and
+variables), `nimiq-node` and the separate Railway project `node`, an older
+Nimiq node, were deleted. The project `PleaseNoBugs` holds only our own server
+and its volume now. The first app's code is still in its archived repository.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
@@ -1723,8 +1729,3 @@ Source: "GitHub Actions".
 
 - Domain (`pleasenobugs.com` / `.dev`), not yet checked.
 - Ask the Nimiq team whether they want to point mini app developers at it.
-- The Railway project `PleaseNoBugs` still holds the first app's two
-  stopped services (`shitti`, `nimiq-node`) next to our own server. They can
-  be deleted once nobody needs the first app back; the server stays where it
-  is, as its generated domain is the telemetry address in every published
-  version.
