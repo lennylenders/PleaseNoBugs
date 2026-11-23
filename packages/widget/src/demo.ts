@@ -2,6 +2,7 @@ import {
   DEFAULT_RULES,
   authorMayAnswer,
   cleanFix,
+  identiconCode,
   isClosed,
   lastWord,
   latestReply,
@@ -52,7 +53,8 @@ export function createDemoClient({ owner = false, samples }: { owner?: boolean; 
     voted: false,
     // A visitor's own; an owner is never the author of a sample.
     mine: !owner && !!s.mine,
-    ...(s.who ? { who: s.who } : {}),
+    // A made-up wallet per name, so each sample author has an identicon of their own.
+    ...(s.who ? { who: s.who, face: identiconCode(`NQ00 ${s.who}`) } : {}),
     ...(s.rating ? { rating: s.rating } : {}),
     ...conversation(i, s, now - (s.ago ?? HOUR)),
     ...(s.fix ? { fix: { version: s.fix, link: DEMO_LINK } } : {}),
@@ -105,11 +107,11 @@ export function createDemoClient({ owner = false, samples }: { owner?: boolean; 
         data: {
           project: { id: 'demo', name: 'Demo app', rules: { ...DEFAULT_RULES, kinds: [...DEFAULT_RULES.kinds] } },
           posts: posts.map((p) => ({ ...p })),
-          me: { owner, left, ...(name ? { name } : {}) },
+          me: { owner, left, face: ME_FACE, ...(name ? { name } : {}) },
           updates: updates.length,
         },
       }),
-    me: () => ok({ owner, left, ...(name ? { name } : {}) }),
+    me: () => ok({ owner, left, face: ME_FACE, ...(name ? { name } : {}) }),
     answers: () => ok({ answers: [] }),
 
     post(p) {
@@ -126,7 +128,7 @@ export function createDemoClient({ owner = false, samples }: { owner?: boolean; 
           votes: 1,
           voted: true,
           mine: true,
-          ...(!p.anon && name ? { who: name } : {}),
+          ...(!p.anon ? { face: ME_FACE, ...(name ? { who: name } : {}) } : {}),
           ...(p.kind === 'review' ? { rating: p.rating } : {}),
           ...(p.shot?.board ? { shot: true } : {}),
         },
@@ -142,6 +144,8 @@ export function createDemoClient({ owner = false, samples }: { owner?: boolean; 
       return url ? ok(await (await fetch(url)).blob()) : no(404, 'not_found');
     },
     shotUrl: (id) => shots.get(id) ?? '',
+    // No server to draw it: the card shows the stand-in in the identicon's colour.
+    faceUrl: () => '',
     vote(id, up) {
       const p = find(id);
       if (!p) return no(404, 'not_found');
@@ -159,7 +163,7 @@ export function createDemoClient({ owner = false, samples }: { owner?: boolean; 
     setName(n) {
       name = n.trim() || undefined;
       // Like the server: a name shows on the posts already written with one.
-      for (const p of posts) if (p.mine && p.who !== undefined) p.who = name;
+      for (const p of posts) if (p.mine && p.face !== undefined) p.who = name;
       return ok({ ok: true as const, ...(name ? { name } : {}) });
     },
     // As the server: one change for all of it, and a fix only on a done
@@ -290,6 +294,7 @@ export function createDemoClient({ owner = false, samples }: { owner?: boolean; 
 
 /** Not a real address: nothing in a demo is anybody's. */
 const DEMO_ADDRESS = 'NQ00 DEMO DEMO DEMO DEMO DEMO DEMO DEMO DEMO';
+const ME_FACE = identiconCode(DEMO_ADDRESS);
 
 /**
  * Where the demo's fixes and updates go: a real page on GitHub, this

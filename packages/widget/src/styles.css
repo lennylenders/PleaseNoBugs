@@ -97,7 +97,7 @@
   /* "See the board" under the tiles, and the small words in the forms. */
   --pnb-choose-link: var(--pnb-text-quiet);
   --pnb-form-quiet: var(--pnb-text-quiet);
-  /* A switch, like "Show my name": off, its line and knob; on, and its knob. */
+  /* A switch, like "Post anonymously": off, its line and knob; on, and its knob. */
   --pnb-switch: var(--pnb-surface-2);
   --pnb-switch-line: var(--pnb-line);
   --pnb-switch-knob: var(--pnb-text-quiet);
@@ -619,13 +619,40 @@ button {
 }
 
 .card__who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex: 1;
   min-width: 0;
   font-size: 14px;
   color: var(--pnb-card-quiet);
+}
+
+.card__name {
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ---- An identicon: the server's picture over a stand-in hexagon ---- */
+
+.face {
+  position: relative;
+  display: inline-block;
+  flex: none;
+}
+
+.face__stand-in,
+.face__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.face__img--loading {
+  opacity: 0;
 }
 
 .card__bin {
@@ -732,6 +759,34 @@ button {
   font-size: 14px;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.signin-note {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 14px;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-news);
+  border: 1.5px solid var(--pnb-news-line);
+  color: var(--pnb-news-text);
+}
+
+.signin-note__title {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.signin-note__text {
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.8;
+}
+
+.signin-note .btn {
+  height: 44px;
 }
 
 /* ---- Buttons ------------------------------------------------------------ */
@@ -1084,6 +1139,23 @@ button {
 .input:focus {
   outline: none;
   border-color: var(--pnb-accent);
+}
+
+/* The name, with the identicon it goes out with sitting inside the field. */
+.name-field {
+  position: relative;
+  display: block;
+  margin-top: 12px;
+}
+
+.name-field .face {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+}
+
+.name-field .input {
+  padding-left: 46px;
 }
 
 .count {

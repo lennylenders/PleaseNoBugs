@@ -269,6 +269,8 @@ export function createClient(options: ClientOptions) {
      * `<img>` to load by itself.
      */
     shotUrl: (id: string) => `${base}${post(id)}/shot`,
+    /** Where the server draws an identicon, by the code a post carries in `face`. */
+    faceUrl: (code: string) => `${base}/v1/identicons/${encodeURIComponent(code)}.svg`,
     vote: (id: string, up: boolean) =>
       request<{ ok: true; votes: number; voted: boolean }>('POST', `${post(id)}/vote`, {
         body: { up },

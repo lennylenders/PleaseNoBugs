@@ -58,6 +58,11 @@ const COPY = {
   'board.retry': 'Try again',
   'board.page': 'Page {n}',
   'board.signIn': 'Sign in with your wallet',
+  // On top of the board where signing in is a step of its own (outside Nimiq
+  // Pay: a wallet window opens). Says what signing is not, before it is asked.
+  'board.signInTitle': 'Sign in to post and vote',
+  'board.signInNote': 'Use your Nimiq wallet. Signing only shows which wallet you are; it can’t move funds.',
+  'board.signInButton': 'Sign in with Nimiq',
   // Reading works anywhere; writing needs a wallet. Said when somebody tries,
   // not up front, so a reader is never told off for reading.
   'board.needWallet': 'Open {app} in Nimiq Pay to post and vote.',
@@ -82,12 +87,16 @@ const COPY = {
   'board.placeholderReview': 'What do you think of {app}?',
   'board.yourRating': 'Your rating',
   'board.public': 'Everyone using {app} can see this.',
-  'board.showName': 'Show my name',
+  'board.postAnon': 'Post anonymously',
   'board.namePlaceholder': 'Your name',
+  // Under the name field: what others see, and that a new name reaches back.
+  'board.namedNote':
+    'Others see your identicon and this name, never your address. Changing the name changes it on your earlier posts too.',
   // The honest version. Anonymous means the name is not shown, never that the
   // wallet is not known: the daily limit and one vote per wallet both have to
   // ask who.
-  'board.anonNote': 'Your wallet address is never public, but the server uses it to track votes and daily limits.',
+  'board.anonNote':
+    'Anonymous: no name, no identicon. Your address is never shown; the server uses it only to count votes and daily posts.',
   // ---- A screenshot ----
   'board.shotAdd': 'Add screenshot',
   'board.shotRemove': 'Remove screenshot',

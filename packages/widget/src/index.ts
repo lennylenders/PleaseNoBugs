@@ -32,7 +32,7 @@ export interface OpenOptions {
   screenshots?: boolean | 'owners';
   /** The board to read and nothing else: no writing or voting, every post anonymous, no screenshots. */
   readonly?: boolean;
-  /** `false` leaves out "Show my name", so every post is anonymous. */
+  /** `false` leaves out the name and the "Post anonymously" switch, so every post is anonymous. */
   names?: boolean;
 }
 
