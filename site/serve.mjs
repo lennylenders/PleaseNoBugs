@@ -11,10 +11,13 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { board, fill, ONLY, ROUTES } from './files.mjs';
 
 const PORT = Number(process.env.PORT) || 5190;
 const where = board(false);
+// Here only, never in the published site: the test key (see dev/testkey.js).
+const routes = [['dev/', fileURLToPath(new URL('./dev/', import.meta.url))], ...ROUTES];
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -29,7 +32,7 @@ const TYPES = {
 createServer(async (req, res) => {
   let path = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname).replace(/^\/+/, '');
   if (path === '' || path.endsWith('/')) path += 'index.html';
-  for (const [prefix, dir] of ROUTES) {
+  for (const [prefix, dir] of routes) {
     if (!path.startsWith(prefix)) continue;
     const rest = normalize(path.slice(prefix.length));
     if (rest.startsWith('..') || (ONLY[prefix] && !ONLY[prefix].includes(rest))) break;

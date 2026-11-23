@@ -1,80 +1,57 @@
 /**
- * A guest key for visitors of this website, who have no Nimiq wallet open.
+ * A test wallet for the website on this machine, never on the published site.
  *
- * The browser makes an Ed25519 key of its own the first time somebody posts
- * or votes, keeps it in `localStorage`, and signs with it exactly as the
- * Keyguard would. To the server it is a Nimiq address like any other, one
- * that holds nothing and belongs to no one, so it needs no change and no
- * account. Inside Nimiq Pay the site never uses this: the wallet signs.
+ * The home page's board asks a real Nimiq wallet to sign, through the Nimiq
+ * Hub. Working on the site, that means signing with somebody's real wallet
+ * for every try. Instead, the local board (`board.mjs`) prints a test key,
+ * the widget demo's owner, whose key is public in this repository on purpose;
+ * pasted into the console, `board.js` signs with it here. It is served only
+ * by `serve.mjs` (from `site/dev/`), never built into the published site,
+ * and `board.js` looks for it only on localhost.
  *
- * **What it is not**: proof of a person. A private window or cleared site
- * data is a new key, so one vote per key is one vote per browser, and the
- * daily allowance is per browser too. The server's limits per IP address
- * are what really brake a script, and on this board nothing shows until the
- * owner approved it.
- *
- * Only on this website, never in the npm package: an app's board counts
- * wallets, and handing every app a way around that would undo it.
- *
- * Needs Ed25519 in Web Crypto (Chrome 137, Safari 17, Firefox 129 and
- * later). Where it is missing, signing fails as "no wallet" and the widget
- * says writing needs Nimiq Pay.
+ * Signs exactly as the Keyguard does, so the server needs no change. Needs
+ * Ed25519 in Web Crypto (Chrome 137, Safari 17, Firefox 129 and later).
  */
 
-const KEY = 'pleasenobugs.guest';
+export const KEY = 'pleasenobugs.testkey';
 const PREFIX = '\x16Nimiq Signed Message:\n';
 
+/** Whether this browser holds a test key. */
+export function hasTestKey(storage = safeStorage()) {
+  try {
+    return !!JSON.parse(storage?.getItem(KEY) ?? 'null')?.jwk;
+  } catch {
+    return false;
+  }
+}
+
 /**
- * A signer for `<please-no-bugs>`'s `signer` property.
+ * A signer for `<please-no-bugs>`'s `signer` property, with the stored test key.
  *
  * @example
- * board.signer = guestSigner();
+ * board.signer = testKeySigner();
  */
-export function guestSigner(storage = safeStorage()) {
-  // The promise, not the key: two boards asking at once share one key
-  // instead of each making their own.
-  let making = null;
+export function testKeySigner(storage = safeStorage()) {
+  let loading = null;
   return async (message) => {
-    try {
-      making ??= loadOrMake(storage);
-      const mine = await making;
-      // What the Keyguard signs: SHA-256 over the prefixed message, its
-      // length counted the way the server counts it.
-      const data = new TextEncoder().encode(PREFIX + message.length + message);
-      const hash = await crypto.subtle.digest('SHA-256', data);
-      const signature = await crypto.subtle.sign('Ed25519', mine.privateKey, hash);
-      return { address: mine.address, publicKey: hex(mine.publicKey), signature: hex(new Uint8Array(signature)) };
-    } catch (e) {
-      // The widget's own error, from the script-tag build, so it says that
-      // writing needs a wallet instead of taking this for a "no" to signing.
-      const SignerError = globalThis.PleaseNoBugs?.SignerError;
-      if (SignerError) throw new SignerError('no_wallet', `No guest key: ${e?.message ?? e}`);
-      throw e;
-    }
+    loading ??= load(storage);
+    const mine = await loading;
+    // What the Keyguard signs: SHA-256 over the prefixed message, its
+    // length counted the way the server counts it.
+    const data = new TextEncoder().encode(PREFIX + message.length + message);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    const signature = await crypto.subtle.sign('Ed25519', mine.privateKey, hash);
+    return { address: mine.address, publicKey: hex(mine.publicKey), signature: hex(new Uint8Array(signature)) };
   };
 }
 
-/** The key this browser already has, or a new one, remembered. */
-async function loadOrMake(storage) {
-  try {
-    const saved = JSON.parse(storage?.getItem(KEY) ?? 'null');
-    if (saved?.jwk) {
-      const privateKey = await crypto.subtle.importKey('jwk', saved.jwk, { name: 'Ed25519' }, false, ['sign']);
-      const publicKey = fromBase64Url(saved.jwk.x);
-      return { privateKey, publicKey, address: await nimiqAddress(publicKey) };
-    }
-  } catch {
-    // A key that no longer reads is replaced: it only ever signed feedback.
-  }
-  const pair = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
-  const jwk = await crypto.subtle.exportKey('jwk', pair.privateKey);
-  const publicKey = new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey));
-  try {
-    storage?.setItem(KEY, JSON.stringify({ jwk }));
-  } catch {
-    // Private mode: a key for this visit only.
-  }
-  return { privateKey: pair.privateKey, publicKey, address: await nimiqAddress(publicKey) };
+/** The stored key, or an error: this file never makes one. */
+async function load(storage) {
+  const saved = JSON.parse(storage?.getItem(KEY) ?? 'null');
+  if (!saved?.jwk) throw new Error('No test key in this browser');
+  const privateKey = await crypto.subtle.importKey('jwk', saved.jwk, { name: 'Ed25519' }, false, ['sign']);
+  const publicKey = fromBase64Url(saved.jwk.x);
+  return { privateKey, publicKey, address: await nimiqAddress(publicKey) };
 }
 
 /**
