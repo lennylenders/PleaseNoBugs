@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@nimiq/core": "^2.7.1",
+    "@nimiq/identicons": "1.6.2",
     "@pleasenobugs/core": "0.3.0",
     "cors": "^2.8.5",
     "express": "^4.21.2"
