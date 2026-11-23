@@ -1653,6 +1653,47 @@ variables), `nimiq-node` and the separate Railway project `node`, an older
 Nimiq node, were deleted. The project `PleaseNoBugs` holds only our own server
 and its volume now. The first app's code is still in its archived repository.
 
+## 2026-11-23: Wallet login on the home page, identicon and name by default
+
+The owner wants the home page's board to be people with a Nimiq wallet, and
+a post to say who wrote it unless its author chooses otherwise. Designed first
+in Figma ("Flow 6 · Home page: sign in with Nimiq" on "Widget flows ·
+Nimiq"), then built.
+
+- **The home page signs in with the Nimiq Hub.** The browser's own guest key
+  is gone, and a visitor who had one loses it and its proof on the next visit.
+  Reading needs nothing. The Hub's script loads only once somebody touches
+  the board, so a reader never fetches it, and is there before the tap that
+  opens the Hub's window. Locally, `board.mjs` prints a test key that
+  `site/dev/testkey.js` signs with, served by `serve.mjs` only, never built
+  into the published site.
+- **Identicon and name by default, in every app.** The writing screen has
+  "Post anonymously", off, and a name field with the wallet's identicon; the
+  name is asked once per board and remembered, and changing it changes it on
+  earlier posts too, as names always did. Anonymous: no name, no identicon.
+  `names="off"` still makes a whole board anonymous. The API's own default
+  stays anonymous (`anon` left out): only the widget's answer changed.
+- **The address still never leaves the server.** A post carries `face`,
+  twelve digits Nimiq's identicons hash the spaced address into, which pick
+  the picture and say nothing about the wallet. The server draws the SVG
+  itself (`GET /v1/identicons/:code.svg`, with `@nimiq/identicons` 1.6.2
+  pinned, because it calls the library's drawing step directly), cached for
+  good: the drawings are 88 kB, more than the whole widget, and the widget
+  should not fetch them from a third party. A test compares every picture with
+  the library's own from the address. Where there is no server (the demo) a
+  hexagon in the identicon's colour stands in.
+- **Outside Nimiq Pay, "Sign in with Nimiq" sits on top of the board** until
+  the user signed in, saying that signing cannot move funds. Inside Nimiq Pay
+  the first vote or post signs, as before, with the quiet link at the bottom.
+- **No approval on the home page's board** any more, and the posts written
+  with guest keys go. Both are changes to the live board, done at release
+  with the owner (the deletion cannot be undone).
+
+Not chosen: showing a short address next to the identicon (the owner's first
+pick, withdrawn the same day: an identicon is recognisable without making
+anybody findable), and an identicon only when the author opts in (the owner
+wants named to be the default).
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
