@@ -30,11 +30,7 @@
       <header class="make-head">
         <div>
           <h1>Make it yours</h1>
-          <p class="lead">Pick light or dark and how it opens, try it right here, then take the code.</p>
-        </div>
-        <div class="view-switch" role="group" aria-label="Preview on">
-          <button type="button" data-view="desk" aria-pressed="true">Desktop</button>
-          <button type="button" data-view="phone" aria-pressed="false">Phone</button>
+          <p class="lead">Pick light or dark and how it opens, then hand it to your AI agent.</p>
         </div>
       </header>
       <!-- One screen, as the home page's demo: the pretend app, the widget at
@@ -110,6 +106,7 @@
           <!-- The first step: light or dark, and making your own, coming soon (customize.js, `paintThemes`). -->
           <div class="themes" id="themes" role="group" aria-labelledby="themes-title" hidden>
             <p class="themes__title" id="themes-title">Light or dark</p>
+            <div class="themes__track" id="themes-track">
             <button type="button" class="theme-card" data-theme="light" aria-pressed="true">
               <span class="theme-card__preview theme-card__preview--light" aria-hidden="true"><b></b><i></i><i></i><i></i><em></em></span>
               <span class="theme-card__name">Light</span>
@@ -125,6 +122,8 @@
               <span class="theme-card__name">Customize your own <small>Coming soon</small></span>
               <span class="theme-card__line">Your own colours, part by part.</span>
             </div>
+            </div>
+            <div class="themes__dots" id="themes-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
           </div>
 
           <!-- The third step, wide over the stage: where the app runs, in plain words (customize.js, `paintPanel`). -->
@@ -140,10 +139,19 @@
             </div>
           </section>
 
-          <!-- In the last step: where to try it, till it is tried (customize.js, `paintTry`). -->
-          <div class="try" id="try" aria-hidden="true" hidden>
-            <span class="try__text">Test your widget</span>
-            <svg class="try__arrow" width="64" height="56" viewBox="0 0 64 56" fill="none"><path d="M4 6c18 0 38 8 50 34" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><path d="M44 36l11 8 3-13" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <!-- In the last step, over and over: the prompt goes into an AI agent and the widget turns up in the app (customize.js, `playMade`). -->
+          <div class="made" id="made" aria-hidden="true" hidden>
+            <div class="made__chat">
+              <b class="made__head"><span class="made__dot"></span>AI agent</b>
+              <p class="made__me"><span class="made__chip">Prompt</span>Hi! Please add PleaseNoBugs to this app…</p>
+              <p class="made__typing"><i></i><i></i><i></i></p>
+              <ul class="made__done">
+                <li>Widget added</li>
+                <li>Server connected</li>
+                <li>Ready in your app</li>
+              </ul>
+            </div>
+            <div class="made__app"></div>
           </div>
 
           <!-- The steps, as a slim bar along the bottom: no card, the widget is the place to work. -->

@@ -7,6 +7,7 @@ import {
   normalizeOrigin,
   proofIsFresh,
 } from '@pleasenobugs/core';
+import { appLoginListed } from './projects.js';
 
 /**
  * Who is asking, proven by a Nimiq wallet signature.
@@ -80,7 +81,7 @@ const CACHE_MAX = 10_000;
  * @param header         the raw `Authorization` header
  * @param project        the project id from the URL, or `DASHBOARD_PROJECT`
  * @param requestOrigin  the request's `Origin` header, when it has one
- * @param appLogins      the fixed login messages this project accepts (its
+ * @param appLogins      the login messages this project accepts (its
  *                       `loginMessages`); empty for the dashboard, always
  *
  * Whether the origin is one the project *allows* is deliberately not decided
@@ -102,11 +103,12 @@ export async function checkProof(
   const proof = decodeProof(header);
   if (!proof || !isNimiqAddress(proof.address)) return { ok: false, reason: 'invalid' };
 
-  // An app login signs the app's own fixed message instead of ours. It is
-  // accepted only where the project listed that exact message, and it has no
-  // timestamp to expire on: the owner opted into that by listing it.
+  // An app login signs the app's own message instead of ours. It is accepted
+  // only where the project listed that message (or, with a `*`, its fixed
+  // start), and it has no timestamp to expire on: the owner opted into that by
+  // listing it.
   const appLogin = proof.message !== undefined;
-  if (appLogin ? !appLogins.includes(proof.message as string) : !proofIsFresh(proof.issued, now)) {
+  if (appLogin ? !appLoginListed(appLogins, proof.message as string) : !proofIsFresh(proof.issued, now)) {
     return { ok: false, reason: 'invalid' };
   }
   const origin = normalizeOrigin(proof.origin);

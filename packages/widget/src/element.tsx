@@ -31,7 +31,8 @@ export const TAG = 'please-no-bugs';
  * `lang` (the language of your `strings`, for dates; English by default), `app-name`, `name` (a display name to suggest), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
  * the board, for the app's owners only; `off` to leave them out), `names`
- * (`off` leaves out "Show my name", so every post is anonymous),
+ * (`off` leaves out the name and the "Post anonymously" switch, so every post
+ * is anonymous),
  * `readonly` (the board to scroll through and nothing else: see
  * `readonly.ts`), `demo` (sample posts in the page's memory, no server: see
  * `demo.ts`; `demo="owner"` is the owner's side of it) and, with `demo` only, `screen` (`button`, `tiles`, `board`,

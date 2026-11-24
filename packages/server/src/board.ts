@@ -1,11 +1,13 @@
-import { latestReply, shownThread, type Post, type Project, type PublicProject } from '@pleasenobugs/core';
+import { identiconCode, latestReply, shownThread, type Post, type Project, type PublicProject } from '@pleasenobugs/core';
 import type { PostWithVotes } from './store.js';
 
 /**
  * Trim a stored post down to what one reader may have.
  *
  * Everything left out is the point: the author's address never leaves, named
- * or not, and neither does the list of who voted. A reader learns only whether
+ * or not, and neither does the list of who voted. A post that is not anonymous
+ * carries the author's identicon instead: the picture, as a code that cannot
+ * be turned back into the address. A reader learns only whether
  * they wrote it and whether they voted.
  *
  * @param row     the stored post with its vote count
@@ -34,7 +36,10 @@ export function toVisible(
     voted: row.voted,
     mine: reader !== null && row.author === reader,
   };
-  if (!row.anon && name) out.who = name;
+  if (!row.anon) {
+    if (name) out.who = name;
+    out.face = identiconCode(row.author);
+  }
   // A message an owner took off the board is gone for everybody else, its
   // author included, like a hidden post. Owners get it, marked, to put back.
   const thread = owner ? (row.thread ?? []) : shownThread(row.thread);

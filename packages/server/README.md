@@ -21,7 +21,7 @@ starts the API on port 8787 with its data in `./pleasenobugs.db`.
 | `PNB_DB` | `./pleasenobugs.db` | The SQLite file. Back it up by copying it. |
 | `PNB_DASHBOARD_ORIGINS` | none | Comma-separated origins allowed to run the dashboard. None means no dashboard; use `create-project`. |
 | `PNB_TRUST_PROXY` | `0` | Proxies in front of the server. `1` behind Railway, Fly or a load balancer. |
-| `PNB_PROJECT_NAME`, `PNB_PROJECT_ORIGINS`, `PNB_PROJECT_OWNER` | none | On an empty server, make the first project from these. Ignored once any project exists. Every start prints each project's id and rules, and on Railway the line to paste. `PNB_PROJECT_LOGIN_MESSAGE` optionally adds an app login. |
+| `PNB_PROJECT_NAME`, `PNB_PROJECT_ORIGINS`, `PNB_PROJECT_OWNER` | none | On an empty server, make the first project from these. Ignored once any project exists. Every start prints each project's id and rules, and on Railway the line to paste. `PNB_PROJECT_LOGIN_MESSAGE` optionally adds an app login: your app's own login sentence, or its fixed start followed by `*` when the rest changes every time. Unlike the others it is also read later: on a server with one project, setting it and restarting adds it to that project. |
 | `PNB_PROJECT_SCREENSHOTS` | `board` | With the variables above: `owners` keeps every screenshot for the owners, `off` refuses them. The server enforces it, whatever a widget sends. |
 | `PNB_PROJECT_APPROVE` | `off` | With the variables above: `on` makes new posts wait until an owner approves them. For a board on a public page. |
 | `PNB_POSTS_PER_IP_DAY` | none | How many posts one IP address may send a day, over every board. Counted in memory, as a hash, never stored or logged. Off by default: on a phone network many people share one address. |

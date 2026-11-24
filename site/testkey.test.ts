@@ -6,10 +6,10 @@ import { newProject } from '../packages/server/src/projects.js';
 import { MemoryStore } from '../packages/server/src/memory-store.js';
 import { createApp } from '../packages/server/src/app.js';
 // @ts-expect-error: plain JavaScript, served to browsers as it is
-import { blake2b, guestSigner, nimiqAddress } from './src/assets/guest.js';
+import { KEY, blake2b, hasTestKey, nimiqAddress, testKeySigner } from './dev/testkey.js';
 
 /**
- * The website's guest key, checked against the things it has to agree with:
+ * The local site's test key, checked against the things it has to agree with:
  * Node's BLAKE2b, Nimiq's own address derivation, and the real server.
  */
 
@@ -25,7 +25,18 @@ function memoryStorage() {
   };
 }
 
-describe('the guest key', () => {
+/** A storage holding the test key for `seed`, the way board.mjs prints it. */
+function withKey(seed: string) {
+  const hexSeed = seed.padStart(64, '0');
+  const pub = Nimiq.PublicKey.derive(Nimiq.PrivateKey.fromHex(hexSeed));
+  const b64u = (bytes: Uint8Array) => Buffer.from(bytes).toString('base64url');
+  const jwk = { kty: 'OKP', crv: 'Ed25519', d: b64u(Buffer.from(hexSeed, 'hex')), x: b64u(pub.serialize()) };
+  const s = memoryStorage();
+  s.setItem(KEY, JSON.stringify({ jwk }));
+  return { storage: s, address: pub.toAddress().toUserFriendlyAddress() };
+}
+
+describe('the test key', () => {
   it('hashes like BLAKE2b', () => {
     for (const input of ['', 'abc', 'x'.repeat(300)]) {
       const bytes = new TextEncoder().encode(input);
@@ -41,20 +52,29 @@ describe('the guest key', () => {
     }
   });
 
-  it('posts and votes on a real server, and stays the same key on the next visit', async () => {
+  it('is never made up: without one stored, there is none', async () => {
+    const empty = memoryStorage();
+    expect(hasTestKey(empty)).toBe(false);
+    await expect(testKeySigner(empty)('hello')).rejects.toThrow();
+    expect(empty.getItem(KEY)).toBeNull();
+  });
+
+  it('posts and votes on a real server as the wallet it belongs to', async () => {
     const store = new MemoryStore();
     await store.putProject(newProject({ id: 'site', name: 'PleaseNoBugs', origins: [SITE], owner: 'NQ07 0000 0000 0000 0000 0000 0000 0000 0000' }));
     const server = createApp({ store }).listen(0);
     await new Promise<void>((r) => server.once('listening', () => r()));
     const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
     try {
-      const storage = memoryStorage();
+      const { storage, address } = withKey('c3');
+      expect(hasTestKey(storage)).toBe(true);
       const client = (proofs: ReturnType<typeof memoryStorage>) =>
-        createClient({ server: url, project: 'site', origin: SITE, signer: guestSigner(storage), storage: proofs });
+        createClient({ server: url, project: 'site', origin: SITE, signer: testKeySigner(storage), storage: proofs });
 
       const first = client(memoryStorage());
-      const posted = await first.post({ id: 'g1', kind: 'idea', text: 'A guest wish' });
+      const posted = await first.post({ id: 'g1', kind: 'idea', text: 'A test wish' });
       expect(posted).toMatchObject({ ok: true });
+      expect(first.address()).toBe(address.replace(/ /g, ''));
 
       // A new visit: no proof remembered, but the same key, so the post is still "mine".
       const again = client(memoryStorage());

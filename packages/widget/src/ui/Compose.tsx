@@ -11,6 +11,7 @@ import {
 import type { CopyKey, Translate } from '../i18n.js';
 import { KIND, statusLabel } from './PostCard.js';
 import * as Icon from './icons.js';
+import { Face } from './Face.js';
 
 /** A screenshot ready to send, plus a URL to show it with while you decide. */
 export interface Attached {
@@ -76,6 +77,8 @@ export function Compose({
   perDay,
   textMax,
   name: knownName,
+  face,
+  faceUrl,
   appName,
   screenshots,
   names = true,
@@ -92,10 +95,14 @@ export function Compose({
   textMax: number;
   /** The name the server has for this wallet, or the app's suggestion. */
   name: string;
+  /** This wallet's identicon code, once signed in; a stand-in until then. */
+  face?: string;
+  /** Where the server draws an identicon. */
+  faceUrl?: (code: string) => string;
   appName: string;
   /** Whether a bug or an idea may carry a screenshot, and who sees it. */
   screenshots: Screenshots;
-  /** Whether the writer may show a name; without it every post is anonymous. */
+  /** Whether the writer may show a name and identicon; without it every post is anonymous. */
   names?: boolean;
   /** Seconding a lookalike instead of writing it: votes for it and leaves this screen. */
   onMeToo: (id: string) => void;
@@ -114,7 +121,10 @@ export function Compose({
   const [agreed, setAgreed] = useState(false);
   const onBoard = screenshots === 'board';
   const [reading, setReading] = useState(false);
-  const [showName, setShowName] = useState(false);
+  // Named by default: a post with a face and a name is somebody, and people
+  // answer somebody. Anonymous is one tap away, and on a board without names
+  // it is the only way.
+  const [anon, setAnon] = useState(!names);
   const [name, setName] = useState(knownName);
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<{ key: CopyKey; vars?: Record<string, string | number> } | null>(null);
@@ -127,7 +137,7 @@ export function Compose({
   const alike = useMemo(() => (review ? [] : likeThis(requests, text)), [review, requests, text, likeThis]);
   const said = text.trim();
   const none = left !== null && left <= 0;
-  const nameMissing = showName && !name.trim();
+  const nameMissing = !anon && !name.trim();
   const unchecked = !!shot && onBoard && !agreed;
 
   useEffect(() => () => void (shot && URL.revokeObjectURL(shot.preview)), [shot]);
@@ -152,7 +162,7 @@ export function Compose({
     const refused = await onSend({
       kind,
       text: said,
-      anon: !showName,
+      anon,
       name: name.trim(),
       ...(review ? { rating } : {}),
       ...(shot ? { shot: { ...shot, board: onBoard && agreed } } : {}),
@@ -295,30 +305,33 @@ export function Compose({
 
       {names && (
         <div class="switch-row">
-          <span class="switch-row__label" id="pnb-show-name">
-            {t('board.showName')}
+          <span class="switch-row__label" id="pnb-anon">
+            {t('board.postAnon')}
           </span>
           <button
             type="button"
             role="switch"
             class="switch"
-            aria-checked={showName}
-            aria-labelledby="pnb-show-name"
-            onClick={() => setShowName(!showName)}
+            aria-checked={anon}
+            aria-labelledby="pnb-anon"
+            onClick={() => setAnon(!anon)}
           />
         </div>
       )}
-      {names && showName && (
-        <input
-          class="input"
-          value={name}
-          maxLength={NAME_MAX}
-          placeholder={t('board.namePlaceholder')}
-          aria-label={t('board.namePlaceholder')}
-          onInput={(e) => setName((e.target as HTMLInputElement).value)}
-        />
+      {!anon && (
+        <label class="name-field">
+          <Face code={face} src={face && faceUrl ? faceUrl(face) : undefined} size={24} />
+          <input
+            class="input"
+            value={name}
+            maxLength={NAME_MAX}
+            placeholder={t('board.namePlaceholder')}
+            aria-label={t('board.namePlaceholder')}
+            onInput={(e) => setName((e.target as HTMLInputElement).value)}
+          />
+        </label>
       )}
-      <p class="note">{t('board.anonNote')}</p>
+      <p class="note">{t(anon ? 'board.anonNote' : 'board.namedNote')}</p>
 
       <div class="send">
         <button

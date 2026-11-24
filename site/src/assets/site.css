@@ -1957,31 +1957,6 @@ body:has(.tour--playing) > please-no-bugs { opacity: 0; visibility: hidden; tran
   .deck__chevron { transition: none; }
 }
 
-/* "Test your widget" and an arrow down to it, nudging
-   towards it until it is touched (customize.js, `paintTry`). */
-
-.try {
-  display: flex;
-  animation: try-in 400ms ease-out 1.6s both;
-}
-
-.try[hidden] { display: none; }
-
-.try__arrow { flex: none; animation: try-nudge 1.4s ease-in-out 2s infinite; filter: none; }
-
-@keyframes try-in {
-  from { opacity: 0; transform: translate(-8px, -8px); }
-}
-
-@keyframes try-nudge {
-  50% { transform: translate(4px, 4px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .try,
-  .try__arrow { animation: none; }
-}
-
 .make { padding-top: clamp(32px, 4.5vw, 64px); padding-bottom: 96px; }
 
 /* No frame round the stage here: the stage is the frame. */
@@ -2090,6 +2065,12 @@ body:has(.tour--playing) > please-no-bugs { opacity: 0; visibility: hidden; tran
   color: var(--nq-navy);
 }
 
+/* The cards, one under the other here; swiped one at a time on a phone. */
+
+.themes__track { display: grid; gap: 10px; }
+
+.themes__dots { display: none; }
+
 .themes__title {
   margin: 0 0 6px;
   font-size: clamp(24px, 2.4vw, 32px);
@@ -2182,27 +2163,203 @@ body:has(.tour--playing) > please-no-bugs { opacity: 0; visibility: hidden; tran
   white-space: nowrap;
 }
 
-/* A phone: the cards in a row along the bottom, small, over the bar. */
+/* A phone: a band along the bottom, above the bar, with one card at a time
+   to swipe and dots under them, as "How it opens" does. The widget stands
+   above the band (customize.js counts it in `--deck-h`), never under it. */
 
 @media (max-width: 760px) {
   .themes {
     top: auto;
-    bottom: calc(var(--deck-h, 0px) + 12px);
-    left: 12px;
-    right: 12px;
+    bottom: var(--bar-h, 0px);
+    left: 0;
+    right: 0;
     width: auto;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    padding: 0;
-    background: none;
-    box-shadow: none;
+    padding: 12px 0 10px;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: inset 0 1px 0 var(--nq-navy-10);
   }
   .themes__title { display: none; }
-  .theme-card { grid-template-columns: 1fr; padding: 8px; row-gap: 6px; }
-  .theme-card__preview { grid-row: auto; height: 44px; }
-  .theme-card__line { display: none; }
-  .theme-card__name { font-size: 13px; }
-  .theme-card__name small { display: block; width: max-content; margin: 4px 0 0; }
+  .themes__track {
+    display: flex;
+    gap: 12px;
+    padding: 0 14%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .themes__track::-webkit-scrollbar { display: none; }
+  .theme-card { flex: 0 0 100%; grid-template-columns: 64px 1fr; scroll-snap-align: center; }
+  .theme-card__preview { height: 52px; }
+  .themes__dots { display: flex; justify-content: center; gap: 8px; }
+  .themes__dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--nq-navy-10); cursor: pointer; }
+  .themes__dots i.on { background: var(--nq-navy); }
+}
+
+/* The last step, over and over: the prompt goes into an AI agent, it says
+   what it did, and the widget turns up in the app (customize.js,
+   `playMade`). Calm, like the home page's demo: things fade and rise a
+   little, nothing bounces. */
+
+.made[hidden] { display: none; }
+
+.made {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--deck-h, 0px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+  background: var(--page);
+}
+
+@media (min-width: 980px) {
+  .made { left: calc(var(--deck-w) + 48px); }
+}
+
+/* A phone leaves the stage little height above the card: a shorter chat. */
+
+@media (max-width: 639px) {
+  .made { padding: 12px; }
+  .made__chat { gap: 8px; padding: 12px; }
+  .made__me { font-size: 12px; }
+  .made__done { gap: 4px; font-size: 13px; }
+}
+
+.made__chat,
+.made__app { grid-area: 1 / 1; }
+
+.made__chat {
+  display: grid;
+  gap: 12px;
+  width: min(360px, 100%);
+  padding: 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10), 0 12px 32px rgba(4, 7, 36, 0.08);
+  color: var(--nq-navy);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 400ms ease, transform 400ms ease;
+}
+
+.made.is-chat .made__chat { opacity: 1; transform: none; }
+
+.made__head { display: flex; align-items: center; gap: 8px; color: var(--nq-navy-60); font-size: 13px; font-weight: 600; }
+
+.made__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--nq-gold); }
+
+.made__me {
+  justify-self: end;
+  max-width: 88%;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px 12px 4px 12px;
+  background: var(--nq-navy);
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 350ms ease, transform 350ms ease;
+}
+
+.made.is-asked .made__me { opacity: 1; transform: none; }
+
+.made__chip {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.16);
+  font-family: var(--nq-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* "Typing" and the three ticks share one place under the prompt. */
+
+.made__typing,
+.made__done { grid-area: 3 / 1; }
+
+.made__typing { display: flex; gap: 4px; align-self: start; height: 8px; margin: 0; opacity: 0; transition: opacity 200ms ease; }
+
+.made.is-typing .made__typing { opacity: 1; }
+
+.made__typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--nq-navy-30); animation: made-dot 900ms ease-in-out infinite; }
+
+.made__typing i:nth-child(2) { animation-delay: 150ms; }
+
+.made__typing i:nth-child(3) { animation-delay: 300ms; }
+
+@keyframes made-dot {
+  50% { opacity: 0.3; }
+}
+
+.made__done { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+
+.made__done li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.made__done li::before {
+  content: '\2713';
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--nq-navy-5);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.made.is-done-1 .made__done li:nth-child(1),
+.made.is-done-2 .made__done li:nth-child(-n + 2),
+.made.is-done-3 .made__done li { opacity: 1; transform: none; }
+
+.made__app {
+  position: relative;
+  width: calc(320px * var(--s, 0.8));
+  height: calc(560px * var(--s, 0.8));
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--page);
+  box-shadow: inset 0 0 0 1px var(--nq-navy-10), 0 12px 32px rgba(4, 7, 36, 0.08);
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+
+.made.is-app .made__app { opacity: 1; transform: none; }
+
+.made__device.play {
+  inset: auto;
+  left: 0;
+  top: 0;
+  width: 320px;
+  height: 560px;
+  transform: scale(var(--s, 0.8));
+  transform-origin: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .made__chat,
+  .made__me,
+  .made__done li,
+  .made__app { transition: none; }
+  .made__typing i { animation: none; }
 }
 
 .make-head {
@@ -2217,46 +2374,6 @@ body:has(.tour--playing) > please-no-bugs { opacity: 0; visibility: hidden; tran
 .make-head h1 { font-size: clamp(36px, 4.4vw, 56px); }
 
 .make-head .lead { max-width: 520px; margin: 12px 0 0; }
-
-.view-switch {
-  display: inline-flex;
-  padding: 4px;
-  border-radius: 999px;
-  background: var(--nq-navy-5);
-}
-
-.view-switch button {
-  min-height: 34px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--nq-navy-60);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  cursor: pointer;
-}
-
-.view-switch button[aria-pressed='true'] { background: #ffffff; color: var(--nq-navy); box-shadow: 0 1px 3px rgba(4, 7, 36, 0.12); }
-
-/* "Test your widget", pointing at it in the last step: navy, words in white. */
-
-.try {
-  position: absolute;
-  z-index: 4;
-  align-items: flex-end;
-  gap: 2px;
-  pointer-events: none; color: var(--nq-navy); }
-
-.try__text {
-  margin-bottom: 44px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 15px;
-  white-space: nowrap;
-  box-shadow: 0 8px 20px rgba(10, 10, 30, 0.35); background: var(--nq-navy); color: #ffffff; font-weight: 600; letter-spacing: -0.02em; }
 
 .nq-panel[hidden] { display: none; }
 

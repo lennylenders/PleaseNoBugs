@@ -16,7 +16,7 @@ Template settings (the gear in the editor's left bar):
 | Setting | Value |
 |---|---|
 | Name | `PleaseNoBugs` |
-| Icon | https://cdn.jsdelivr.net/gh/lennylenders/PleaseNoBugs@v0.2.0/site/src/assets/logo.svg (pinned to a tag, so it never changes under the template) |
+| Icon | https://cdn.jsdelivr.net/gh/lennylenders/PleaseNoBugs@v0.3.0/site/src/assets/nimiq/hexagon-2026.svg, the gold Nimiq hexagon (pinned to a tag, so it never changes under the template; was the Classic logo of v0.2.0 until 2026-11-23) |
 | Description | `Self-hosted feedback board for Nimiq mini apps: bugs and ideas from users.` (Railway allows 75 characters.) |
 
 Nothing on the template page or in a new project names another app: the

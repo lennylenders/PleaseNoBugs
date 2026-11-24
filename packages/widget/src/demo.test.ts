@@ -34,9 +34,22 @@ describe('createDemoClient', () => {
     const sent = await c.post({ id: 'x', kind: 'review', text: 'Nice', rating: 4 });
     expect(sent.ok && sent.data.left).toBe(4);
     const res = await c.board();
-    expect(res.ok && res.data.posts[0]).toMatchObject({ id: 'x', mine: true, who: 'Fons', rating: 4, votes: 1 });
+    expect(res.ok && res.data.posts[0]).toMatchObject({ id: 'x', mine: true, who: 'Fons', face: expect.stringMatching(/^[0-9]{12}$/), rating: 4, votes: 1 });
     const twice = await c.post({ id: 'y', kind: 'review', text: 'Again', rating: 5 });
     expect(twice).toMatchObject({ ok: false, error: 'reviewed' });
+  });
+
+  it('shows a face and a name unless the post is anonymous', async () => {
+    const c = createDemoClient();
+    await c.setName('Fons');
+    await c.post({ id: 'named', kind: 'idea', text: 'One' });
+    await c.post({ id: 'hidden', kind: 'idea', text: 'Two', anon: true });
+    const res = await c.board();
+    if (!res.ok) throw new Error('no board');
+    const by = (id: string) => res.data.posts.find((p) => p.id === id);
+    expect(by('named')).toMatchObject({ who: 'Fons', face: res.data.me?.face });
+    expect(by('hidden')).not.toHaveProperty('face');
+    expect(by('hidden')).not.toHaveProperty('who');
   });
 
   it('has updates that go to GitHub, and a fixed bug that says where', async () => {

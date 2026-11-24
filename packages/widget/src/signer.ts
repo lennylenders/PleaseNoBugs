@@ -107,3 +107,18 @@ export function nimiqPaySigner(timeout: number = WAIT_MS): Signer {
     return { address: accounts[0], publicKey: signed.publicKey, signature: signed.signature };
   };
 }
+
+/**
+ * The address Nimiq Pay is on right now, or null outside it (or with no
+ * account). No prompt: listing accounts is not signing. Used to notice a user
+ * who switched accounts in Nimiq Pay, so the board stops speaking for the old
+ * one.
+ */
+export async function nimiqPayAccount(): Promise<string | null> {
+  try {
+    const accounts = await window.nimiq?.listAccounts();
+    return Array.isArray(accounts) && accounts.length ? accounts[0] : null;
+  } catch {
+    return null;
+  }
+}

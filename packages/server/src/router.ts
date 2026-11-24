@@ -14,6 +14,7 @@ import {
   cleanCodeLink,
   cleanVersion,
   decodeProof,
+  identiconCode,
   isClosed,
   isPostKind,
   isPostStatus,
@@ -34,6 +35,7 @@ import {
 } from '@pleasenobugs/core';
 import { checkProof } from './auth.js';
 import { publicProject, toVisible } from './board.js';
+import { identiconSvg } from './identicon.js';
 import { rateLimit } from './limit.js';
 import {
   cleanLoginMessages,
@@ -176,7 +178,7 @@ export function createRouter(options: RouterOptions): express.Router {
   /** What one wallet needs to know about itself on one board. */
   async function me(p: Project, address: string, owner: boolean): Promise<Me> {
     const used = await store.countByAuthorSince(p.id, address, now() - DAY_MS);
-    const out: Me = { owner, left: Math.max(0, p.rules.perDay - used) };
+    const out: Me = { owner, left: Math.max(0, p.rules.perDay - used), face: identiconCode(address) };
     const name = (await store.names(p.id, [address])).get(address);
     if (name) out.name = name;
     return out;
@@ -289,6 +291,24 @@ export function createRouter(options: RouterOptions): express.Router {
         'content-security-policy': "default-src 'none'",
       });
       res.send(Buffer.from(shot.data));
+    }),
+  );
+
+  // A wallet's identicon, by the code a post carries in `face`. Belongs to no
+  // project and says nothing about anybody: the same twelve digits draw the
+  // same picture for everyone, forever, so the browser may keep it for good.
+  router.get(
+    '/v1/identicons/:code.svg',
+    h(async (req, res) => {
+      const svg = await identiconSvg(String(req.params.code));
+      if (!svg) return fail(res, 404, 'not_found');
+      res.set({
+        'content-type': 'image/svg+xml',
+        'cache-control': 'public, max-age=31536000, immutable',
+        'x-content-type-options': 'nosniff',
+        'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'",
+      });
+      res.send(svg);
     }),
   );
 

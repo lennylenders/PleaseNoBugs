@@ -10,7 +10,10 @@
  * 4. Ready to add: a prompt for the developer's AI agent, the choices made,
  *    and the code itself for who prefers to add it by hand.
  *
- * The widget can be tried in every step. A slim bar along the bottom has
+ * The widget can be tried in the first three steps; the last one shows,
+ * over and over, the prompt going into an AI agent and the widget turning up
+ * in the app, rather than a widget that looks real but posts nowhere. A slim
+ * bar along the bottom has
  * Back and Next; Next waits until the step's choice is made.
  *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
@@ -52,6 +55,8 @@ const viewport = screen.closest('.viewport');
 
 /** Whether the card stands beside the widget (from 980px, as in site.css) or lies along the bottom. */
 const beside = window.matchMedia('(min-width: 980px)');
+/** Whether the theme cards are a band to swipe along the bottom (to 760px, as in site.css). */
+const narrow = window.matchMedia('(max-width: 760px)');
 
 const state = {
   mode: 'floating',
@@ -300,11 +305,28 @@ function setMode(mode) {
 const themes = document.getElementById('themes');
 
 function paintThemes() {
+  const was = themes.hidden;
   themes.hidden = !(at === 'theme' && !previewing);
+  if (was !== themes.hidden) requestAnimationFrame(measureDeck);
   for (const card of themes.querySelectorAll('[data-theme]')) {
     card.setAttribute('aria-pressed', String(state.pickedTheme && (card.dataset.theme === 'dark') === state.dark));
   }
 }
+
+/** On a phone the three cards are swiped, one at a time, with dots under them, as the three ways are. */
+const themesTrack = document.getElementById('themes-track');
+const themesDots = document.getElementById('themes-dots');
+function paintThemeDots() {
+  const cards = [...themesTrack.children];
+  const mid = themesTrack.scrollLeft + themesTrack.clientWidth / 2;
+  const i = cards.reduce((best, c, n) => (Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid) < Math.abs(cards[best].offsetLeft + cards[best].offsetWidth / 2 - mid) ? n : best), 0);
+  [...themesDots.children].forEach((d, n) => d.classList.toggle('on', n === i));
+}
+themesTrack.addEventListener('scroll', paintThemeDots, { passive: true });
+themesDots.addEventListener('click', (e) => {
+  const n = [...themesDots.children].indexOf(e.target);
+  if (n >= 0) themesTrack.children[n].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+});
 
 themes.addEventListener('click', (e) => {
   const card = e.target.closest('[data-theme]');
@@ -351,10 +373,15 @@ function go(id) {
   const live = !!step().live;
   if (live !== previewing) {
     previewing = live;
-    // Each time the last step is reached, the arrow shows where to test it.
-    tried = false;
     screen.classList.toggle('screen--live', live);
-    mount();
+    // The last step has no widget to try: it plays how one gets made.
+    if (live) {
+      board?.remove();
+      board = null;
+      screen.querySelector('.inline-frame')?.remove();
+      screen.querySelector('.screen__again')?.remove();
+    } else mount();
+    playMade(live);
   } else if (board) apply(board);
   paintScreen();
   watch();
@@ -382,7 +409,7 @@ function paintSteps() {
   document.getElementById('step-name').textContent = card ? 'Your widget is ready to add.' : step().name;
   document.getElementById('bars').innerHTML = STEPS.map((s, n) => `<i class="${n < i ? 'done' : n === i ? 'now' : ''}"></i>`).join('');
   document.getElementById('hint').textContent = card
-    ? `Hand your choices to your AI agent: it asks you the rest and adds it to your app. Try it ${beside.matches ? 'on the right' : 'above'} meanwhile.`
+    ? 'Hand your choices to your AI agent: it asks you the rest and adds it to your app.'
     : '';
   backBtn.hidden = i <= 0;
   barBack.hidden = i <= 0;
@@ -419,54 +446,104 @@ foldBtn.addEventListener('click', () => fold(!folded));
 function measureDeck() {
   foldBtn.disabled = beside.matches;
   const h = !bar.hidden ? bar.offsetHeight : deck.hidden || beside.matches ? 0 : deck.offsetHeight;
+  // On a phone the theme cards are a band above the bar: the app stops above that too.
+  const band = !themes.hidden && narrow.matches ? themes.offsetHeight : 0;
   // On the box, so the app, the three ways and a docked box all stop above it.
-  viewport.style.setProperty('--deck-h', `${h}px`);
+  viewport.style.setProperty('--bar-h', `${h}px`);
+  viewport.style.setProperty('--deck-h', `${h + band}px`);
   fitPanel();
   scaleWays();
   watch();
 }
 new ResizeObserver(measureDeck).observe(deck);
 new ResizeObserver(measureDeck).observe(bar);
+new ResizeObserver(measureDeck).observe(themes);
+narrow.addEventListener('change', measureDeck);
 beside.addEventListener('change', () => {
   fold(false);
   paintSteps();
 });
 
-// ---- The last step: test it ----------------------------------------------
+// ---- The last step: how it gets made --------------------------------------
 
 /**
- * In the last step an arrow points at the widget, "Test your widget": at the
- * round button in the corner, or at the panel when it is shown inline or
- * over the app. It goes once the widget is touched, as by then it has been
- * found.
+ * Over and over, in the app's place: the prompt goes into an AI agent, it
+ * says what it did, and the widget turns up in the app, the way and in the
+ * look picked, as "How it opens" plays it. In the calm style of the home
+ * page's demo and Why PleaseNoBugs: classes on `.made`, moved by site.css.
+ * Its time stands still while it is out of view or the tab is hidden; with
+ * reduced motion it shows the widget in the app and nothing moves.
  */
-const tryHint = document.getElementById('try');
-let tried = false;
+const made = document.getElementById('made');
+const madeApp = made.querySelector('.made__app');
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+/** Bumped to stop a loop that is running: leaving the step, or starting it again. */
+let madeRun = 0;
+let madeSeen = false;
+new IntersectionObserver(([e]) => (madeSeen = e.isIntersecting), { threshold: 0.3 }).observe(made);
 
-function paintTry() {
-  const root = board?.shadowRoot;
-  const part = previewing && !tried && root ? (root.querySelector('.fab:not(.fab--away)') ?? root.querySelector('.app')) : null;
-  const r = part?.getBoundingClientRect();
-  if (!r || !r.width) {
-    tryHint.hidden = true;
-    return;
+/** The app with the widget in it, drawn as "How it opens" draws it. */
+function paintMadeApp() {
+  madeApp.innerHTML = `<span class="made__device play play--phone play--${state.mode}">${PLAYS[state.mode]}</span>`;
+  for (const w of madeApp.querySelectorAll('please-no-bugs')) {
+    apply(w, 'inline', 'tiles');
+    customElements.whenDefined('please-no-bugs').then(() => requestAnimationFrame(() => still(w)));
   }
-  const vb = viewport.getBoundingClientRect();
-  tryHint.hidden = false;
-  // Up and to the left of it, the arrow's tip just off its left side.
-  tryHint.style.right = `${vb.right - r.left + 4}px`;
-  tryHint.style.bottom = `${vb.bottom - r.top - Math.min(r.height / 2, 20)}px`;
+  requestAnimationFrame(() => {
+    const device = madeApp.querySelector('.made__device');
+    if (device) paintSkin(device);
+    scaleMade();
+  });
 }
 
-screen.addEventListener(
-  'pointerdown',
-  (e) => {
-    if (!previewing || tried || !board || !e.composedPath().includes(board)) return;
-    tried = true;
-    paintTry();
-  },
-  true,
-);
+/** The phone as tall as the space allows. */
+function scaleMade() {
+  const h = made.clientHeight - 48;
+  if (h > 0) madeApp.style.setProperty('--s', String(Math.min(1, h / 560)));
+}
+
+async function playMade(on) {
+  const run = ++madeRun;
+  made.hidden = !on;
+  if (!on) return;
+  paintMadeApp();
+  const sleep = async (ms) => {
+    let left = ms;
+    while (left > 0) {
+      await new Promise((r) => setTimeout(r, 50));
+      if (run !== madeRun) throw run;
+      if (madeSeen && !document.hidden) left -= 50;
+    }
+  };
+  const show = (...names) => (made.className = ['made', ...names.map((n) => `is-${n}`)].join(' '));
+  if (reduce.matches) return show('app');
+  try {
+    for (;;) {
+      show();
+      await sleep(500);
+      show('chat');
+      await sleep(700);
+      show('chat', 'asked');
+      await sleep(900);
+      show('chat', 'asked', 'typing');
+      await sleep(1100);
+      for (let n = 1; n <= 3; n++) {
+        show('chat', 'asked', `done-${n}`);
+        await sleep(550);
+      }
+      await sleep(900);
+      show('app');
+      // The play's own moves start from the top each time it is shown.
+      paintMadeApp();
+      await sleep(6200);
+      show('out');
+      await sleep(600);
+    }
+  } catch (stopped) {
+    if (stopped !== run) throw stopped;
+  }
+}
+reduce.addEventListener('change', () => previewing && playMade(true));
 
 /**
  * The widget moves while it opens and while it loads its posts, so for a
@@ -480,11 +557,11 @@ function watch() {
   if (idle) requestAnimationFrame(follow);
   // Once more when it has settled, also where no frames are drawn.
   clearTimeout(settle);
-  settle = setTimeout(paintTry, 650);
+  settle = setTimeout(fitPanel, 650);
 }
 
 function follow() {
-  paintTry();
+  fitPanel();
   if (performance.now() < following) requestAnimationFrame(follow);
 }
 
@@ -497,6 +574,7 @@ function observeRoot(el) {
 
 window.addEventListener('resize', () => {
   fitPanel();
+  scaleMade();
   paintScreen();
   watch();
 });
@@ -611,6 +689,16 @@ const PLACE = {
 };
 
 /**
+ * Reusing the app's own wallet login, so its users never sign twice. Left to
+ * the agent to find, because it can read the app and this page cannot; many
+ * mini apps already have their users sign a login message.
+ */
+const APP_LOGIN = [
+  "- If this app already has its users sign a login message with their Nimiq wallet (look in its code for Nimiq Pay's sign(), the Hub's signMessage() or similar), reuse it so nobody signs twice. Once the user is signed in, hand the widget that signature: document.querySelector('please-no-bugs').appLogin = { address, publicKey, signature, message } (publicKey and signature as hex, message exactly as signed), and set it to null when they sign out. The server must accept that message: PNB_PROJECT_LOGIN_MESSAGE is the message, or, if it carries something that changes every time (a date, a nonce), its fixed start followed by * (at least 12 characters before the *). Tell me what you found and what you wired.",
+  '- If the app has no such login, add nothing for it: the widget asks the wallet to sign once by itself, at the first vote or post.',
+].join('\n');
+
+/**
  * The last step's first route: one prompt for the developer's AI agent,
  * whichever it is, with the code and all it needs to put it in any kind of
  * app and to get a server running.
@@ -627,6 +715,7 @@ function prompt() {
     `- This app's own backend, if it has a Node one (Node 22.13 or newer). Depends on nothing new. npx @pleasenobugs/server create-project --name "..." --origin https://... --owner "NQ...", then npx @pleasenobugs/server. Or mount it in Express: ${REPO}/tree/main/packages/server`,
     '- Docker on a server I rent (a VPS, or Coolify on one). Depends on whoever rents me the machine, and I can switch. docker-compose.yml from the repo, a .env with PNB_DOMAIN and the three values, then docker compose up -d; Caddy in it gets the HTTPS certificate by itself; the project id is in docker compose logs pleasenobugs.',
     `- My own hardware (a Raspberry Pi, a NAS). Depends on my internet connection, a domain name, and keeping it switched on. The same Docker setup, with the domain pointing at my connection and ports 80 and 443 open, or behind a Cloudflare Tunnel without Caddy: ${REPO}#readme`,
+    'If the app has its own wallet login (see 2), also set PNB_PROJECT_LOGIN_MESSAGE. On a server that already runs, add it as a variable and restart it: a server with one board adds it to that board by itself.',
     'Never make up my wallet address, the project id or the server address: ask me.',
     '',
     '2. The widget',
@@ -639,15 +728,15 @@ function prompt() {
     `- With a bundler (React, Vue, Svelte, ...): npm install pleasenobugs@${VERSION}, import 'pleasenobugs' once at startup, and render <please-no-bugs> with the same attributes. It is a custom element: write the attributes as they are.`,
     `- ${PLACE[state.mode]}`,
     browser()
-      ? `- It runs ${state.runs === 'both' ? 'in Nimiq Pay and in browsers' : 'in a browser'}, so outside Nimiq Pay users sign with their Nimiq wallet through the Nimiq Hub: add this as well (npm install @nimiq/hub-api), with 'Your app' as this app's name. Inside Nimiq Pay the wallet signs by itself, which the check keeps.\n\n${npmSignerOnly()}`
+      ? `- It runs ${state.runs === 'both' ? 'in Nimiq Pay and in browsers' : 'in a browser'}, so outside Nimiq Pay users sign with their Nimiq wallet through the Nimiq Hub: add this as well (npm install @nimiq/hub-api), with 'Your app' as this app's name. Inside Nimiq Pay the wallet signs by itself, which the check keeps.\n\n${npmSignerOnly()}\n\n${APP_LOGIN}`
       : state.runs === 'pay'
-        ? '- It runs only inside Nimiq Pay: the wallet signs by itself, nothing to add.'
-        : `- Ask me where this app runs. Inside Nimiq Pay the wallet signs by itself: nothing to add. Anywhere else, such as a web app in a desktop browser, give the element a signer so users can post and vote with their Nimiq wallet through the Nimiq Hub (npm install @nimiq/hub-api): ${REPO}/tree/main/packages/widget#signing-outside-nimiq-pay. If the app already signs users in with their Nimiq wallet, reuse that login instead: ${REPO}/tree/main/packages/widget#reusing-your-apps-own-login. Without either, the board can only be read.`,
+        ? `- It runs only inside Nimiq Pay, where the wallet signs by itself.\n${APP_LOGIN}`
+        : `- Ask me where this app runs. Inside Nimiq Pay the wallet signs by itself. Anywhere else, such as a web app in a desktop browser, give the element a signer so users can post and vote with their Nimiq wallet through the Nimiq Hub (npm install @nimiq/hub-api): ${REPO}/tree/main/packages/widget#signing-outside-nimiq-pay. Without a signer or an app login, the board can only be read there.\n${APP_LOGIN}`,
     '- If it runs inside Nimiq Pay: Pay draws its own bar over the page and the widget cannot see it. If this app already measures that bar, pass it on: please-no-bugs { --pnb-inset-top: ...; --pnb-inset-bottom: ...; }',
     '- Keep the version pinned.',
     '',
     '3. Check it',
-    'Start the app, open the widget and make sure the board loads. Posting or voting asks the wallet to sign; inside Nimiq Pay that happens by itself, in a browser the Nimiq Hub opens. To answer posts, I open it with the owner wallet and tap "Sign in with your wallet" at the foot of the board.',
+    'Start the app, open the widget and make sure the board loads. With the app login wired, a signed-in user posts and votes without signing again. Without it, the first vote or post asks the wallet to sign once: inside Nimiq Pay a short confirmation, in a browser the Nimiq Hub, which the board also offers on top as "Sign in with Nimiq". To answer posts, I sign in with the owner wallet.',
   ].join('\n');
 }
 
@@ -714,18 +803,6 @@ function toast(text) {
   toastTimer = setTimeout(() => el.classList.remove('toast--on'), 2200);
 }
 
-/**
- * The preview as a desktop or as a phone: the box narrows to a phone's
- * width, and the widget, its panel and the three ways follow it.
- */
-const viewButtons = document.querySelectorAll('[data-view]');
-function setView(kind) {
-  viewport.classList.toggle('viewport--phone', kind === 'phone');
-  for (const b of viewButtons) b.setAttribute('aria-pressed', String(b.dataset.view === kind));
-  measureDeck();
-  update();
-}
-for (const b of viewButtons) b.addEventListener('click', () => setView(b.dataset.view));
 
 mount();
 paintSteps();

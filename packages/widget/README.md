@@ -43,10 +43,10 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `theme` | `nimiq` (default): the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
 | `lang` | The language of your `strings`, so dates follow it: `nl` writes "14 sep". English by default. |
 | `app-name` | What answers are signed with ("My app says"). Defaults to the project's name. |
-| `name` | A display name you already know, offered when the user chooses to show theirs. |
+| `name` | A display name you already know, filled in for a user who has not chosen one on this board yet. |
 | `kinds` | Which kinds to offer, of the ones your project takes: `bug,idea,review` by default. `kinds="bug,idea"` leaves reviews off the tiles and out of the list. |
 | `screenshots` | Who sees screenshots on bugs and ideas. On the board for everyone by default, each one only after its author ticks that everyone may see it. `owners` keeps them for your eyes only; `off` leaves the "Add a screenshot" button out. An unknown value counts as `owners`. The project's own rule (`PNB_PROJECT_SCREENSHOTS` on the server) wins when it is stricter. |
-| `names` | `off` leaves out "Show my name", so every post is anonymous. For a board on a public page. |
+| `names` | `off` leaves out the name field and the "Post anonymously" switch: every post is anonymous, with no name and no identicon. |
 | `readonly` | The board to read and scroll through, nothing else: no **+**, no votes (the count still shows), no "Sign in", and it never asks a wallet or sends a proof, not even inside Nimiq Pay. Every post shows as anonymous and without its screenshot, whatever its author chose, because a read-only board is usually shown somewhere other than the app its authors wrote for. |
 | `demo` | A board of sample posts in the page's memory, with no server: `<please-no-bugs demo>`. Voting and writing work, nothing is sent or stored, and a reload starts over. For trying the widget, or showing it off. `demo="owner"` is the same board as its owner sees it: answer, set a status and "Fixed in", write updates. |
 | `screen` | With `demo` only: hold one screen in view, `button`, `tiles`, `board`, `write`, `sent` or `updates`. What the website's Make it yours uses to show each part. |
@@ -68,6 +68,12 @@ Tapping **+** opens three tiles: **Report a bug**, **Share an idea** and
 **Write a review**. A review is one to five stars and a few words, shown on the
 board with the average on top, so people can see what others like about your
 app. One review per wallet.
+
+A post goes out with **the user's wallet identicon and a name** they fill in
+once per board, never their address. Changing the name changes it on their
+earlier posts too. **"Post anonymously"** leaves both off. The identicon is
+drawn by your PleaseNoBugs server (`/v1/identicons/…`), like screenshots, so
+the page needs that server in its `img-src`.
 
 A bug or an idea can carry **a screenshot, shown on the board** under the
 post, so everybody can see what is meant. Before picking one the user reads
@@ -218,9 +224,19 @@ to the widget and nobody signs twice:
 board.appLogin = { address, publicKey, signature, message: 'Sign in to My app' };
 ```
 
-The project has to list that exact message first (`loginMessages`, through the
-dashboard or `create-project --login-message`). Set `appLogin` to `null` when
-the user logs out of your app.
+The project has to accept that message first: set `PNB_PROJECT_LOGIN_MESSAGE`
+on your server (on a server that already runs, set it and restart; with one
+project it is added to that one), or use the dashboard or
+`create-project --login-message`. If your login message changes every time,
+because it carries a date or a random code, give its fixed start followed by
+`*`, like `Sign in to My app*` (at least 12 characters before the `*`). Set
+`appLogin` to `null` when the user logs out of your app.
+
+This is how a mini app in Nimiq Pay, or a website with its own wallet login,
+lets its users post and vote without signing anything again. Without it, the
+widget asks the wallet to sign once by itself, at the first vote or post:
+inside Nimiq Pay a short confirmation, kept for a month; in a browser through
+the Nimiq Hub, kept until the tab closes.
 
 ## Signing outside Nimiq Pay
 
@@ -238,8 +254,13 @@ document.querySelector('please-no-bugs').signer = async (message) => {
 };
 ```
 
-Without a signer outside Nimiq Pay, the board is read-only and says so when
-somebody tries to post.
+With a signer and outside Nimiq Pay, the board offers **"Sign in with Nimiq"**
+on top until the user has signed in, since signing opens a wallet window
+there. Without a signer outside Nimiq Pay, the board is read-only and says
+"Sign in with your Nimiq wallet to post and vote" when somebody tries to post.
+On a website with its own wallet login, that is the moment to hand the login
+over with `appLogin` (above): set it once the user has signed in to your site,
+and back to `null` when they sign out.
 
 ## Headless
 

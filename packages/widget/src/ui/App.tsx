@@ -685,6 +685,8 @@ export function App({
             perDay={rules.perDay}
             textMax={rules.textMax}
             name={read?.me?.name ?? suggestName ?? ''}
+            face={read?.me?.face}
+            faceUrl={client.faceUrl}
             appName={name}
             screenshots={shots}
             names={names}
@@ -841,6 +843,19 @@ export function App({
           </div>
         )}
 
+        {/* Outside Nimiq Pay signing is a step of its own, in a wallet window,
+            so it is offered up front, with what it is not. Inside Nimiq Pay
+            the first vote or post signs, and only a quiet link waits below. */}
+        {read && !read.me && client.canSign && !readonly && !insideNimiqPay() && (
+          <div class="signin-note">
+            <strong class="signin-note__title">{t('board.signInTitle')}</strong>
+            <p class="signin-note__text">{t('board.signInNote')}</p>
+            <button type="button" class="btn" onClick={() => void signIn()}>
+              {t('board.signInButton')}
+            </button>
+          </div>
+        )}
+
         {searching && read && (
           <p class="found-count">
             {shown.length === 1 ? t('search.countOne', { q: query.trim() }) : t('search.count', { n: shown.length, q: query.trim() })}
@@ -909,6 +924,7 @@ export function App({
                 // An owner answers on the manage page, which holds the conversation.
                 onTalk={owner ? () => openManage(post) : () => openTalk(post)}
                 shotUrl={onBoard(post) ? client.shotUrl(post.id) : undefined}
+                faceUrl={post.face ? client.faceUrl(post.face) : undefined}
                 onShot={() => setOver({ kind: 'shot', post })}
                 fresh={owner && !post.hidden && waitingOnApp(post)}
                 query={query}
@@ -943,7 +959,7 @@ export function App({
         {/* Quiet and last: the board is for reading, and this is only the way
             to be recognised before doing anything. Gone once signed in, and
             never drawn where there is no wallet to ask. */}
-        {read && !read.me && client.canSign && !readonly && (
+        {read && !read.me && client.canSign && !readonly && insideNimiqPay() && (
           <div class="sign-in">
             <button type="button" class="text-btn" onClick={() => void signIn()}>
               {t('board.signIn')}

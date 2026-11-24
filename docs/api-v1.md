@@ -53,7 +53,10 @@ what the server will refuse.
 ## What never leaves the server
 
 - **The author's wallet address**, named or anonymous. A reader gets `mine:
-  true` on their own posts and nothing about anybody else's.
+  true` on their own posts and nothing about anybody else's. A post that is
+  not anonymous shows the author's identicon instead (`face`, *0.4.0*): a
+  code for the picture their wallet shows, which cannot be turned back into
+  the address.
 - **Who voted.** A post carries a count and whether *you* voted, never the list.
 - **The context of a post** (version, platform), except to its project's owners.
 - **A screenshot its author did not put on the board**, except to its
@@ -138,6 +141,13 @@ other**:
 
 - The server verifies the signature over `message` itself, and only if the
   project lists that exact string, byte for byte.
+- **A listed message ending in `*` means "starts with"** *(0.4.0)*: for an app
+  whose login message carries something that changes every time (a date, a
+  nonce), the owner lists the fixed start, like `Sign in to My app*`, and any
+  message that begins with it is accepted, up to 1000 characters. The fixed
+  start must be at least 12 characters, so it can only ever mean that app's
+  own sentence; a bare `*` or `Sign in*` is refused. Our own `PleaseNoBugs
+  login` messages never match, whatever is listed.
 - **It does not expire**, because the message has no timestamp. That is what
   the owner accepts by listing it, and why the feature is off by default.
 - The origin rules apply exactly as for a scoped proof.
@@ -202,14 +212,21 @@ The whole board: a `BoardRead`.
   an owner took off the board is left out for everybody but owners, who get
   it with `hidden: true`. `reply: { text, at }` is the app's latest message,
   kept for clients from before conversations.
+- A post that is not anonymous carries `face` *(0.4.0)*: its author's
+  identicon, as the twelve digits `identiconCode()` in core makes from their
+  address, and `who`, their name, when they have one. `GET
+  /v1/identicons/:code.svg` draws it. An anonymous post carries neither.
 - Paging may be added later as an optional `cursor` parameter, which is an
   addition rather than a change.
 
 `Me` is what the reader needs before they type anything:
 
 ```ts
-{ owner: boolean; name?: string; left: number }
+{ owner: boolean; name?: string; face?: string; left: number }
 ```
+
+`face` *(0.4.0)* is this wallet's own identicon code, so a client can show it
+beside the name before anything is posted.
 
 `left` is how many posts remain in this wallet's rolling day. The allowance
 itself is `project.rules.perDay`: **read it from here, never from a copy**, or
@@ -231,6 +248,20 @@ they may not see.
 Sent with `cache-control: no-store`, so taking one off the board takes it off
 for the next person who looks, `x-robots-tag: noindex`, `nosniff` and a CSP
 that allows nothing.
+
+#### `GET /v1/identicons/:code.svg` *(0.4.0)*
+
+A wallet's identicon, drawn by the server from the code a post carries in
+`face`: the same picture Nimiq's wallets show for that address, made with
+`@nimiq/identicons`. Belongs to no project and needs no proof. The same code
+always draws the same picture, so it is sent with `cache-control: public,
+max-age=31536000, immutable`. Anything that is not twelve digits is `404
+not_found`.
+
+Drawn here rather than in the widget because the drawings weigh about 88 kB,
+more than the whole widget, and a widget should not fetch them from a third
+party either. A page showing the board needs this server in its `img-src`,
+as it does for screenshots.
 
 #### `GET /v1/projects/:pid/answers` *(proof)*
 
@@ -278,7 +309,7 @@ approval, so an update never names something the board does not show.
   id: string;                         // minted by the client, at most 128 chars
   kind: 'bug' | 'idea' | 'review';    // must be in project.rules.kinds
   text: string;                       // trimmed, 1..rules.textMax chars
-  anon?: boolean;                     // default true; false shows the author's name, if they have one
+  anon?: boolean;                     // default true; false shows the author's identicon and name
   context?: Record<string, string>;   // at most 10 keys, values at most 100 chars
   rating?: number;                    // reviews only, and required on one: a whole 1..5
   shot?: {                            // bugs and ideas only
@@ -295,9 +326,10 @@ waits.
 
 - The id is the client's so a post can appear on the board in the same frame as
   the tap. A second write with the same id is `409 duplicate`.
-- **Anonymous unless asked otherwise.** Leaving `anon` out keeps the name off:
-  getting it wrong in that direction costs a name on a card, the other
-  direction puts somebody's name where they did not want it.
+- **Anonymous unless asked otherwise.** Leaving `anon` out keeps the name and
+  identicon off: getting it wrong in that direction costs a name on a card,
+  the other direction puts somebody's name where they did not want it. The
+  widget asks, and since 0.4.0 its answer starts at "not anonymous".
 - **Text over the limit is refused, not cut.** A server that trims quietly
   loses the end of somebody's sentence; the widget holds the field to the
   limit, so only a broken client ever sees this.
@@ -502,7 +534,8 @@ There are no notifications in v1. This count is how an owner finds out.
 ```
 
 `loginMessages` takes at most 3, each at most 200 characters, stored exactly
-as given; an empty array turns app logins off. See "App logins".
+as given; one ending in `*` accepts any message that starts with the rest (at
+least 12 characters). An empty array turns app logins off. See "App logins".
 
 Owner only. `owners` may never be emptied: a project nobody owns is a project
 nobody can answer.

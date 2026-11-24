@@ -17,7 +17,7 @@ const post = (p: Partial<Post>): Post => ({
 const read: BoardRead = {
   project: { id: 'x', name: 'App', rules: { perDay: 5, textMax: 200, replyMax: 300, kinds: ['bug', 'idea', 'review'] } },
   posts: [
-    post({ id: 'named', who: 'Fons', mine: true, voted: true }),
+    post({ id: 'named', who: 'Fons', face: '123456789012', mine: true, voted: true }),
     post({ id: 'pic', shot: true, shotFor: 'board', context: { version: '1.0' } }),
     post({ id: 'gone', hidden: true }),
     post({ id: 'stars', kind: 'review', rating: 4, reply: { text: 'Thanks', at: 1 } }),
@@ -32,6 +32,7 @@ describe('forReaders', () => {
     expect(out.posts.map((p) => p.id)).toEqual(['named', 'pic', 'stars']);
     for (const p of out.posts) {
       expect(p).not.toHaveProperty('who');
+      expect(p).not.toHaveProperty('face');
       expect(p).not.toHaveProperty('shot');
       expect(p).not.toHaveProperty('shotFor');
       expect(p).not.toHaveProperty('context');

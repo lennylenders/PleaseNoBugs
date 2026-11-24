@@ -12,6 +12,7 @@ import { marks, snippet } from '../filter.js';
 import type { CopyKey, Translate } from '../i18n.js';
 import { whenLabel } from '../when.js';
 import * as Icon from './icons.js';
+import { Face } from './Face.js';
 
 /** The glyph and the words for each kind. Exported because the compose screen
  *  and the tiles draw the same ones, and a kind that looked one way while you
@@ -226,6 +227,7 @@ export function PostCard({
   onTalk,
   shotUrl,
   onShot,
+  faceUrl,
   fresh,
   query = '',
   found,
@@ -256,6 +258,8 @@ export function PostCard({
   shotUrl?: string;
   /** Opens the screenshot whole. */
   onShot?: () => void;
+  /** Where its author's identicon is drawn, when the post shows one. */
+  faceUrl?: string;
 }) {
   // A screenshot taken off between loading the board and scrolling to it.
   const [broken, setBroken] = useState(false);
@@ -325,7 +329,13 @@ export function PostCard({
 
       {!bare && (
       <div class="card__foot">
-        <span class="card__who">{post.mine ? t('board.byYou') : (post.who ?? t('board.anon'))}</span>
+        <span class="card__who">
+          {post.face && <Face code={post.face} src={faceUrl} />}
+          <span class="card__name">
+            {/* An identicon is somebody already; "Anonymous" beside one would contradict it. */}
+            {post.mine ? t('board.byYou') : (post.who ?? (post.face ? '' : t('board.anon')))}
+          </span>
+        </span>
         {onDelete && (
           <button
             type="button"

@@ -1653,6 +1653,92 @@ variables), `nimiq-node` and the separate Railway project `node`, an older
 Nimiq node, were deleted. The project `PleaseNoBugs` holds only our own server
 and its volume now. The first app's code is still in its archived repository.
 
+## 2026-11-23: Wallet login on the home page, identicon and name by default
+
+The owner wants the home page's board to be people with a Nimiq wallet, and
+a post to say who wrote it unless its author chooses otherwise. Designed first
+in Figma ("Flow 6 · Home page: sign in with Nimiq" on "Widget flows ·
+Nimiq"), then built.
+
+- **The home page signs in with the Nimiq Hub.** The browser's own guest key
+  is gone, and a visitor who had one loses it and its proof on the next visit.
+  Reading needs nothing. The Hub's script loads only once somebody touches
+  the board, so a reader never fetches it, and is there before the tap that
+  opens the Hub's window. Locally, `board.mjs` prints a test key that
+  `site/dev/testkey.js` signs with, served by `serve.mjs` only, never built
+  into the published site.
+- **Identicon and name by default, in every app.** The writing screen has
+  "Post anonymously", off, and a name field with the wallet's identicon; the
+  name is asked once per board and remembered, and changing it changes it on
+  earlier posts too, as names always did. Anonymous: no name, no identicon.
+  `names="off"` still makes a whole board anonymous. The API's own default
+  stays anonymous (`anon` left out): only the widget's answer changed.
+- **The address still never leaves the server.** A post carries `face`,
+  twelve digits Nimiq's identicons hash the spaced address into, which pick
+  the picture and say nothing about the wallet. The server draws the SVG
+  itself (`GET /v1/identicons/:code.svg`, with `@nimiq/identicons` 1.6.2
+  pinned, because it calls the library's drawing step directly), cached for
+  good: the drawings are 88 kB, more than the whole widget, and the widget
+  should not fetch them from a third party. A test compares every picture with
+  the library's own from the address. Where there is no server (the demo) a
+  hexagon in the identicon's colour stands in.
+- **Outside Nimiq Pay, "Sign in with Nimiq" sits on top of the board** until
+  the user signed in, saying that signing cannot move funds. Inside Nimiq Pay
+  the first vote or post signs, as before, with the quiet link at the bottom.
+- **No approval on the home page's board** any more, and the posts written
+  with guest keys go. Both are changes to the live board, done at release
+  with the owner (the deletion cannot be undone).
+
+Not chosen: showing a short address next to the identicon (the owner's first
+pick, withdrawn the same day: an identicon is recognisable without making
+anybody findable), and an identicon only when the author opts in (the owner
+wants named to be the default).
+
+## 2026-11-24: Signing in once, or not at all
+
+The owner wants adding the widget, and using it, to be as smooth as it can be.
+Asked first: does somebody signed in to a mini app (or a website) with their
+wallet have to sign again for the board? Not if the app hands its own login
+over (`appLogin`, there since 0.1). So that became the default route.
+
+- **"Make it yours" tells the developer's AI agent to look for it.** The
+  prompt asks the agent to find the app's own wallet login in its code, wire
+  it to `appLogin` (and to `null` on logout), set the server's
+  `PNB_PROJECT_LOGIN_MESSAGE`, and say what it did; with no such login,
+  nothing is added. For every choice of where the app runs, not only an
+  unknown one. No extra question on the page: the agent can read the app.
+- **Login messages that change every time work too.** A listed message ending
+  in `*` accepts any message that starts with the rest. Many apps put a date
+  or a nonce in their login sentence, which made the exact match useless to
+  them. The fixed start needs at least 12 characters, so it can only mean
+  that app's sentence.
+- **`PNB_PROJECT_LOGIN_MESSAGE` is also read on a server that already runs**
+  (with one project): an app login usually comes after the board.
+- **How long a signature lasts**: outside Nimiq Pay until the tab closes, in
+  `sessionStorage`, because a browser may be shared; there is no Sign out
+  (designed, then dropped by the owner: giving feedback is a moment, signing
+  is part of it). Inside Nimiq Pay a month, as before: the phone is the
+  user's own. A proof for another account than the one Nimiq Pay is on now
+  is dropped, so switching accounts there switches the board too.
+- **Without a way to sign**, the widget now says "Sign in with your Nimiq
+  wallet to post and vote." instead of sending everybody to Nimiq Pay.
+- Still to do at release: the Railway template gets `PNB_PROJECT_LOGIN_MESSAGE`
+  as an optional field, once `main` has the server that understands `*`.
+
+## 2026-11-24 (later): Make it yours, tidier
+
+- **No Desktop/Phone switch**: the widget follows the screen it is on, so a
+  preview at another size added nothing.
+- **The last step has no widget to try any more.** It looked real and posted
+  nowhere, which confused. Instead it plays, over and over, how one gets
+  made: the prompt goes into a plain AI agent chat (no brand), three ticks
+  (widget added, server connected, ready in your app), then the app with the
+  widget opening the way and in the look picked, drawn as "How it opens"
+  draws it. Calm, like the home page's demo; still with reduced motion.
+- **On a phone the light/dark cards are swiped**, one at a time with dots,
+  in a band above the bar, and the widget stands above that band instead of
+  under the cards.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

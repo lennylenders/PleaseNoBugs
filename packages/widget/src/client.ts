@@ -18,7 +18,7 @@ import {
   type ShotType,
   type Update,
 } from '@pleasenobugs/core';
-import { insideNimiqPay, nimiqPaySigner, SignerError, type Signer } from './signer.js';
+import { insideNimiqPay, nimiqPayAccount, nimiqPaySigner, SignerError, type Signer } from './signer.js';
 
 export { insideNimiqPay, nimiqPaySigner, SignerError, type Signer, type SignedMessage } from './signer.js';
 export { createMatcher, sortPosts } from '@pleasenobugs/core';
@@ -51,11 +51,19 @@ export interface ClientOptions {
   /** The origin written into the signed message. Defaults to this page's. */
   origin?: string;
   /**
-   * Where the proof is remembered between visits, so somebody signs once a
-   * month rather than once a visit. Defaults to `localStorage`; `null` keeps
-   * it in memory only.
+   * Where the proof is remembered. Inside Nimiq Pay, `localStorage`: the
+   * phone and the wallet are the user's own, so they sign once a month.
+   * Anywhere else, `sessionStorage`: a browser may be shared, so signing in
+   * lasts until the tab closes. `null` keeps it in memory only.
    */
   storage?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> | null;
+  /**
+   * Which address the wallet is on right now, without a prompt. A stored proof
+   * for another address is dropped, so a user who switched accounts is not
+   * spoken for by the old one. Defaults to Nimiq Pay's current account inside
+   * it, with its own signer.
+   */
+  account?: () => Promise<string | null>;
   /** For tests and unusual runtimes. */
   fetch?: typeof fetch;
 }
@@ -99,8 +107,12 @@ export function createClient(options: ClientOptions) {
   const signer =
     options.signer === null ? undefined : (options.signer ?? (insideNimiqPay() ? nimiqPaySigner() : undefined));
   const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
-  const storage = options.storage === undefined ? safeLocalStorage() : options.storage;
+  const inPay = insideNimiqPay();
   const key = `pleasenobugs.proof.${project}.${origin}`;
+  const storage = options.storage === undefined ? (inPay ? safeLocalStorage() : forTheTab(key)) : options.storage;
+  const account = options.account ?? (options.signer === undefined && inPay ? nimiqPayAccount : undefined);
+  /** When the wallet's account was last compared with the stored proof. */
+  let accountCheckedAt = 0;
 
   let proof: LoginProof | null = read();
   /** One signature at a time: two taps must not open two wallet prompts. */
@@ -134,6 +146,17 @@ export function createClient(options: ClientOptions) {
     } catch {
       // Private mode or a full quota: the proof lives in memory for this visit.
     }
+  }
+
+  /**
+   * Drop the stored proof when the wallet has moved to another account. At
+   * most every half minute: the board polls, and the account rarely changes.
+   */
+  async function sameAccount(): Promise<void> {
+    if (!account || !proof || Date.now() - accountCheckedAt < 30_000) return;
+    accountCheckedAt = Date.now();
+    const now = await account();
+    if (now && proof && normalizeAddress(now) !== normalizeAddress(proof.address)) remember(null);
   }
 
   /** The app's login, else the stored proof if it is still good. Never asks the wallet. */
@@ -176,6 +199,7 @@ export function createClient(options: ClientOptions) {
     path: string,
     opts: { body?: unknown; auth: 'none' | 'optional' | 'required'; blob?: boolean },
   ): Promise<Result<T>> {
+    if (opts.auth !== 'none') await sameAccount();
     const attempt = async (p: LoginProof | null): Promise<Result<T>> => {
       const headers: Record<string, string> = {};
       if (opts.body !== undefined) headers['content-type'] = 'application/json';
@@ -269,6 +293,8 @@ export function createClient(options: ClientOptions) {
      * `<img>` to load by itself.
      */
     shotUrl: (id: string) => `${base}${post(id)}/shot`,
+    /** Where the server draws an identicon, by the code a post carries in `face`. */
+    faceUrl: (code: string) => `${base}/v1/identicons/${encodeURIComponent(code)}.svg`,
     vote: (id: string, up: boolean) =>
       request<{ ok: true; votes: number; voted: boolean }>('POST', `${post(id)}/vote`, {
         body: { up },
@@ -332,6 +358,28 @@ export function createClient(options: ClientOptions) {
 }
 
 export type Client = ReturnType<typeof createClient>;
+
+/**
+ * `sessionStorage`, for a proof that lasts until the tab closes, or null where
+ * it throws. A proof an older widget kept in `localStorage` under the same key
+ * is dropped on the way, so it does not outlive the change by a month.
+ */
+function forTheTab(key: string): Storage | null {
+  try {
+    globalThis.localStorage?.removeItem(key);
+  } catch {
+    // Nothing to drop where storage is off.
+  }
+  try {
+    const s = globalThis.sessionStorage;
+    const probe = '__pleasenobugs__';
+    s.setItem(probe, '1');
+    s.removeItem(probe);
+    return s;
+  } catch {
+    return null;
+  }
+}
 
 /** `localStorage`, or null where touching it throws (private mode, sandboxed frames). */
 function safeLocalStorage(): Storage | null {

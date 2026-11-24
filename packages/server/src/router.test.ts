@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { DAY_MS, LOGIN_TTL_MS, type Rules } from '@pleasenobugs/core';
+import { DAY_MS, LOGIN_TTL_MS, identiconCode, type Rules } from '@pleasenobugs/core';
 import { MemoryStore } from './memory-store.js';
 import { newProject } from './projects.js';
 import { serve, wallet } from './test-helpers.js';
@@ -128,6 +128,26 @@ describe('what never leaves the server', () => {
     const { posts } = (await as(B, 'GET', '/posts')).data;
     expect(posts.find((p: any) => p.id === 'p1').who).toBeUndefined();
     expect(posts.find((p: any) => p.id === 'p2').who).toBe('Alice');
+    // The identicon goes with the name, and with it stays off an anonymous post.
+    expect(posts.find((p: any) => p.id === 'p1').face).toBeUndefined();
+    expect(posts.find((p: any) => p.id === 'p2').face).toBe(identiconCode(A.address));
+  });
+
+  it('an identicon is a picture of the wallet, never the address', async () => {
+    const { as, call, post } = await setup();
+    await as(A, 'PUT', '/me', { name: 'Alice' });
+    await post(A, { anon: false });
+    const read = await as(B, 'GET', '/posts');
+    const face = read.data.posts[0].face;
+    expect(face).toMatch(/^[0-9]{12}$/);
+    expect((await as(A, 'GET', '/posts')).data.me.face).toBe(face);
+    const svg = await call('GET', `/v1/identicons/${face}.svg`);
+    expect(svg.status).toBe(200);
+    expect(svg.type).toContain('image/svg+xml');
+    expect(svg.headers.get('cache-control')).toContain('immutable');
+    expect(svg.raw).toContain('<svg');
+    expect(svg.raw).not.toContain(A.address);
+    expect((await call('GET', '/v1/identicons/12ab.svg')).status).toBe(404);
   });
 
   it('context, except to owners', async () => {
@@ -232,6 +252,25 @@ describe('app logins', () => {
     expect(res.status).toBe(401);
   });
 
+  it('takes a message with a changing end, when the project listed its start with *', async () => {
+    const env = await setup({ dashboard: true });
+    await env.store.putProject({ ...(await env.store.getProject('board1'))!, loginMessages: [`${LOGIN}*`] });
+    const signed = `${LOGIN}\nNonce: 8f3a91\nIssued: 2026-11-24`;
+    const me = (msg: string) => env.call('GET', '/v1/projects/board1/me', { auth: A.appProof(msg, APP), origin: APP });
+    expect((await me(signed)).status).toBe(200);
+    expect((await me(`${LOGIN}, another day`)).status).toBe(200);
+    // Not the start it listed, and never our own message, whatever follows.
+    expect((await me('Sign in to My other app')).status).toBe(401);
+    expect((await me('PleaseNoBugs login\nProject: board1')).status).toBe(401);
+  });
+
+  it('refuses a changing end whose fixed start is too short to mean one app', async () => {
+    const { call } = await setup({ dashboard: true });
+    const dash = { auth: OWNER.proof('dashboard', DASH), origin: DASH };
+    expect((await call('PATCH', '/v1/projects/board1', { ...dash, body: { loginMessages: ['Sign in*'] } })).status).toBe(400);
+    expect((await call('PATCH', '/v1/projects/board1', { ...dash, body: { loginMessages: ['*'] } })).status).toBe(400);
+  });
+
   it('is refused off by default, and for a message nobody listed', async () => {
     const { call } = await setup();
     expect((await call('GET', '/v1/projects/board1/me', { auth: A.appProof(LOGIN, APP), origin: APP })).status).toBe(401);
@@ -273,7 +312,7 @@ describe('posting', () => {
   it('answers what is left of the day, and the board says the same', async () => {
     const { as, post } = await setup();
     expect((await post(A)).data).toEqual({ ok: true, left: 4 });
-    expect((await as(A, 'GET', '/posts')).data.me).toEqual({ owner: false, left: 4 });
+    expect((await as(A, 'GET', '/posts')).data.me).toEqual({ owner: false, left: 4, face: identiconCode(A.address) });
   });
 
   it('stops at the daily allowance, and the allowance rolls rather than resetting', async () => {

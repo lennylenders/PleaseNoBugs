@@ -59,6 +59,31 @@ async function server() {
 }
 
 describe('createClient', () => {
+  it('drops the proof of an account the wallet has moved away from', async () => {
+    const { url } = await server();
+    const first = signerFor('a1');
+    const second = signerFor('b2');
+    const storage = memoryStorage();
+    let on = wallet('a1').address;
+    let sign = first.sign;
+    const client = () =>
+      createClient({ server: url, project: 'board1', origin: APP, signer: (m) => sign(m), storage, account: async () => on });
+    const before = client();
+    expect(await before.signIn()).toMatchObject({ ok: true });
+    expect(before.address()).toBe(wallet('a1').key);
+
+    // The user switches accounts in the wallet; the next visit reads as nobody, then signs as the new one.
+    on = wallet('b2').address;
+    sign = second.sign;
+    const after = client();
+    const board = await after.board();
+    expect(board.ok && board.data.me).toBeUndefined();
+    expect(after.address()).toBeNull();
+    expect(await after.vote('nope', true)).toMatchObject({ ok: false });
+    expect(second.asked()).toBe(1);
+    expect(after.address()).toBe(wallet('b2').key);
+  });
+
   it('reads without asking the wallet', async () => {
     const { url } = await server();
     const s = signerFor('a1');

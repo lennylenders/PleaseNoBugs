@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { AddressInfo } from 'node:net';
 import { createApp } from './app.js';
-import { bootstrapProject, describeBootstrapProblem, type BootstrapProblem } from './bootstrap.js';
+import { addLoginMessage, bootstrapProject, describeBootstrapProblem, type BootstrapProblem } from './bootstrap.js';
 import { MemoryStore } from './memory-store.js';
 import { newProject } from './projects.js';
 import { buildReport, readReport, sendReport, summarize, telemetryNotice } from './telemetry.js';
@@ -195,5 +195,24 @@ describe('bootstrapProject', () => {
     const store = new MemoryStore();
     const result = await bootstrapProject(store, { ...env, PNB_PROJECT_LOGIN_MESSAGE: 'Sign in to My app' });
     expect('created' in result && result.created.loginMessages).toEqual(['Sign in to My app']);
+  });
+  it('adds an app login later, once, to the one project there is', async () => {
+    const store = new MemoryStore();
+    await bootstrapProject(store, env);
+    const later = { ...env, PNB_PROJECT_LOGIN_MESSAGE: 'Sign in to My app*' };
+    const first = await addLoginMessage(store, later);
+    expect('added' in first && first.project.loginMessages).toEqual(['Sign in to My app*']);
+    expect(await addLoginMessage(store, later)).toEqual({ skipped: 'already' });
+    expect(await addLoginMessage(store, env)).toEqual({ skipped: 'not_set' });
+    expect(await addLoginMessage(store, { ...env, PNB_PROJECT_LOGIN_MESSAGE: 'Sign in*' })).toMatchObject({
+      invalid: 'PNB_PROJECT_LOGIN_MESSAGE',
+    });
+  });
+
+  it('leaves a server with several projects alone', async () => {
+    const store = new MemoryStore();
+    await store.putProject(newProject({ name: 'One', origins: ['https://one.app'], owner: OWNER.address }));
+    await store.putProject(newProject({ name: 'Two', origins: ['https://two.app'], owner: OWNER.address }));
+    expect(await addLoginMessage(store, { PNB_PROJECT_LOGIN_MESSAGE: 'Sign in to My app' })).toEqual({ skipped: 'not_one_project' });
   });
 });

@@ -124,6 +124,12 @@ export interface Post {
   /** The author's display name. Absent when they posted anonymously or never
    *  chose one. Never an address: a name is a label, an address an identity. */
   who?: string;
+  /**
+   * The author's identicon, as the code `identiconCode` makes from their
+   * address: the picture their wallet shows, never the address. Only on a post
+   * that is not anonymous. `GET /v1/identicons/:code.svg` draws it.
+   */
+  face?: string;
   /** The app's latest message, for widgets from before `thread`. */
   reply?: PostReply;
   /**
@@ -199,6 +205,8 @@ export interface Project extends PublicProject {
 export interface Me {
   owner: boolean;
   name?: string;
+  /** This wallet's identicon code, to show beside the name before posting. */
+  face?: string;
   /** Posts left in this wallet's rolling day. The allowance itself is
    *  `rules.perDay`: read it from the project, never from a copy. */
   left: number;

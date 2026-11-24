@@ -91,6 +91,10 @@ export function cleanOwners(v: unknown): string[] | null {
 
 export const MAX_LOGIN_MESSAGES = 3;
 export const LOGIN_MESSAGE_MAX = 200;
+/** The fixed start a message ending in `*` needs, so it can only ever match the app's own sentence. */
+export const LOGIN_PREFIX_MIN = 12;
+/** How long a signed app login may be, its changing end included. */
+export const SIGNED_LOGIN_MAX = 1000;
 
 /**
  * The app logins a project accepts, or null. An empty array is valid and
@@ -102,9 +106,17 @@ export const LOGIN_MESSAGE_MAX = 200;
  * a scoped, expiring proof can never be turned into a permanent one by listing
  * it here.
  *
+ * **A `*` at the end means "starts with"**: for an app whose login message
+ * carries something that changes every time (a date, a random code), the
+ * fixed part is listed and anything may follow. That fixed part has to be at
+ * least `LOGIN_PREFIX_MIN` characters, so a bare `*` or a "Sign in" can never
+ * accept every message a wallet ever signed elsewhere.
+ *
  * @example
- * cleanLoginMessages(['Sign in to My app'])   // → ['Sign in to My app']
- * cleanLoginMessages(['PleaseNoBugs login…']) // → null
+ * cleanLoginMessages(['Sign in to My app'])    // → ['Sign in to My app']
+ * cleanLoginMessages(['Sign in to My app*'])   // → ['Sign in to My app*']
+ * cleanLoginMessages(['Sign in*'])             // → null
+ * cleanLoginMessages(['PleaseNoBugs login…'])  // → null
  */
 export function cleanLoginMessages(v: unknown): string[] | null {
   if (!Array.isArray(v) || v.length > MAX_LOGIN_MESSAGES) return null;
@@ -112,6 +124,7 @@ export function cleanLoginMessages(v: unknown): string[] | null {
   for (const m of v) {
     if (typeof m !== 'string' || !m.trim() || m.length > LOGIN_MESSAGE_MAX) return null;
     if (m.startsWith('PleaseNoBugs login')) return null;
+    if (m.endsWith('*') && m.slice(0, -1).trim().length < LOGIN_PREFIX_MIN) return null;
     if (!out.includes(m)) out.push(m);
   }
   return out;
@@ -183,4 +196,18 @@ export function newProject(args: {
     ...(args.loginMessages?.length ? { loginMessages: args.loginMessages } : {}),
     createdAt: args.now ?? Date.now(),
   };
+}
+
+/**
+ * Whether a signed app login is one of the messages a project lists: the same
+ * text, or for a listed message ending in `*`, the same start. Never one of
+ * our own login messages, whatever is listed.
+ *
+ * @example
+ * appLoginListed(['Sign in to My app*'], 'Sign in to My app
+Nonce: 8f3a')  // → true
+ */
+export function appLoginListed(listed: readonly string[], message: string): boolean {
+  if (message.length > SIGNED_LOGIN_MAX || message.startsWith('PleaseNoBugs login')) return false;
+  return listed.some((m) => (m.endsWith('*') ? message.startsWith(m.slice(0, -1)) : m === message));
 }

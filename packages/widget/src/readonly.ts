@@ -1,13 +1,14 @@
 import { shownThread, type BoardRead } from '@pleasenobugs/core';
 
 /**
- * A board as `readonly` shows it: everybody anonymous, no screenshots, and
+ * A board as `readonly` shows it: everybody anonymous (no name, no identicon),
+ * no screenshots, and
  * nobody signed in.
  *
  * A read-only board is shown somewhere other than the app it belongs to (the
  * website, one day, showing other apps' boards). Its authors chose to show a
  * name, or a screenshot, on that app's board, not on a page they may never
- * have heard of, so both stay behind. Done here rather than in the cards, so
+ * have heard of, so they stay behind. Done here rather than in the cards, so
  * nothing further down can show what was never handed to it.
  *
  * @example
@@ -19,7 +20,7 @@ export function forReaders(read: BoardRead): BoardRead {
     project: read.project,
     posts: read.posts
       .filter((p) => !p.hidden)
-      .map(({ who: _who, shot: _shot, shotFor: _shotFor, context: _context, hidden: _hidden, thread, ...p }) => {
+      .map(({ who: _who, face: _face, shot: _shot, shotFor: _shotFor, context: _context, hidden: _hidden, thread, ...p }) => {
         // A message an owner took off the board stays off, whoever is reading.
         const shown = shownThread(thread);
         return { ...p, ...(shown.length ? { thread: shown } : {}), mine: false, voted: false };

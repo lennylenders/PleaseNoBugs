@@ -114,3 +114,34 @@ export function describeBootstrapProblem({ invalid, got, lookalike }: BootstrapP
         : `${invalid} is not set.`;
   return `no project created: ${what} ${EXPECTED[invalid]}`;
 }
+
+/**
+ * `PNB_PROJECT_LOGIN_MESSAGE` on a server that already has its project.
+ *
+ * Every other `PNB_PROJECT_*` is only read on an empty server, but an app
+ * login is often added later: the board runs, then the app wires in its own
+ * login so its users stop signing twice. So on a server with exactly one
+ * project, a login message set here is added to that project's list on start,
+ * once. Never removed from here (the dashboard does that), and never on a
+ * server with several projects, where it could not say which one it meant.
+ */
+export async function addLoginMessage(
+  store: Store,
+  env: Record<string, string | undefined>,
+): Promise<{ added: string; project: Project } | { skipped: 'not_set' | 'not_one_project' | 'already' | 'full' } | BootstrapProblem> {
+  const message = env.PNB_PROJECT_LOGIN_MESSAGE;
+  if (!message) return { skipped: 'not_set' };
+  const all = await store.projects();
+  if (all.length !== 1) return { skipped: 'not_one_project' };
+  const [project] = all;
+  const listed = project.loginMessages ?? [];
+  if (listed.includes(message)) return { skipped: 'already' };
+  const next = cleanLoginMessages([...listed, message]);
+  if (!next) {
+    // Either the message itself does not hold up, or the list is full.
+    return cleanLoginMessages([message]) ? { skipped: 'full' } : { invalid: 'PNB_PROJECT_LOGIN_MESSAGE', got: message };
+  }
+  const updated = { ...project, loginMessages: next };
+  await store.putProject(updated);
+  return { added: message, project: updated };
+}

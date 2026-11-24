@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
 import { DEFAULT_RULES, isNimiqAddress, type Rules } from '@pleasenobugs/core';
 import { createApp } from './app.js';
-import { bootstrapProject, describeBootstrapProblem } from './bootstrap.js';
+import { addLoginMessage, bootstrapProject, describeBootstrapProblem } from './bootstrap.js';
 import { importBoard, ImportError } from './importer.js';
 import { cleanLoginMessages, cleanName, cleanOrigins, mergeRules, newProject } from './projects.js';
 import { SqliteStore } from './sqlite-store.js';
@@ -139,6 +139,13 @@ if (command === 'create-project') {
   const boot = await bootstrapProject(store, process.env);
   if ('invalid' in boot) {
     console.error(`[pleasenobugs] ${describeBootstrapProblem(boot)}`);
+  }
+  // An app login added after the board was made (see addLoginMessage).
+  if (!('created' in boot)) {
+    const login = await addLoginMessage(store, process.env);
+    if ('added' in login) console.info(`[pleasenobugs] app login added to "${login.project.name}": ${JSON.stringify(login.added)}`);
+    else if ('invalid' in login) console.error(`[pleasenobugs] app login not added: ${describeBootstrapProblem(login).replace(/^no project created: /, '')}`);
+    else if (login.skipped === 'full') console.error('[pleasenobugs] app login not added: the project already lists 3; remove one in the dashboard');
   }
   // Every start, not only the first: the log is where somebody who deployed
   // with a button looks for the id, and the first start has scrolled away by
