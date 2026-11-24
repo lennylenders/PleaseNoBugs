@@ -252,6 +252,25 @@ describe('app logins', () => {
     expect(res.status).toBe(401);
   });
 
+  it('takes a message with a changing end, when the project listed its start with *', async () => {
+    const env = await setup({ dashboard: true });
+    await env.store.putProject({ ...(await env.store.getProject('board1'))!, loginMessages: [`${LOGIN}*`] });
+    const signed = `${LOGIN}\nNonce: 8f3a91\nIssued: 2026-11-24`;
+    const me = (msg: string) => env.call('GET', '/v1/projects/board1/me', { auth: A.appProof(msg, APP), origin: APP });
+    expect((await me(signed)).status).toBe(200);
+    expect((await me(`${LOGIN}, another day`)).status).toBe(200);
+    // Not the start it listed, and never our own message, whatever follows.
+    expect((await me('Sign in to My other app')).status).toBe(401);
+    expect((await me('PleaseNoBugs login\nProject: board1')).status).toBe(401);
+  });
+
+  it('refuses a changing end whose fixed start is too short to mean one app', async () => {
+    const { call } = await setup({ dashboard: true });
+    const dash = { auth: OWNER.proof('dashboard', DASH), origin: DASH };
+    expect((await call('PATCH', '/v1/projects/board1', { ...dash, body: { loginMessages: ['Sign in*'] } })).status).toBe(400);
+    expect((await call('PATCH', '/v1/projects/board1', { ...dash, body: { loginMessages: ['*'] } })).status).toBe(400);
+  });
+
   it('is refused off by default, and for a message nobody listed', async () => {
     const { call } = await setup();
     expect((await call('GET', '/v1/projects/board1/me', { auth: A.appProof(LOGIN, APP), origin: APP })).status).toBe(401);
