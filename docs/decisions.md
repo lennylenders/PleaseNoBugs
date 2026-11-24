@@ -1725,6 +1725,20 @@ over (`appLogin`, there since 0.1). So that became the default route.
 - Still to do at release: the Railway template gets `PNB_PROJECT_LOGIN_MESSAGE`
   as an optional field, once `main` has the server that understands `*`.
 
+## 2026-11-24 (later): Make it yours, tidier
+
+- **No Desktop/Phone switch**: the widget follows the screen it is on, so a
+  preview at another size added nothing.
+- **The last step has no widget to try any more.** It looked real and posted
+  nowhere, which confused. Instead it plays, over and over, how one gets
+  made: the prompt goes into a plain AI agent chat (no brand), three ticks
+  (widget added, server connected, ready in your app), then the app with the
+  widget opening the way and in the look picked, drawn as "How it opens"
+  draws it. Calm, like the home page's demo; still with reduced motion.
+- **On a phone the light/dark cards are swiped**, one at a time with dots,
+  in a band above the bar, and the widget stands above that band instead of
+  under the cards.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

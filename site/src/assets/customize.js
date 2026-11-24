@@ -10,7 +10,10 @@
  * 4. Ready to add: a prompt for the developer's AI agent, the choices made,
  *    and the code itself for who prefers to add it by hand.
  *
- * The widget can be tried in every step. A slim bar along the bottom has
+ * The widget can be tried in the first three steps; the last one shows,
+ * over and over, the prompt going into an AI agent and the widget turning up
+ * in the app, rather than a widget that looks real but posts nowhere. A slim
+ * bar along the bottom has
  * Back and Next; Next waits until the step's choice is made.
  *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
@@ -52,6 +55,8 @@ const viewport = screen.closest('.viewport');
 
 /** Whether the card stands beside the widget (from 980px, as in site.css) or lies along the bottom. */
 const beside = window.matchMedia('(min-width: 980px)');
+/** Whether the theme cards are a band to swipe along the bottom (to 760px, as in site.css). */
+const narrow = window.matchMedia('(max-width: 760px)');
 
 const state = {
   mode: 'floating',
@@ -300,11 +305,28 @@ function setMode(mode) {
 const themes = document.getElementById('themes');
 
 function paintThemes() {
+  const was = themes.hidden;
   themes.hidden = !(at === 'theme' && !previewing);
+  if (was !== themes.hidden) requestAnimationFrame(measureDeck);
   for (const card of themes.querySelectorAll('[data-theme]')) {
     card.setAttribute('aria-pressed', String(state.pickedTheme && (card.dataset.theme === 'dark') === state.dark));
   }
 }
+
+/** On a phone the three cards are swiped, one at a time, with dots under them, as the three ways are. */
+const themesTrack = document.getElementById('themes-track');
+const themesDots = document.getElementById('themes-dots');
+function paintThemeDots() {
+  const cards = [...themesTrack.children];
+  const mid = themesTrack.scrollLeft + themesTrack.clientWidth / 2;
+  const i = cards.reduce((best, c, n) => (Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid) < Math.abs(cards[best].offsetLeft + cards[best].offsetWidth / 2 - mid) ? n : best), 0);
+  [...themesDots.children].forEach((d, n) => d.classList.toggle('on', n === i));
+}
+themesTrack.addEventListener('scroll', paintThemeDots, { passive: true });
+themesDots.addEventListener('click', (e) => {
+  const n = [...themesDots.children].indexOf(e.target);
+  if (n >= 0) themesTrack.children[n].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+});
 
 themes.addEventListener('click', (e) => {
   const card = e.target.closest('[data-theme]');
@@ -351,10 +373,15 @@ function go(id) {
   const live = !!step().live;
   if (live !== previewing) {
     previewing = live;
-    // Each time the last step is reached, the arrow shows where to test it.
-    tried = false;
     screen.classList.toggle('screen--live', live);
-    mount();
+    // The last step has no widget to try: it plays how one gets made.
+    if (live) {
+      board?.remove();
+      board = null;
+      screen.querySelector('.inline-frame')?.remove();
+      screen.querySelector('.screen__again')?.remove();
+    } else mount();
+    playMade(live);
   } else if (board) apply(board);
   paintScreen();
   watch();
@@ -382,7 +409,7 @@ function paintSteps() {
   document.getElementById('step-name').textContent = card ? 'Your widget is ready to add.' : step().name;
   document.getElementById('bars').innerHTML = STEPS.map((s, n) => `<i class="${n < i ? 'done' : n === i ? 'now' : ''}"></i>`).join('');
   document.getElementById('hint').textContent = card
-    ? `Hand your choices to your AI agent: it asks you the rest and adds it to your app. Try it ${beside.matches ? 'on the right' : 'above'} meanwhile.`
+    ? 'Hand your choices to your AI agent: it asks you the rest and adds it to your app.'
     : '';
   backBtn.hidden = i <= 0;
   barBack.hidden = i <= 0;
@@ -419,54 +446,104 @@ foldBtn.addEventListener('click', () => fold(!folded));
 function measureDeck() {
   foldBtn.disabled = beside.matches;
   const h = !bar.hidden ? bar.offsetHeight : deck.hidden || beside.matches ? 0 : deck.offsetHeight;
+  // On a phone the theme cards are a band above the bar: the app stops above that too.
+  const band = !themes.hidden && narrow.matches ? themes.offsetHeight : 0;
   // On the box, so the app, the three ways and a docked box all stop above it.
-  viewport.style.setProperty('--deck-h', `${h}px`);
+  viewport.style.setProperty('--bar-h', `${h}px`);
+  viewport.style.setProperty('--deck-h', `${h + band}px`);
   fitPanel();
   scaleWays();
   watch();
 }
 new ResizeObserver(measureDeck).observe(deck);
 new ResizeObserver(measureDeck).observe(bar);
+new ResizeObserver(measureDeck).observe(themes);
+narrow.addEventListener('change', measureDeck);
 beside.addEventListener('change', () => {
   fold(false);
   paintSteps();
 });
 
-// ---- The last step: test it ----------------------------------------------
+// ---- The last step: how it gets made --------------------------------------
 
 /**
- * In the last step an arrow points at the widget, "Test your widget": at the
- * round button in the corner, or at the panel when it is shown inline or
- * over the app. It goes once the widget is touched, as by then it has been
- * found.
+ * Over and over, in the app's place: the prompt goes into an AI agent, it
+ * says what it did, and the widget turns up in the app, the way and in the
+ * look picked, as "How it opens" plays it. In the calm style of the home
+ * page's demo and Why PleaseNoBugs: classes on `.made`, moved by site.css.
+ * Its time stands still while it is out of view or the tab is hidden; with
+ * reduced motion it shows the widget in the app and nothing moves.
  */
-const tryHint = document.getElementById('try');
-let tried = false;
+const made = document.getElementById('made');
+const madeApp = made.querySelector('.made__app');
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+/** Bumped to stop a loop that is running: leaving the step, or starting it again. */
+let madeRun = 0;
+let madeSeen = false;
+new IntersectionObserver(([e]) => (madeSeen = e.isIntersecting), { threshold: 0.3 }).observe(made);
 
-function paintTry() {
-  const root = board?.shadowRoot;
-  const part = previewing && !tried && root ? (root.querySelector('.fab:not(.fab--away)') ?? root.querySelector('.app')) : null;
-  const r = part?.getBoundingClientRect();
-  if (!r || !r.width) {
-    tryHint.hidden = true;
-    return;
+/** The app with the widget in it, drawn as "How it opens" draws it. */
+function paintMadeApp() {
+  madeApp.innerHTML = `<span class="made__device play play--phone play--${state.mode}">${PLAYS[state.mode]}</span>`;
+  for (const w of madeApp.querySelectorAll('please-no-bugs')) {
+    apply(w, 'inline', 'tiles');
+    customElements.whenDefined('please-no-bugs').then(() => requestAnimationFrame(() => still(w)));
   }
-  const vb = viewport.getBoundingClientRect();
-  tryHint.hidden = false;
-  // Up and to the left of it, the arrow's tip just off its left side.
-  tryHint.style.right = `${vb.right - r.left + 4}px`;
-  tryHint.style.bottom = `${vb.bottom - r.top - Math.min(r.height / 2, 20)}px`;
+  requestAnimationFrame(() => {
+    const device = madeApp.querySelector('.made__device');
+    if (device) paintSkin(device);
+    scaleMade();
+  });
 }
 
-screen.addEventListener(
-  'pointerdown',
-  (e) => {
-    if (!previewing || tried || !board || !e.composedPath().includes(board)) return;
-    tried = true;
-    paintTry();
-  },
-  true,
-);
+/** The phone as tall as the space allows. */
+function scaleMade() {
+  const h = made.clientHeight - 48;
+  if (h > 0) madeApp.style.setProperty('--s', String(Math.min(1, h / 560)));
+}
+
+async function playMade(on) {
+  const run = ++madeRun;
+  made.hidden = !on;
+  if (!on) return;
+  paintMadeApp();
+  const sleep = async (ms) => {
+    let left = ms;
+    while (left > 0) {
+      await new Promise((r) => setTimeout(r, 50));
+      if (run !== madeRun) throw run;
+      if (madeSeen && !document.hidden) left -= 50;
+    }
+  };
+  const show = (...names) => (made.className = ['made', ...names.map((n) => `is-${n}`)].join(' '));
+  if (reduce.matches) return show('app');
+  try {
+    for (;;) {
+      show();
+      await sleep(500);
+      show('chat');
+      await sleep(700);
+      show('chat', 'asked');
+      await sleep(900);
+      show('chat', 'asked', 'typing');
+      await sleep(1100);
+      for (let n = 1; n <= 3; n++) {
+        show('chat', 'asked', `done-${n}`);
+        await sleep(550);
+      }
+      await sleep(900);
+      show('app');
+      // The play's own moves start from the top each time it is shown.
+      paintMadeApp();
+      await sleep(6200);
+      show('out');
+      await sleep(600);
+    }
+  } catch (stopped) {
+    if (stopped !== run) throw stopped;
+  }
+}
+reduce.addEventListener('change', () => previewing && playMade(true));
 
 /**
  * The widget moves while it opens and while it loads its posts, so for a
@@ -480,11 +557,11 @@ function watch() {
   if (idle) requestAnimationFrame(follow);
   // Once more when it has settled, also where no frames are drawn.
   clearTimeout(settle);
-  settle = setTimeout(paintTry, 650);
+  settle = setTimeout(fitPanel, 650);
 }
 
 function follow() {
-  paintTry();
+  fitPanel();
   if (performance.now() < following) requestAnimationFrame(follow);
 }
 
@@ -497,6 +574,7 @@ function observeRoot(el) {
 
 window.addEventListener('resize', () => {
   fitPanel();
+  scaleMade();
   paintScreen();
   watch();
 });
@@ -725,18 +803,6 @@ function toast(text) {
   toastTimer = setTimeout(() => el.classList.remove('toast--on'), 2200);
 }
 
-/**
- * The preview as a desktop or as a phone: the box narrows to a phone's
- * width, and the widget, its panel and the three ways follow it.
- */
-const viewButtons = document.querySelectorAll('[data-view]');
-function setView(kind) {
-  viewport.classList.toggle('viewport--phone', kind === 'phone');
-  for (const b of viewButtons) b.setAttribute('aria-pressed', String(b.dataset.view === kind));
-  measureDeck();
-  update();
-}
-for (const b of viewButtons) b.addEventListener('click', () => setView(b.dataset.view));
 
 mount();
 paintSteps();
