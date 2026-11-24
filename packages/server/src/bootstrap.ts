@@ -37,9 +37,11 @@ export interface BootstrapProblem {
  *   PNB_PROJECT_SCREENSHOTS     optional: `board` (default), `owners` or `off`
  *   PNB_PROJECT_APPROVE         optional: `on` makes new posts wait for an owner
  *
- * **Only on an empty server.** Once any project exists these variables are
- * ignored, so changing them later never makes a second project, and a server
- * restored from a backup is left alone.
+ * **Only on an empty server.** Once any project exists these variables never
+ * make a second project, and a server restored from a backup keeps its name,
+ * origins and owner. The login message and the two rules are the exception:
+ * on a server with one project they are also read later (`addLoginMessage`,
+ * `applyRules`).
  *
  * Answers what happened, so the caller can say it (`describeBootstrapProblem`);
  * never throws.
@@ -144,4 +146,40 @@ export async function addLoginMessage(
   const updated = { ...project, loginMessages: next };
   await store.putProject(updated);
   return { added: message, project: updated };
+}
+
+/**
+ * `PNB_PROJECT_SCREENSHOTS` and `PNB_PROJECT_APPROVE` on a server that already
+ * has its project, read on every start like `PNB_PROJECT_LOGIN_MESSAGE`.
+ *
+ * A board's rules change with what it is for: one that started on a public
+ * page with every post waiting may later show them at once. On a server with
+ * one project the variable says so and a restart applies it; set, it wins
+ * over a change made elsewhere since. Left out, the rule stays as it is.
+ * Never on a server with several projects.
+ */
+export async function applyRules(
+  store: Store,
+  env: Record<string, string | undefined>,
+): Promise<{ changed: Partial<Rules>; project: Project } | { skipped: 'not_set' | 'not_one_project' | 'same' } | BootstrapProblem> {
+  const { PNB_PROJECT_SCREENSHOTS, PNB_PROJECT_APPROVE } = env;
+  if (!PNB_PROJECT_SCREENSHOTS && !PNB_PROJECT_APPROVE) return { skipped: 'not_set' };
+  const all = await store.projects();
+  if (all.length !== 1) return { skipped: 'not_one_project' };
+  const [project] = all;
+  const changed: Partial<Rules> = {};
+  if (PNB_PROJECT_SCREENSHOTS) {
+    const v = PNB_PROJECT_SCREENSHOTS.trim();
+    if (!isShotRule(v)) return { invalid: 'PNB_PROJECT_SCREENSHOTS', got: PNB_PROJECT_SCREENSHOTS };
+    if ((project.rules.screenshots ?? 'board') !== v) changed.screenshots = v;
+  }
+  if (PNB_PROJECT_APPROVE) {
+    const v = PNB_PROJECT_APPROVE.trim().toLowerCase();
+    if (v !== 'on' && v !== 'off') return { invalid: 'PNB_PROJECT_APPROVE', got: PNB_PROJECT_APPROVE };
+    if (!!project.rules.approve !== (v === 'on')) changed.approve = v === 'on';
+  }
+  if (!Object.keys(changed).length) return { skipped: 'same' };
+  const updated = { ...project, rules: { ...project.rules, ...changed } };
+  await store.putProject(updated);
+  return { changed, project: updated };
 }
