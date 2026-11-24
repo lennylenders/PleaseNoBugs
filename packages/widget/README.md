@@ -224,9 +224,19 @@ to the widget and nobody signs twice:
 board.appLogin = { address, publicKey, signature, message: 'Sign in to My app' };
 ```
 
-The project has to list that exact message first (`loginMessages`, through the
-dashboard or `create-project --login-message`). Set `appLogin` to `null` when
-the user logs out of your app.
+The project has to accept that message first: set `PNB_PROJECT_LOGIN_MESSAGE`
+on your server (on a server that already runs, set it and restart; with one
+project it is added to that one), or use the dashboard or
+`create-project --login-message`. If your login message changes every time,
+because it carries a date or a random code, give its fixed start followed by
+`*`, like `Sign in to My app*` (at least 12 characters before the `*`). Set
+`appLogin` to `null` when the user logs out of your app.
+
+This is how a mini app in Nimiq Pay, or a website with its own wallet login,
+lets its users post and vote without signing anything again. Without it, the
+widget asks the wallet to sign once by itself, at the first vote or post:
+inside Nimiq Pay a short confirmation, kept for a month; in a browser through
+the Nimiq Hub, kept until the tab closes.
 
 ## Signing outside Nimiq Pay
 
