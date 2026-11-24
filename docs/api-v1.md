@@ -141,6 +141,13 @@ other**:
 
 - The server verifies the signature over `message` itself, and only if the
   project lists that exact string, byte for byte.
+- **A listed message ending in `*` means "starts with"** *(0.4.0)*: for an app
+  whose login message carries something that changes every time (a date, a
+  nonce), the owner lists the fixed start, like `Sign in to My app*`, and any
+  message that begins with it is accepted, up to 1000 characters. The fixed
+  start must be at least 12 characters, so it can only ever mean that app's
+  own sentence; a bare `*` or `Sign in*` is refused. Our own `PleaseNoBugs
+  login` messages never match, whatever is listed.
 - **It does not expire**, because the message has no timestamp. That is what
   the owner accepts by listing it, and why the feature is off by default.
 - The origin rules apply exactly as for a scoped proof.
@@ -527,7 +534,8 @@ There are no notifications in v1. This count is how an owner finds out.
 ```
 
 `loginMessages` takes at most 3, each at most 200 characters, stored exactly
-as given; an empty array turns app logins off. See "App logins".
+as given; one ending in `*` accepts any message that starts with the rest (at
+least 12 characters). An empty array turns app logins off. See "App logins".
 
 Owner only. `owners` may never be emptied: a project nobody owns is a project
 nobody can answer.

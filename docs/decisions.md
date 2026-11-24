@@ -1694,6 +1694,37 @@ pick, withdrawn the same day: an identicon is recognisable without making
 anybody findable), and an identicon only when the author opts in (the owner
 wants named to be the default).
 
+## 2026-11-24: Signing in once, or not at all
+
+The owner wants adding the widget, and using it, to be as smooth as it can be.
+Asked first: does somebody signed in to a mini app (or a website) with their
+wallet have to sign again for the board? Not if the app hands its own login
+over (`appLogin`, there since 0.1). So that became the default route.
+
+- **"Make it yours" tells the developer's AI agent to look for it.** The
+  prompt asks the agent to find the app's own wallet login in its code, wire
+  it to `appLogin` (and to `null` on logout), set the server's
+  `PNB_PROJECT_LOGIN_MESSAGE`, and say what it did; with no such login,
+  nothing is added. For every choice of where the app runs, not only an
+  unknown one. No extra question on the page: the agent can read the app.
+- **Login messages that change every time work too.** A listed message ending
+  in `*` accepts any message that starts with the rest. Many apps put a date
+  or a nonce in their login sentence, which made the exact match useless to
+  them. The fixed start needs at least 12 characters, so it can only mean
+  that app's sentence.
+- **`PNB_PROJECT_LOGIN_MESSAGE` is also read on a server that already runs**
+  (with one project): an app login usually comes after the board.
+- **How long a signature lasts**: outside Nimiq Pay until the tab closes, in
+  `sessionStorage`, because a browser may be shared; there is no Sign out
+  (designed, then dropped by the owner: giving feedback is a moment, signing
+  is part of it). Inside Nimiq Pay a month, as before: the phone is the
+  user's own. A proof for another account than the one Nimiq Pay is on now
+  is dropped, so switching accounts there switches the board too.
+- **Without a way to sign**, the widget now says "Sign in with your Nimiq
+  wallet to post and vote." instead of sending everybody to Nimiq Pay.
+- Still to do at release: the Railway template gets `PNB_PROJECT_LOGIN_MESSAGE`
+  as an optional field, once `main` has the server that understands `*`.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

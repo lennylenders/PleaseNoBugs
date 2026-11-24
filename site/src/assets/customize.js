@@ -611,6 +611,16 @@ const PLACE = {
 };
 
 /**
+ * Reusing the app's own wallet login, so its users never sign twice. Left to
+ * the agent to find, because it can read the app and this page cannot; many
+ * mini apps already have their users sign a login message.
+ */
+const APP_LOGIN = [
+  "- If this app already has its users sign a login message with their Nimiq wallet (look in its code for Nimiq Pay's sign(), the Hub's signMessage() or similar), reuse it so nobody signs twice. Once the user is signed in, hand the widget that signature: document.querySelector('please-no-bugs').appLogin = { address, publicKey, signature, message } (publicKey and signature as hex, message exactly as signed), and set it to null when they sign out. The server must accept that message: PNB_PROJECT_LOGIN_MESSAGE is the message, or, if it carries something that changes every time (a date, a nonce), its fixed start followed by * (at least 12 characters before the *). Tell me what you found and what you wired.",
+  '- If the app has no such login, add nothing for it: the widget asks the wallet to sign once by itself, at the first vote or post.',
+].join('\n');
+
+/**
  * The last step's first route: one prompt for the developer's AI agent,
  * whichever it is, with the code and all it needs to put it in any kind of
  * app and to get a server running.
@@ -627,6 +637,7 @@ function prompt() {
     `- This app's own backend, if it has a Node one (Node 22.13 or newer). Depends on nothing new. npx @pleasenobugs/server create-project --name "..." --origin https://... --owner "NQ...", then npx @pleasenobugs/server. Or mount it in Express: ${REPO}/tree/main/packages/server`,
     '- Docker on a server I rent (a VPS, or Coolify on one). Depends on whoever rents me the machine, and I can switch. docker-compose.yml from the repo, a .env with PNB_DOMAIN and the three values, then docker compose up -d; Caddy in it gets the HTTPS certificate by itself; the project id is in docker compose logs pleasenobugs.',
     `- My own hardware (a Raspberry Pi, a NAS). Depends on my internet connection, a domain name, and keeping it switched on. The same Docker setup, with the domain pointing at my connection and ports 80 and 443 open, or behind a Cloudflare Tunnel without Caddy: ${REPO}#readme`,
+    'If the app has its own wallet login (see 2), also set PNB_PROJECT_LOGIN_MESSAGE. On a server that already runs, add it as a variable and restart it: a server with one board adds it to that board by itself.',
     'Never make up my wallet address, the project id or the server address: ask me.',
     '',
     '2. The widget',
@@ -639,15 +650,15 @@ function prompt() {
     `- With a bundler (React, Vue, Svelte, ...): npm install pleasenobugs@${VERSION}, import 'pleasenobugs' once at startup, and render <please-no-bugs> with the same attributes. It is a custom element: write the attributes as they are.`,
     `- ${PLACE[state.mode]}`,
     browser()
-      ? `- It runs ${state.runs === 'both' ? 'in Nimiq Pay and in browsers' : 'in a browser'}, so outside Nimiq Pay users sign with their Nimiq wallet through the Nimiq Hub: add this as well (npm install @nimiq/hub-api), with 'Your app' as this app's name. Inside Nimiq Pay the wallet signs by itself, which the check keeps.\n\n${npmSignerOnly()}`
+      ? `- It runs ${state.runs === 'both' ? 'in Nimiq Pay and in browsers' : 'in a browser'}, so outside Nimiq Pay users sign with their Nimiq wallet through the Nimiq Hub: add this as well (npm install @nimiq/hub-api), with 'Your app' as this app's name. Inside Nimiq Pay the wallet signs by itself, which the check keeps.\n\n${npmSignerOnly()}\n\n${APP_LOGIN}`
       : state.runs === 'pay'
-        ? '- It runs only inside Nimiq Pay: the wallet signs by itself, nothing to add.'
-        : `- Ask me where this app runs. Inside Nimiq Pay the wallet signs by itself: nothing to add. Anywhere else, such as a web app in a desktop browser, give the element a signer so users can post and vote with their Nimiq wallet through the Nimiq Hub (npm install @nimiq/hub-api): ${REPO}/tree/main/packages/widget#signing-outside-nimiq-pay. If the app already signs users in with their Nimiq wallet, reuse that login instead: ${REPO}/tree/main/packages/widget#reusing-your-apps-own-login. Without either, the board can only be read.`,
+        ? `- It runs only inside Nimiq Pay, where the wallet signs by itself.\n${APP_LOGIN}`
+        : `- Ask me where this app runs. Inside Nimiq Pay the wallet signs by itself. Anywhere else, such as a web app in a desktop browser, give the element a signer so users can post and vote with their Nimiq wallet through the Nimiq Hub (npm install @nimiq/hub-api): ${REPO}/tree/main/packages/widget#signing-outside-nimiq-pay. Without a signer or an app login, the board can only be read there.\n${APP_LOGIN}`,
     '- If it runs inside Nimiq Pay: Pay draws its own bar over the page and the widget cannot see it. If this app already measures that bar, pass it on: please-no-bugs { --pnb-inset-top: ...; --pnb-inset-bottom: ...; }',
     '- Keep the version pinned.',
     '',
     '3. Check it',
-    'Start the app, open the widget and make sure the board loads. Posting or voting asks the wallet to sign; inside Nimiq Pay that happens by itself, in a browser the Nimiq Hub opens. To answer posts, I open it with the owner wallet and tap "Sign in with your wallet" at the foot of the board.',
+    'Start the app, open the widget and make sure the board loads. With the app login wired, a signed-in user posts and votes without signing again. Without it, the first vote or post asks the wallet to sign once: inside Nimiq Pay a short confirmation, in a browser the Nimiq Hub, which the board also offers on top as "Sign in with Nimiq". To answer posts, I sign in with the owner wallet.',
   ].join('\n');
 }
 
