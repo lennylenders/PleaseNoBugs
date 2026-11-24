@@ -13,7 +13,7 @@ one place, without asking anybody to send you an email.
   <img src="docs/images/tiles.png" width="250" alt="The three tiles behind the plus: report a bug, share an idea, write a review">
 </p>
 
-> **Status: 0.3.0, early.** It already runs the board of a Nimiq Pay mini app.
+> **Status: 0.4.0, early.** It runs the board on its own home page.
 > This is a community tool, not an official Nimiq product.
 
 ## What it does
