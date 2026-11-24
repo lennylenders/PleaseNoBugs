@@ -246,8 +246,11 @@ document.querySelector('please-no-bugs').signer = async (message) => {
 
 With a signer and outside Nimiq Pay, the board offers **"Sign in with Nimiq"**
 on top until the user has signed in, since signing opens a wallet window
-there. Without a signer outside Nimiq Pay, the board is read-only and says so
-when somebody tries to post.
+there. Without a signer outside Nimiq Pay, the board is read-only and says
+"Sign in with your Nimiq wallet to post and vote" when somebody tries to post.
+On a website with its own wallet login, that is the moment to hand the login
+over with `appLogin` (above): set it once the user has signed in to your site,
+and back to `null` when they sign out.
 
 ## Headless
 

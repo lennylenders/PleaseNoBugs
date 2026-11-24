@@ -64,8 +64,10 @@ const COPY = {
   'board.signInNote': 'Use your Nimiq wallet. Signing only shows which wallet you are; it can’t move funds.',
   'board.signInButton': 'Sign in with Nimiq',
   // Reading works anywhere; writing needs a wallet. Said when somebody tries,
-  // not up front, so a reader is never told off for reading.
-  'board.needWallet': 'Open {app} in Nimiq Pay to post and vote.',
+  // not up front, so a reader is never told off for reading. General on
+  // purpose: on a website it means its own login, in a mini app opened in a
+  // plain browser it means Nimiq Pay, and the widget cannot tell which.
+  'board.needWallet': 'Sign in with your Nimiq wallet to post and vote.',
 
   // ---- Choosing what to write ----
   'board.chooseTitle': 'What do you want to share?',
