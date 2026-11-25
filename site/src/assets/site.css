@@ -2529,3 +2529,21 @@ body:has(.tour--playing) > please-no-bugs { opacity: 0; visibility: hidden; tran
 .nq-code > b { font-family: var(--nq-mono); font-size: 11px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; color: var(--nq-navy-60); }
 
 .nq-code .btn { justify-self: start; }
+/* The page's real board (its round button, bottom right) steps aside while
+   the demo plays (tour.js) and while Make it yours' stage is in view
+   (customize.js), so only one round button is on screen, and it never sits
+   on the steps' Next button on a phone. */
+
+body > please-no-bugs[project] { transition: opacity 200ms ease, visibility 0s linear 0s; }
+
+body.real-aside > please-no-bugs[project] {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, visibility 0s linear 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body > please-no-bugs[project],
+  body.real-aside > please-no-bugs[project] { transition: none; }
+}

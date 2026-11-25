@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="assets/site.css" />
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/customize.js" defer></script>
+    <script src="assets/board.js" type="module"></script>
   </head>
   <body>
     <header class="top">
@@ -177,5 +178,7 @@
     </footer>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <!-- The real board, on every page: what visitors think of PleaseNoBugs (assets/board.js signs them in). -->
+    <please-no-bugs project="%BOARD_PROJECT%" server="%BOARD_SERVER%" mode="floating" theme="nimiq" screenshots="off"></please-no-bugs>
   </body>
 </html>

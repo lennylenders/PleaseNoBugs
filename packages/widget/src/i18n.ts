@@ -63,6 +63,8 @@ const COPY = {
   'board.signInTitle': 'Sign in to post and vote',
   'board.signInNote': 'Use your Nimiq wallet. Signing only shows which wallet you are; it can’t move funds.',
   'board.signInButton': 'Sign in with Nimiq',
+  // Before the tiles, outside Nimiq Pay, for somebody not signed in yet.
+  'board.signInWrite': 'Sign in to share feedback',
   // Reading works anywhere; writing needs a wallet. Said when somebody tries,
   // not up front, so a reader is never told off for reading. General on
   // purpose: on a website it means its own login, in a mini app opened in a

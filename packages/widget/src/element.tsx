@@ -24,7 +24,9 @@ export const TAG = 'please-no-bugs';
  * - `overlay`: the board over the whole screen, now. What {@link open} uses.
  *
  * Each opens on the tiles that ask what to write, with the board one tap
- * under them; `start="board"` opens on the board instead.
+ * under them; `start="board"` opens on the board instead. Outside Nimiq Pay,
+ * somebody not signed in always starts on the board, and the + asks them to
+ * sign in before the tiles.
  *
  * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
  * `start` (`tiles` or `board`), `theme` (`nimiq`, the default, or `nimiq-dark`),
@@ -188,9 +190,11 @@ export class PleaseNoBugsElement extends HTMLElement {
       }
       // `demo="owner"`: the same board, seen by the app's owner.
       const owner = this.getAttribute('demo') === 'owner';
-      const key = `demo|${owner}`;
+      // A `server` on a demo only draws the identicons; the posts stay in the page.
+      const identicons = this.getAttribute('server') || undefined;
+      const key = `demo|${owner}|${identicons ?? ''}`;
       if (!this.#client || this.#clientKey !== key) {
-        this.#client = this.#demo.createDemoClient({ owner, samples: this.#samples });
+        this.#client = this.#demo.createDemoClient({ owner, samples: this.#samples, identicons });
         this.#clientKey = key;
       }
       this.#show(this.#client, lang);

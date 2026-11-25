@@ -1764,6 +1764,25 @@ lennylenders.github.io/PleaseNoBugs, which now redirects.
   (added in its database; `PNB_PROJECT_ORIGINS` is only read on an empty
   server). The old origin stays, for anybody with a proof from it.
 
+## 2026-11-25 (later): Read first, sign in to write
+
+The owner noticed that a visitor not signed in opened the widget on the tiles,
+picked one, wrote, and only then met a wallet. Outside Nimiq Pay, somebody
+not signed in now opens on the board and reads everything; the + shows "Sign
+in to share feedback" (what signing is and is not, and "Sign in with Nimiq"),
+and after signing in come the tiles. Somebody signed in still opens on the
+tiles, and inside Nimiq Pay nothing changed: there signing is one tap at
+sending. Built without Figma, at the owner's choice.
+
+Also on the home page: the demo types its user's name (since 0.4.0 a post
+needs one unless anonymous, and the tour had stopped there), demos ask the
+board's server for real identicons only, and the page's own round button
+steps aside while the demo plays.
+
+The real board is on every page of the site now (Why PleaseNoBugs and Make
+it yours too). On Make it yours it steps aside while the steps' bar is at the
+bottom of the window, where on a phone it sat on Next.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
