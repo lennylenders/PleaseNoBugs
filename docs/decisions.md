@@ -1748,6 +1748,22 @@ through a dashboard proof, and that board has no dashboard. So
 on a server with one project, like `PNB_PROJECT_LOGIN_MESSAGE`, and when set
 they win over a change made elsewhere. Left out, a rule stays as it is.
 
+## 2026-11-25: pleasenobugs.com
+
+The owner bought pleasenobugs.com at Cloudflare. The website moved there from
+lennylenders.github.io/PleaseNoBugs, which now redirects.
+
+- **DNS at Cloudflare**, all "DNS only" (grey cloud), so GitHub can issue the
+  HTTPS certificate itself: four A records for the apex to GitHub Pages
+  (185.199.108–111.153), `www` as a CNAME to lennylenders.github.io, and the
+  TXT record that verifies the domain for the owner's GitHub account, so no
+  other account can publish Pages on it.
+- **GitHub Pages**: custom domain set under Settings → Pages (a site deployed
+  by Actions needs no CNAME file), HTTPS enforced once the certificate came.
+- **The home page's board** lists https://pleasenobugs.com among its origins
+  (added in its database; `PNB_PROJECT_ORIGINS` is only read on an empty
+  server). The old origin stays, for anybody with a proof from it.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
