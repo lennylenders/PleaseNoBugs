@@ -1779,6 +1779,10 @@ needs one unless anonymous, and the tour had stopped there), demos ask the
 board's server for real identicons only, and the page's own round button
 steps aside while the demo plays.
 
+The real board is on every page of the site now (Why PleaseNoBugs and Make
+it yours too). On Make it yours it steps aside while the steps' bar is at the
+bottom of the window, where on a phone it sat on Next.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

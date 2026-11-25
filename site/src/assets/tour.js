@@ -750,8 +750,8 @@ if (box && frame && page && subtitle && watch && titleCard && endCard && again &
   watchSight();
   // While it plays, the page's own round button (the real board, bottom
   // right) steps aside: two of the same button, one pretend, is one too many.
-  // Back as soon as the story stops or ends (site.css, `.tour-on`).
-  new MutationObserver(() => document.body.classList.toggle('tour-on', frame.classList.contains('tour--playing'))).observe(frame, {
+  // Back as soon as the story stops or ends (site.css, `.real-aside`).
+  new MutationObserver(() => document.body.classList.toggle('real-aside', frame.classList.contains('tour--playing'))).observe(frame, {
     attributes: true,
     attributeFilter: ['class'],
   });

@@ -810,3 +810,19 @@ mount();
 paintSteps();
 writeCode();
 measureDeck();
+
+// The page's own round button (the real board, assets/board.js) steps aside
+// while the foot of the stage, where the steps' bar and Next are, is at the
+// bottom of the window:
+// on a phone it would sit right on Next (site.css, `.real-aside`). Anywhere
+// else on the page it stays.
+{
+  const seen = new Map();
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) seen.set(e.target, e.isIntersecting);
+    document.body.classList.toggle('real-aside', [...seen.values()].some(Boolean));
+    // Only the bottom of the window, where the round button sits.
+  }, { rootMargin: '-85% 0px 0px 0px' });
+  io.observe(bar);
+  io.observe(deck);
+}
