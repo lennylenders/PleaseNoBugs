@@ -1,5 +1,7 @@
 # Publishes the website in site/ on GitHub Pages:
-# https://lennylenders.github.io/PleaseNoBugs/
+# https://pleasenobugs.com (the custom domain is set in Settings → Pages;
+# DNS at Cloudflare, records "DNS only"; lennylenders.github.io/PleaseNoBugs/
+# redirects there).
 #
 # On a version tag, like the container image, because the code the site hands
 # out loads that version from npm: the site must not go out before the

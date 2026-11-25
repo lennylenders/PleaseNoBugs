@@ -2,6 +2,8 @@
 
 **Bugs and ideas, straight from your users. Free and open source, for everyone building on Nimiq.**
 
+Website, demo and setup: **[pleasenobugs.com](https://pleasenobugs.com)**
+
 A feedback board you drop into your Nimiq mini app. Your users post what is
 broken and what is missing, second each other's wishes, and you answer them in
 one place, without asking anybody to send you an email.
