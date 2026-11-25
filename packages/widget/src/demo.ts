@@ -41,7 +41,16 @@ import type { Client, Result } from './client.js';
  * Typed as a {@link Client}, so a change to the real client that this one
  * does not follow is a type error rather than a demo that quietly lies.
  */
-export function createDemoClient({ owner = false, samples }: { owner?: boolean; samples?: DemoSample[] } = {}): Client {
+export function createDemoClient({
+  owner = false,
+  samples,
+  identicons,
+}: {
+  owner?: boolean;
+  samples?: DemoSample[];
+  /** A PleaseNoBugs server to draw the identicons; without one, stand-ins in their colour. */
+  identicons?: string;
+} = {}): Client {
   const now = Date.now();
   let posts: Post[] = (samples ?? SAMPLES).map((s, i) => ({
     id: `demo-${i}`,
@@ -53,8 +62,10 @@ export function createDemoClient({ owner = false, samples }: { owner?: boolean; 
     voted: false,
     // A visitor's own; an owner is never the author of a sample.
     mine: !owner && !!s.mine,
-    // A made-up wallet per name, so each sample author has an identicon of their own.
-    ...(s.who ? { who: s.who, face: identiconCode(`NQ00 ${s.who}`) } : {}),
+    // A made-up wallet per name, so each sample author has an identicon of their
+    // own; the visitor's own posts (`mine`) carry the visitor's, also where the
+    // owner reads them, so one person has one picture on both sides.
+    ...(s.who ? { who: s.who, face: s.mine ? ME_FACE : identiconCode(`NQ00 ${s.who}`) } : {}),
     ...(s.rating ? { rating: s.rating } : {}),
     ...conversation(i, s, now - (s.ago ?? HOUR)),
     ...(s.fix ? { fix: { version: s.fix, link: DEMO_LINK } } : {}),
@@ -144,8 +155,9 @@ export function createDemoClient({ owner = false, samples }: { owner?: boolean; 
       return url ? ok(await (await fetch(url)).blob()) : no(404, 'not_found');
     },
     shotUrl: (id) => shots.get(id) ?? '',
-    // No server to draw it: the card shows the stand-in in the identicon's colour.
-    faceUrl: () => '',
+    // A server only to draw them, nothing else: without one, the card shows
+    // the stand-in in the identicon's colour.
+    faceUrl: (code) => (identicons ? `${identicons.replace(/\/+$/, '')}/v1/identicons/${encodeURIComponent(code)}.svg` : ''),
     vote(id, up) {
       const p = find(id);
       if (!p) return no(404, 'not_found');
@@ -321,7 +333,7 @@ export interface DemoSample {
   reply?: string;
   /** A conversation instead: who said what, in order. */
   thread?: [MessageFrom, string][];
-  /** The visitor's own, so they can answer the app under it. Never an owner's. */
+  /** The visitor's own, so they can answer the app under it, with the visitor's identicon. On an owner's board it is not theirs, but keeps that identicon. */
   mine?: boolean;
   /** The version a done post was fixed in. */
   fix?: string;

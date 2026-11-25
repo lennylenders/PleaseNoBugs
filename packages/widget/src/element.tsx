@@ -188,9 +188,11 @@ export class PleaseNoBugsElement extends HTMLElement {
       }
       // `demo="owner"`: the same board, seen by the app's owner.
       const owner = this.getAttribute('demo') === 'owner';
-      const key = `demo|${owner}`;
+      // A `server` on a demo only draws the identicons; the posts stay in the page.
+      const identicons = this.getAttribute('server') || undefined;
+      const key = `demo|${owner}|${identicons ?? ''}`;
       if (!this.#client || this.#clientKey !== key) {
-        this.#client = this.#demo.createDemoClient({ owner, samples: this.#samples });
+        this.#client = this.#demo.createDemoClient({ owner, samples: this.#samples, identicons });
         this.#clientKey = key;
       }
       this.#show(this.#client, lang);

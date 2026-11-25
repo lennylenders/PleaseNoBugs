@@ -88,15 +88,19 @@ const VERSION = '1.4.3';
 const PULL = 'github.com/you/app/pull/42';
 const REPLY = 'Thanks for reporting! Fixed, it is in the next version.';
 
+/** Who the user in the tour is, typed into the name field. */
+const WHO = 'Mila';
+
 /**
  * One story on a quiet board: the bug the user sends, and one other bug of
  * somebody else's, still open. The user's board starts with that other bug
- * alone; the owner's has the user's bug too, as the user sent it.
+ * alone; the owner's has the user's bug too, as the user sent it: with their
+ * name, and (`mine`) the same identicon the user had.
  */
-const OTHER = { kind: 'bug', text: 'The send button does nothing after I switch accounts', votes: 4, ago: 20 * 3_600_000 };
+const OTHER = { kind: 'bug', text: 'The send button does nothing after I switch accounts', votes: 4, ago: 20 * 3_600_000, who: 'Sam' };
 const SAMPLES = {
   user: [OTHER],
-  owner: [{ kind: 'bug', text: BUG, votes: 1, ago: 3_600_000 }, OTHER],
+  owner: [{ kind: 'bug', text: BUG, votes: 1, ago: 3_600_000, who: WHO, mine: true }, OTHER],
 };
 
 /** The same settings as Make it yours' widgets, and no screenshots: the demo never adds one. */
@@ -107,6 +111,8 @@ function widget(pov) {
     mode: 'floating',
     theme: 'nimiq',
     screenshots: 'off',
+    // Only for the identicons: the tour's posts stay in the page (demo.ts).
+    server: '%BOARD_SERVER%',
     // An owner comes for the board; a user, as in an app, to the tiles.
     ...(pov === 'owner' ? { start: 'board' } : {}),
   })) {
@@ -560,7 +566,13 @@ async function userRound() {
   await say(USER, 3);
   await wait(1200);
   await type(field, BUG);
-  await wait(800);
+  await wait(600);
+  // Named, as every post is unless its author picks anonymous: the name goes
+  // out with their wallet's identicon.
+  const name = await find(el, '.name-field input');
+  await reveal(name);
+  await type(name, WHO);
+  await wait(700);
   const send = await find(el, '.send .btn:not([disabled])');
   await reveal(send);
   await tap(send);

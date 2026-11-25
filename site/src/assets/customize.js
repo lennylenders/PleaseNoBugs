@@ -94,6 +94,8 @@ const step = () => STEPS.find((s) => s.id === at);
 function apply(el, mode = state.mode, held = previewing ? '' : step().screen) {
   const set = (name, value) => (value ? el.setAttribute(name, value) : el.removeAttribute(name));
   el.setAttribute('demo', '');
+  // Only for the identicons: the posts stay in the page.
+  el.setAttribute('server', '%BOARD_SERVER%');
   el.setAttribute('mode', mode);
   set('theme', theme());
   set('screen', held);
