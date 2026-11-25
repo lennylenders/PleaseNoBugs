@@ -2529,3 +2529,19 @@ body:has(.tour--playing) > please-no-bugs { opacity: 0; visibility: hidden; tran
 .nq-code > b { font-family: var(--nq-mono); font-size: 11px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; color: var(--nq-navy-60); }
 
 .nq-code .btn { justify-self: start; }
+/* The page's real board (its round button, bottom right) steps aside while
+   the demo plays, so only one round button is on screen (tour.js). */
+
+body > please-no-bugs[project] { transition: opacity 200ms ease, visibility 0s linear 0s; }
+
+body.tour-on > please-no-bugs[project] {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, visibility 0s linear 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body > please-no-bugs[project],
+  body.tour-on > please-no-bugs[project] { transition: none; }
+}

@@ -748,6 +748,13 @@ if (box && frame && page && subtitle && watch && titleCard && endCard && again &
   await customElements.whenDefined('please-no-bugs');
   mount('user');
   watchSight();
+  // While it plays, the page's own round button (the real board, bottom
+  // right) steps aside: two of the same button, one pretend, is one too many.
+  // Back as soon as the story stops or ends (site.css, `.tour-on`).
+  new MutationObserver(() => document.body.classList.toggle('tour-on', frame.classList.contains('tour--playing'))).observe(frame, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
   // The drawing's lines and round button follow the box as it changes size.
   new ResizeObserver(() => {
     const n = Number(frame.dataset.intro ?? 0);
