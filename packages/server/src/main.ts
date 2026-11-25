@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { parseArgs } from 'node:util';
 import { DEFAULT_RULES, isNimiqAddress, type Rules } from '@pleasenobugs/core';
 import { createApp } from './app.js';
-import { addLoginMessage, bootstrapProject, describeBootstrapProblem } from './bootstrap.js';
+import { addLoginMessage, applyRules, bootstrapProject, describeBootstrapProblem } from './bootstrap.js';
 import { importBoard, ImportError } from './importer.js';
 import { cleanLoginMessages, cleanName, cleanOrigins, mergeRules, newProject } from './projects.js';
 import { SqliteStore } from './sqlite-store.js';
@@ -146,6 +146,10 @@ if (command === 'create-project') {
     if ('added' in login) console.info(`[pleasenobugs] app login added to "${login.project.name}": ${JSON.stringify(login.added)}`);
     else if ('invalid' in login) console.error(`[pleasenobugs] app login not added: ${describeBootstrapProblem(login).replace(/^no project created: /, '')}`);
     else if (login.skipped === 'full') console.error('[pleasenobugs] app login not added: the project already lists 3; remove one in the dashboard');
+    // Rules set in the environment, on a board that already runs (see applyRules).
+    const rules = await applyRules(store, process.env);
+    if ('changed' in rules) console.info(`[pleasenobugs] rules of "${rules.project.name}" changed: ${JSON.stringify(rules.changed)}`);
+    else if ('invalid' in rules) console.error(`[pleasenobugs] rules not changed: ${describeBootstrapProblem(rules).replace(/^no project created: /, '')}`);
   }
   // Every start, not only the first: the log is where somebody who deployed
   // with a button looks for the id, and the first start has scrolled away by

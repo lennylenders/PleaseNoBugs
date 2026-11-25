@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { AddressInfo } from 'node:net';
 import { createApp } from './app.js';
-import { addLoginMessage, bootstrapProject, describeBootstrapProblem, type BootstrapProblem } from './bootstrap.js';
+import { addLoginMessage, applyRules, bootstrapProject, describeBootstrapProblem, type BootstrapProblem } from './bootstrap.js';
 import { MemoryStore } from './memory-store.js';
 import { newProject } from './projects.js';
 import { buildReport, readReport, sendReport, summarize, telemetryNotice } from './telemetry.js';
@@ -209,10 +209,22 @@ describe('bootstrapProject', () => {
     });
   });
 
+  it('changes the rules of a board that already runs, when the environment says so', async () => {
+    const store = new MemoryStore();
+    await bootstrapProject(store, { ...env, PNB_PROJECT_APPROVE: 'on', PNB_PROJECT_SCREENSHOTS: 'off' });
+    const off = await applyRules(store, { PNB_PROJECT_APPROVE: 'off', PNB_PROJECT_SCREENSHOTS: 'off' });
+    expect('changed' in off && off.changed).toEqual({ approve: false });
+    expect((await store.projects())[0].rules).toMatchObject({ approve: false, screenshots: 'off' });
+    expect(await applyRules(store, { PNB_PROJECT_APPROVE: 'off' })).toEqual({ skipped: 'same' });
+    expect(await applyRules(store, {})).toEqual({ skipped: 'not_set' });
+    expect(await applyRules(store, { PNB_PROJECT_APPROVE: 'maybe' })).toMatchObject({ invalid: 'PNB_PROJECT_APPROVE' });
+  });
+
   it('leaves a server with several projects alone', async () => {
     const store = new MemoryStore();
     await store.putProject(newProject({ name: 'One', origins: ['https://one.app'], owner: OWNER.address }));
     await store.putProject(newProject({ name: 'Two', origins: ['https://two.app'], owner: OWNER.address }));
     expect(await addLoginMessage(store, { PNB_PROJECT_LOGIN_MESSAGE: 'Sign in to My app' })).toEqual({ skipped: 'not_one_project' });
+    expect(await applyRules(store, { PNB_PROJECT_APPROVE: 'off' })).toEqual({ skipped: 'not_one_project' });
   });
 });

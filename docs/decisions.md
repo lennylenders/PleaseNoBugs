@@ -1739,6 +1739,15 @@ over (`appLogin`, there since 0.1). So that became the default route.
   in a band above the bar, and the widget stands above that band instead of
   under the cards.
 
+## 2026-11-24 (release): 0.4.0, and rules from the environment later on
+
+0.4.0 is out (PR #7, tag `v0.4.0`, npm, the image on our own server). Turning
+approval off on the home page's board showed a gap: its rules could only change
+through a dashboard proof, and that board has no dashboard. So
+`PNB_PROJECT_SCREENSHOTS` and `PNB_PROJECT_APPROVE` are now read on every start
+on a server with one project, like `PNB_PROJECT_LOGIN_MESSAGE`, and when set
+they win over a change made elsewhere. Left out, a rule stays as it is.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
