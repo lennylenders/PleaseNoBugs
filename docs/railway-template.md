@@ -45,6 +45,12 @@ description.
 | `PNB_PROJECT_ORIGINS` | Where your app runs, like https://my.app. Several separated by commas. |
 | `PNB_PROJECT_OWNER` | Your Nimiq wallet address (NQ..). Signing in with it makes you the owner of the board. |
 
+Asked too, but **marked as optional** (since 2026-11-25), so it can be left empty:
+
+| Variable | Description |
+|---|---|
+| `PNB_PROJECT_LOGIN_MESSAGE` | Optional. Your app's own wallet login sentence, so its users never sign twice. If it changes every time (a date, a code), its fixed start followed by *. |
+
 Set, not asked:
 
 | Variable | Value | Why |
@@ -52,8 +58,7 @@ Set, not asked:
 | `PORT` | `8787` | Railway otherwise hands the server a port of its own (8080), and the domain, pointed at 8787, answers 502. |
 | `RAILWAY_HEALTHCHECK_TIMEOUT_SEC` | `60` | How long Railway waits for `/health`. Its default is 300 seconds; a server that has not answered in a minute is not going to. |
 
-Left out on purpose: `PNB_PROJECT_LOGIN_MESSAGE` (an empty one would be asked
-for as well; whoever needs it adds it afterwards). `PNB_DB` and
+Left out on purpose: `PNB_DB` and
 `PNB_TRUST_PROXY` come from the Dockerfile, and telemetry is on unless somebody
 adds `PNB_TELEMETRY=off` (the README says how).
 
