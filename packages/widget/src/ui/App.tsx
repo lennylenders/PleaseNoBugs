@@ -78,7 +78,7 @@ export interface AppProps {
   onPosted?: (post: { id: string; kind: PostKind }) => void;
 }
 
-export type View = 'board' | 'choose' | 'compose' | 'sent' | 'updates' | 'talk' | 'manage';
+export type View = 'board' | 'choose' | 'signin' | 'compose' | 'sent' | 'updates' | 'talk' | 'manage';
 
 /** Whatever is over the board, as one value so two can never be up at once. */
 type Over =
@@ -116,7 +116,9 @@ export function App({
   screen,
 }: AppProps) {
   // The tiles are the way to writing, which a read-only board does not have.
-  const start = readonly ? 'board' : asked;
+  // Nor does somebody not signed in where signing in is a step of its own
+  // (outside Nimiq Pay): they read first, and sign in when they want to write.
+  const start = readonly || (asked === 'choose' && !screen && !insideNimiqPay() && !client.address()) ? 'board' : asked;
   const [read, setRead] = useState<BoardRead | null>(null);
   const [failed, setFailed] = useState(false);
   const [view, setView] = useState<View>(screen ?? start);
@@ -518,9 +520,15 @@ export function App({
 
   const reviewed = posts.some((p) => p.mine && p.kind === 'review');
 
-  /** The "+": straight to writing when there is only one kind to write. */
-  const write = () => {
-    if (kinds.length === 1) {
+  /**
+   * The "+": straight to writing when there is only one kind to write. Outside
+   * Nimiq Pay, somebody not signed in signs in first, on a screen that says
+   * why, so nobody writes a whole post before learning it needs a wallet.
+   */
+  const write = (signedIn = !!read?.me || !!client.address()) => {
+    if (!signedIn && !insideNimiqPay()) {
+      setView('signin');
+    } else if (kinds.length === 1) {
       setWriting(kinds[0]);
       setView('compose');
     } else {
@@ -531,6 +539,14 @@ export function App({
   const toBoard = () => {
     setFirst(false);
     setView('board');
+  };
+
+  /** From the sign-in screen: the wallet, then on to writing. A "no" stays on it. */
+  const signInToWrite = async () => {
+    const res = await client.signIn();
+    if (!res.ok) return sayRefusal(res.error);
+    void pull();
+    write(true);
   };
 
   if (view === 'sent') {
@@ -599,6 +615,36 @@ export function App({
           onEdit={(m, text) => editUnder(talkingTo, m, text)}
           onUnsay={(m) => unsayUnder(talkingTo, m)}
         />
+        {toast && <div class="toast" role="status">{toast}</div>}
+      </div>
+    );
+  }
+
+  if (view === 'signin') {
+    return (
+      <div class="app">
+        <header class="bar">
+          <button type="button" class="icon-btn" aria-label={t('board.back')} onClick={toBoard}>
+            <Icon.Back />
+          </button>
+          <h2 class="bar__title bar__title--write">{t('board.composeTitle')}</h2>
+          <span />
+        </header>
+        <div class="scroll">
+          <div class="signin-page">
+            <strong class="signin-page__title">{t('board.signInWrite')}</strong>
+            {client.canSign ? (
+              <>
+                <p class="signin-page__text">{t('board.signInNote')}</p>
+                <button type="button" class="btn" onClick={() => void signInToWrite()}>
+                  {t('board.signInButton')}
+                </button>
+              </>
+            ) : (
+              <p class="signin-page__text">{t('board.needWallet', { app: name })}</p>
+            )}
+          </div>
+        </div>
         {toast && <div class="toast" role="status">{toast}</div>}
       </div>
     );
@@ -723,7 +769,7 @@ export function App({
             class="icon-btn"
             aria-label={t('board.write')}
             disabled={!rules || !kinds.length}
-            onClick={write}
+            onClick={() => write()}
           >
             <Icon.Plus />
           </button>

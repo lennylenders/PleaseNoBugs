@@ -39,7 +39,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 |---|---|
 | `project`, `server` | Required. |
 | `mode` | `inline`, `floating` or `overlay`. |
-| `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board. |
+| `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board, and so is the board for somebody not signed in outside Nimiq Pay: they read first, and the **+** asks them to sign in ("Sign in to share feedback") before the tiles. |
 | `theme` | `nimiq` (default): the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
 | `lang` | The language of your `strings`, so dates follow it: `nl` writes "14 sep". English by default. |
 | `app-name` | What answers are signed with ("My app says"). Defaults to the project's name. |
