@@ -16,7 +16,7 @@ export interface OpenOptions {
   server: string;
   /** The language of your `strings`, for dates. English by default. */
   lang?: string;
-  theme?: 'nimiq' | 'nimiq-dark';
+  theme?: 'pleasenobugs' | 'nimiq' | 'nimiq-dark';
   appName?: string;
   /** A display name to suggest when the user chooses to show theirs. */
   name?: string;

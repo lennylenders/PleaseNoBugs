@@ -40,7 +40,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `project`, `server` | Required. |
 | `mode` | `inline`, `floating` or `overlay`. |
 | `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board, and so is the board for somebody not signed in outside Nimiq Pay: they read first, and the **+** asks them to sign in ("Sign in to share feedback") before the tiles. |
-| `theme` | `nimiq` (default): the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
+| `theme` | `pleasenobugs` (default): PleaseNoBugs' own look, dark purple with raised turquoise buttons. `nimiq`: the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
 | `lang` | The language of your `strings`, so dates follow it: `nl` writes "14 sep". English by default. |
 | `app-name` | What answers are signed with ("My app says"). Defaults to the project's name. |
 | `name` | A display name you already know, filled in for a user who has not chosen one on this board yet. |
@@ -124,32 +124,33 @@ authors get the note. Until you write the first one, only you see the button.
 
 The widget lives in a shadow root, so your CSS cannot break it. These custom
 properties cross that boundary on purpose and are the theming API. The
-defaults below are the `nimiq` look; `nimiq-dark` sets the colours again on
-navy:
+defaults below are the `pleasenobugs` look; `nimiq` and `nimiq-dark` set the
+colours again, flat, in the Nimiq Foundation's brand:
 
 ```css
 please-no-bugs {
-  --pnb-bg: #ffffff;            /* the page */
-  --pnb-surface: #fafaf8;    /* a card */
-  --pnb-surface-2: #f2f3f4;  /* a chip or field inside a card */
-  --pnb-sunken: #f2f3f4;     /* the Top/New trough */
-  --pnb-line: #e6e6e9;
-  --pnb-text: #040724;
-  --pnb-text-quiet: #686a7c;
-  --pnb-accent: #040724;
-  --pnb-on-accent: #ffffff;
-  --pnb-danger: #cb0015;
-  --pnb-bug: #cb0015;  --pnb-idea: #ffb700;  --pnb-review: #4f5166;
-  --pnb-planned: #ffc758;  --pnb-done: #040724;  --pnb-declined: #9b9ca7;
-  --pnb-on-dot: #ffffff;                    /* the glyph on a chip's dot; or per kind and status: */
+  --pnb-bg: #292a56;                    /* the page */
+  --pnb-surface: #5656ac;               /* a card */
+  --pnb-surface-2: #454689;             /* a chip or field inside a card */
+  --pnb-sunken: #1a1a32;                /* the Top/New trough */
+  --pnb-line: #6d6dc5;
+  --pnb-text: #fff;
+  --pnb-text-quiet: rgba(255, 255, 255, 0.78);
+  --pnb-accent: #1fc7d4;
+  --pnb-accent-fill: linear-gradient(var(--pnb-accent), color-mix(in srgb, var(--pnb-accent), #000 18%)); /* what buttons are painted with */
+  --pnb-on-accent: #12132b;
+  --pnb-danger: #ff7a6b;
+  --pnb-bug: #e5484d;  --pnb-idea: #8b5cf6;  --pnb-review: #e9a00b;
+  --pnb-planned: #8a8fb8;  --pnb-done: #21bca5;  --pnb-declined: #8a8fb8;
+  --pnb-on-dot: #fff;                    /* the glyph on a chip's dot; or per kind and status: */
   --pnb-on-bug: var(--pnb-on-dot);       /* --pnb-on-idea, -review, -planned, -done, -declined */
-  --pnb-star: #ffb700;
+  --pnb-star: #f5a524;
   --pnb-filter: var(--pnb-text);         /* the chosen filter, and the chosen status in your answer sheet */
   --pnb-on-filter: var(--pnb-bg);        /* its words: set both, as they are not picked for you */
   --pnb-tile-bug: var(--pnb-bug);        /* the three tiles; may be gradients */
   --pnb-tile-idea: var(--pnb-idea);
   --pnb-tile-review: var(--pnb-review);
-  --pnb-tile-ink: #ffffff;                  /* the words on them */
+  --pnb-tile-ink: #fff;                  /* the words on them */
   --pnb-tile-ink-bug: var(--pnb-tile-ink); /* the words on one tile (-idea, -review too) */
   --pnb-tile-dot-bug: transparent;       /* a disc behind each tile's glyph (-idea, -review too) */
   --pnb-tile-glyph-bug: var(--pnb-tile-ink-bug); /* and the glyph's colour (-idea, -review too) */
@@ -157,10 +158,10 @@ please-no-bugs {
   --pnb-choose-title: var(--pnb-text);   /* the question above the tiles */
   --pnb-title-board: var(--pnb-text);    /* the title in the board's bar */
   --pnb-title-write: var(--pnb-text);    /* the title above the form */
-  --pnb-card: #ffffff;        /* the posts and the rating on the board, */
+  --pnb-card: var(--pnb-surface);        /* the posts and the rating on the board, */
   --pnb-card-text: var(--pnb-text);      /* their words, */
   --pnb-card-quiet: var(--pnb-text-quiet); /* and their names, dates and counts */
-  --pnb-field: #f2f3f4;       /* every field you type in (form, search, answer, update), */
+  --pnb-field: var(--pnb-surface);       /* every field you type in (form, search, answer, update), */
   --pnb-field-text: var(--pnb-text);     /* what is typed in it, */
   --pnb-field-quiet: var(--pnb-text-quiet); /* its hint while empty, */
   --pnb-field-line: var(--pnb-line);     /* and the line round it */
@@ -169,13 +170,13 @@ please-no-bugs {
   --pnb-news-text: var(--pnb-text);      /* its words, */
   --pnb-news-link: var(--pnb-accent);    /* its link, */
   --pnb-news-quiet: var(--pnb-text-quiet); /* and its small words and close */
-  --pnb-filter-btn: #ffffff;  /* the Filter button: its ground, */
+  --pnb-filter-btn: var(--pnb-surface);  /* the Filter button: its ground, */
   --pnb-filter-btn-text: var(--pnb-text); /* its word, */
-  --pnb-filter-btn-line: #cdcdd3; /* and its line */
+  --pnb-filter-btn-line: var(--pnb-line); /* and its line */
   --pnb-bar-icon: var(--pnb-text);       /* the icons in every bar: close, back, updates, new post */
   --pnb-order: var(--pnb-sunken);        /* behind Top / New, */
   --pnb-order-text: var(--pnb-text-quiet); /* and the word not chosen */
-  --pnb-vote: #f2f3f4;      /* the vote button, */
+  --pnb-vote: var(--pnb-surface-2);      /* the vote button, */
   --pnb-vote-text: var(--pnb-card-text); /* its count, */
   --pnb-vote-on: var(--pnb-accent);      /* a vote you gave, */
   --pnb-on-vote-on: var(--pnb-on-accent); /* and its count */
@@ -192,15 +193,18 @@ please-no-bugs {
   --pnb-sent: var(--pnb-bg);             /* behind "Feedback sent!" */
   --pnb-sent-title: var(--pnb-text);     /* its title, */
   --pnb-sent-note: var(--pnb-text-quiet); /* its small words and "Back to the board", */
-  --pnb-sent-check: #040724;            /* and the disc behind its tick */
-  --pnb-on-sent-check: #ffffff;         /* the tick itself */
-  --pnb-fab: #ffb700;                    /* the round floating button */
-  --pnb-on-fab: #040724;                 /* its glyph */
-  --pnb-fab-shadow: var(--pnb-shadow);   /* its shadow, */
-  --pnb-fab-shadow-pressed: var(--pnb-fab-shadow); /* pressed, */
-  --pnb-fab-squeeze: 0.94;               /* and how small it gets pressed */
+  --pnb-sent-check: var(--pnb-done);     /* and the disc behind its tick */
+  --pnb-on-sent-check: #fff;            /* the tick itself */
+  --pnb-raise: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 10px -4px rgba(0, 0, 0, 0.35); /* a filled button's shadow; `none` for flat */
+  --pnb-raise-pressed: inset 0 2px 4px rgba(0, 0, 0, 0.27); /* its shadow while pressed */
+  --pnb-raise-sink: 1px;                /* how far it sinks when pressed */
+  --pnb-fab: var(--pnb-accent-fill);     /* the round floating button */
+  --pnb-on-fab: #fff;                   /* its glyph */
+  --pnb-fab-shadow: var(--pnb-raise), var(--pnb-shadow); /* its shadow, */
+  --pnb-fab-shadow-pressed: var(--pnb-raise-pressed), var(--pnb-shadow); /* pressed, */
+  --pnb-fab-squeeze: 1;                 /* and how small it gets pressed */
   --pnb-radius-panel: 16px;              /* the panel on a wide screen */
-  --pnb-radius: 10px;
+  --pnb-radius: 8px;
   --pnb-radius-sheet: 16px;
   --pnb-radius-pill: 999px;  /* filters, chips, votes, Top/New, buttons */
   --pnb-font: inherit;       /* your app's font */
