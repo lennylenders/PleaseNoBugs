@@ -1901,7 +1901,8 @@ on a plain page (no floating glyphs there): the title, the widget's style
 (PleaseNoBugs, selected, with a greyed "More soon" beside it), a phone with an
 app on it where the real widget plays somebody sending a bug, over and over
 (tap the round button, pick Bug, describe it, add a name, send it, on the
-board; a ring for each tap and a line under the phone per step). Light or
+board; then Mila writes a review with four stars from the board's +, and it
+joins the board and its rating; a ring for each tap and a line under the phone per step). Light or
 dark changes the widget's look, and the app's, while it plays: the story
 goes on where it is. Tried first: one tilted phone, then a fan of three
 bezel-less phones; the owner wanted one screen with a story. Then a Light /

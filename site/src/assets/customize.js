@@ -34,7 +34,8 @@ const theme = () => (state.dark ? 'dark' : 'light');
 /**
  * A phone with an app on it and the real widget in it, in `demo` mode, and
  * one story played over and over: tap the round button, pick Bug, describe
- * it, add a name, send it, and there it is on the board. A ring shows each
+ * it, add a name, send it, and there it is on the board; then the same user,
+ * Mila, writes a review with four stars, and it joins the board too. A ring shows each
  * tap and a line under the phone says the step. The taps are the widget's
  * own buttons, clicked from here, so what plays is what the widget really
  * does; its posts live in this page's memory only, and each round starts
@@ -52,6 +53,7 @@ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 const BUG = 'The save button does nothing on my phone';
 const WHO = 'Mila';
+const REVIEW = 'Quick and easy to use. A dark mode would make it perfect.';
 /** One other bug on the board, somebody else's, so the new one has company. */
 const SAMPLES = [{ kind: 'bug', text: 'The send button does nothing after I switch accounts', votes: 4, ago: 20 * 3_600_000, who: 'Sam' }];
 
@@ -172,6 +174,33 @@ async function story(mine) {
     // The widget goes on to the board by itself after "Feedback sent!", as in an app.
     await find((root) => !root.querySelector('.sent') && [...root.querySelectorAll('.card__text')].find((t) => t.textContent.startsWith(BUG)), mine, 150);
     step('On the board, for everyone');
+    await sleep(3200, mine);
+
+    // Then a review, from the board's own +.
+    step('Mila adds a review');
+    await sleep(700, mine);
+    await tap(await find('.bar [aria-label="Write feedback"]', mine), mine);
+    await sleep(900, mine);
+    await tap(await find('.tile--review', mine), mine);
+    await sleep(700, mine);
+
+    step('Four stars');
+    await tap(await find((root) => root.querySelectorAll('.rate__star')[3], mine), mine);
+    await sleep(700, mine);
+
+    step('Says why');
+    await type(await find('textarea.field', mine), REVIEW, mine);
+    await sleep(400, mine);
+    // Her name is remembered from the bug; typed again only if it is not.
+    const name = widget.shadowRoot.querySelector('.name-field input');
+    if (name && !name.value) await type(name, WHO, mine);
+    await sleep(600, mine);
+
+    step('Sends it');
+    await tap(await find('.send .btn:not([disabled])', mine), mine);
+    await find('.sent', mine);
+    await find((root) => !root.querySelector('.sent') && [...root.querySelectorAll('.card__text')].find((t) => t.textContent.startsWith(REVIEW)), mine, 150);
+    step('Her review is on the board too');
     await sleep(3600, mine);
   }
 }
