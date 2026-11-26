@@ -870,32 +870,16 @@ section + section { padding-top: 0; }
  */
 .how-intro { padding-bottom: 0; }
 .how-intro .lead { margin-top: 12px; }
-.how { padding: 56px 0 24px; }
 .how__row { display: grid; gap: 32px; align-items: center; }
 @media (min-width: 900px) {
   .how__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; }
-  .how--flip .how__show { order: -1; }
 }
 .how__text > p { color: var(--sub); line-height: 1.55; margin: 14px 0 0; }
 .how__text a { color: var(--button); font-weight: 700; }
-.how__points { display: grid; gap: 14px; margin: 22px 0 0; padding: 0; list-style: none; }
-.how__points b { color: var(--ink); font-weight: 700; }
-.how__points li { position: relative; padding-left: 22px; color: var(--sub); line-height: 1.55; }
-.how__points li::before {
-  content: '';
-  position: absolute;
-  left: 2px;
-  top: 0.55em;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--button);
-}
 .how__show { display: flex; justify-content: center; min-width: 0; }
 
 /* The goal in one line, between "why" and "how to add". */
-.pull { padding: 48px 0 8px; }
-.pull__quote { margin: 0 auto; max-width: 30em; text-align: center; }
+.pull__quote { margin: 0 auto; max-width: 880px; text-align: center; }
 .pull__quote p {
   margin: 0;
   font-size: clamp(22px, 3vw, 30px);
@@ -928,14 +912,6 @@ section + section { padding-top: 0; }
   width: 100%;
   color: var(--s-ink);
 }
-
-.mock-app { display: grid; gap: 10px; align-content: start; padding: 22px 18px; }
-.mock-app b { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; font-size: 17px; font-weight: 900; }
-.mock-app i { display: block; height: 12px; border-radius: 5px; background: var(--card-2); transition: max-width 400ms ease, opacity 300ms ease; max-width: 100%; }
-.mock-app i:nth-of-type(1) { width: 62%; }
-.mock-app i:nth-of-type(2) { width: 48%; }
-.mock-app i:nth-of-type(3) { width: 74%; height: 96px; margin-top: 6px; border-radius: 10px; background: var(--row); }
-.mock-app i:nth-of-type(4) { width: 40%; }
 
 /* The round button, as `--pnb-fab` paints it. */
 .fab {
@@ -1014,8 +990,6 @@ section + section { padding-top: 0; }
 .vote.is-voted { background: var(--s-accent); color: var(--s-on-accent); }
 .vote.is-bump { transform: scale(1.15); }
 
-/* Where a drawing taps: the tour's ring (`.tour-tap`), placed by how.js. */
-.stage .tour-tap { z-index: 5; }
 
 /* -- 1. What it is about: your users say it, the board keeps it, you answer */
 
@@ -1033,7 +1007,6 @@ section + section { padding-top: 0; }
   margin: 0 auto;
   transition: opacity 400ms ease;
 }
-.is-resetting .talk { opacity: 0; }
 /* Each user beside their own post: below the board's title, spread as its
    posts are, before and after the bug gets its answer. */
 .talk__users { grid-area: users; display: grid; align-content: space-between; justify-items: center; padding: 76px 0 8px; }
@@ -1189,226 +1162,14 @@ section + section { padding-top: 0; }
 .is-answered .post__fix { max-height: 20px; opacity: 1; }
 
 /* -- 2. Why: votes sort it, a duplicate is caught, your colours ---------- */
-
-.sheetbox {
-  position: relative;
-  width: min(100%, 360px);
-  height: 420px;
-  margin: 0 auto;
-  padding: 14px 12px;
-  border: 1.5px solid var(--s-line);
-  border-radius: 16px;
-  background: var(--s-bg);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: background-color 600ms ease, border-color 600ms ease, color 600ms ease, opacity 400ms ease;
-}
-.is-resetting .sheetbox { opacity: 0; }
-
-/* Each row has its place from `--i`; changing it slides the row there. */
-.rank { position: relative; height: 252px; margin-top: 4px; }
-.post--row {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 56px;
-  transform: translateY(calc(var(--i, 0) * 64px));
-  transition: transform 550ms cubic-bezier(0.3, 0.9, 0.3, 1), background-color 600ms ease, box-shadow 300ms ease;
-}
-.post--row .badge { padding: 3px; }
-.post--row .post__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.post--row.is-top { box-shadow: inset 0 0 0 2px var(--s-accent); }
-
-/* Top and New, floating at the foot of the board as in the widget. */
-.sort {
-  position: absolute;
-  left: 50%;
-  bottom: 14px;
-  display: flex;
-  padding: 3px;
-  border-radius: 999px;
-  background: var(--s-sunken);
-  transform: translateX(-50%);
-  transition: background-color 600ms ease;
-}
-.sort span {
-  padding: 6px 18px;
-  border-radius: 999px;
-  color: var(--s-quiet);
-  font-size: 13px;
-  font-weight: 700;
-  transition: background-color 300ms ease, color 300ms ease;
-}
-.sort .is-on { background: var(--s-card); color: var(--s-ink); }
-
-/* Writing an idea: the sheet comes up, and "Said already, maybe?" under it. */
-.compose {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: grid;
-  gap: 10px;
-  padding: 16px 14px 18px;
-  border-radius: 16px 16px 0 0;
-  background: var(--s-card);
-  box-shadow: 0 -10px 30px rgba(10, 10, 30, 0.35);
-  transform: translateY(105%);
-  transition: transform 420ms cubic-bezier(0.3, 0.9, 0.3, 1), background-color 600ms ease;
-}
-.is-writing .compose { transform: none; }
-.compose > b { font-size: 15px; font-weight: 900; }
-.compose__field {
-  min-height: 44px;
-  margin: 0;
-  padding: 11px 12px;
-  border: 1.5px solid var(--s-accent);
-  border-radius: 8px;
-  background: var(--s-bg);
-  font-size: 14px;
-}
-.alike { display: grid; gap: 4px; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 350ms ease, opacity 300ms ease; }
-.is-alike .alike { max-height: 120px; opacity: 1; }
-.alike small { font-size: 12px; font-weight: 700; }
-.alike p { margin: 0 0 4px; color: var(--s-quiet); font-size: 12px; }
-.alike__row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--s-bg); font-size: 13px; }
-.alike__row .badge { padding: 3px; }
-.alike__row .post__text { flex: 1; }
-
-.caret {
-  display: inline-block;
-  width: 2px;
-  height: 1.1em;
-  margin-left: 1px;
-  vertical-align: -0.15em;
-  background: currentColor;
-  animation: caret 1s steps(1) infinite;
-}
 @keyframes caret { 50% { opacity: 0; } }
 
 /* -- 3. How to add it: the tag typed, then the three ways ---------------- */
 
 .how--add .section-head { margin-bottom: 24px; }
-.stage--add { display: grid; gap: 16px; align-items: center; }
-@media (min-width: 900px) {
-  .stage--add { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; }
-}
-
-/* The finished code, unseen, keeps the box its full height while it is typed. */
-.add__code { display: grid; white-space: pre-wrap; overflow-wrap: anywhere; }
-.add__code > code { grid-area: 1 / 1; }
-.add__ghost { visibility: hidden; }
-
-.add__app { display: grid; gap: 10px; }
-.add__screen {
-  position: relative;
-  height: 300px;
-  border: 1.5px solid var(--line);
-  border-radius: 12px;
-  background: var(--page);
-  overflow: hidden;
-  container-type: inline-size;
-}
-@container (max-width: 420px) {
-  .add__screen .add__panel { --pad: 0px; --panel-w: 100%; --fab-in: 12px; }
-}
-.add__screen .mock-app { padding: 16px 18px; gap: 9px; }
-.add__screen .mock-app i:nth-of-type(3) { height: 76px; }
-.add__menu { padding: 4px 10px; border-radius: 999px; background: var(--row); color: var(--sub); font-size: 12px; font-weight: 700; }
-.add__screen .fab { right: 12px; bottom: 12px; width: 40px; height: 40px; transform: scale(0); opacity: 0; }
-.add__screen .fab .ico { width: 18px; height: 18px; }
-.has-tag:not([data-mode='inline']):not([data-mode='overlay']) .add__screen .fab { transform: none; opacity: 1; }
-
-.add__dim { position: absolute; inset: 0; background: rgba(10, 10, 30, 0.5); opacity: 0; transition: opacity 300ms ease; }
-.is-open .add__dim { opacity: 1; }
-
-/* In the corner on a wider screen, the whole screen on a phone; the button
-   sits `--fab-in` inside the panel's corner. */
-.add__panel {
-  --pad: 12px;
-  --panel-w: min(46%, 220px);
-  --fab-in: 0px;
-  position: absolute;
-  top: var(--pad);
-  right: var(--pad);
-  bottom: var(--pad);
-  width: var(--panel-w);
-  border-radius: 12px;
-  background: var(--s-bg);
-  overflow: hidden;
-  clip-path: inset(calc(100% - 40px - var(--fab-in)) var(--fab-in) var(--fab-in) calc(100% - 40px - var(--fab-in)) round 20px);
-  opacity: 0;
-  transition: clip-path 380ms cubic-bezier(0.3, 0.9, 0.3, 1), opacity 120ms linear 260ms, transform 380ms cubic-bezier(0.3, 0.9, 0.3, 1);
-}
-.is-open .add__panel { clip-path: inset(0 round 12px); opacity: 1; transition: clip-path 380ms cubic-bezier(0.3, 0.9, 0.3, 1), opacity 80ms linear; }
-/* An overlay comes up from your own menu, not out of a button. */
-[data-mode='overlay'] .add__panel { clip-path: inset(0 round 12px); transform: translateY(24px); transition: opacity 300ms ease, transform 380ms cubic-bezier(0.3, 0.9, 0.3, 1); }
-[data-mode='overlay'].is-open .add__panel { transform: none; }
-
-/* Inline, the board is part of the page, beside it or under its title. */
-.add__inline {
-  position: absolute;
-  top: 54px;
-  right: 12px;
-  bottom: 12px;
-  left: 54%;
-  border: 1.5px solid var(--line);
-  border-radius: 10px;
-  background: var(--s-bg);
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 350ms ease, transform 350ms ease;
-}
-[data-mode='inline'] .add__inline { opacity: 1; transform: none; }
-[data-mode='inline'] .add__screen .mock-app i { max-width: calc(54% - 30px); }
-@container (max-width: 420px) {
-  .add__inline { left: 12px; }
-  [data-mode='inline'] .add__screen .mock-app i { opacity: 0; }
-}
-
-.miniboard { display: grid; gap: 7px; padding: 12px 10px; }
-.miniboard b { margin-bottom: 2px; font-size: 13px; font-weight: 900; }
-.miniboard i { position: relative; display: block; height: 40px; border-radius: 8px; background: var(--s-card); }
-.miniboard i::before {
-  content: '';
-  position: absolute;
-  left: 8px;
-  top: 8px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #e5484d;
-}
-.miniboard i::after {
-  content: '';
-  position: absolute;
-  left: 8px;
-  right: 30%;
-  bottom: 8px;
-  height: 7px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.35);
-}
-.miniboard i:nth-of-type(2)::before { background: #8b5cf6; }
-.miniboard i:nth-of-type(3)::before { background: #e9a00b; }
-
-.add__says { min-height: 1.5em; margin: 0; color: var(--sub); font-size: 14px; text-align: center; transition: opacity 200ms ease; }
-.add__says code { color: var(--ink); }
-.add__says.is-away { opacity: 0; }
 
 /* The steps under it. */
 .steps-list { display: grid; gap: 20px; margin: 40px 0 0; padding: 0; list-style: none; counter-reset: step; }
-@media (min-width: 900px) { .steps-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; } }
-/* Three steps: 1 and 3 on the left, the code of 2 tall on the right. */
-@media (min-width: 900px) {
-  .steps-list--three > li:nth-child(2) { grid-column: 2; grid-row: 1 / span 2; }
-  .steps-list--three > li:nth-child(3) { grid-column: 1; grid-row: 2; }
-}
 @media (min-width: 600px) { .nowrap { white-space: nowrap; } }
 .steps-list > li {
   position: relative;
@@ -1435,12 +1196,8 @@ section + section { padding-top: 0; }
 .steps-list h3 { margin-top: 4px; }
 .steps-list p { margin: 10px 0 0; color: var(--sub); line-height: 1.55; font-size: 15px; }
 .steps-list p a:not(.btn) { color: var(--button); font-weight: 700; }
-.steps-list p code,
-.modes code { padding: 1px 6px; border-radius: 4px; background: var(--device); color: var(--ink); font-size: 13px; }
+.steps-list p code { padding: 1px 6px; border-radius: 4px; background: var(--device); color: var(--ink); font-size: 13px; }
 .steps-list .code { margin-top: 12px; padding: 14px 16px; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
-.modes { display: grid; gap: 4px; margin: 12px 0 0; font-size: 15px; }
-.modes dt { margin-top: 6px; font-weight: 700; }
-.modes dd { margin: 0; color: var(--sub); line-height: 1.5; }
 
 @media (max-width: 560px) {
   .steps-list > li { padding: 20px 16px 20px 56px; }
@@ -1451,8 +1208,72 @@ section + section { padding-top: 0; }
 @media (prefers-reduced-motion: reduce) {
   .stage *,
   .stage { transition: none !important; }
-  .stage .caret { animation: none; }
 }
+
+/*
+ * The page in bands, one message each, as the Nimiq version had it: the
+ * heading on a band of its own, the drawing beside its text, four reasons
+ * as cards in a row, the goal on a dark band, and three steps side by side.
+ */
+.band { background: var(--row); }
+.how-intro.band { padding: clamp(56px, 7vw, 96px) 0; }
+.how { padding: clamp(64px, 8vw, 112px) 0; }
+.kicker {
+  margin: 0 0 14px;
+  color: var(--button);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Why Nimiq developers use it: four cards, each with its icon. */
+.why { padding: clamp(64px, 8vw, 112px) 0; }
+.why__cards {
+  display: grid;
+  gap: 16px;
+  margin: 36px 0 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 640px) { .why__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1040px) { .why__cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.why__cards li {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 28px 24px;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.why__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: var(--button);
+  color: #12132b;
+}
+.why__icon svg { width: 26px; height: 26px; }
+.why__cards h3 { margin: 0; font-size: 19px; font-weight: 900; }
+.why__cards p { margin: 0; color: var(--sub); font-size: 15px; line-height: 1.55; }
+.why__more { margin: 32px 0 0; color: var(--sub); }
+.why__more a { color: var(--button); font-weight: 700; }
+
+/* The goal: one line on the darkest band. */
+.pull { padding: clamp(72px, 9vw, 120px) 0; background: var(--device); text-align: center; }
+.pull .kicker { margin-bottom: 18px; }
+.pull__quote p { font-size: clamp(26px, 3.6vw, 40px); }
+
+/* Add it in 3 steps: three cards side by side, the way on at their foot. */
+.how--add { padding: clamp(64px, 8vw, 112px) 0; }
+@media (min-width: 900px) { .steps-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.steps-list > li { display: flex; flex-direction: column; background: var(--card); box-shadow: inset 0 0 0 1.5px var(--line); }
+.steps-list .steps-list__go { margin-top: auto; padding-top: 18px; }
+.steps-list .code { margin-top: 14px; }
 
 /* ---- Code -------------------------------------------------------------- */
 

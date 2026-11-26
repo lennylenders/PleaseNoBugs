@@ -1846,6 +1846,17 @@ Tested in headless Chrome with real touch: open at 48px, a short swipe
 springs back, a long one closes, the strip and the X close, a tap on X stays
 a tap.
 
+## 2026-11-26 (later): Why PleaseNoBugs in bands, as the Nimiq version had it
+
+The owner found the Nimiq version of Why PleaseNoBugs clearer than Classic's
+three parts with a drawing each. The page keeps the Classic look but takes
+the Nimiq layout (Figma 293:6570): the heading on a band of its own, the
+"black hole" drawing beside its text, "Why Nimiq developers use it" as four
+cards in a row with an icon each (Phosphor, MIT, as in the Nimiq version),
+the goal on the darkest band, and the three steps as three equal cards. The
+drawings of the votes and of the code typing itself are gone; the first one
+stays.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

@@ -44,8 +44,9 @@
     </header>
 
     <main>
-      <section class="how-intro">
+      <section class="how-intro band">
         <div class="wrap">
+          <p class="kicker">Why PleaseNoBugs</p>
           <h1>Your users talk. You answer. <span class="nowrap">Everyone sees it.</span></h1>
           <p class="lead">A free, open-source feedback widget for apps built on Nimiq. Bugs, ideas and reviews, right inside your app.</p>
         </div>
@@ -96,56 +97,45 @@
         </div>
       </section>
 
-      <!-- 2. What it does for you. The drawing plays votes and a duplicate caught. -->
-      <section class="how how--flip" aria-labelledby="why-title">
-        <div class="wrap how__row">
-          <div class="how__text">
-            <h2 id="why-title">Why Nimiq developers use it</h2>
-            <ul class="how__points">
-              <li><b>Your data, your server.</b> Feedback lives on a server you run. Posts, wallets and names never leave it. Only a daily count of bugs and ideas does, and you can switch that off.</li>
-              <li><b>No sign-up.</b> Users sign with their Nimiq wallet. No email, no password.</li>
-              <li><b>Votes show what matters.</b> The most wanted ideas and the most annoying bugs rise to the top. Duplicates get caught while typing.</li>
-              <li><b>You own the board.</b> Your wallet address is the owner. Your answer, the status and the fix version sit under the post.</li>
-            </ul>
-            <p>Free and MIT licensed. <a href="customize.html">Get your widget &rarr;</a></p>
-          </div>
-
-          <div class="how__show">
-            <div class="stage stage--why" id="why" aria-hidden="true">
-              <div class="sheetbox">
-                <div class="board">
-                  <div class="board__bar"><b>Feedback</b></div>
-                  <div class="sort"><span data-sort="top" data-tap="top">Top</span><span data-sort="new" class="is-on">New</span></div>
-                  <div class="rank">
-                    <div class="post post--row" data-idea="export"><span class="badge"><i class="badge__dot badge__dot--idea"><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i></span><p class="post__text">Export to CSV</p><span class="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>3</b></span></div>
-                    <div class="post post--row" data-idea="dark"><span class="badge"><i class="badge__dot badge__dot--idea"><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i></span><p class="post__text">Dark mode</p><span class="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>9</b></span></div>
-                    <div class="post post--row" data-idea="buttons"><span class="badge"><i class="badge__dot badge__dot--bug"><svg class="ico" aria-hidden="true"><use href="#i-bug"/></svg></i></span><p class="post__text">Buttons too small</p><span class="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>5</b></span></div>
-                    <div class="post post--row" data-idea="link"><span class="badge"><i class="badge__dot badge__dot--idea"><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i></span><p class="post__text">Share a payment link</p><span class="vote"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>2</b></span></div>
-                  </div>
-                </div>
-                <div class="compose">
-                  <b>Share an idea</b>
-                  <p class="compose__field"><span data-typed></span><i class="caret"></i></p>
-                  <div class="alike">
-                    <small>Said already, maybe?</small>
-                    <p>Vote for one of these instead.</p>
-                    <div class="alike__row"><span class="badge"><i class="badge__dot badge__dot--idea"><svg class="ico" aria-hidden="true"><use href="#i-idea"/></svg></i></span><p class="post__text">Dark mode</p><span class="vote" data-tap="alike"><svg class="ico" aria-hidden="true"><use href="#i-caret"/></svg><b data-count>14</b></span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <!-- 2. What it does for you: four cards in a row, each with its icon (Phosphor Icons, MIT: assets/icons/PHOSPHOR-LICENSE.txt). -->
+      <section class="why band" aria-labelledby="why-title">
+        <div class="wrap">
+          <h2 id="why-title">Why Nimiq developers use it</h2>
+          <ul class="why__cards">
+              <li>
+                <span class="why__icon"><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,24C74.17,24,32,48.6,32,80v96c0,31.4,42.17,56,96,56s96-24.6,96-56V80C224,48.6,181.83,24,128,24Zm80,104c0,9.62-7.88,19.43-21.61,26.92C170.93,163.35,150.19,168,128,168s-42.93-4.65-58.39-13.08C55.88,147.43,48,137.620,48,128V111.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64ZM69.61,53.08C85.07,44.65,105.81,40,128,40s42.93,4.65,58.39,13.08C200.12,60.57,208,70.38,208,80s-7.88,19.43-21.61,26.92C170.93,115.35,150.19,120,128,120s-42.93-4.65-58.39-13.080C55.88,99.43,48,89.62,48,80S55.88,60.57,69.61,53.08ZM186.39,202.92C170.93,211.35,150.19,216,128,216s-42.93-4.65-58.39-13.08C55.88,195.43,48,185.62,48,176V159.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64V176C208,185.62,200.12,195.43,186.39,202.92Z"/></svg></span>
+                <h3>Your data, your server.</h3>
+                <p>Feedback lives on a server you run. Posts, wallets and names never leave it. Only a daily count of bugs and ideas does, and you can switch that off.</p>
+              </li>
+              <li>
+                <span class="why__icon"><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,64H56a8,8,0,0,1,0-16H192a8,8,0,0,0,0-16H56A24,24,0,0,0,32,56V184a24,24,0,0,0,24,24H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64Zm0,128H56a8,8,0,0,1-8-8V78.63A23.84,23.84,0,0,0,56,80H216Zm-48-60a12,12,0,1,1,12,12A12,12,0,0,1,168,132Z"/></svg></span>
+                <h3>No sign-up.</h3>
+                <p>Users sign with their Nimiq wallet. No email, no password.</p>
+              </li>
+              <li>
+                <span class="why__icon"><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M213.66,165.66a8,8,0,0,1-11.320,0L128,91.31,53.66,165.66a8,8,0,0,1-11.32-11.32l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,213.66,165.66Z"/></svg></span>
+                <h3>Votes show what matters.</h3>
+                <p>The most wanted ideas and the most annoying bugs rise to the top. Duplicates get caught while typing.</p>
+              </li>
+              <li>
+                <span class="why__icon"><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.76,66.41a79.66,79.66,0,0,0-36.06-28.75,48,48,0,1,0-59.4,0,79.66,79.66,0,0,0-36.06,28.75,88,88,0,1,1,131.52,0Z"/></svg></span>
+                <h3>You own the board.</h3>
+                <p>Your wallet address is the owner. Your answer, the status and the fix version sit under the post.</p>
+              </li>
+          </ul>
+          <p class="why__more">Free and MIT licensed. <a href="customize.html">Get your widget &rarr;</a></p>
         </div>
       </section>
 
-      <!-- The goal in one line. -->
-      <section class="pull" aria-label="The goal">
+      <!-- The goal in one line, on a band of its own. -->
+      <section class="pull" aria-labelledby="goal-title">
         <div class="wrap">
+          <p class="kicker" id="goal-title">The goal</p>
           <blockquote class="pull__quote"><p>Make feedback effortless for users and actionable for developers.</p></blockquote>
         </div>
       </section>
 
-      <!-- 3. How to add it. The drawing types the tag, then plays the three ways. -->
+      <!-- 3. How to add it: three cards side by side. -->
       <section class="how how--add" aria-labelledby="add-title">
         <div class="wrap">
           <div class="section-head">
@@ -153,40 +143,26 @@
             <p>A server, a script and one tag. Paste it in, and your app has a feedback board.</p>
           </div>
 
-          <div class="stage stage--add" id="add" aria-hidden="true">
-            <pre class="code add__code"><code class="add__ghost" data-ghost></code><code data-code></code></pre>
-            <div class="add__app">
-              <div class="add__screen">
-                <div class="mock-app"><b>Your app<span class="add__menu" data-tap="menu">Feedback</span></b><i></i><i></i><i></i><i></i></div>
-                <div class="add__dim"></div>
-                <div class="add__inline"><div class="miniboard"><b>Feedback</b><i></i><i></i><i></i></div></div>
-                <span class="fab" data-tap="fab"><svg class="ico" aria-hidden="true"><use href="#i-feedback"/></svg></span>
-                <div class="add__panel"><div class="miniboard"><b>Feedback</b><i></i><i></i><i></i></div></div>
-              </div>
-              <p class="add__says" data-says></p>
-            </div>
-          </div>
-
-          <ol class="steps-list steps-list--three">
+          <ol class="steps-list">
             <li>
               <h3>Start your server</h3>
               <p>Your board lives on a server of your own. On Railway that is one button and three fields; Node and Docker work too. It prints your project id and address.</p>
-              <p><a href="https://github.com/lennylenders/PleaseNoBugs#get-it-running">Set up a server</a></p>
+              <p class="steps-list__go"><a href="https://github.com/lennylenders/PleaseNoBugs#get-it-running">Set up a server &rarr;</a></p>
             </li>
             <li>
               <h3>Paste the script and the tag</h3>
+              <p>With a bundler: <code>npm install pleasenobugs</code>, then <code>import 'pleasenobugs'</code> once.</p>
               <pre class="code"><code><span class="t">&lt;script</span> <span class="a">src</span>=<span class="s">"https://unpkg.com/pleasenobugs@%VERSION%"</span><span class="t">&gt;</span><span class="t">&lt;/script</span><span class="t">&gt;</span>
 <span class="t">&lt;please-no-bugs</span>
   <span class="a">project</span>=<span class="s">"YOUR_PROJECT_ID"</span>
   <span class="a">server</span>=<span class="s">"https://YOUR_SERVER"</span>
   <span class="a">mode</span>=<span class="s">"floating"</span>
 <span class="t">&gt;</span><span class="t">&lt;/please-no-bugs</span><span class="t">&gt;</span></code></pre>
-              <p>With a bundler: <code>npm install pleasenobugs</code>, then <code>import 'pleasenobugs'</code> once.</p>
             </li>
             <li>
               <h3>Get your widget</h3>
               <p>A button in the corner (<code>floating</code>), on a page of your own (<code>inline</code>), or over your page (<code>overlay</code>). Pick that when you get your widget. It writes a prompt for your AI agent, or the code for you.</p>
-              <p><a class="btn btn--small" href="customize.html">Get your widget</a></p>
+              <p class="steps-list__go"><a class="btn btn--small" href="customize.html">Get your widget</a></p>
             </li>
           </ol>
         </div>
