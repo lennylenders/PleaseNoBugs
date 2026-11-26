@@ -37,7 +37,7 @@ async function start(root) {
   picker.setAttribute('aria-label', 'Apps');
   const board = document.createElement('please-no-bugs');
   board.setAttribute('readonly', '');
-  board.setAttribute('theme', 'nimiq');
+  board.setAttribute('theme', 'pleasenobugs');
   board.setAttribute('lang', 'en');
   const device = el('div', 'device');
   device.append(board);

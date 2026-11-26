@@ -1783,6 +1783,37 @@ The real board is on every page of the site now (Why PleaseNoBugs and Make
 it yours too). On Make it yours it steps aside while the steps' bar is at the
 bottom of the window, where on a phone it sat on Next.
 
+## 2026-11-26: The Classic look back, one widget to pick
+
+A day after the Nimiq-only site went live, the owner reviewed it and wants
+the Classic look back. Their choices:
+
+- **The Nimiq site is parked** on the branch `nimiq` and the tag
+  `nimiq-2026-11-26` (the state of main at 2db169d), the way Classic was
+  parked on 2026-11-19. Main is Classic only: no style switch.
+- **Classic is put back on top of the site as it is now**, not by going back
+  to the `classic` branch: wallet login, identicons, the demo's name, the
+  feedback button on every page and the domain all stay. Purple, Museo Sans
+  Rounded, the raised buttons, the drifting glyphs and the playful demo come
+  back, with Classic's own words and logo.
+- **No colouring in any more.** Make it yours keeps the steps of the Nimiq
+  version (the look, how it opens, where it's used, the prompt), in the
+  Classic look. The look is one card, PleaseNoBugs, already chosen, with a
+  greyed "More themes · Coming soon" beside it: the owner wants to make more
+  themes later for developers to pick from. The demo's "Build your own
+  widget" scene is gone, and so is the light board on Why PleaseNoBugs; the
+  demo ends on the owner's fix and the three-step end.
+- **The widget's default is `pleasenobugs` again** (light only: no dark or
+  auto). `nimiq` and `nimiq-dark` stay in the widget for the apps that use
+  them, but the site does not offer them. An app with no `theme` gets the
+  purple look when it updates, so this is 0.5.0, not 0.4.1; `theme="nimiq"`
+  keeps the Nimiq look.
+- No Figma round: Classic was in Figma already. Built on a branch and shown
+  as a preview before anything goes live.
+
+The Railway template's icon goes back to the Classic logo at release time,
+in the template editor (owner's step).
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

@@ -1,23 +1,26 @@
 /**
- * The home page's demo: one story, told on a light stage with a white "Your
- * app" window at its right and the step's big line at its left.
+ * The home page's tour. The page is a pretend app: the heading, its line
+ * and "Watch demo", and the real widget in `demo` mode, its round button
+ * kept out of sight until the tour needs it (site.css). "Watch demo" turns
+ * the page into the configurator's pretend
+ * app ("Your app" and its skeleton) and plays one story through, once,
+ * then the heading is back.
  *
- * It starts with why PleaseNoBugs is there, in six short scenes drawn around
- * the app window (`INTRO`; the drawing is site.css's): imagine this is your
- * app, its first users, what each says, scattered, most of them leaving
- * without a word, a round button, and all that feedback on one board
- * everyone can see, with a thin dashed line from each user to it. Each
- * scene's words fade in whole, which scene of how many small above them.
- * "Skip intro" goes straight on. Until then the app shows no round button.
+ * It starts with why PleaseNoBugs is there, in six short scenes drawn on
+ * the pretend app (`INTRO`; the drawing is site.css's), each with its big
+ * line typed out: imagine this is your app, its first users, what each
+ * says, scattered, most of them leaving without a word and what they said
+ * left all over the place, the answer, a round button, and all that
+ * feedback on one board everyone can see. "Skip intro" goes straight on.
+ * Until then the box shows no round button at all. Then, big over the
+ * dimmed app under a small "How it works", a title says whose side comes
+ * next:
  *
- * Then, over the dimmed app under a small "How it works", a title says whose
- * side comes next:
- *
- * - **Your user's perspective**: tap the round button, pick Report a bug on
- *   the tiles, describe it, send it, and only then the board, with their bug
- *   on it and one other.
- * - **Your perspective**, the owner's (`demo="owner"`): the round button,
- *   the board, that same bug picked, marked fixed in a version with a link,
+ * - **Your user's perspective**, as a user meets it: tap the round button, pick
+ *   Report a bug on the tiles, describe it, send it, and only then the
+ *   board, with their bug on it and one other.
+ * - **Your perspective**, the owner's (`demo="owner"`): the round button, the
+ *   board, that same bug picked, marked fixed in a version with a link,
  *   answered, and the card as everybody now sees it.
  * - An end that stays: the whole story in three steps ("Your users speak.
  *   You fix. Everyone sees."), with "Make it yours" and "Watch again".
@@ -26,18 +29,19 @@
  * all there is to look at. The owner's is a widget of its own, with the
  * user's bug already on it, as the user sent it.
  *
- * A subtitle says what each step is (`USER`, `OWNER`), which step of how
- * many above it, and a ring shows each tap. It does not pause: a click on
- * the stage's left third goes back to the start of the part before (an
- * intro scene, the user's side, the owner's), on its right third on to the
- * next, and its middle does nothing; so do the arrow keys, and Esc stops it.
- * Nothing shows this but the cursor.
+ * A subtitle says what each step is (`USER`, `OWNER`), a ring shows each
+ * tap, as in the configurator's step 1; the subtitle is typed out before
+ * the step it says. It does not pause: a click on the box's left third goes
+ * back to the start of the part before (an intro scene, the user's side,
+ * the owner's), on its right third on to the next, and its middle does
+ * nothing; so do the arrow keys, and Esc stops it. Nothing shows this but
+ * the cursor.
  *
  * The widget is `inert`: a visitor watches, nothing in it takes a tap. The
  * taps here are the widget's own buttons, clicked from this script, so what
  * plays is what the widget really does. A fresh widget every time, so the
  * demo board starts over too: its posts live only in the page's memory and
- * nothing leaves the browser. It waits while the stage is off screen or the
+ * nothing leaves the browser. It waits while the box is off screen or the
  * tab is hidden.
  */
 const box = document.getElementById('tour');
@@ -56,17 +60,39 @@ const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 const said = document.getElementById('ti-said');
 
 /**
- * The intro's scenes: the big line, the small one under it, and how long the
- * drawing plays on once the words are there (ms, as drawn in site.css).
+ * The intro's scenes: the big line, typed out; the small one under it;
+ * whether the drawing plays `during` the typing or after it; and how long
+ * it plays on once the words are all there (ms, as drawn in site.css).
  */
 const INTRO = [
-  { title: 'Imagine this is your app.', line: '', ms: 2400 },
-  { title: 'Your first users arrive.', line: '', ms: 1600 },
-  { title: 'They give feedback, all over the place.', line: 'In reviews, chats and DMs.', ms: 1600 },
-  { title: 'And then most of your users leave, and never tell you why.', line: "Most apps don't die loudly.", ms: 2240 },
-  { title: 'PleaseNoBugs gives it one place.', line: 'An open-source feedback button in your app.', ms: 2400 },
-  { title: 'All your feedback in one place.', line: 'Visible to all your users.', ms: 2880 },
+  { title: 'Imagine this is your app.', line: '', ms: 3000 },
+  { title: 'You gained your first users!', line: '', during: true, ms: 2000 },
+  {
+    title: 'They give feedback, all over the place.',
+    line: 'In reviews, chats and DMs.',
+    during: true,
+    ms: 2000,
+  },
+  {
+    title: 'And then most of your users leave, and never tell you why.',
+    line: "Most apps don't die loudly.",
+    during: true,
+    ms: 2800,
+  },
+  {
+    title: 'This open source feedback widget is your solution!',
+    line: 'PleaseNoBugs: one button in your app.',
+    ms: 3000,
+  },
+  {
+    title: 'All your feedback in one place.',
+    line: 'Visible to all your users.',
+    ms: 3600,
+  },
 ];
+
+/** The intro's scenes. */
+const scenes = () => INTRO;
 
 /**
  * The subtitles, one per step: about your user on one side, about you on
@@ -103,13 +129,13 @@ const SAMPLES = {
   owner: [{ kind: 'bug', text: BUG, votes: 1, ago: 3_600_000, who: WHO, mine: true }, OTHER],
 };
 
-/** The same settings as Make it yours' widgets, and no screenshots: the demo never adds one. */
+/** The same settings as the configurator's widgets, and no screenshots: the tour never adds one. */
 function widget(pov) {
   const el = document.createElement('please-no-bugs');
   for (const [k, v] of Object.entries({
     demo: pov === 'owner' ? 'owner' : '',
     mode: 'floating',
-    theme: 'nimiq',
+    theme: 'pleasenobugs',
     screenshots: 'off',
     // Only for the identicons: the tour's posts stay in the page (demo.ts).
     server: '%BOARD_SERVER%',
@@ -140,20 +166,10 @@ function fit(el) {
     style.dataset.site = '';
     el.shadowRoot.append(style);
   }
-  // The app is a window on the stage, at its right: the round button, the
-  // panel and what dims behind it stay inside that window.
-  const a = box.querySelector('.tour-app');
-  const w = { t: a.offsetTop, l: a.offsetLeft, r: box.clientWidth - a.offsetLeft - a.offsetWidth, b: box.clientHeight - a.offsetTop - a.offsetHeight };
-  const h = box.clientHeight - 48 - w.t - w.b;
-  const inset =
-    ` .fab { right: ${16 + w.r}px; bottom: ${16 + w.b}px; }` +
-    ` .overlay { inset: ${w.t}px ${w.r}px ${w.b}px ${w.l}px; border-radius: 14px; overflow: hidden; }` +
-    ` @media (min-width: 640px) { .overlay { inset: auto ${24 + w.r}px ${24 + w.b}px auto; }` +
-    ` .backdrop { inset: ${w.t}px ${w.r}px ${w.b}px ${w.l}px; border-radius: 14px; } }`;
   // The owner's page for answering a post, as tall as the box allows, so
   // what they fill in is not squeezed into a short panel.
+  const h = box.clientHeight - 48;
   style.textContent =
-    inset +
     `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${h}px; }` +
     ` .overlay .app:has(.manage) { height: ${h}px; } }` +
     ` .alike { display: none !important; }` +
@@ -184,7 +200,7 @@ let running = 0;
 let seen = true;
 
 /** How much longer every pause is than the numbers below say: time to take each step in. */
-const PACE = 1.125;
+const PACE = 1.5;
 
 /**
  * `ms` of the tour's own time, counted in short steps: none passes while it
@@ -319,8 +335,8 @@ const button = (selector, text) => (root) =>
 
 /**
  * Put step `n` (from 1) of `steps` in the subtitle, the old one fading out
- * first and the new one fading in whole, which step of how many small above
- * it; the step waits a moment to read it.
+ * first, typed out as the intro's words are; the step waits for it. A
+ * screen reader hears it whole.
  */
 async function say(steps, n) {
   const text = steps[n - 1];
@@ -329,10 +345,18 @@ async function say(steps, n) {
   await sleep(180);
   shown.textContent = '';
   subtitle.querySelector('[role="status"]').textContent = text;
-  subtitle.dataset.step = `${String(n).padStart(2, '0')} / ${String(steps.length).padStart(2, '0')}`;
-  shown.textContent = text;
   subtitle.classList.remove('tour-say--away');
-  await sleep(700);
+  subtitle.classList.add('tour-say--typing');
+  try {
+    for (let i = 1; i <= text.length; i++) {
+      shown.textContent = text.slice(0, i);
+      await sleep(42);
+    }
+    await sleep(250);
+  } finally {
+    shown.textContent = text;
+    subtitle.classList.remove('tour-say--typing');
+  }
 }
 
 /**
@@ -373,9 +397,21 @@ async function hold(ms) {
   }
 }
 
+/** Scene 1's arrow: just right of "Your app", level with it, pointing at it. */
+function placeArrow() {
+  const label = box.querySelector('.tour-app b');
+  const arrow = intro.querySelector('.ti-arrow:not(.ti-arrow--fab)');
+  if (!label || !arrow) return;
+  const b = box.getBoundingClientRect();
+  const r = label.getBoundingClientRect();
+  arrow.style.left = `${r.right - b.left + 18}px`;
+  arrow.style.top = `${r.top + r.height / 2 - b.top - arrow.getBoundingClientRect().height / 2}px`;
+}
+
 /**
  * Scene 5's round button: drawn where the real one sits, with its colours
- * and icon, as the real one stays hidden until the intro is over.
+ * and icon, as the real one stays hidden until the intro is over; and its
+ * arrow, just left of it, level with it, pointing at it.
  */
 function drawFab() {
   const fab = box.querySelector('please-no-bugs')?.shadowRoot?.querySelector('.fab');
@@ -393,6 +429,21 @@ function drawFab() {
     color: look.color,
   });
   drawn.innerHTML = fab.querySelector('svg')?.outerHTML ?? '';
+  // On a phone the words run up to the button: there it points down at it
+  // from above instead.
+  const arrow = intro.querySelector('.ti-arrow--fab');
+  const down = box.clientWidth < 640;
+  arrow.classList.toggle('ti-arrow--down', down);
+  arrow.setAttribute('viewBox', down ? '0 0 24 56' : '0 0 56 24');
+  arrow.querySelector('path').setAttribute('d', down ? 'M12 4V50M12 50l-8-9M12 50l8-9' : 'M4 12H50M50 12l-9-8M50 12l-9 8');
+  const a = arrow.getBoundingClientRect();
+  if (down) {
+    arrow.style.left = `${r.left + r.width / 2 - b.left - a.width / 2}px`;
+    arrow.style.top = `${r.top - b.top - 14 - a.height}px`;
+  } else {
+    arrow.style.left = `${r.left - b.left - 18 - a.width}px`;
+    arrow.style.top = `${r.top + r.height / 2 - b.top - a.height / 2}px`;
+  }
 }
 
 /**
@@ -415,60 +466,57 @@ function placeBoard() {
   intro.style.setProperty('--bt', `${Math.max(58, bottom - r.height)}px`);
 }
 
+/** A curve from (x1, y1) up or down to (x2, y2), leaving and arriving upright. */
+function curve(x1, y1, x2, y2) {
+  return `M${x1} ${y1}C${x1} ${(y1 + y2) / 2} ${x2} ${(y1 + y2) / 2} ${x2} ${y2}`;
+}
+
 /**
- * Scene 6's lines (site.css draws them, dashed): from each user to the
- * board, as if all of them look at the one place now. Made once, then only
- * moved, so a line being drawn goes on.
+ * Level from (x1, y1) to the right, then round the corner and down to
+ * (x2, y2): clear of the words in the bottom left on its way to the button.
  */
-function placeLines() {
-  const svg = intro.querySelector('.nq-lines');
-  if (!svg) return;
-  const o = svg.getBoundingClientRect();
-  const board = intro.querySelector('.ti-board').getBoundingClientRect();
-  const bx = board.left + board.width / 2 - o.left;
-  const by = board.top + board.height / 2 - o.top;
-  intro.querySelectorAll('.ti-person').forEach((user, i) => {
-    const u = user.getBoundingClientRect();
-    let path = svg.children[i];
-    if (!path) {
-      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.style.setProperty('--i', String(i));
-      svg.append(path);
-    }
-    path.setAttribute('d', `M${u.left + u.width / 2 - o.left} ${u.top + u.height / 2 - o.top}L${bx} ${by}`);
-  });
+function elbow(x1, y1, x2, y2) {
+  const r = Math.max(0, Math.min(20, x2 - x1, y2 - y1));
+  return `M${x1} ${y1}H${x2 - r}Q${x2} ${y1} ${x2} ${y1 + r}V${y2}`;
 }
 
 /** Start scene `n`'s drawing. */
 function draw(n) {
+  if (n === 1) placeArrow();
   if (n === 5) drawFab();
   if (n === 6) placeBoard();
-  placeLines();
   frame.dataset.intro = String(n);
   // The round button, tapped: the board opens from it.
   if (n === 6) ring(intro.querySelector('.ti-fab'));
 }
 
 /**
- * Scene `n` (from 1): the old words out; the big line fades in whole as
- * its drawing starts (the words in first, so the drawing can keep clear of
- * them), the small one after it, and a moment to read them.
+ * Scene `n` (from 1): the old words out, the big line typed, the small one
+ * after it; its drawing while it is typed, or after.
  */
 async function scene(n) {
-  const { title: big, line } = INTRO[n - 1];
-  caption.dataset.step = `${String(n).padStart(2, '0')} / ${String(INTRO.length).padStart(2, '0')}`;
+  const s = scenes()[n - 1];
+  const { title: big, line, during } = s;
   caption.classList.add('ti-caption--away');
-  await hold(450);
+  await hold(250);
   if (skipped) return;
-  caption.querySelector('b').textContent = big;
+  if (during) draw(n);
+  const bigEl = caption.querySelector('b');
+  bigEl.textContent = '';
   caption.querySelector('span').textContent = line;
-  draw(n);
   caption.classList.remove('ti-caption--away', 'ti-caption--line');
-  // Said whole for a screen reader.
+  caption.classList.add('ti-caption--typing');
+  // Said whole for a screen reader; the letters are for the eye.
   said.textContent = line ? `${big} ${line}` : big;
-  await hold(700);
+  for (let i = 1; i <= big.length && !skipped; i++) {
+    bigEl.textContent = big.slice(0, i);
+    await hold(i === big.length ? 0 : 42);
+  }
+  bigEl.textContent = big;
+  await hold(300);
+  caption.classList.remove('ti-caption--typing');
   caption.classList.add('ti-caption--line');
-  await hold(Math.min(1400, big.length * 22));
+  if (!during && !skipped) draw(n);
 }
 
 /** Why PleaseNoBugs is there, in six scenes, unless skipped. */
@@ -487,19 +535,19 @@ async function playIntro(from = 1) {
     await find(el, '.fab');
     settle(from - 1);
   }
-  for (let n = from; n <= INTRO.length && !skipped; n++) {
+  for (let n = from; n <= scenes().length && !skipped; n++) {
     chapter = n - 1;
     await scene(n);
-    await hold(INTRO[n - 1].ms);
+    await hold(scenes()[n - 1].ms);
   }
 }
 
 /** The intro drawn as scene `n` (from 1) left it, at once: for starting at the scene after it. */
 function settle(n) {
+  if (n === 1) placeArrow();
   // From scene 5 on the round button is there, from 6 on the board too.
   if (n >= 5) drawFab();
   if (n >= 6) placeBoard();
-  placeLines();
   frame.dataset.intro = String(n);
   // Every movement of that scene at its end. Not the cursor, which blinks
   // for ever and has no end.
@@ -515,14 +563,14 @@ function endIntro() {
   intro.hidden = true;
   skip.hidden = true;
   caption.classList.add('ti-caption--away');
-  caption.classList.remove('ti-caption--line');
+  caption.classList.remove('ti-caption--typing', 'ti-caption--line');
   said.textContent = '';
   if (hadFocus && frame.classList.contains('tour--playing')) subtitle.focus({ preventScroll: true });
 }
 
 /** The whole story: why, then the user sends a bug, and the owner fixes it. */
 async function story(from = 0) {
-  if (from < INTRO.length) await playIntro(from + 1);
+  if (from < scenes().length) await playIntro(from + 1);
   if (from <= userPart()) {
     chapter = userPart();
     await title("Your user's perspective", 'How it works', endIntro);
@@ -539,8 +587,8 @@ async function story(from = 0) {
  * The story's parts, to go back or on by: the intro's scenes (0 to 5), the
  * user's side and the owner's. On from that is the end.
  */
-const userPart = () => INTRO.length;
-const ownerPart = () => INTRO.length + 1;
+const userPart = () => scenes().length;
+const ownerPart = () => scenes().length + 1;
 /** The part playing now. */
 let chapter = 0;
 
@@ -761,22 +809,13 @@ if (box && frame && page && subtitle && watch && titleCard && endCard && again &
     if (!n) return;
     if (n >= 5) drawFab();
     if (n >= 6) placeBoard();
-    placeLines();
-  }).observe(box);
+    }).observe(box);
 
   watch.addEventListener('click', (e) => {
     // Not also a click on the box, which would skip what just started.
     e.stopPropagation();
     void play();
   });
-  // The hero's "Watch demo", above the stage: brings the stage into view and
-  // plays it there.
-  for (const btn of document.querySelectorAll('[data-nq-watch]')) {
-    btn.addEventListener('click', () => {
-      frame.scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth', block: 'center' });
-      void play();
-    });
-  }
   skip.addEventListener('click', (e) => {
     // Not a skip either.
     e.stopPropagation();

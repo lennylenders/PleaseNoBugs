@@ -2,8 +2,8 @@
  * Make it yours: one screen like the home page's demo, the pretend app with
  * the real widget in `demo` mode at its own place in it, and four steps:
  *
- * 1. Light or dark: the widget's `nimiq` or `nimiq-dark`, on two cards, with
- *    a third, greyed, "Customize your own", coming soon.
+ * 1. The look: the widget's own, `pleasenobugs`, on a card that is already
+ *    chosen, with a second, greyed, "More themes", coming soon.
  * 2. How it opens: the three ways side by side, each playing.
  * 3. Where it's used: Nimiq Pay, a browser or both, which decides whether the
  *    code needs a signer.
@@ -34,7 +34,7 @@ const REPO = 'https://github.com/lennylenders/PleaseNoBugs';
  * own, as it starts in an app.
  */
 const STEPS = [
-  { id: 'theme', name: 'Light or dark', screen: 'board' },
+  { id: 'theme', name: 'The look', screen: 'board' },
   // The three ways side by side, each playing (`paintWays`).
   { id: 'opens', name: 'How it opens', screen: '' },
   // Where people use the app, which decides how they sign. The server and
@@ -60,20 +60,19 @@ const narrow = window.matchMedia('(max-width: 760px)');
 
 const state = {
   mode: 'floating',
-  /** `nimiq-dark` rather than `nimiq`. */
-  dark: false,
   /** Where the app runs: `pay` (only in Nimiq Pay), `browser` or `both`, which need a signer. */
   runs: '',
-  /** The steps go on only once something is chosen (`blocked`). */
-  pickedTheme: false,
+  /** The steps go on only once something is chosen (`blocked`). There is
+   *  one look for now, so it is chosen already. */
+  pickedTheme: true,
   pickedMode: false,
 };
 
-const theme = () => (state.dark ? 'nimiq-dark' : 'nimiq');
+/** The widget's theme: its own look, the one there is for now. */
+const theme = () => 'pleasenobugs';
 
 /** Why Next waits on this step, or '' when it may go on. Said in the bar beside the step's name. */
 function blocked() {
-  if (at === 'theme' && !state.pickedTheme) return 'Pick light or dark to go on.';
   if (at === 'opens' && !state.pickedMode) return 'Pick how it opens to go on.';
   if (at === 'runs' && !state.runs) return "Pick where it's used to go on.";
   return '';
@@ -297,12 +296,12 @@ function setMode(mode) {
   update();
 }
 
-// ---- Light or dark -------------------------------------------------------
+// ---- The look ------------------------------------------------------------
 
 /**
- * Two cards, Light and Dark, each with a small board in its colours; the
- * widget in the app takes the one tapped. A third card, greyed, says making
- * your own is coming: it does nothing.
+ * One card, PleaseNoBugs, with a small board in its colours, chosen already:
+ * the widget in the app wears it. A second card, greyed, says more themes
+ * are coming: it does nothing.
  */
 const themes = document.getElementById('themes');
 
@@ -311,11 +310,11 @@ function paintThemes() {
   themes.hidden = !(at === 'theme' && !previewing);
   if (was !== themes.hidden) requestAnimationFrame(measureDeck);
   for (const card of themes.querySelectorAll('[data-theme]')) {
-    card.setAttribute('aria-pressed', String(state.pickedTheme && (card.dataset.theme === 'dark') === state.dark));
+    card.setAttribute('aria-pressed', String(state.pickedTheme));
   }
 }
 
-/** On a phone the three cards are swiped, one at a time, with dots under them, as the three ways are. */
+/** On a phone the cards are swiped, one at a time, with dots under them, as the three ways are. */
 const themesTrack = document.getElementById('themes-track');
 const themesDots = document.getElementById('themes-dots');
 function paintThemeDots() {
@@ -333,14 +332,13 @@ themesDots.addEventListener('click', (e) => {
 themes.addEventListener('click', (e) => {
   const card = e.target.closest('[data-theme]');
   if (!card) return;
-  state.dark = card.dataset.theme === 'dark';
   state.pickedTheme = true;
   update();
 });
 
 // ---- Where it's used: the wide panel -------------------------------------
 
-const panel = document.getElementById('nq-panel');
+const panel = document.getElementById('mk-panel');
 
 function paintPanel() {
   const on = !!step().panel && !previewing;
@@ -750,7 +748,7 @@ const COPIES = {
   ai: () => [`${prompt()}\n`, "Prompt copied. Paste it into your agent's chat."],
 };
 
-const done = document.querySelector('.nq-done');
+const done = document.querySelector('.mk-done');
 
 /** The prompt, the code and the choices on the last step, kept up to date with every choice. */
 function writeCode() {
@@ -765,12 +763,12 @@ function writeCode() {
 /** The choices made, each with a way back to change it. */
 function paintDone() {
   const rows = [
-    ['Look', state.dark ? 'Dark' : 'Light', 'theme'],
+    ['Look', 'PleaseNoBugs', 'theme'],
     ['Opens as', { floating: 'A button in the corner', inline: 'A page in your app', overlay: 'Over your app' }[state.mode], 'opens'],
     ['Used in', { pay: 'Nimiq Pay', browser: 'A browser', both: 'Nimiq Pay and a browser' }[state.runs] ?? 'Not picked yet', 'runs'],
   ];
-  const list = document.getElementById('nq-summary');
-  list.innerHTML = rows.map(() => '<div><dt></dt><dd></dd><button type="button" class="nq-change">Change</button></div>').join('');
+  const list = document.getElementById('mk-summary');
+  list.innerHTML = rows.map(() => '<div><dt></dt><dd></dd><button type="button" class="mk-change">Change</button></div>').join('');
   list.querySelectorAll('div').forEach((row, i) => {
     row.querySelector('dt').textContent = rows[i][0];
     row.querySelector('dd').textContent = rows[i][1];
@@ -791,7 +789,7 @@ done.addEventListener('click', async (e) => {
     toast(said);
   } catch {
     // Blocked: open it in the page, to select by hand.
-    for (const peek of done.querySelectorAll('.nq-peek')) peek.open = true;
+    for (const peek of done.querySelectorAll('.mk-peek')) peek.open = true;
     toast('Copying was blocked: select it below instead');
   }
 });
