@@ -1,22 +1,13 @@
 /**
- * Make it yours: one screen like the home page's demo, the pretend app with
- * the real widget in `demo` mode at its own place in it, and four steps:
+ * Get your widget: one clean column. The widget style (PleaseNoBugs, the one
+ * there is, with more to come), the real widget in `demo` mode on a phone
+ * tilted in 3D that goes through its screens by itself, a switch between
+ * Light and Dark, and the prompt for the developer's AI agent, with the code
+ * for who prefers to add it by hand.
  *
- * 1. Light or dark: the widget's `light` (chosen to start with) or `dark`,
- *    on two cards.
- * 2. How it opens: the three ways side by side, each playing.
- * 3. Where it's used: Nimiq Pay, a browser or both, which decides whether the
- *    code needs a signer.
- * 4. Ready to add: three calm slides of how it gets added (paste the prompt
- *    into an AI agent, answer its questions, try it in the app), each with
- *    its own small animation, going on by themselves; under them, always in
- *    view, "Copy prompt for your AI agent", the choices made, and the prompt
- *    and the code for who wants to read them first.
- *
- * The widget can be tried in the first three steps; the last one shows how
- * it gets made rather than a widget that looks real but posts nowhere. A
- * slim bar along the bottom has Back and Next; Next waits until the step's
- * choice is made.
+ * How it opens and where the app runs are no longer asked here: the prompt
+ * asks the developer through their agent, and the code starts as a round
+ * button with the signer for outside Nimiq Pay, which is right everywhere.
  *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
  * `localStorage`: the copied code is the only place a choice ends up.
@@ -29,543 +20,77 @@ const VERSION = '%VERSION%';
 
 const REPO = 'https://github.com/lennylenders/PleaseNoBugs';
 
-/**
- * The steps. `screen` is the widget's `screen` attribute that puts a part in
- * view; `name` is the bar's. `panel`: the step is a wide panel over the
- * stage. The last step is `live`: the widget is itself there, every tap its
- * own, as it starts in an app.
- */
-const STEPS = [
-  { id: 'theme', name: 'Light or dark', screen: 'board' },
-  // The three ways side by side, each playing (`paintWays`).
-  { id: 'opens', name: 'How it opens', screen: '' },
-  // Where people use the app, which decides how they sign. The server and
-  // the code are left to the developer's AI agent, from the last step's prompt.
-  { id: 'runs', name: "Where it's used", screen: '', panel: true },
-  { id: 'ready', name: "You're ready!", screen: '', live: true },
-];
-
-const screen = document.getElementById('screen');
-const ready = document.getElementById('ready');
-const bar = document.getElementById('stepbar');
-const barBack = document.getElementById('bar-back');
-const barNext = document.getElementById('bar-next');
-const viewport = screen.closest('.viewport');
-
-/** Whether the theme cards are a band to swipe along the bottom (to 760px, as in site.css). */
-const narrow = window.matchMedia('(max-width: 760px)');
-
 const state = {
+  /** How the copied code opens the widget; the prompt asks about it first. */
   mode: 'floating',
   /** `dark` rather than `light`. */
   dark: false,
-  /** Where the app runs: `pay` (only in Nimiq Pay), `browser` or `both`, which need a signer. */
-  runs: '',
-  /** The steps go on only once something is chosen (`blocked`). Light is
-   *  chosen to start with, so the first step can go on at once. */
-  pickedTheme: true,
-  pickedMode: false,
 };
 
 const theme = () => (state.dark ? 'dark' : 'light');
 
-/** Why Next waits on this step, or '' when it may go on. Said in the bar beside the step's name. */
-function blocked() {
-  if (at === 'opens' && !state.pickedMode) return 'Pick how it opens to go on.';
-  if (at === 'runs' && !state.runs) return "Pick where it's used to go on.";
-  return '';
-}
-
-/** The step on screen, by id, and whether the widget is the last step's fresh one. */
-let at = 'theme';
-let previewing = false;
-
-/** The widget in the box. */
-let board = null;
-
-const step = () => STEPS.find((s) => s.id === at);
-
-// ---- The widget ----------------------------------------------------------
-
-/** Put the settings on the widget. The plays in "How it opens" hold theirs inline, on one screen. */
-function apply(el, mode = state.mode, held = previewing ? '' : step().screen) {
-  const set = (name, value) => (value ? el.setAttribute(name, value) : el.removeAttribute(name));
-  el.setAttribute('demo', '');
-  // Only for the identicons: the posts stay in the page.
-  el.setAttribute('server', '%BOARD_SERVER%');
-  el.setAttribute('mode', mode);
-  set('theme', theme());
-  set('screen', held);
-}
+// ---- The widget on the phone, going through its screens --------------------
 
 /**
- * Where an inline widget sits: in the app's Feedback page, as the inline
- * play leaves it. The menu beside it on a wide screen, the page's bar over
- * it on a narrow one (site.css picks).
+ * The screens it plays, each held a moment, round and round, with a word on
+ * what it is under the phone. The widget's own `screen` attribute holds
+ * each (demo.ts); its posts live in this page's memory only. Still for whoever
+ * asked for less motion: the board, and nothing moves.
  */
-const INLINE_FRAME = `<div class="inline-frame" aria-hidden="true">
-    <nav class="dk-menu"><b>Your app</b><span>Home</span><span>Settings</span><span class="dk-menu__pick">Feedback</span><span>About</span></nav>
-    <b class="ph-back">‹&nbsp; Your app</b>
-  </div>`;
-
-/** A fresh widget in the box: for a new way of opening, and for the last step, where it starts as it would in an app. */
-function mount() {
-  board?.remove();
-  screen.querySelector('.screen__again')?.remove();
-  screen.querySelector('.inline-frame')?.remove();
-  screen.classList.toggle('screen--inline', state.mode === 'inline');
-  if (state.mode === 'inline') screen.insertAdjacentHTML('beforeend', INLINE_FRAME);
-  board = document.createElement('please-no-bugs');
-  apply(board);
-  screen.append(board);
-  if (state.mode === 'overlay') board.addEventListener('pleasenobugs:close', offerAgain);
-  fitPanel();
-  observeRoot(board);
-  watch();
-  paintScreen();
-}
-
-/** An overlay is gone once closed; a button brings it back. */
-function offerAgain() {
-  const again = document.createElement('button');
-  again.type = 'button';
-  again.className = 'btn btn--small screen__again';
-  again.textContent = 'Open it again';
-  again.onclick = mount;
-  screen.append(again);
-}
-
-/**
- * The widget sizes its corner panel to the window (at most 640px high), and
- * the box here is shorter: without this its top would be cut off. Only for
- * the demo in this box, so it is put in from here rather than in the widget.
- */
-function fitPanel() {
-  const root = board?.shadowRoot;
-  if (!root) return;
-  let style = root.querySelector('style[data-site]');
-  if (!style) {
-    style = document.createElement('style');
-    style.dataset.site = '';
-    root.append(style);
-  }
-  style.textContent = `@media (min-width: 640px) { .overlay, .overlay .app { max-height: ${screen.clientHeight - 48}px; } }`;
-}
-
-/** What stands over the app: the three ways, the theme cards or the wide panel, as the step asks. */
-function paintScreen() {
-  screen.classList.toggle('screen--device', at === 'opens');
-  // The app's own background behind every way, inline too.
-  screen.classList.toggle('screen--inline', state.mode === 'inline' && at !== 'opens');
-  paintWays();
-  paintThemes();
-  paintPanel();
-}
-
-// ---- How it opens: the three ways side by side ---------------------------
-
-/**
- * Each way as a card that plays it, on a phone of its own, so the three can
- * be seen at once: the round button growing into the panel, the app's menu
- * opening a page with the widget, the widget coming up over the app. The
- * plays are drawn at a phone's size and scaled to the card; the widgets in
- * them are real ones, in `demo` mode, inline and held on the tiles, and the
- * moving is CSS (`.play--…` in site.css). With reduced motion they stand
- * still, open. A tap on a card picks it. On a phone one card at a time,
- * swiped, with dots under them.
- */
-const WAYS = [
-  ['floating', 'Button', 'A round button in the corner of every screen.'],
-  ['inline', 'Inline', 'A page of its own in your app, behind Feedback in its menu.'],
-  ['overlay', 'Overlay', 'Over your app, from a button or menu item of yours.'],
+const PLAYS = [
+  ['tiles', 'Your user picks what it is'],
+  ['write', 'Writes it'],
+  ['sent', 'Sends it'],
+  ['board', 'And everyone sees it'],
 ];
-
-/** The round button's glyph: a copy of `Feedback` in the widget's icons.tsx. */
-const GLYPH =
-  '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 6C12 5.45 11.55 5 11 5H5.815L6.48 1.825c.015-.075.025-.155.025-.235 0-.31-.125-.59-.33-.795L5.38 0 .44 4.94C.17 5.21 0 5.585 0 6v6.5c0 .83.67 1.5 1.5 1.5h6.75c.62 0 1.155-.375 1.38-.915l2.265-5.29c.065-.17.105-.35.105-.545V6zm10.5 4h-6.75c-.62 0-1.155.375-1.38.915l-2.265 5.29c-.065.17-.105.35-.105.545V18c0 .55.45 1 1 1h5.185l-.665 3.175c-.015.075-.025.155-.025.235 0 .31.125.59.33.795L18.62 24l4.94-4.94c.27-.27.44-.645.44-1.06v-6.5c0-.83-.67-1.5-1.5-1.5z"/></svg>';
-
-const TILES = '<please-no-bugs data-screen="tiles"></please-no-bugs>';
-/** Where a finger taps: inside the thing it taps, so it is always on it. */
-const TAP_A = '<span class="pl-tap pl-tap--a"></span>';
-const TAP_B = '<span class="pl-tap pl-tap--b"></span>';
-const CTA = `<span class="pl-cta">Send feedback${TAP_A}</span>`;
-
-/** The pretend app, as in the other steps, with what a way needs of it. */
-const app = (extra = '', burger = false) =>
-  `<div class="screen__app"><b>${burger ? `<span class="ph-burger">${TAP_A}</span>` : ''}Your app</b><i></i><i></i><i></i><i></i>${extra}</div>`;
-
-/** What each way plays. */
-const PLAYS = {
-  floating: `${app()}<div class="ph-open">${TILES}</div>
-      <div class="ph-skin"><span class="ph-glyph">${GLYPH}</span></div>
-      <span class="pl-spot">${TAP_A}</span>`,
-  inline: `${app('', true)}<div class="pl-dim"></div>
-      <nav class="ph-menu"><b>Your app</b><span>Home</span><span>Settings</span><span class="ph-menu__pick">Feedback${TAP_B}</span><span>About</span></nav>
-      <div class="ph-page"><b class="ph-back">‹&nbsp; Your app</b>${TILES}</div>`,
-  overlay: `${app(CTA)}<div class="pl-dim"></div><div class="ph-sheet">${TILES}</div>`,
-};
-
-/** The phone the plays are drawn on, before it is scaled to its card. */
-const WAY_W = 320;
-const ways = document.getElementById('ways');
-const waysTrack = document.getElementById('ways-track');
-const waysDots = document.getElementById('ways-dots');
-
-function buildWays() {
-  waysTrack.innerHTML = WAYS.map(
-    ([id, name, line]) => `<button type="button" class="way" data-way="${id}" aria-pressed="false">
-      <span class="way__screen" aria-hidden="true"><span class="way__device play play--phone play--${id}">${PLAYS[id]}</span></span>
-      <span class="way__name">${name}</span>
-      <span class="way__line">${line}</span>
-    </button>`,
-  ).join('');
-  waysDots.innerHTML = WAYS.map(() => '<i></i>').join('');
-}
-
-function paintWays() {
-  const on = at === 'opens' && !previewing;
-  const coming = on && ways.hidden;
-  ways.hidden = !on;
-  if (!on) return;
-  if (!waysTrack.children.length) buildWays();
-  // Swiped, it opens on the way picked.
-  if (coming) {
-    const card = waysTrack.querySelector(`[data-way="${state.mode}"]`);
-    waysTrack.scrollLeft = card.offsetLeft - (waysTrack.clientWidth - card.offsetWidth) / 2;
-  }
-  for (const card of waysTrack.children) card.setAttribute('aria-pressed', String(state.pickedMode && card.dataset.way === state.mode));
-  for (const w of waysTrack.querySelectorAll('please-no-bugs')) {
-    apply(w, 'inline', 'tiles');
-    still(w);
-  }
-  for (const play of waysTrack.querySelectorAll('.way__device')) paintSkin(play);
-  scaleWays();
-  paintWayDots();
-}
-
-/** A widget that is only a picture: it holds still, and has no bar over its tiles (the real panel has its X there). */
-function still(w) {
-  if (!w.shadowRoot || w.shadowRoot.querySelector('style[data-site]')) return;
-  const style = document.createElement('style');
-  style.dataset.site = '';
-  style.textContent = '.scroll { overflow: hidden !important; } .bar { visibility: hidden; }';
-  w.shadowRoot.append(style);
-}
-
-/** The round button and the panel behind it, for a play's own drawing of them, in the widget's colours. */
-function paintSkin(play) {
-  const one = play.querySelector('please-no-bugs');
-  if (!one) return;
-  const css = getComputedStyle(one);
-  for (const [mine, theirs] of [['--ph-fab', '--pnb-fab'], ['--ph-on-fab', '--pnb-on-fab'], ['--ph-bg', '--pnb-bg']]) {
-    play.style.setProperty(mine, css.getPropertyValue(theirs).trim());
-  }
-}
-
-/** Each phone as wide as its card. */
-function scaleWays() {
-  for (const s of waysTrack.querySelectorAll('.way__screen')) s.style.setProperty('--s', String(s.clientWidth / WAY_W));
-}
-
-/** Which card is in view, on a phone, where they are swiped. */
-function paintWayDots() {
-  const cards = [...waysTrack.children];
-  if (!cards.length) return;
-  const mid = waysTrack.scrollLeft + waysTrack.clientWidth / 2;
-  const i = cards.reduce((best, c, n) => (Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid) < Math.abs(cards[best].offsetLeft + cards[best].offsetWidth / 2 - mid) ? n : best), 0);
-  [...waysDots.children].forEach((d, n) => d.classList.toggle('on', n === i));
-}
-
-waysTrack.addEventListener('scroll', paintWayDots, { passive: true });
-waysTrack.addEventListener('click', (e) => {
-  const card = e.target.closest('[data-way]');
-  if (card) setMode(card.dataset.way);
-});
-waysDots.addEventListener('click', (e) => {
-  const n = [...waysDots.children].indexOf(e.target);
-  if (n >= 0) waysTrack.children[n].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-});
-
-/** Show it another way: Button, Inline or Overlay. */
-function setMode(mode) {
-  state.mode = mode;
-  state.pickedMode = true;
-  mount();
-  update();
-}
-
-// ---- Light or dark -------------------------------------------------------
-
-/**
- * Two cards, Light and Dark, each with a small board in its colours; the
- * widget in the app takes the one tapped.
- */
-const themes = document.getElementById('themes');
-
-function paintThemes() {
-  const was = themes.hidden;
-  themes.hidden = !(at === 'theme' && !previewing);
-  if (was !== themes.hidden) requestAnimationFrame(measureDeck);
-  for (const card of themes.querySelectorAll('[data-theme]')) {
-    card.setAttribute('aria-pressed', String(state.pickedTheme && (card.dataset.theme === 'dark') === state.dark));
-  }
-}
-
-/** On a phone the cards are swiped, one at a time, with dots under them, as the three ways are. */
-const themesTrack = document.getElementById('themes-track');
-const themesDots = document.getElementById('themes-dots');
-function paintThemeDots() {
-  const cards = [...themesTrack.children];
-  const mid = themesTrack.scrollLeft + themesTrack.clientWidth / 2;
-  const i = cards.reduce((best, c, n) => (Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid) < Math.abs(cards[best].offsetLeft + cards[best].offsetWidth / 2 - mid) ? n : best), 0);
-  [...themesDots.children].forEach((d, n) => d.classList.toggle('on', n === i));
-}
-themesTrack.addEventListener('scroll', paintThemeDots, { passive: true });
-themesDots.addEventListener('click', (e) => {
-  const n = [...themesDots.children].indexOf(e.target);
-  if (n >= 0) themesTrack.children[n].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-});
-
-themes.addEventListener('click', (e) => {
-  const card = e.target.closest('[data-theme]');
-  if (!card) return;
-  state.dark = card.dataset.theme === 'dark';
-  state.pickedTheme = true;
-  update();
-});
-
-// ---- Where it's used: the wide panel -------------------------------------
-
-const panel = document.getElementById('mk-panel');
-
-function paintPanel() {
-  const on = !!step().panel && !previewing;
-  panel.hidden = !on;
-  for (const part of panel.querySelectorAll('[data-panel]')) part.hidden = part.dataset.panel !== at;
-  for (const b of panel.querySelectorAll('[data-runs]')) b.setAttribute('aria-pressed', String(b.dataset.runs === state.runs));
-}
-
-panel.addEventListener('click', (e) => {
-  const run = e.target.closest('[data-runs]');
-  if (!run) return;
-  state.runs = run.dataset.runs;
-  update();
-});
-
-function update() {
-  if (board) apply(board);
-  paintScreen();
-  paintSteps();
-  writeCode();
-  watch();
-}
-
-// ---- Steps ---------------------------------------------------------------
-
-function go(id) {
-  if (!STEPS.some((s) => s.id === id)) id = 'opens';
-  at = id;
-  paintSteps();
-  // Into the last step and out of it, a fresh widget, as it starts in an app.
-  const live = !!step().live;
-  if (live !== previewing) {
-    previewing = live;
-    screen.classList.toggle('screen--live', live);
-    // The last step has no widget to try: it plays how one gets made.
-    if (live) {
-      board?.remove();
-      board = null;
-      screen.querySelector('.inline-frame')?.remove();
-      screen.querySelector('.screen__again')?.remove();
-    } else mount();
-    playSlides(live);
-  } else if (board) apply(board);
-  paintScreen();
-  watch();
-}
-
-/** One step back or on, from the bar. */
-function stepBy(by) {
-  const next = STEPS[STEPS.findIndex((s) => s.id === at) + by];
-  if (next) go(next.id);
-}
-barBack.addEventListener('click', () => stepBy(-1));
-barNext.addEventListener('click', () => stepBy(1));
-
-/** The slim bar along the bottom: where you are, Back and Next. On the last step Next is gone: the panel above it is the end. */
-function paintSteps() {
-  const i = STEPS.findIndex((s) => s.id === at);
-  const last = !!step().live;
-  bar.hidden = false;
-  ready.hidden = !last;
-  barBack.hidden = i <= 0;
-  const why = blocked();
-  document.getElementById('bar-name').innerHTML =
-    `<b>${step().name}</b> · ${i + 1} of ${STEPS.length}` + (why ? `<span class="stepbar__why">${why}</span>` : '');
-  const after = STEPS[i + 1];
-  barNext.hidden = last;
-  barNext.textContent = after?.live ? 'Finish →' : 'Next →';
-  barNext.disabled = !!why;
-  barNext.title = why || (after ? `Next: ${after.name}` : '');
-  measureDeck();
-}
-
-/**
- * The app is what the bar leaves of the box, so the widget is always whole
- * above it (`--deck-h`, site.css). The widget's panel follows.
- */
-function measureDeck() {
-  const h = bar.offsetHeight;
-  // On a phone the theme cards are a band above the bar: the app stops above that too.
-  const band = !themes.hidden && narrow.matches ? themes.offsetHeight : 0;
-  // On the box, so the app, the three ways and a docked box all stop above it.
-  viewport.style.setProperty('--bar-h', `${h}px`);
-  viewport.style.setProperty('--deck-h', `${h + band}px`);
-  fitPanel();
-  scaleWays();
-  watch();
-}
-new ResizeObserver(measureDeck).observe(bar);
-new ResizeObserver(measureDeck).observe(themes);
-narrow.addEventListener('change', measureDeck);
-
-// ---- The last step: how it gets made, in three slides ---------------------
-
-/**
- * Three slides, one at a time, each playing its own small animation and then
- * going on to the next, round and round: paste the prompt into an AI agent,
- * answer its questions, try it in the app. A dot under them jumps to one.
- * Each slide's parts come in by number (`data-in`, and `data-out` to go
- * again), as classes moved by site.css. The time stands still while the
- * slides are out of view, the tab is hidden, or the prompt or the code is
- * open in their place. With reduced motion every part shows at once and the
- * slides wait for a dot.
- */
-const slides = [...document.querySelectorAll('.slide')];
-const dots = [...document.querySelectorAll('#slide-dots [data-go]')];
-const slideApp = document.getElementById('slide-app');
-const peek = document.getElementById('peek');
+const HOLD_MS = 2800;
+const phone = document.getElementById('phone-widget');
+const said = document.getElementById('phone-said');
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-/** How long each slide stays, and when each of its parts comes in (ms). */
-const BEATS = [
-  { in: [500, 1500, 2700], ms: 5200 },
-  { in: [400, 1500, 2600], ms: 5200 },
-  { in: [], ms: 6800 },
-];
-/** Bumped to stop a loop that is running: leaving the step, a dot, starting again. */
-let slideRun = 0;
-let slidesSeen = false;
-new IntersectionObserver(([e]) => (slidesSeen = e.isIntersecting), { threshold: 0.3 }).observe(ready);
 
-/** The app with the widget in it, the way picked, drawn as "How it opens" draws it. */
-function paintSlideApp() {
-  slideApp.innerHTML = `<span class="slide__device play play--phone play--${state.mode}">${PLAYS[state.mode]}</span>`;
-  for (const w of slideApp.querySelectorAll('please-no-bugs')) {
-    apply(w, 'inline', 'tiles');
-    customElements.whenDefined('please-no-bugs').then(() => requestAnimationFrame(() => still(w)));
-  }
-  requestAnimationFrame(() => {
-    const device = slideApp.querySelector('.slide__device');
-    if (device) paintSkin(device);
-    scaleSlideApp();
-  });
+function paintWidget() {
+  phone.setAttribute('theme', theme());
+  document.querySelector('.phone3d')?.classList.toggle('phone3d--dark', state.dark);
 }
 
-/** The phone as tall as its slide allows. */
-function scaleSlideApp() {
-  const h = slideApp.clientHeight - 16;
-  if (h > 0) slideApp.style.setProperty('--s', String(Math.min(1, h / 560)));
+let played = 0;
+let timer = 0;
+let seen = true;
+new IntersectionObserver(([e]) => (seen = e.isIntersecting)).observe(phone);
+
+function show(i) {
+  const [screen, words] = PLAYS[i % PLAYS.length];
+  phone.setAttribute('screen', screen);
+  said.textContent = words;
 }
 
-/** Slide `n` (from 1) in view, its parts up to `beat` in. */
-function showSlide(n, beat = 0) {
-  slides.forEach((el, i) => {
-    el.classList.toggle('is-on', i === n - 1);
-    el.setAttribute('aria-hidden', String(i !== n - 1));
-    if (i !== n - 1) return;
-    for (const part of el.querySelectorAll('[data-in]')) {
-      const out = Number(part.dataset.out || Infinity);
-      part.classList.toggle('is-in', beat >= Number(part.dataset.in) && beat < out);
-    }
-  });
-  dots.forEach((d, i) => d.setAttribute('aria-current', String(i === n - 1)));
-}
-
-async function playSlides(on, from = 1) {
-  const run = ++slideRun;
-  if (!on) return;
+function play() {
+  clearInterval(timer);
   if (reduce.matches) {
-    showSlide(from, 99);
-    if (from === 3) paintSlideApp();
+    phone.setAttribute('screen', 'board');
+    said.textContent = '';
     return;
   }
-  const sleep = async (ms) => {
-    let left = ms;
-    while (left > 0) {
-      await new Promise((r) => setTimeout(r, 50));
-      if (run !== slideRun) throw run;
-      if (slidesSeen && !document.hidden && peek.hidden) left -= 50;
-    }
-  };
-  try {
-    for (let n = from; ; n = (n % slides.length) + 1) {
-      const { in: beats, ms } = BEATS[n - 1];
-      showSlide(n, 0);
-      // The play's own moves start from the top each time it is shown.
-      if (n === 3) paintSlideApp();
-      let t = 0;
-      for (let b = 0; b < beats.length; b++) {
-        await sleep(beats[b] - t);
-        t = beats[b];
-        showSlide(n, b + 1);
-      }
-      await sleep(ms - t);
-    }
-  } catch (stopped) {
-    if (stopped !== run) throw stopped;
-  }
+  show(played);
+  timer = setInterval(() => {
+    if (!seen || document.hidden) return;
+    played += 1;
+    show(played);
+  }, HOLD_MS);
 }
-reduce.addEventListener('change', () => previewing && playSlides(true));
-document.getElementById('slide-dots').addEventListener('click', (e) => {
-  const dot = e.target.closest('[data-go]');
-  if (dot) playSlides(true, Number(dot.dataset.go));
+reduce.addEventListener('change', play);
+
+// ---- Light or dark ---------------------------------------------------------
+
+const switcher = document.getElementById('theme-switch');
+switcher.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-theme]');
+  if (!b) return;
+  state.dark = b.dataset.theme === 'dark';
+  for (const x of switcher.querySelectorAll('[data-theme]')) x.setAttribute('aria-checked', String(x === b));
+  paintWidget();
+  writeCode();
 });
-
-/**
- * The widget moves while it opens and while it loads its posts, so for a
- * moment after anything changes the arrow follows it every frame.
- */
-let following = 0;
-let settle = 0;
-function watch() {
-  const idle = following < performance.now();
-  following = performance.now() + 600;
-  if (idle) requestAnimationFrame(follow);
-  // Once more when it has settled, also where no frames are drawn.
-  clearTimeout(settle);
-  settle = setTimeout(fitPanel, 650);
-}
-
-function follow() {
-  fitPanel();
-  if (performance.now() < following) requestAnimationFrame(follow);
-}
-
-/** Follow the widget whenever it redraws: posts arriving, a screen changing. */
-function observeRoot(el) {
-  new MutationObserver(watch).observe(el.shadowRoot, { childList: true, subtree: true });
-  el.shadowRoot.addEventListener('scroll', watch, true);
-  el.shadowRoot.addEventListener('animationend', watch, true);
-}
-
-window.addEventListener('resize', () => {
-  fitPanel();
-  scaleSlideApp();
-  paintScreen();
-  watch();
-});
-// A hidden tab draws no frames: catch up when it is back.
-document.addEventListener('visibilitychange', watch);
 
 // ---- The code ------------------------------------------------------------
 
@@ -617,8 +142,8 @@ const SIGNER = [
   '    return { address: r.signer, publicKey: hex(r.signerPublicKey), signature: hex(r.signature) };',
   '  };',
 ];
-/** Whether the code needs that signer: an app in a browser. */
-const browser = () => state.runs === 'browser' || state.runs === 'both';
+/** The code carries the signer always: inside Nimiq Pay it is skipped, so it is right wherever the app runs. */
+const browser = () => true;
 
 /** The signer for an app with a bundler, for the steps and the prompt. */
 function npmSignerOnly() {
@@ -712,12 +237,8 @@ function prompt() {
     '',
     '- Plain HTML: the script once, the element where it goes.',
     `- With a bundler (React, Vue, Svelte, ...): npm install pleasenobugs@${VERSION}, import 'pleasenobugs' once at startup, and render <please-no-bugs> with the same attributes. It is a custom element: write the attributes as they are.`,
-    `- ${PLACE[state.mode]}`,
-    browser()
-      ? `- It runs ${state.runs === 'both' ? 'in Nimiq Pay and in browsers' : 'in a browser'}, so outside Nimiq Pay users sign with their Nimiq wallet through the Nimiq Hub: add this as well (npm install @nimiq/hub-api), with 'Your app' as this app's name. Inside Nimiq Pay the wallet signs by itself, which the check keeps.\n\n${npmSignerOnly()}\n\n${APP_LOGIN}`
-      : state.runs === 'pay'
-        ? `- It runs only inside Nimiq Pay, where the wallet signs by itself.\n${APP_LOGIN}`
-        : `- Ask me where this app runs. Inside Nimiq Pay the wallet signs by itself. Anywhere else, such as a web app in a desktop browser, give the element a signer so users can post and vote with their Nimiq wallet through the Nimiq Hub (npm install @nimiq/hub-api): ${REPO}/tree/main/packages/widget#signing-outside-nimiq-pay. Without a signer or an app login, the board can only be read there.\n${APP_LOGIN}`,
+    `- The code above opens it as a round button in the corner (mode="floating"). First ask me how it should open, and adjust the code to what I pick:\n  - floating: ${PLACE.floating}\n  - inline: ${PLACE.inline}\n  - overlay: ${PLACE.overlay}`,
+    `- Ask me where this app runs. Inside Nimiq Pay the wallet signs by itself. Anywhere else, such as a web app in a desktop browser, users sign with their Nimiq wallet through the Nimiq Hub: add this as well (npm install @nimiq/hub-api), with 'Your app' as this app's name; inside Nimiq Pay the check skips it. Without a signer or an app login, the board can only be read outside Nimiq Pay.\n\n${npmSignerOnly()}\n\n${APP_LOGIN}`,
     '- If it runs inside Nimiq Pay: Pay draws its own bar over the page and the widget cannot see it. If this app already measures that bar, pass it on: please-no-bugs { --pnb-inset-top: ...; --pnb-inset-bottom: ...; }',
     '- Keep the version pinned.',
     '',
@@ -726,7 +247,7 @@ function prompt() {
   ].join('\n');
 }
 
-// ---- The last step: ready to add -----------------------------------------
+// ---- Copying it ------------------------------------------------------------
 
 const COPIES = {
   html: () => [htmlRoute(), 'Code copied'],
@@ -734,57 +255,39 @@ const COPIES = {
   ai: () => [`${prompt()}\n`, "Prompt copied. Paste it into your agent's chat."],
 };
 
-/** The prompt, the code and the choices on the last step, kept up to date with every choice. */
+const get = document.getElementById('get');
+const peek = document.getElementById('peek');
+
+/** The prompt and the code, kept up to date with the theme. */
 function writeCode() {
-  for (const el of ready.querySelectorAll('[data-code]')) {
+  for (const el of get.querySelectorAll('[data-code]')) {
     const text = COPIES[el.dataset.code]()[0];
     if (el.dataset.code === 'ai') el.textContent = text;
     else el.innerHTML = highlight(text);
   }
-  paintChoices();
 }
 
-/** The choices made, in one quiet line, each a way back to its step, every choice kept. */
-function paintChoices() {
-  const picks = [
-    [state.dark ? 'Dark' : 'Light', 'theme', 'light or dark'],
-    [{ floating: 'Button', inline: 'Inline', overlay: 'Overlay' }[state.mode], 'opens', 'how it opens'],
-    [{ pay: 'Nimiq Pay', browser: 'A browser', both: 'Nimiq Pay and a browser' }[state.runs] ?? 'Where it runs?', 'runs', "where it's used"],
-  ];
-  const line = document.getElementById('choices');
-  line.innerHTML = picks.map(() => '<button type="button"></button>').join('<span aria-hidden="true">·</span>');
-  line.querySelectorAll('button').forEach((b, i) => {
-    b.textContent = picks[i][0];
-    b.dataset.goto = picks[i][1];
-    b.setAttribute('aria-label', `${picks[i][0]}: change ${picks[i][2]}`);
-  });
-}
-
-/** The prompt or the code in the slides' place, or the slides back (`''`). */
+/** The prompt or the code, opened under the button, or closed (`''`). */
 function showPeek(part) {
   peek.dataset.open = part;
   peek.hidden = !part;
-  document.getElementById('slides').hidden = !!part;
   for (const el of peek.querySelectorAll('[data-part]')) el.hidden = el.dataset.part !== part;
-  for (const b of ready.querySelectorAll('.ready__links [data-peek]')) b.setAttribute('aria-pressed', String(b.dataset.peek === part));
+  for (const b of get.querySelectorAll('.get__more [data-peek]')) b.setAttribute('aria-expanded', String(b.dataset.peek === part));
 }
 
-ready.addEventListener('click', async (e) => {
-  // A choice: back to that step.
-  const back = e.target.closest('[data-goto]');
-  if (back) return go(back.dataset.goto);
+get.addEventListener('click', async (e) => {
   const look = e.target.closest('[data-peek]');
   if (look) return showPeek(look.dataset.peek === peek.dataset.open ? '' : look.dataset.peek);
   const btn = e.target.closest('[data-copy]');
   if (!btn) return;
-  const [text, said] = COPIES[btn.dataset.copy]();
+  const [text, saidIt] = COPIES[btn.dataset.copy]();
   try {
     await navigator.clipboard.writeText(text);
-    toast(said);
+    toast(saidIt);
   } catch {
     // Blocked: show it in the page, to select by hand.
     showPeek(btn.dataset.copy === 'ai' ? 'prompt' : 'code');
-    toast('Copying was blocked: select it here instead');
+    toast('Copying was blocked: select it below instead');
   }
 });
 
@@ -797,24 +300,6 @@ function toast(text) {
   toastTimer = setTimeout(() => el.classList.remove('toast--on'), 2200);
 }
 
-
-mount();
-paintSteps();
+paintWidget();
 writeCode();
-measureDeck();
-
-// The page's own round button (the real board, assets/board.js) steps aside
-// while the foot of the stage, where the steps' bar and Next are, is at the
-// bottom of the window:
-// on a phone it would sit right on Next (site.css, `.real-aside`). Anywhere
-// else on the page it stays.
-{
-  const seen = new Map();
-  const io = new IntersectionObserver((entries) => {
-    for (const e of entries) seen.set(e.target, e.isIntersecting);
-    document.body.classList.toggle('real-aside', [...seen.values()].some(Boolean));
-    // Only the bottom of the window, where the round button sits.
-  }, { rootMargin: '-85% 0px 0px 0px' });
-  io.observe(bar);
-  io.observe(ready.querySelector('.ready__foot'));
-}
+customElements.whenDefined('please-no-bugs').then(play);

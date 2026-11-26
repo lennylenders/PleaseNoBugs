@@ -262,7 +262,6 @@ section + section { padding-top: 0; }
 .section-head { max-width: 640px; margin-bottom: 28px; }
 .section-head p { color: var(--sub); margin: 10px 0 0; line-height: 1.55; }
 
-
 /* ---- The one pager: what it is, and the widget to try ----------------- */
 
 /*
@@ -972,7 +971,6 @@ section + section { padding-top: 0; }
 .vote.is-voted { background: var(--s-accent); color: var(--s-on-accent); }
 .vote.is-bump { transform: scale(1.15); }
 
-
 /* -- 1. What it is about: your users say it, the board keeps it, you answer */
 
 /* Your users on the left, the board, you on the right; on a narrow screen
@@ -1289,33 +1287,15 @@ section + section { padding-top: 0; }
 .foot__links span { color: var(--sub); }
 .foot__note { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.18); font-size: 13px; }
 
+/* ---- The stage: a pretend app in a box (Home's demo) ------------------- */
 
-/* ---- The stage: a pretend app in a box (Home's demo and Make it yours) -- */
-
-/* The frame and the pretend app the home page's demo plays in, and Make it
-   yours' screen too. */
+/* The frame and the pretend app the home page's demo plays in. */
 .editor {
   background: var(--row);
   border: 1.5px solid var(--line);
   border-radius: var(--radius-lg);
   padding: 16px;
 }
-
-.viewport { position: relative; }
-
-.input {
-  width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-  background: var(--row);
-  color: var(--ink);
-  font: inherit;
-  font-size: 15px;
-}
-.input:focus { border-color: var(--button); outline: none; }
-.input::placeholder { color: var(--faint); }
 
 /*
  * A pretend app page the widget sits on. The transform makes it the box the
@@ -1346,1109 +1326,129 @@ section + section { padding-top: 0; }
 .screen__app i:nth-of-type(3) { width: 70%; height: 120px; margin-top: 8px; border-radius: 10px; background: var(--row); }
 .screen__app i:nth-of-type(4) { width: 40%; }
 
-/* Inline after step 1: where step 1's animation left it, in the app's own
-   Feedback page. Beside the app's menu, open with Feedback picked, on a
-   wide screen; under the page's "‹ Your app" bar on a narrow one. */
-.screen--inline .screen__app { display: none; }
-.screen--inline > please-no-bugs {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 240px;
-  display: block;
-}
-.inline-frame { display: none; }
-.screen--inline > .inline-frame { display: block; }
-.inline-frame .ph-back { display: none; }
-
-@media (max-width: 639px) {
-  .screen--inline > please-no-bugs { left: 0; top: 72px; }
-  .inline-frame .dk-menu { display: none; }
-  .inline-frame .ph-back { display: block; }
-}
-
-.screen__again {
-  position: absolute;
-  left: 50%;
-  bottom: 28px;
-  transform: translateX(-50%);
-}
-
-/* While previewing the widget is itself again: its own pointer, its own taps. */
-.screen--live { cursor: auto; }
-
+/* ---- Get your widget: one clean column --------------------------------- */
 
 /*
- * Step 1: instead of the widget, the box plays how the chosen way opens
- * (see `paintDevice` in customize.js), over the same pretend app as the
- * preview and at its real size: below 640px as on a phone, the widget over
- * the whole box; from 640px as on a computer, the corner panel.
- *
- * Each way is one loop. The resting styles are the open state, which is
- * what shows with reduced motion; the keyframes start from closed.
+ * The title, the widget's style (PleaseNoBugs, and more to come), the real
+ * widget on a phone tilted in 3D that plays its screens (customize.js), a
+ * switch for light or dark, and the prompt to copy. No glyphs behind it:
+ * the widget is all there is to look at.
  */
-.screen--device { cursor: default; }
-.screen--device > .screen__app,
-.screen--device > please-no-bugs { display: none; }
-
-.play { position: absolute; inset: 0; overflow: hidden; }
-.play please-no-bugs { display: block; height: 100%; }
-.play .screen__app b { display: flex; align-items: center; gap: 14px; }
-.ph-burger {
-  position: relative;
-  width: 22px;
-  height: 17px;
-  background:
-    linear-gradient(var(--ink) 0 0) top / 100% 3px no-repeat,
-    linear-gradient(var(--ink) 0 0) center / 100% 3px no-repeat,
-    linear-gradient(var(--ink) 0 0) bottom / 100% 3px no-repeat;
-}
-.pl-cta {
-  position: relative;
-  justify-self: start;
-  margin-top: 8px;
-  padding: 10px 20px;
-  border-radius: 999px;
-  border: 2px solid var(--button);
-  color: var(--button);
-  font-size: 15px;
-  font-weight: 900;
-}
-.pl-dim { position: absolute; inset: 0; background: rgba(10, 10, 30, 0.5); opacity: 0; }
-
-/* A tap: a light ring, centred on what it taps. */
-.pl-tap {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 46px;
-  height: 46px;
-  margin: -23px 0 0 -23px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  opacity: 0;
-}
-/* Where the round button is: as in the widget, 16px from the corner on a
-   phone and 24px on a wide screen. */
-.pl-spot { position: absolute; width: 40px; height: 40px; }
-.play--phone .pl-spot { right: 16px; bottom: 16px; }
-
-/* Button on a phone, 6.2 s: tap, the button grows into the panel over the
-   whole box (0.35 s), the panel stays, shrinks back into the button
-   (0.26 s), a pause. As the widget does it (`morph` in element.tsx): the
-   skin is the button at rest, gone the moment it is tapped, so what grows
-   is the panel in its own background; back, with its glyph, once the panel
-   is a disc again. */
-.ph-open,
-.ph-skin { position: absolute; inset: 0; }
-.ph-open { background: var(--ph-bg); animation: ph-grow 6.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
-.ph-open please-no-bugs {
-  transform-origin: calc(100% - 36px) calc(100% - 36px);
-  animation: ph-content 6.2s infinite ease-out;
-}
-.ph-skin {
-  background: var(--ph-fab);
-  opacity: 0;
-  animation: ph-grow 6.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1), ph-skin 6.2s infinite linear;
-}
-.ph-glyph {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  color: var(--ph-on-fab);
-  opacity: 0;
-  animation: ph-glyph 6.2s infinite linear;
-}
-.ph-glyph { right: 16px; bottom: 16px; }
-.play--floating .pl-tap--a { animation: ph-tap-fab 6.2s infinite ease-out; }
-
-@keyframes ph-grow {
-  0%, 12.13% { clip-path: inset(calc(100% - 56px) 16px 16px calc(100% - 56px) round 20px); }
-  17.75%, 46.74% { clip-path: inset(0px 0px 0px 0px round 0px); }
-  50.94%, 100% { clip-path: inset(calc(100% - 56px) 16px 16px calc(100% - 56px) round 20px); }
-}
-@keyframes ph-skin {
-  0%, 12.13% { opacity: 1; }
-  12.14%, 50.94% { opacity: 0; }
-  53.52%, 100% { opacity: 1; }
-}
-@keyframes ph-glyph {
-  0%, 12.13% { opacity: 1; }
-  12.14%, 50.94% { opacity: 0; }
-  53.52%, 100% { opacity: 1; }
-}
-@keyframes ph-content {
-  0%, 12.97% { opacity: 0; transform: scale(0.96); }
-  16.63%, 46.74% { opacity: 1; transform: scale(1); }
-  49.04%, 100% { opacity: 0; transform: scale(0.96); }
-}
-@keyframes ph-tap-fab {
-  0%, 8.06% { opacity: 0; transform: scale(0.6); }
-  9.69% { opacity: 1; transform: scale(1); }
-  12.13%, 100% { opacity: 0; transform: scale(1.25); }
-}
-
-/* Inline on a phone, 6.6 s: tap the app's menu, it slides in, tap Feedback,
-   the app's Feedback page slides in with the widget in it, on the tiles,
-   stays, slides away. */
-.ph-menu {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: min(270px, 80%);
-  display: grid;
-  align-content: start;
-  background: var(--row);
-  box-shadow: var(--shadow);
-  transform: translateX(-100%);
-  animation: ph-menu 6.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
-}
-.ph-menu b { padding: 24px 24px 12px; font-size: 20px; font-weight: 900; }
-.ph-menu > span { position: relative; margin: 0 10px; padding: 12px 14px; border-radius: 12px; font-size: 17px; font-weight: 700; }
-.ph-menu > .ph-menu__pick { animation: ph-pick 6.6s infinite step-end; }
-.play--phone.play--inline .pl-dim { animation: ph-dim-inline 6.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
-.ph-page {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  background: var(--page);
-  animation: ph-page 6.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
-}
-.ph-back { padding: 24px; font-size: 20px; font-weight: 900; }
-.ph-page please-no-bugs { min-height: 0; }
-.play--phone.play--inline .pl-tap--a { animation: ph-tap-menu 6.6s infinite ease-out; }
-.play--phone.play--inline .pl-tap--b { animation: ph-tap-pick 6.6s infinite ease-out; }
-
-@keyframes ph-menu {
-  0%, 9.06% { transform: translateX(-100%); }
-  13.66%, 28.02% { transform: translateX(0); }
-  28.09%, 100% { transform: translateX(-100%); }
-}
-@keyframes ph-dim-inline {
-  0%, 9.06% { opacity: 0; }
-  13.66%, 28.02% { opacity: 1; }
-  28.09%, 100% { opacity: 0; }
-}
-@keyframes ph-pick {
-  0%, 19.17% { background: transparent; }
-  19.52%, 28.09% { background: var(--card); }
-  28.16%, 100% { background: transparent; }
-}
-@keyframes ph-page {
-  0%, 22.72% { transform: translateX(100%); }
-  28.02%, 54.57% { transform: translateX(0); }
-  59.1%, 100% { transform: translateX(100%); }
-}
-@keyframes ph-tap-menu {
-  0%, 5.3% { opacity: 0; transform: scale(0.6); }
-  6.83% { opacity: 1; transform: scale(1); }
-  9.06%, 100% { opacity: 0; transform: scale(1.25); }
-}
-@keyframes ph-tap-pick {
-  0%, 18.12% { opacity: 0; transform: scale(0.6); }
-  19.65% { opacity: 1; transform: scale(1); }
-  21.95%, 100% { opacity: 0; transform: scale(1.25); }
-}
-
-/* Overlay on a phone, 6 s: tap the app's own button, the widget rises from
-   the bottom (0.3 s), stays, slides back down. */
-.ph-sheet {
-  position: absolute;
-  inset: 0;
-  animation: ph-sheet 6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
-}
-.play--phone.play--overlay .pl-dim { animation: ph-dim-overlay 6s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
-.play--overlay .pl-tap--a { animation: ph-tap-cta 6s infinite ease-out; }
-
-@keyframes ph-sheet {
-  0%, 10% { transform: translateY(100%); }
-  15%, 47.53% { transform: translateY(0); }
-  52.2%, 100% { transform: translateY(100%); }
-}
-@keyframes ph-dim-overlay {
-  0%, 10% { opacity: 0; }
-  15%, 47.53% { opacity: 1; }
-  52.2%, 100% { opacity: 0; }
-}
-@keyframes ph-tap-cta {
-  0%, 6.67% { opacity: 0; transform: scale(0.6); }
-  8% { opacity: 1; transform: scale(1); }
-  10%, 100% { opacity: 0; transform: scale(1.25); }
-}
-
-/* Inline, 6.6 s, as on a phone but beside the app: tap the menu button in
-   front of the app's name, the menu slides in from the left, click
-   Feedback, and the app's Feedback page fills the rest of the screen with
-   the widget in it, on the tiles, the menu still open beside it; then both
-   go. The widget takes the width it is given. The menu without its motion
-   is also the frame the inline widget sits in after step 1 (`.inline-frame`). */
-.dk-menu {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 240px;
-  display: grid;
-  align-content: start;
-  background: var(--row);
-  box-shadow: var(--shadow);
-}
-.dk-menu b { padding: 24px 24px 12px; font-size: 20px; font-weight: 900; }
-.dk-menu > span { position: relative; margin: 0 10px; padding: 12px 14px; border-radius: 12px; font-size: 17px; font-weight: 700; }
-.dk-menu > .dk-menu__pick { background: var(--card); }
-
-
-/* ---- Make it yours ------------------------------------------------------ */
-
-.viewport { position: relative; }
-.edit__step > :last-child,
-.edit__step > :last-child > .field:last-child { margin-bottom: 0; }
-@media (max-width: 639px) {
-  .screen--inline > please-no-bugs { left: 0; top: 72px; }
-  .inline-frame .dk-menu { display: none; }
-  .inline-frame .ph-back { display: block; }
-}
-
-/*
- * How it opens: each way plays on a phone of its own (`PLAYS` and
- * `paintWays` in customize.js), over the same pretend app as the preview,
- * drawn at a phone's size and scaled to its card.
- *
- * Each way is one loop. The resting styles are the open state, which is
- * what shows with reduced motion; the keyframes start from closed.
- */
-.screen--device { cursor: default; }
-.screen--device > .screen__app,
-.screen--device > please-no-bugs { display: none; }
-
-.play { position: absolute; inset: 0; overflow: hidden; }
-.play please-no-bugs { display: block; height: 100%; }
-.play .screen__app b { display: flex; align-items: center; gap: 14px; }
-.ph-burger {
-  position: relative;
-  width: 22px;
-  height: 17px;
-  background:
-    linear-gradient(var(--ink) 0 0) top / 100% 3px no-repeat,
-    linear-gradient(var(--ink) 0 0) center / 100% 3px no-repeat,
-    linear-gradient(var(--ink) 0 0) bottom / 100% 3px no-repeat;
-}
-.pl-cta {
-  position: relative;
-  justify-self: start;
-  margin-top: 8px;
-  padding: 10px 20px;
-  border-radius: 999px;
-  border: 2px solid var(--button);
-  color: var(--button);
-  font-size: 15px;
-  font-weight: 900;
-}
-.pl-dim { position: absolute; inset: 0; background: rgba(10, 10, 30, 0.5); opacity: 0; }
-
-/* A tap: a light ring, centred on what it taps. */
-.pl-tap {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 46px;
-  height: 46px;
-  margin: -23px 0 0 -23px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  opacity: 0;
-}
-/* Where the round button is: as in the widget, 16px from the corner on a
-   phone and 24px on a wide screen. */
-.pl-spot { position: absolute; width: 40px; height: 40px; }
-.play--phone .pl-spot { right: 16px; bottom: 16px; }
-
-/* Button on a phone, 6.2 s: tap, the button grows into the panel over the
-   whole box (0.35 s), the panel stays, shrinks back into the button
-   (0.26 s), a pause. As the widget does it (`morph` in element.tsx): the
-   skin is the button at rest, gone the moment it is tapped, so what grows
-   is the panel in its own background; back, with its glyph, once the panel
-   is a disc again. */
-.ph-open,
-.ph-skin { position: absolute; inset: 0; }
-.ph-open { background: var(--ph-bg); animation: ph-grow 6.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1); }
-.ph-open please-no-bugs {
-  transform-origin: calc(100% - 36px) calc(100% - 36px);
-  animation: ph-content 6.2s infinite ease-out;
-}
-.ph-skin {
-  background: var(--ph-fab);
-  opacity: 0;
-  animation: ph-grow 6.2s infinite cubic-bezier(0.3, 0.9, 0.3, 1), ph-skin 6.2s infinite linear;
-}
-.ph-glyph {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  color: var(--ph-on-fab);
-  opacity: 0;
-  animation: ph-glyph 6.2s infinite linear; right: 16px; bottom: 16px;
-}
-
-@keyframes ph-grow {
-  0%, 12.13% { clip-path: inset(calc(100% - 56px) 16px 16px calc(100% - 56px) round 20px); }
-  17.75%, 46.74% { clip-path: inset(0px 0px 0px 0px round 0px); }
-  50.94%, 100% { clip-path: inset(calc(100% - 56px) 16px 16px calc(100% - 56px) round 20px); }
-}
-@keyframes ph-skin {
-  0%, 12.13% { opacity: 1; }
-  12.14%, 50.94% { opacity: 0; }
-  53.52%, 100% { opacity: 1; }
-}
-@keyframes ph-glyph {
-  0%, 12.13% { opacity: 1; }
-  12.14%, 50.94% { opacity: 0; }
-  53.52%, 100% { opacity: 1; }
-}
-@keyframes ph-content {
-  0%, 12.97% { opacity: 0; transform: scale(0.96); }
-  16.63%, 46.74% { opacity: 1; transform: scale(1); }
-  49.04%, 100% { opacity: 0; transform: scale(0.96); }
-}
-
-/* Inline on a phone, 6.6 s: tap the app's menu, it slides in, tap Feedback,
-   the app's Feedback page slides in with the widget in it, on the tiles,
-   stays, slides away. */
-.ph-menu {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: min(270px, 80%);
-  display: grid;
-  align-content: start;
-  background: var(--row);
-  box-shadow: var(--shadow);
-  transform: translateX(-100%);
-  animation: ph-menu 6.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
-}
-.ph-menu b { padding: 24px 24px 12px; font-size: 20px; font-weight: 900; }
-.ph-menu > span { position: relative; margin: 0 10px; padding: 12px 14px; border-radius: 12px; font-size: 17px; font-weight: 700; }
-.ph-menu > .ph-menu__pick { animation: ph-pick 6.6s infinite step-end; }
-.ph-page {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  background: var(--page);
-  animation: ph-page 6.6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
-}
-.ph-back { padding: 24px; font-size: 20px; font-weight: 900; }
-.ph-page please-no-bugs { min-height: 0; }
-
-@keyframes ph-menu {
-  0%, 9.06% { transform: translateX(-100%); }
-  13.66%, 28.02% { transform: translateX(0); }
-  28.09%, 100% { transform: translateX(-100%); }
-}
-@keyframes ph-pick {
-  0%, 19.17% { background: transparent; }
-  19.52%, 28.09% { background: var(--card); }
-  28.16%, 100% { background: transparent; }
-}
-@keyframes ph-page {
-  0%, 22.72% { transform: translateX(100%); }
-  28.02%, 54.57% { transform: translateX(0); }
-  59.1%, 100% { transform: translateX(100%); }
-}
-
-/* Overlay on a phone, 6 s: tap the app's own button, the widget rises from
-   the bottom (0.3 s), stays, slides back down. */
-.ph-sheet {
-  position: absolute;
-  inset: 0;
-  animation: ph-sheet 6s infinite cubic-bezier(0.3, 0.9, 0.3, 1);
-}
-
-@keyframes ph-sheet {
-  0%, 10% { transform: translateY(100%); }
-  15%, 47.53% { transform: translateY(0); }
-  52.2%, 100% { transform: translateY(100%); }
-}
-
-/* Asked for less motion: each way shows open, and stands still. */
-
-@media (prefers-reduced-motion: reduce) {
-  .play * { animation: none !important; }
-}
-
-@media (max-width: 639px) {
-  .tour.editor { padding: 10px; }
-}
-
-/* The frame around the screen is the home page's (`.editor`). */
-
-.desk .viewport {
-  /* As tall as the home page's screen. */
-  height: clamp(600px, calc(100vh - 220px), 760px);
-  /* The theme cards' width, and where the app starts beside them (inline). */
-  --app-x: calc(var(--deck-w) + 48px);
-}
-
-/* The widget's button and panel ride on the top of everything in the page
-   (z-index in the millions); kept in the app's own layer here, so the card
-   lies over it. */
-
-.screen--make:not(.screen--inline) > please-no-bugs { position: relative; z-index: 1; }
-
-.stepbar {
-  display: flex;
-  gap: 12px;
-  padding: 10px 16px;
-}
-
-.stepbar[hidden] { display: none; }
-
-.ways {
-  position: absolute;
-  z-index: 3;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: var(--deck-h, 0px);
-  display: grid;
-  align-content: center;
-  gap: 14px;
-  padding: 20px;
-  background: var(--page);
-}
-
-.ways[hidden] { display: none; }
-
-.ways__track { display: grid; grid-template-columns: repeat(3, minmax(0, 230px)); justify-content: center; gap: 24px; }
-
-.way:hover { transform: translateY(-3px); }
-
-.way__screen {
-  position: relative;
-  display: block;
-  width: 100%;
-  aspect-ratio: 320 / 560;
-  margin-bottom: 4px;
-  overflow: hidden;
-  border-radius: 12px;
-  background: var(--page);
-  transform: translateZ(0);
-}
-
-/* The phone the play is drawn on, scaled to the card (`scaleWays`). */
-
-.way__device.play {
-  inset: auto;
-  left: 0;
-  top: 0;
-  width: 320px;
-  height: 560px;
-  transform: scale(var(--s, 0.7));
-  transform-origin: 0 0;
-}
-
-.way__name::after { content: ''; }
-
-.way[aria-pressed='true'] .way__name::after { content: ' \2713'; color: var(--button); }
-
-.ways__dots { display: none; }
-
-/* On a phone one card at a time, swiped, with dots under them. */
-
-@media (max-width: 639px) {
-  .ways { padding: 16px 0; }
-  .ways__track {
-    display: flex;
-    gap: 14px;
-    padding: 0 14%;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-  .ways__track::-webkit-scrollbar { display: none; }
-  .way { flex: 0 0 100%; scroll-snap-align: center; }
-  .ways__dots { display: flex; justify-content: center; gap: 8px; }
-  .ways__dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--card-2); cursor: pointer; }
-  .ways__dots i.on { background: var(--button); }
-  .stepbar { padding: 8px 10px; gap: 8px; }
-}
-
-@media (min-width: 980px) {
-
-  /* Inline: the app, its menu and its Feedback page, beside the theme cards. */
-  .screen--make.screen--inline > .inline-frame .dk-menu { left: var(--app-x); width: var(--menu-w); }
-  .screen--make.screen--inline > please-no-bugs { left: calc(var(--app-x) + var(--menu-w)); }
-}
-
-@media (max-width: 979px) {
-  /* The panel takes its share of the screen: taller, as far as the device
-     allows, so the app above it keeps room for the widget. */
-  .desk .viewport { height: clamp(600px, calc(100svh - 140px), 900px); }
-}
-
-@media (max-width: 639px) {
-  /* As much of the phone as the bar above leaves; the panel a little less of it. */
-  .desk .viewport { height: clamp(600px, calc(100svh - 120px), 820px); }
-}
-
-.make { padding-top: clamp(32px, 4.5vw, 64px); padding-bottom: 96px; }
-
-/* No frame round the stage here: the stage is the frame. */
-
-/* The frame and the pretend app the home page's demo plays in, and Make it
-   yours' screen too. */
-
-.make .editor {
-  border-radius: var(--radius-lg); padding: 0; border: 0; background: none; }
-
-.desk .viewport {
-  overflow: hidden;
-  --deck-w: clamp(300px, 32%, 360px);
-  --menu-w: 200px;
-  border-radius: 20px;
-  background: var(--row);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-.screen--make {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: var(--deck-h, 0px);
-  height: auto;
-  cursor: default; border-radius: 0; background: transparent; box-shadow: none; }
-
-.stepbar {
-  position: absolute;
-  z-index: 5;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  align-items: center;
-  border-radius: 999px;
-  background: var(--card);
-  box-shadow: inset 0 0 0 1px var(--line), 0 8px 24px rgba(10, 10, 30, 0.28);
-}
-
-.stepbar__name { flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--sub); font-family: var(--font); font-size: 12px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
-
-.stepbar__name b { color: var(--ink); font-weight: 500; }
-
-.way {
-  display: grid;
-  gap: 6px;
-  align-content: start;
-  padding: 10px 10px 14px;
-  border: 2px solid transparent;
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 160ms ease, border-color 160ms ease; border-radius: 14px; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); }
-
-.way[aria-pressed='true'] { border-color: var(--button); box-shadow: inset 0 0 0 2px var(--button); }
-
-.way__name { font-size: 18px; padding: 0 4px; font-weight: 600; letter-spacing: -0.03em; }
-
-.way__line { padding: 0 4px; font-size: 13px; line-height: 1.45; color: var(--sub); }
-
-/* Light or dark: three cards at the stage's left, the widget at its right.
-   The third, making your own, is greyed and does nothing yet. */
-
-.themes[hidden] { display: none; }
-
-.themes {
-  position: absolute;
-  z-index: 3;
-  top: 24px;
-  left: 24px;
-  display: grid;
-  gap: 10px;
-  width: min(340px, calc(100% - 48px));
-  padding: 20px;
-  border-radius: 16px;
-  background: var(--card);
-  box-shadow: inset 0 0 0 1px var(--line), 0 12px 32px rgba(10, 10, 30, 0.28);
-  color: var(--ink);
-}
-
-/* The cards, one under the other here; swiped one at a time on a phone. */
-
-.themes__track { display: grid; gap: 10px; }
-
-.themes__dots { display: none; }
-
-.themes__title {
-  margin: 0 0 6px;
-  font-size: clamp(24px, 2.4vw, 32px);
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-}
-
-.theme-card {
-  display: grid;
-  grid-template-columns: 76px 1fr;
-  grid-template-rows: auto auto;
-  column-gap: 14px;
-  align-items: center;
-  padding: 12px;
-  border: 0;
-  border-radius: 14px;
-  background: var(--card);
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: box-shadow 160ms ease;
-}
-
-.theme-card:hover { box-shadow: inset 0 0 0 1px var(--faint); }
-
-.theme-card[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--button); }
-
-.theme-card__preview {
-  grid-row: 1 / 3;
-  position: relative;
-  display: grid;
-  align-content: start;
-  gap: 4px;
-  height: 58px;
-  padding: 8px;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-.theme-card__preview b { width: 60%; height: 5px; border-radius: 3px; }
-
-.theme-card__preview i { height: 8px; border-radius: 3px; }
-
-.theme-card__preview em { position: absolute; right: 6px; bottom: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--button); }
-
-/* Each card's small board, in the widget's own colours. */
-.theme-card__preview--light { background: #ffffff; }
-
-.theme-card__preview--light b,
-.theme-card__preview--light em { background: #111111; }
-
-.theme-card__preview--light i { background: #ececee; }
-
-.theme-card__preview--dark { background: #111111; box-shadow: none; }
-
-.theme-card__preview--dark b,
-.theme-card__preview--dark em { background: #ffffff; }
-
-.theme-card__preview--dark i { background: #2a2a2d; }
-
-.theme-card__name { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
-
-.theme-card__line { color: var(--sub); font-size: 13px; line-height: 1.4; }
-
-
-/* A phone: a band along the bottom, above the bar, with one card at a time
-   to swipe and dots under them, as "How it opens" does. The widget stands
-   above the band (customize.js counts it in `--deck-h`), never under it. */
-
-@media (max-width: 760px) {
-  .themes {
-    top: auto;
-    bottom: var(--bar-h, 0px);
-    left: 0;
-    right: 0;
-    width: auto;
-    gap: 8px;
-    padding: 12px 0 10px;
-    border-radius: 0;
-    background: var(--card);
-    box-shadow: inset 0 1px 0 var(--line);
-  }
-  .themes__title { display: none; }
-  .themes__track {
-    display: flex;
-    gap: 12px;
-    padding: 0 14%;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-  .themes__track::-webkit-scrollbar { display: none; }
-  .theme-card { flex: 0 0 100%; grid-template-columns: 64px 1fr; scroll-snap-align: center; }
-  .theme-card__preview { height: 52px; }
-  .themes__dots { display: flex; justify-content: center; gap: 8px; }
-  .themes__dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); cursor: pointer; }
-  .themes__dots i.on { background: var(--button); }
-}
-
-/* A phone leaves the stage little height above the card: a shorter chat. */
-
-.make-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px 32px;
-  margin-bottom: 32px;
-}
-
-.make-head h1 { font-size: clamp(36px, 4.4vw, 56px); }
-
-.make-head .lead { max-width: 520px; margin: 12px 0 0; }
-
-.mk-panel[hidden] { display: none; }
-
-.mk-panel {
-  position: absolute;
-  z-index: 3;
-  inset: 0 0 var(--deck-h, 0px);
-  overflow-y: auto;
-  padding: clamp(24px, 3.4vw, 48px);
-  border-radius: 20px 20px 0 0;
-  background: var(--card);
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--ink);
-}
-
-.mk-panel__step { display: grid; align-content: start; gap: 16px; max-width: 1120px; }
-
-.mk-panel h2 { margin: 0; font-size: clamp(28px, 3vw, 40px); }
-
-.mk-panel__lead { max-width: 640px; margin: 0 0 8px; color: var(--sub); font-size: 17px; line-height: 1.5; }
-
-.mk-small { margin: 0; color: var(--sub); font-size: 13px; line-height: 1.5; }
-
-.mk-small a { color: var(--ink); font-weight: 600; }
-
-/* Where it runs: three big choices. */
-
-.mk-runs { display: grid; grid-template-columns: repeat(3, minmax(0, 300px)); gap: 16px; }
-
-.mk-run {
-  display: grid;
-  gap: 8px;
-  padding: 24px;
-  border: 0;
-  border-radius: 14px;
-  background: var(--card-2);
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.mk-run:hover { box-shadow: inset 0 0 0 1px var(--faint); }
-
-.mk-run[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--button); }
-
-.mk-run b { font-size: 18px; font-weight: 600; letter-spacing: -0.03em; }
-
-.mk-run span { color: var(--sub); font-size: 14px; line-height: 1.5; }
-
-@media (max-width: 900px) {
-  .mk-runs { grid-template-columns: 1fr; }
-}
-
-/* Why Next waits, in the bar beside the step's name; gone once chosen. */
-
-.stepbar__why {
-  display: block;
-  margin-top: 2px;
-  color: var(--ink);
-  font-family: var(--font);
-  font-size: 13px;
-  letter-spacing: -0.01em;
-  text-transform: none;
-}
-
-.stepbar .btn[disabled] { background: var(--line); color: var(--faint); opacity: 1; cursor: not-allowed; }
-
-.mk-code { display: grid; gap: 8px; margin-top: 12px; }
-
-.mk-code > b { font-family: var(--font); font-size: 11px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; color: var(--sub); }
-
-.mk-code .btn { justify-self: start; }
-
-/* ---- The last step: how it gets made, in three slides ------------------ */
-
-/*
- * Wide over the stage, as "Where it's used": a small title, the slides
- * (customize.js, `playSlides`), and at the foot, always in view, the prompt
- * to copy with the choices under it. Each slide is its words at the left and
- * its own small animation at the right; on a phone, one above the other.
- * Parts come in by number (`data-in` → `.is-in`), sliding up a little.
- */
-.ready {
-  position: absolute;
-  z-index: 3;
-  inset: 0 0 var(--deck-h, 0px);
-  display: flex;
-  flex-direction: column;
-  /* Not a page section's padding. */
-  padding: 0;
-  border-radius: 20px 20px 0 0;
-  background: var(--card);
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--ink);
-}
-.ready[hidden] { display: none; }
-
-.ready__title {
-  margin: 0;
-  padding: clamp(20px, 2.6vw, 32px) clamp(24px, 3.4vw, 48px) 0;
-  color: var(--sub);
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.ready__stage { position: relative; flex: 1; min-height: 0; }
-
-.slides { position: absolute; inset: 0 0 36px; }
-
-.slide {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(24px, 4vw, 64px);
-  padding: 8px clamp(24px, 3.4vw, 48px);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 400ms ease, visibility 0s 400ms;
-}
-.slide.is-on { opacity: 1; visibility: visible; transition: opacity 400ms ease 150ms, visibility 0s; }
-
-.slide__text { display: grid; gap: 12px; max-width: 420px; }
-.slide__text small { color: var(--button); font-size: 14px; font-weight: 900; }
-.slide__text h2 { font-size: clamp(28px, 3vw, 40px); }
-.slide__text p { margin: 0; color: var(--sub); font-size: 18px; line-height: 1.5; }
-
-.slide__show { display: grid; place-items: center; height: 100%; min-height: 0; }
-
-/* The words come in, then the drawing, as the slide arrives. */
-.slide .slide__text,
-.slide .slide__show { transform: translateY(10px); transition: transform 500ms cubic-bezier(0.3, 0.9, 0.3, 1); }
-.slide.is-on .slide__text { transform: none; transition-delay: 150ms; }
-.slide.is-on .slide__show { transform: none; transition-delay: 300ms; }
-
-/* An AI agent's chat, in the widget's colours: the agent's words on the
-   card's darker purple, yours in turquoise. */
-.chat {
-  display: grid;
-  gap: 10px;
-  width: min(100%, 340px);
-  padding: 16px;
-  border-radius: 16px;
-  background: var(--page);
-  box-shadow: inset 0 0 0 1.5px var(--line), var(--shadow);
-}
-.chat__head { display: flex; align-items: center; gap: 8px; color: var(--sub); font-size: 13px; font-weight: 700; }
-.chat__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--button); }
-.chat__msg {
-  justify-self: start;
-  max-width: 88%;
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: 12px 12px 12px 4px;
-  background: var(--card-2);
-  font-size: 14px;
-  line-height: 1.45;
-}
-.chat__msg--me {
-  justify-self: end;
-  border-radius: 12px 12px 4px 12px;
-  background: var(--button);
-  color: #ffffff;
-  font-weight: 700;
-}
-.chat__chip {
-  display: inline-block;
-  margin-right: 6px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
-  vertical-align: 1px;
-}
-.chat__typing { display: flex; gap: 4px; height: 8px; margin: 0; }
-.chat__typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); animation: chat-dot 900ms ease-in-out infinite; }
-.chat__typing i:nth-child(2) { animation-delay: 150ms; }
-.chat__typing i:nth-child(3) { animation-delay: 300ms; }
-@keyframes chat-dot {
-  50% { transform: translateY(-3px); opacity: 0.5; }
-}
-.chat__done { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 14px; font-weight: 700; }
-.chat__done li { display: flex; align-items: center; gap: 8px; }
-.chat__done li::before {
-  content: '✓';
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--button);
-  color: #ffffff;
-  font-size: 12px;
-}
-
-/* A part that comes in by number. Out of the flow until then, so the chat
-   grows as it would. */
-.slide [data-in] { display: none; }
-.slide [data-in].is-in { display: revert; animation: slide-in 380ms cubic-bezier(0.3, 0.9, 0.3, 1) both; }
-.chat__typing.is-in { display: flex; }
-.chat__done.is-in { display: grid; }
-@keyframes slide-in {
-  from { opacity: 0; transform: translateY(8px); }
-}
-
-/* Slide 3: the app with the widget in it, the way picked, as "How it
-   opens" plays it, scaled to the slide (`--s`). */
-.slide__show--app { position: relative; overflow: hidden; }
-/* Out of the flow, so its own size never stretches the slide. */
-.slide__device.play {
-  position: absolute;
-  inset: 50% auto auto 50%;
-  display: block;
-  width: 320px;
-  height: 560px;
-  border-radius: 24px;
-  background: var(--page);
-  box-shadow: inset 0 0 0 1.5px var(--line), var(--shadow);
-  transform: translate(-50%, -50%) scale(var(--s, 1));
-}
-
-/* A dot per slide, under them: the one in view lit, a click goes there. */
-.slides__dots {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 8px;
-  display: flex;
-  justify-content: center;
-  gap: 4px;
-}
-.slides__dots button {
-  width: 28px;
-  height: 20px;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-}
-.slides__dots button::before {
-  content: '';
-  display: block;
-  width: 8px;
-  height: 8px;
-  margin: auto;
-  border-radius: 50%;
-  background: var(--card-2);
-  transition: width 200ms ease, background-color 200ms ease;
-}
-.slides__dots button[aria-current='true']::before { width: 22px; border-radius: 4px; background: var(--button); }
-.peek:not([hidden]) ~ .slides__dots { display: none; }
-
-/* The prompt or the code, in the slides' place. */
-.peek {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  align-content: start;
-  gap: 12px;
-  padding: 12px clamp(24px, 3.4vw, 48px);
-  overflow-y: auto;
-}
-.peek__back {
-  justify-self: start;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--button);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.peek .code { max-height: none; white-space: pre-wrap; font-size: 12px; }
-.peek .mk-code .code { white-space: pre; overflow-x: auto; }
-
-/* The foot: the prompt to copy, always there, and the choices under it. */
-.ready__foot {
+.get {
   display: grid;
   justify-items: center;
+  padding-top: clamp(40px, 6vw, 88px);
+  padding-bottom: 120px;
+  text-align: center;
+}
+.get__title { margin: 0; font-size: clamp(40px, 6vw, 64px); }
+
+.get__styles { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 28px; }
+.get-style {
+  display: inline-flex;
+  align-items: center;
   gap: 10px;
-  padding: 14px clamp(24px, 3.4vw, 48px) 18px;
-  border-top: 1px solid var(--line);
+  min-height: 52px;
+  padding: 8px 22px 8px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 2px var(--ink), var(--shadow);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: default;
 }
-.ready__copy { width: min(100%, 420px); min-height: 52px; font-size: 17px; }
-.ready__more {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 14px;
-  margin: 0;
+.get-style img { width: 28px; height: auto; }
+.get-style--soon { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); color: var(--faint); font-weight: 700; }
+.get-style__plus {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1.5px dashed var(--faint);
+  border-radius: 50%;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* The phone, tilted, floating a little up and down. */
+.get__stage { display: grid; justify-items: center; margin-top: 24px; padding-top: 48px; perspective: 1800px; }
+.phone3d {
+  --tilt: rotateX(14deg) rotateY(-24deg) rotateZ(3deg);
+  width: 320px;
+  height: 640px;
+  padding: 12px;
+  border-radius: 48px;
+  background: #111111;
+  box-shadow: inset 0 0 0 2px #2a2a2d, 40px 50px 70px -30px rgba(0, 0, 0, 0.4), 0 12px 24px rgba(0, 0, 0, 0.08);
+  transform: var(--tilt);
+  animation: phone-float 6s ease-in-out infinite;
+  transition: background-color 300ms ease;
+}
+.phone3d--dark { background: #2a2a2d; box-shadow: inset 0 0 0 2px #3a3a3e, 40px 50px 70px -30px rgba(0, 0, 0, 0.45), 0 12px 24px rgba(0, 0, 0, 0.1); }
+.phone3d__screen { height: 100%; overflow: hidden; border-radius: 36px; background: #ffffff; }
+.phone3d--dark .phone3d__screen { background: #111111; }
+.phone3d__screen please-no-bugs { display: block; height: 100%; }
+@keyframes phone-float {
+  50% { transform: var(--tilt) translateY(-10px); }
+}
+.get__said { min-height: 1.5em; margin: 36px 0 0; color: var(--sub); font-weight: 700; }
+
+/* Light or dark: two halves of one pill, the chosen one raised in white. */
+.get__switch { display: inline-flex; margin-top: 20px; padding: 4px; border-radius: 999px; background: var(--card-2); }
+.get__switch button {
+  min-width: 104px;
+  min-height: 42px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
   color: var(--sub);
-  font-size: 13px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
 }
-.ready__choices,
-.ready__links { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
-.ready__more button {
+.get__switch button[aria-checked='true'] { background: var(--card); color: var(--ink); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+
+.get__copy { margin-top: 36px; min-height: 56px; padding: 0 32px; font-size: 17px; }
+.get__more { display: grid; gap: 6px; margin: 14px 0 0; color: var(--sub); font-size: 14px; }
+.get__more button {
   padding: 0;
   border: 0;
   background: none;
   color: var(--ink);
   font: inherit;
   font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
 }
-.ready__choices button { color: var(--sub); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
-.ready__choices button:hover,
-.ready__more button:hover { color: var(--ink); }
-.ready__links button { color: var(--button); }
-.ready__links button + button { margin-left: 8px; }
-.ready__links button[aria-pressed='true'] { text-decoration: underline; text-underline-offset: 3px; }
 
-@media (max-width: 760px) {
-  .slide {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-    align-items: start;
-    gap: 12px;
-  }
-  .slide__text { gap: 6px; }
-  .slide__text h2 { font-size: 24px; }
-  .slide__text p { font-size: 15px; }
-  .chat { padding: 12px; gap: 8px; }
-  .chat__msg { font-size: 13px; }
+/* The prompt or the code, opened under it. */
+.get__peek { width: min(100%, 760px); margin-top: 28px; text-align: left; }
+.get__peek .code { max-height: 420px; overflow: auto; white-space: pre-wrap; font-size: 12.5px; }
+.get__small { margin: 0 0 12px; color: var(--sub); font-size: 14px; line-height: 1.5; }
+.get__small a { color: var(--ink); font-weight: 700; }
+.get__code { display: grid; gap: 8px; margin-top: 16px; }
+.get__code > b { font-size: 13px; }
+.get__code .code { white-space: pre; }
+.get__code .btn { justify-self: start; }
+
+@media (max-width: 560px) {
+  .phone3d { --tilt: rotateX(10deg) rotateY(-16deg) rotateZ(2deg); width: 270px; height: 540px; border-radius: 42px; }
+  .phone3d__screen { border-radius: 30px; }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .slide,
-  .slide .slide__text,
-  .slide .slide__show { transition: none; transform: none; }
-  .slide [data-in].is-in { animation: none; }
-  .chat__typing i { animation: none; }
+  .phone3d { animation: none; }
 }
+
+/* ---- The page's own board, out of the way ------------------------------ */
 
 /* The page's real board (its round button, bottom right) steps aside while
-   the demo plays (tour.js) and while Make it yours' stage is in view
-   (customize.js), so only one round button is on screen, and it never sits
-   on the steps' Next button on a phone. */
+   the demo plays (tour.js), so only one round button is on screen. */
 
 body > please-no-bugs[project] { transition: opacity 200ms ease, visibility 0s linear 0s; }
 
@@ -2463,7 +1463,6 @@ body.real-aside > please-no-bugs[project] {
   body > please-no-bugs[project],
   body.real-aside > please-no-bugs[project] { transition: none; }
 }
-
 
 .toast {
   position: fixed;
@@ -2497,9 +1496,9 @@ body.real-aside > please-no-bugs[project] {
 
 /* ---- The minimal look: where the parts above need more than the colours -- */
 
-/* The background's glyphs: black, faint but there. */
-.page-pattern use { fill: #111111; opacity: 0.08; }
-.page--pattern::before { filter: invert(1); opacity: 0.08; }
+/* The background's glyphs: black, faint, there without asking for the eye. */
+.page-pattern use { fill: #111111; opacity: 0.05; }
+.page--pattern::before { filter: invert(1); opacity: 0.05; }
 
 /* The pretend app: a white window with a soft shadow on the grey page. */
 .editor { border-color: var(--line); box-shadow: var(--shadow); }
@@ -2508,8 +1507,7 @@ body.real-aside > please-no-bugs[project] {
 .screen__app i:nth-of-type(3) { background: #ffffff; }
 
 /* The demo: taps in black, the drawn people and bubbles outlined. */
-.tour-tap,
-.pl-tap { background: rgba(0, 0, 0, 0.12); border-color: rgba(0, 0, 0, 0.5); }
+.tour-tap { background: rgba(0, 0, 0, 0.12); border-color: rgba(0, 0, 0, 0.5); }
 .ti-tile,
 .ti-bubble { box-shadow: 0 0 0 1.5px var(--line), var(--shadow); }
 .ti-bubble i { background: #e4e4e7; }

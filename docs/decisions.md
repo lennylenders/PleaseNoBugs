@@ -1894,6 +1894,20 @@ The owner picked the minimal look (branch `minimal`) and asked for more:
   and Dark: Get your widget's first step is "Light or dark", two cards, no
   "coming soon". Still 0.5.0, which is not out yet.
 
+## 2026-11-26 (later): Get your widget, one clean column
+
+The owner wanted Get your widget much simpler. Now it is one centred column
+on a plain page (no floating glyphs there): the title, the widget's style
+(PleaseNoBugs, selected, with a greyed "More soon" beside it), the real
+widget on a phone tilted in 3D that goes through its screens by itself
+(the tiles, writing, sent, the board, with a word under each), a Light /
+Dark switch, and "Copy prompt for your AI agent" with "See the prompt" and
+"Show the code" under it. How it opens and where the app runs are no
+longer picked on the page: the prompt has the agent ask, and the code
+starts as a round button with the signer for outside Nimiq Pay, which is
+right everywhere. The four steps, the slides and their styles are gone.
+The floating glyphs on Home and Why are a little fainter again.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
