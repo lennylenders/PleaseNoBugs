@@ -1857,6 +1857,12 @@ the goal on the darkest band, and the three steps as three equal cards. The
 drawings of the votes and of the code typing itself are gone; the first one
 stays.
 
+Same day, after the owner looked: the line icons were Nimiq's. The cards now
+have bold glyphs of our own (a server, a wallet, a vote arrow, a crown) on
+raised tiles in the widget's colours, like its Report a bug / Share an idea /
+Write a review tiles; the Phosphor icons are gone. In the drawing Fons no
+longer gets a tick when his bug is fixed: he says "Thanks for the fix!".
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

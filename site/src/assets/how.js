@@ -7,7 +7,7 @@
  * - **What it is about**: three users each say something in a bubble, a bug,
  *   an idea and a review, and it lands on the board; the others read along
  *   and vote for the idea; you answer the bug, it is Done and fixed in a
- *   version, and whoever reported it gets a tick. About 10 s, then again.
+ *   version, and whoever reported it says thanks. About 10 s, then again.
  *
  * It starts when it comes into view, and its time stands still while it is
  * out of view or the tab is hidden. With reduced motion it shows its last
@@ -139,7 +139,7 @@ function bump(vote, voted = false) {
         }
         await sleep(300);
 
-        // The app developer answers the bug, and Fons sees it fixed.
+        // The app developer answers the bug, and Fons thanks them for the fix.
         await say(who.you, sleep);
         el.classList.add('is-answered');
         await sleep(500);
