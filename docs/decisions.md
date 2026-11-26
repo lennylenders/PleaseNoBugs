@@ -1863,6 +1863,19 @@ raised tiles in the widget's colours, like its Report a bug / Share an idea /
 Write a review tiles; the Phosphor icons are gone. In the drawing Fons no
 longer gets a tick when his bug is fixed: he says "Thanks for the fix!".
 
+## 2026-11-26 (trial, branch `minimal`): A minimal look on Home and Why
+
+The owner wants to see whether a more minimal style suits better, from an
+earlier Figma design (Archief · Classic-verkenningen, "Site · Home"
+124:1482): a light grey page, white cards, navy words and flat navy
+buttons. On its own branch, so Classic stays as it is; only Home and Why
+PleaseNoBugs (`look-minimal` on their body), Get your widget keeps Classic.
+Everything stays (demo, drawings, glyph background, coloured tiles and
+labels), only in the minimal colours and flat. The widget on these pages,
+real and in the demo, is light with navy buttons, through its own colour
+settings from the site's stylesheet: if the owner keeps it, it becomes a
+widget theme.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
