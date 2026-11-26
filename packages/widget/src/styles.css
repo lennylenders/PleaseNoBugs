@@ -158,6 +158,9 @@
   --pnb-radius: 8px;
   --pnb-radius-sheet: 16px;
   --pnb-radius-panel: 16px;
+  /* On a phone the board is a sheet from the bottom: how much of the app stays
+     in view above it, under the screen's own top (--pnb-inset-top). */
+  --pnb-sheet-top: 48px;
   /* Pills: filters, chips, votes, Top/New and the big buttons. Round, unless
      a theme wants them squarer. */
   --pnb-radius-pill: 999px;
@@ -1768,15 +1771,22 @@ button {
 
 /* ---- Overlay and floating button --------------------------------------- */
 
+/* On a phone the board is a sheet from the bottom, over a dimmed app: a
+   strip of the app stays in view above it (--pnb-sheet-top), and a tap there,
+   or a swipe down on the sheet's top, closes it (`Overlay` in element.tsx). */
 .overlay {
   position: fixed;
-  inset: 0;
+  inset: calc(var(--pnb-inset-top) + var(--pnb-sheet-top)) 0 0 0;
   z-index: var(--pnb-z);
+  border-radius: var(--pnb-radius-sheet) var(--pnb-radius-sheet) 0 0;
+  overflow: hidden;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.24);
   animation: slide-up 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* The screen's top is above the sheet now; its bottom is still its own. */
 .overlay .app {
-  --_top: var(--pnb-inset-top);
+  --_top: 0px;
   --_bottom: var(--pnb-inset-bottom);
 }
 
@@ -1784,26 +1794,55 @@ button {
   animation: slide-down 220ms cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-/* What dims the page behind the panel. On a phone the board covers it all,
-   so there is nothing to dim. */
+/* The grip: a short line at the top of the sheet, which says it can be
+   swiped down. Over the bar, which leaves the room for it. */
+.grip {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  z-index: 2;
+  width: 36px;
+  height: 4px;
+  margin-left: -18px;
+  border-radius: 2px;
+  background: var(--pnb-text-quiet);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* The top of the sheet is where a swipe starts: the page must not scroll
+   instead. Taps on its buttons still land. */
+.overlay .app > .bar {
+  touch-action: none;
+}
+
+/* Being swiped: it follows the finger, with nothing easing behind it. */
+.overlay--dragging {
+  transition: none;
+}
+
+/* What dims the page behind the sheet or panel; a tap on it closes. */
 .backdrop {
-  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--pnb-z) - 1);
+  background: var(--pnb-scrim);
+  animation: fade-in 200ms ease;
+}
+
+.backdrop--leaving {
+  animation: fade-out 200ms ease forwards;
 }
 
 /* A wider screen: the board as a panel in the bottom-right corner, where the
    button was, 375 wide and as tall as it needs up to 640. */
 @media (min-width: 640px) {
-  .backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: calc(var(--pnb-z) - 1);
-    background: var(--pnb-scrim);
-    animation: fade-in 200ms ease;
+  .grip {
+    display: none;
   }
 
-  .backdrop--leaving {
-    animation: fade-out 200ms ease forwards;
+  .overlay .app > .bar {
+    touch-action: auto;
   }
 
   .overlay {
@@ -1811,7 +1850,6 @@ button {
     width: 375px;
     max-height: min(640px, calc(100vh - 48px));
     border-radius: var(--pnb-radius-panel);
-    overflow: hidden;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.24);
     animation: panel-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }

@@ -1827,6 +1827,25 @@ version and link under "Fixed in" were the card's own colour in
 `pleasenobugs`; a field inside a card now has its own token,
 `--pnb-field-in-card` (the page's dark purple; Nimiq's unchanged).
 
+## 2026-11-26 (later): On a phone the board is a sheet, not the whole screen
+
+The owner wants the widget on a phone to feel like a modal: opened, it no
+longer covers the whole screen. Their choices:
+
+- **A narrow strip of the app stays in view** above it, dimmed: 48px under
+  the screen's own top, a new token `--pnb-sheet-top` a theme can change.
+  The sheet has rounded top corners and a small grip.
+- **Closing**: a swipe down on the sheet's top (the grip and the bar; the
+  list keeps its own scrolling), a tap on the dimmed strip, or the X. A short
+  swipe springs back; a far or fast one closes.
+- **Opening stays as it was**: the round button grows into the sheet, and a
+  close by X or tap shrinks it back; a swipe lets it slide on down.
+- From 640px wide nothing changes: the panel in the corner.
+
+Tested in headless Chrome with real touch: open at 48px, a short swipe
+springs back, a long one closes, the strip and the X close, a tap on X stays
+a tap.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

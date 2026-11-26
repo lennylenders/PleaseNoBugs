@@ -22,9 +22,12 @@ wallet by itself; everywhere else it reads, and your app can hand it a signer.
 Each opens on the tiles (bug, idea, review), with the board one tap under
 them. `start="board"` opens on the board instead.
 
-`floating` and `overlay` cover the whole screen on a phone. From 640 pixels
-wide they are a panel in the bottom-right corner instead, 375 wide and up to
-640 tall, over a dimmed page; a click beside it or Escape closes it.
+`floating` and `overlay` are a sheet from the bottom on a phone: nearly the
+whole screen, with a strip of your app still in view above it, dimmed
+(`--pnb-sheet-top`). A tap on that strip, a swipe down on the sheet's top or
+its X closes it. From 640 pixels wide they are a panel in the bottom-right
+corner instead, 375 wide and up to 640 tall, over a dimmed page; a click
+beside it or Escape closes it.
 
 From a button of your own:
 
@@ -206,7 +209,8 @@ please-no-bugs {
   --pnb-fab-squeeze: 1;                 /* and how small it gets pressed */
   --pnb-radius-panel: 16px;              /* the panel on a wide screen */
   --pnb-radius: 8px;
-  --pnb-radius-sheet: 16px;
+  --pnb-radius-sheet: 16px;              /* the sheet on a phone, and sheets inside */
+  --pnb-sheet-top: 48px;                 /* how much of your app stays in view above the sheet on a phone */
   --pnb-radius-pill: 999px;  /* filters, chips, votes, Top/New, buttons */
   --pnb-font: inherit;       /* your app's font */
   --pnb-z: 2147483000;       /* overlay and floating button */
@@ -216,8 +220,8 @@ please-no-bugs {
 ```
 
 **Inside Nimiq Pay, set the two insets yourself if you measure Pay's bar.**
-Pay draws its own bar over the page and `env()` cannot see it, so a full-screen
-board can end up underneath it. Only the overlay and the floating button use
+Pay draws its own bar over the page and `env()` cannot see it, so the sheet can
+end up underneath it. Only the overlay and the floating button use
 them; an inline board ignores both.
 
 ## Reusing your app's own login

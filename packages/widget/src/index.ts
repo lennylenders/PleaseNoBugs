@@ -37,7 +37,7 @@ export interface OpenOptions {
 }
 
 /**
- * Open the board over the whole screen, from a button of your own.
+ * Open the board over the page (a sheet on a phone), from a button of your own.
  * Answers a function that closes it again.
  *
  * @example
