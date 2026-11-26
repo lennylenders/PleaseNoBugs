@@ -128,16 +128,12 @@ function leave() {
 
 /**
  * The bar at the top: clear while the page is at its top, so the glyphs
- * show through it too; solid once it is scrolled, so nothing runs under the
- * links. Without this it stays solid.
+ * show through it too; solid once it is scrolled (`top--scrolled`, which
+ * assets/mode.js sets on every page), so nothing runs under the links.
+ * Without this it stays solid.
  */
 function clearBar() {
-  const bar = document.querySelector('.top');
-  if (!bar) return;
-  const update = () => bar.classList.toggle('top--scrolled', window.scrollY > 4);
-  update();
-  window.addEventListener('scroll', update, { passive: true });
-  body.classList.add('top-clear');
+  if (document.querySelector('.top')) body.classList.add('top-clear');
 }
 
 if (body.classList.contains('page--pattern')) {

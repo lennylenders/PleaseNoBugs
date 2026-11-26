@@ -75,6 +75,15 @@
   paint();
   document.addEventListener('DOMContentLoaded', function () {
     paint();
+    // The bar at the top gets a thin line under it once the page is scrolled.
+    var bar = document.querySelector('.top');
+    if (bar) {
+      var scrolled = function () {
+        bar.classList.toggle('top--scrolled', window.scrollY > 4);
+      };
+      scrolled();
+      window.addEventListener('scroll', scrolled, { passive: true });
+    }
     document.addEventListener('click', function (e) {
       var b = e.target.closest && e.target.closest('[data-mode-switch]');
       if (b) set(current === 'dark' ? 'light' : 'dark', true);
