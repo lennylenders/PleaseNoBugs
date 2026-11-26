@@ -1,7 +1,7 @@
 /**
  * Get your widget: one clean column. The widget style (PleaseNoBugs, the one
- * there is, with more to come), the real widget in `demo` mode on a phone
- * tilted in 3D that goes through its screens by itself, a switch between
+ * there is, with more to come), the real widget in `demo` mode on three
+ * phones in a fan that go through its screens by themselves, a switch between
  * Light and Dark, and the prompt for the developer's AI agent, with the code
  * for who prefers to add it by hand.
  *
@@ -45,12 +45,14 @@ const PLAYS = [
 ];
 const HOLD_MS = 2800;
 const phone = document.getElementById('phone-widget');
+/** Every phone in the fan: the one in front, and one either side. */
+const phones = [...document.querySelectorAll('[data-phone]')];
 const said = document.getElementById('phone-said');
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 function paintWidget() {
-  phone.setAttribute('theme', theme());
-  document.querySelector('.phone3d')?.classList.toggle('phone3d--dark', state.dark);
+  for (const p of phones) p.setAttribute('theme', theme());
+  for (const p of document.querySelectorAll('.phone3d')) p.classList.toggle('phone3d--dark', state.dark);
 }
 
 let played = 0;
@@ -58,9 +60,14 @@ let timer = 0;
 let seen = true;
 new IntersectionObserver(([e]) => (seen = e.isIntersecting)).observe(phone);
 
+/** Screen `i` on the phone in front, the one before it on the left, the one after on the right. */
 function show(i) {
-  const [screen, words] = PLAYS[i % PLAYS.length];
-  phone.setAttribute('screen', screen);
+  const at = (n) => PLAYS[((n % PLAYS.length) + PLAYS.length) % PLAYS.length];
+  const [screen, words] = at(i);
+  for (const p of phones) {
+    const pos = p.closest('.phone3d')?.dataset.pos;
+    p.setAttribute('screen', pos === 'left' ? at(i - 1)[0] : pos === 'right' ? at(i + 1)[0] : screen);
+  }
   said.textContent = words;
 }
 

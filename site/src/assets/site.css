@@ -1373,27 +1373,35 @@ section + section { padding-top: 0; }
   line-height: 1;
 }
 
-/* The phone, tilted, floating a little up and down. */
-.get__stage { display: grid; justify-items: center; margin-top: 24px; padding-top: 48px; perspective: 1800px; }
+/*
+ * The phones, in a fan: the one in front face on, one either side further
+ * back and turned towards it. Each floats a little up and down, out of step.
+ */
+.get__stage { display: grid; justify-items: center; width: 100%; margin-top: 24px; padding-top: 40px; perspective: 2000px; overflow-x: clip; }
+.get__phones { position: relative; display: grid; place-items: center; width: 100%; transform-style: preserve-3d; }
 .phone3d {
-  --tilt: rotateX(14deg) rotateY(-24deg) rotateZ(3deg);
-  width: 320px;
-  height: 640px;
-  padding: 12px;
-  border-radius: 48px;
-  background: #111111;
-  box-shadow: inset 0 0 0 2px #2a2a2d, 40px 50px 70px -30px rgba(0, 0, 0, 0.4), 0 12px 24px rgba(0, 0, 0, 0.08);
+  --tilt: none;
+  grid-area: 1 / 1;
+  width: 300px;
+  height: 600px;
+  border-radius: 32px;
+  /* No bezel: the screen itself, a thin line round it and a soft shadow. */
+  box-shadow: 0 0 0 1px var(--line), 0 28px 56px -20px rgba(0, 0, 0, 0.18), 0 6px 16px rgba(0, 0, 0, 0.04);
   transform: var(--tilt);
   animation: phone-float 6s ease-in-out infinite;
-  transition: background-color 300ms ease;
 }
-.phone3d--dark { background: #2a2a2d; box-shadow: inset 0 0 0 2px #3a3a3e, 40px 50px 70px -30px rgba(0, 0, 0, 0.45), 0 12px 24px rgba(0, 0, 0, 0.1); }
-.phone3d__screen { height: 100%; overflow: hidden; border-radius: 36px; background: #ffffff; }
+.phone3d--dark { box-shadow: 0 0 0 1px #2e2e32, 0 28px 56px -20px rgba(0, 0, 0, 0.3), 0 6px 16px rgba(0, 0, 0, 0.06); }
+.phone3d__screen { height: 100%; overflow: hidden; border-radius: inherit; background: #ffffff; transition: background-color 300ms ease; }
 .phone3d--dark .phone3d__screen { background: #111111; }
 .phone3d__screen please-no-bugs { display: block; height: 100%; }
 @keyframes phone-float {
   50% { transform: var(--tilt) translateY(-10px); }
 }
+
+.phone3d[data-pos='center'] { z-index: 2; }
+.phone3d[data-pos='left'] { --tilt: translateX(-230px) translateZ(-160px) rotateY(24deg); animation-delay: -2s; }
+.phone3d[data-pos='right'] { --tilt: translateX(230px) translateZ(-160px) rotateY(-24deg); animation-delay: -4s; }
+
 .get__said { min-height: 1.5em; margin: 36px 0 0; color: var(--sub); font-weight: 700; }
 
 /* Light or dark: two halves of one pill, the chosen one raised in white. */
@@ -1438,8 +1446,9 @@ section + section { padding-top: 0; }
 .get__code .btn { justify-self: start; }
 
 @media (max-width: 560px) {
-  .phone3d { --tilt: rotateX(10deg) rotateY(-16deg) rotateZ(2deg); width: 270px; height: 540px; border-radius: 42px; }
-  .phone3d__screen { border-radius: 30px; }
+  .phone3d { width: 250px; height: 500px; border-radius: 28px; }
+  .phone3d[data-pos='left'] { --tilt: translateX(-110px) translateZ(-200px) rotateY(24deg); }
+  .phone3d[data-pos='right'] { --tilt: translateX(110px) translateZ(-200px) rotateY(-24deg); }
 }
 @media (prefers-reduced-motion: reduce) {
   .phone3d { animation: none; }

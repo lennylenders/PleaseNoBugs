@@ -41,11 +41,23 @@
         </span>
       </div>
 
-      <!-- The real widget, in demo mode, on a phone tilted in 3D, going through its screens by itself (customize.js, `play`). -->
+      <!-- The real widget, in demo mode, on three phones in a fan, going through its screens by itself (customize.js, `play`). -->
       <div class="get__stage" aria-hidden="true">
-        <div class="phone3d">
-          <div class="phone3d__screen">
-            <please-no-bugs id="phone-widget" demo mode="inline" theme="light" screenshots="off" server="%BOARD_SERVER%" screen="tiles" inert></please-no-bugs>
+        <div class="get__phones">
+          <div class="phone3d" data-pos="left">
+            <div class="phone3d__screen">
+              <please-no-bugs data-phone demo mode="inline" theme="light" screenshots="off" server="%BOARD_SERVER%" screen="board" inert></please-no-bugs>
+            </div>
+          </div>
+          <div class="phone3d" data-pos="center">
+            <div class="phone3d__screen">
+              <please-no-bugs id="phone-widget" data-phone demo mode="inline" theme="light" screenshots="off" server="%BOARD_SERVER%" screen="tiles" inert></please-no-bugs>
+            </div>
+          </div>
+          <div class="phone3d" data-pos="right">
+            <div class="phone3d__screen">
+              <please-no-bugs data-phone demo mode="inline" theme="light" screenshots="off" server="%BOARD_SERVER%" screen="write" inert></please-no-bugs>
+            </div>
           </div>
         </div>
         <p class="get__said" id="phone-said"></p>

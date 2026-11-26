@@ -1899,8 +1899,11 @@ The owner picked the minimal look (branch `minimal`) and asked for more:
 The owner wanted Get your widget much simpler. Now it is one centred column
 on a plain page (no floating glyphs there): the title, the widget's style
 (PleaseNoBugs, selected, with a greyed "More soon" beside it), the real
-widget on a phone tilted in 3D that goes through its screens by itself
-(the tiles, writing, sent, the board, with a word under each), a Light /
+widget on three phones in a fan that go through its screens by themselves
+(the tiles, writing, sent, the board, with a word under the one in front;
+the owner first saw one tilted phone, and picked the fan over it and over
+one face on; no bezel either, only the screen with a thin line and a
+soft shadow), a Light /
 Dark switch, and "Copy prompt for your AI agent" with "See the prompt" and
 "Show the code" under it. How it opens and where the app runs are no
 longer picked on the page: the prompt has the agent ask, and the code
