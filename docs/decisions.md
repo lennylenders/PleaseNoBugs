@@ -1925,6 +1925,16 @@ phone's widget starts as the site is and its own Light / Dark switch still
 works. Dark is near-black (#0c0c0d) with near-white words and white buttons;
 the floating glyphs turn white, as faint.
 
+## 2026-11-26 (later): "Built for Nimiq" over the home page's heading
+
+So a visitor sees at once that it is for Nimiq, a small pill over "Stop
+guessing what your users want." says "Built for Nimiq" with the Nimiq
+hexagon in its gold (#FFB700), the one colour on the page that is not a
+kind of feedback. "Built for", not "by": PleaseNoBugs is a community tool,
+not an official Nimiq product. Also proposed and not taken (for now): the
+hexagon in the header, the demo's app as a Nimiq Pay mini app, the hexagon
+in the footer.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

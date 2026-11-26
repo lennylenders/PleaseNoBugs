@@ -293,6 +293,23 @@ section + section { padding-top: 0; }
   justify-content: center;
   padding: clamp(28px, 6vw, 80px);
 }
+/* Built for Nimiq: a small pill over the heading, the hexagon in its gold,
+   the one colour on the page that is not a kind of feedback. */
+.nimiq-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin: 0 0 20px;
+  padding: 7px 14px 7px 10px;
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+.nimiq-badge svg { flex: none; }
 .tour-page h1 { max-width: 640px; font-size: clamp(36px, 5vw, 60px); letter-spacing: -0.5px; }
 .tour-page .lead { max-width: 520px; font-size: 20px; line-height: 30px; }
 .tour-start { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
