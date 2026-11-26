@@ -135,7 +135,8 @@ function widget(pov) {
   for (const [k, v] of Object.entries({
     demo: pov === 'owner' ? 'owner' : '',
     mode: 'floating',
-    theme: 'light',
+    // The site's mode (assets/mode.js), which also changes it while it plays.
+    theme: window.PNBMode?.theme() ?? 'light',
     screenshots: 'off',
     // Only for the identicons: the tour's posts stay in the page (demo.ts).
     server: '%BOARD_SERVER%',

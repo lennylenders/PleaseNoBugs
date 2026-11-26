@@ -1913,6 +1913,18 @@ starts as a round button with the signer for outside Nimiq Pay, which is
 right everywhere. The four steps, the slides and their styles are gone.
 The floating glyphs on Home and Why are a little fainter again.
 
+## 2026-11-26 (later): The site in light or dark
+
+Visitors can use the site dark. A round button at the top right (a moon in
+light, a sun in dark) flips it; it starts as the device is set and follows
+it until the visitor chooses, and this browser remembers the choice
+(`localStorage`, nothing leaves it). `assets/mode.js` runs in the head, so
+a dark visit is never light first. The widgets follow: the real board, the
+home page's demo and the apps board take `dark`; on Get your widget the
+phone's widget starts as the site is and its own Light / Dark switch still
+works. Dark is near-black (#0c0c0d) with near-white words and white buttons;
+the floating glyphs turn white, as faint.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

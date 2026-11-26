@@ -23,8 +23,8 @@ const REPO = 'https://github.com/lennylenders/PleaseNoBugs';
 const state = {
   /** How the copied code opens the widget; the prompt asks about it first. */
   mode: 'floating',
-  /** `dark` rather than `light`. */
-  dark: false,
+  /** `dark` rather than `light`: as the site is (assets/mode.js) to start with. */
+  dark: window.PNBMode?.get() === 'dark',
 };
 
 const theme = () => (state.dark ? 'dark' : 'light');
@@ -78,7 +78,8 @@ let widget = null;
 function mount() {
   widget?.remove();
   widget = document.createElement('please-no-bugs');
-  for (const [k, v] of Object.entries({ demo: '', mode: 'floating', screenshots: 'off', server: '%BOARD_SERVER%', theme: theme() })) widget.setAttribute(k, v);
+  // Its theme is this page's switch's, not the site's mode (assets/mode.js leaves it be).
+  for (const [k, v] of Object.entries({ demo: '', mode: 'floating', screenshots: 'off', server: '%BOARD_SERVER%', theme: theme(), 'data-own-theme': '' })) widget.setAttribute(k, v);
   widget.samples = SAMPLES;
   widget.inert = true;
   phone.append(widget);
@@ -221,14 +222,19 @@ reduce.addEventListener('change', play);
 // ---- Light or dark ---------------------------------------------------------
 
 const switcher = document.getElementById('theme-switch');
-switcher.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-theme]');
-  if (!b) return;
-  state.dark = b.dataset.theme === 'dark';
-  for (const x of switcher.querySelectorAll('[data-theme]')) x.setAttribute('aria-checked', String(x === b));
+/** Light or dark for the widget: the switch, the phone and the code. */
+function pickTheme(dark) {
+  state.dark = dark;
+  for (const x of switcher.querySelectorAll('[data-theme]')) x.setAttribute('aria-checked', String((x.dataset.theme === 'dark') === dark));
   paintWidget();
   writeCode();
+}
+switcher.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-theme]');
+  if (b) pickTheme(b.dataset.theme === 'dark');
 });
+// The site turned light or dark: the widget follows, still changeable here.
+document.addEventListener('pnb:mode', (e) => pickTheme(e.detail === 'dark'));
 
 // ---- The code ------------------------------------------------------------
 
@@ -438,6 +444,5 @@ function toast(text) {
   toastTimer = setTimeout(() => el.classList.remove('toast--on'), 2200);
 }
 
-paintWidget();
-writeCode();
+pickTheme(state.dark);
 play();
