@@ -1266,26 +1266,28 @@ section + section { padding-top: 0; }
 .code .s { color: #f4a3a0; }
 .code .c { color: #8a8fb8; }
 
-/* ---- Footer, a band of its own ---------------------------------------- */
+/* ---- Footer ------------------------------------------------------------ */
 
 .foot {
-  background: var(--band);
-  border-top: 1.5px solid var(--line);
-  padding: 28px 0 40px;
+  /* Minimal: the page's own colour, plain (no glyphs behind it), a thin
+     line above, quiet small words. */
+  position: relative;
+  background: var(--page);
+  border-top: 1px solid var(--line);
+  padding: 28px 0 36px;
   color: var(--sub);
   font-size: 14px;
 }
-.foot a { color: var(--ink); }
-/* One row: who it is for on the left, the links on the right (under it on
-   a phone); under a thin line, what happens to what you post. */
-.foot__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
-.foot__who { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; color: var(--ink); }
-.foot__who img { flex: none; width: 16px; height: 14px; }
-.foot__who b { font-weight: 700; }
-.foot__who span { color: var(--sub); }
-.foot__links { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
-.foot__links span { color: var(--sub); }
-.foot__note { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.18); font-size: 13px; }
+/* One row: who it is on the left, the links on the right (under it on a
+   phone); under it, small, what happens to what you post. */
+.foot__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 32px; }
+.foot__who { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; }
+.foot__who img { flex: none; width: 20px; height: auto; }
+.foot__who b { color: var(--ink); font-weight: 800; }
+.foot__links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; }
+.foot__links a { color: var(--sub); text-decoration: none; transition: color 140ms ease; }
+.foot__links a:hover { color: var(--ink); }
+.foot__note { margin: 14px 0 0; color: var(--faint); font-size: 13px; }
 
 /* ---- The stage: a pretend app in a box (Home's demo) ------------------- */
 
@@ -1539,7 +1541,6 @@ body.real-aside > please-no-bugs[project] {
 .why__icon { background: var(--tile); box-shadow: none; }
 .pull { background: #ffffff; border-block: 1px solid var(--line); }
 .steps-list p code { background: var(--card-2); }
-.foot__note { border-top-color: var(--line); }
 
 /* ---- The mode switch, top right, and dark mode (assets/mode.js) -------- */
 
