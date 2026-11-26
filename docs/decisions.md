@@ -1814,6 +1814,19 @@ the Classic look back. Their choices:
 The Railway template's icon goes back to the Classic logo at release time,
 in the template editor (owner's step).
 
+**After the owner's preview (same day):** the page is called **Get your
+widget** now (in the header, its heading and every link to it), and the
+button under the home page's demo is gone. The last step is calmer: three
+slides wide over the stage (paste the prompt into your AI agent, answer its
+questions, try it in your app), each with its own small animation, going on
+by themselves with a dot per slide; "Copy prompt for your AI agent" is
+always in view under them, with the choices and "See the prompt" / "Show
+the code" small beneath it. In the demo, the round button drawn in scene 5
+takes the widget's gradient, so it is turquoise rather than dark. The
+version and link under "Fixed in" were the card's own colour in
+`pleasenobugs`; a field inside a card now has its own token,
+`--pnb-field-in-card` (the page's dark purple; Nimiq's unchanged).
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

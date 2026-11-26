@@ -425,7 +425,10 @@ function drawFab() {
     top: `${r.top - b.top}px`,
     width: `${r.width}px`,
     height: `${r.height}px`,
-    background: look.backgroundColor,
+    // Both: a theme may paint it with a gradient (pleasenobugs' raised turquoise).
+    backgroundColor: look.backgroundColor,
+    backgroundImage: look.backgroundImage,
+    boxShadow: look.boxShadow,
     color: look.color,
   });
   drawn.innerHTML = fab.querySelector('svg')?.outerHTML ?? '';

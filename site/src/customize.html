@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Make it yours · PleaseNoBugs</title>
+    <title>Get your widget · PleaseNoBugs</title>
     <meta name="description" content="Make the PleaseNoBugs widget yours in a few short steps, see it live, and copy the code into your app." />
     <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="assets/site.css" />
@@ -21,7 +21,7 @@
         </a>
         <nav class="nav" aria-label="Main">
           <a href="what-is-it.html">Why PleaseNoBugs</a>
-          <a href="customize.html" aria-current="page">Make it yours</a>
+          <a href="customize.html" aria-current="page">Get your widget</a>
           <a href="https://github.com/lennylenders/PleaseNoBugs">GitHub</a>
         </nav>
       </div>
@@ -31,7 +31,7 @@
       <!-- The heading. -->
       <header class="make-head">
         <div>
-          <h1>Make it yours</h1>
+          <h1>Get your widget</h1>
           <p class="lead">See your widget, pick how it opens, then hand it to your AI agent.</p>
         </div>
       </header>
@@ -46,59 +46,6 @@
             </div>
           </div>
 
-          <section class="deck" id="deck" aria-labelledby="step-name">
-            <div class="deck__head">
-              <button type="button" class="deck__fold" id="fold" aria-expanded="true" aria-controls="deck-body">
-                <span class="deck__count" id="count" aria-live="polite">Step 4 of 4</span>
-                <span class="deck__short" id="short" aria-hidden="true"></span>
-                <svg class="deck__chevron" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 9l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <span class="visually-hidden" id="fold-label">Fold the steps away</span>
-              </button>
-              <div class="deck__bars" id="bars" aria-hidden="true"></div>
-            </div>
-
-            <div class="deck__body" id="deck-body">
-              <h1 class="deck__name" id="step-name">Your widget is ready to add.</h1>
-              <p class="deck__hint" id="hint"></p>
-
-              <form class="edit" id="settings" autocomplete="off" onsubmit="return false">
-                <div class="edit__step ready">
-                  <!-- The choices are made; hand them to your AI agent (customize.js, `paintDone`). -->
-                  <div class="mk-done">
-                    <button type="button" class="btn mk-copy" data-copy="ai">Copy prompt for your AI agent</button>
-                    <ol class="mk-next" aria-label="What happens next">
-                      <li><b>Paste it into your AI agent.</b> Claude, Cursor, ChatGPT: any of them will do.</li>
-                      <li><b>Answer its questions.</b> It asks which server you want to use and sets it up with you.</li>
-                      <li><b>Try it in your app.</b> Post something, then answer it as the owner.</li>
-                    </ol>
-                    <dl class="mk-summary" id="mk-summary"></dl>
-                    <details class="mk-peek">
-                      <summary>See the prompt</summary>
-                      <pre class="code"><code data-code="ai"></code></pre>
-                    </details>
-                    <details class="mk-peek">
-                      <summary>Prefer to add it yourself? Show the code</summary>
-                      <p class="mk-small">Paste it in your page, or install it with npm. The project id and server address come from your own PleaseNoBugs server: <a href="https://github.com/lennylenders/PleaseNoBugs#get-it-running" target="_blank" rel="noopener">set one up</a>.</p>
-                      <div class="mk-code">
-                        <b>HTML</b>
-                        <pre class="code"><code data-code="html"></code></pre>
-                        <button type="button" class="btn btn--small btn--quiet" data-copy="html">Copy HTML</button>
-                      </div>
-                      <div class="mk-code">
-                        <b>npm</b>
-                        <pre class="code"><code data-code="npm"></code></pre>
-                        <button type="button" class="btn btn--small btn--quiet" data-copy="npm">Copy npm steps</button>
-                      </div>
-                    </details>
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <div class="deck__foot">
-              <button type="button" class="btn btn--small btn--grey" id="back">Back</button>
-            </div>
-          </section>
           <!-- How it opens: the three ways side by side, each playing (customize.js, `paintWays`). -->
           <div class="ways" id="ways" hidden>
             <div class="ways__track" id="ways-track"></div>
@@ -136,20 +83,92 @@
             </div>
           </section>
 
-          <!-- In the last step, over and over: the prompt goes into an AI agent and the widget turns up in the app (customize.js, `playMade`). -->
-          <div class="made" id="made" aria-hidden="true" hidden>
-            <div class="made__chat">
-              <b class="made__head"><span class="made__dot"></span>AI agent</b>
-              <p class="made__me"><span class="made__chip">Prompt</span>Hi! Please add PleaseNoBugs to this app…</p>
-              <p class="made__typing"><i></i><i></i><i></i></p>
-              <ul class="made__done">
-                <li>Widget added</li>
-                <li>Server connected</li>
-                <li>Ready in your app</li>
-              </ul>
+          <!-- The last step, wide over the stage: how it gets added in three calm
+               slides that go on by themselves, and the prompt to copy, always in
+               view under them (customize.js, `playSlides`). -->
+          <section class="ready" id="ready" aria-labelledby="ready-title" hidden>
+            <p class="ready__title" id="ready-title">Your widget is ready to add.</p>
+            <div class="ready__stage">
+              <div class="slides" id="slides">
+                <div class="slide" data-slide="1">
+                  <div class="slide__text">
+                    <small>1 of 3</small>
+                    <h2>Paste it into your AI agent.</h2>
+                    <p>Claude, Cursor, ChatGPT: any of them will do.</p>
+                  </div>
+                  <div class="slide__show" aria-hidden="true">
+                    <div class="chat">
+                      <b class="chat__head"><span class="chat__dot"></span>AI agent</b>
+                      <p class="chat__msg chat__msg--me" data-in="1"><span class="chat__chip">Prompt</span>Hi! Please add PleaseNoBugs to this app…</p>
+                      <p class="chat__typing" data-in="2" data-out="3"><i></i><i></i><i></i></p>
+                      <p class="chat__msg" data-in="3">Got it. A few questions first.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="slide" data-slide="2">
+                  <div class="slide__text">
+                    <small>2 of 3</small>
+                    <h2>Answer its questions.</h2>
+                    <p>It asks which server you want to use, and sets it up with you.</p>
+                  </div>
+                  <div class="slide__show" aria-hidden="true">
+                    <div class="chat">
+                      <b class="chat__head"><span class="chat__dot"></span>AI agent</b>
+                      <p class="chat__msg" data-in="1">Which server should the board use?</p>
+                      <p class="chat__msg chat__msg--me" data-in="2">My own, on Railway.</p>
+                      <ul class="chat__done" data-in="3">
+                        <li>Server connected</li>
+                        <li>Widget added</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="slide" data-slide="3">
+                  <div class="slide__text">
+                    <small>3 of 3</small>
+                    <h2>Try it in your app.</h2>
+                    <p>Post something, then answer it as the owner.</p>
+                  </div>
+                  <div class="slide__show slide__show--app" aria-hidden="true" id="slide-app"></div>
+                </div>
+              </div>
+
+              <!-- The prompt or the code, in place of the slides, for who wants to read it first. -->
+              <div class="peek" id="peek" hidden>
+                <button type="button" class="peek__back" data-peek="">&larr; Back to the steps</button>
+                <div class="peek__part" data-part="prompt">
+                  <pre class="code"><code data-code="ai"></code></pre>
+                </div>
+                <div class="peek__part" data-part="code">
+                  <p class="mk-small">Paste it in your page, or install it with npm. The project id and server address come from your own PleaseNoBugs server: <a href="https://github.com/lennylenders/PleaseNoBugs#get-it-running" target="_blank" rel="noopener">set one up</a>.</p>
+                  <div class="mk-code">
+                    <b>HTML</b>
+                    <pre class="code"><code data-code="html"></code></pre>
+                    <button type="button" class="btn btn--small btn--quiet" data-copy="html">Copy HTML</button>
+                  </div>
+                  <div class="mk-code">
+                    <b>npm</b>
+                    <pre class="code"><code data-code="npm"></code></pre>
+                    <button type="button" class="btn btn--small btn--quiet" data-copy="npm">Copy npm steps</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="slides__dots" id="slide-dots" role="group" aria-label="Steps to add it">
+                <button type="button" aria-label="Paste it into your AI agent" data-go="1"></button>
+                <button type="button" aria-label="Answer its questions" data-go="2"></button>
+                <button type="button" aria-label="Try it in your app" data-go="3"></button>
+              </div>
             </div>
-            <div class="made__app"></div>
-          </div>
+
+            <div class="ready__foot">
+              <button type="button" class="btn ready__copy" data-copy="ai">Copy prompt for your AI agent</button>
+              <p class="ready__more">
+                <span class="ready__choices" id="choices"></span>
+                <span class="ready__links"><button type="button" data-peek="prompt">See the prompt</button><button type="button" data-peek="code">Show the code</button></span>
+              </p>
+            </div>
+          </section>
 
           <!-- The steps, as a slim bar along the bottom: no card, the widget is the place to work. -->
           <nav class="stepbar" id="stepbar" aria-label="Steps" hidden>

@@ -68,6 +68,9 @@
   --pnb-card-quiet: var(--pnb-text-quiet);
   --pnb-field: var(--pnb-surface);
   --pnb-shot-line: var(--pnb-line);
+  /* A field inside a card (the version and link under "Fixed in"): sunk into
+     it, so it never takes the card's own colour. */
+  --pnb-field-in-card: var(--pnb-bg);
   /* Everywhere you type (the form, the search, an answer, an update) is one
      family: its ground above, its words, its hint words, its line. */
   --pnb-field-text: var(--pnb-text);
@@ -239,6 +242,8 @@
   --pnb-card-quiet: var(--pnb-text-quiet);
   --pnb-field: #f2f3f4;
   --pnb-shot-line: var(--pnb-line);
+  /* A field inside a card (the version and link under "Fixed in"). */
+  --pnb-field-in-card: var(--pnb-field);
   /* Everywhere you type (the form, the search, an answer, an update) is one
      family: its ground above, its words, its hint words, its line. */
   --pnb-field-text: var(--pnb-text);
@@ -1594,6 +1599,7 @@ button {
 
 .fix-box__label .input {
   font-weight: 400;
+  background: var(--pnb-field-in-card);
 }
 
 .input[aria-invalid='true'] {

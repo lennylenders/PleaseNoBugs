@@ -165,6 +165,7 @@ please-no-bugs {
   --pnb-field-text: var(--pnb-text);     /* what is typed in it, */
   --pnb-field-quiet: var(--pnb-text-quiet); /* its hint while empty, */
   --pnb-field-line: var(--pnb-line);     /* and the line round it */
+  --pnb-field-in-card: var(--pnb-bg);    /* a field inside a card: the version and link under "Fixed in" */
   --pnb-news: var(--pnb-surface-2);      /* the note on top of the board ("... answered your idea"), */
   --pnb-news-line: var(--pnb-accent);    /* its line, */
   --pnb-news-text: var(--pnb-text);      /* its words, */

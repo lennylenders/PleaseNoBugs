@@ -7,14 +7,16 @@
  * 2. How it opens: the three ways side by side, each playing.
  * 3. Where it's used: Nimiq Pay, a browser or both, which decides whether the
  *    code needs a signer.
- * 4. Ready to add: a prompt for the developer's AI agent, the choices made,
- *    and the code itself for who prefers to add it by hand.
+ * 4. Ready to add: three calm slides of how it gets added (paste the prompt
+ *    into an AI agent, answer its questions, try it in the app), each with
+ *    its own small animation, going on by themselves; under them, always in
+ *    view, "Copy prompt for your AI agent", the choices made, and the prompt
+ *    and the code for who wants to read them first.
  *
- * The widget can be tried in the first three steps; the last one shows,
- * over and over, the prompt going into an AI agent and the widget turning up
- * in the app, rather than a widget that looks real but posts nowhere. A slim
- * bar along the bottom has
- * Back and Next; Next waits until the step's choice is made.
+ * The widget can be tried in the first three steps; the last one shows how
+ * it gets made rather than a widget that looks real but posts nowhere. A
+ * slim bar along the bottom has Back and Next; Next waits until the step's
+ * choice is made.
  *
  * **Everything lives in this page's memory.** Nothing is saved, not even in
  * `localStorage`: the copied code is the only place a choice ends up.
@@ -44,17 +46,12 @@ const STEPS = [
 ];
 
 const screen = document.getElementById('screen');
-const deck = document.getElementById('deck');
-const deckBody = document.getElementById('deck-body');
-const foldBtn = document.getElementById('fold');
-const backBtn = document.getElementById('back');
+const ready = document.getElementById('ready');
 const bar = document.getElementById('stepbar');
 const barBack = document.getElementById('bar-back');
 const barNext = document.getElementById('bar-next');
 const viewport = screen.closest('.viewport');
 
-/** Whether the card stands beside the widget (from 980px, as in site.css) or lies along the bottom. */
-const beside = window.matchMedia('(min-width: 980px)');
 /** Whether the theme cards are a band to swipe along the bottom (to 760px, as in site.css). */
 const narrow = window.matchMedia('(max-width: 760px)');
 
@@ -367,7 +364,6 @@ function update() {
 function go(id) {
   if (!STEPS.some((s) => s.id === id)) id = 'opens';
   at = id;
-  deckBody.scrollTop = 0;
   paintSteps();
   // Into the last step and out of it, a fresh widget, as it starts in an app.
   const live = !!step().live;
@@ -381,71 +377,44 @@ function go(id) {
       screen.querySelector('.inline-frame')?.remove();
       screen.querySelector('.screen__again')?.remove();
     } else mount();
-    playMade(live);
+    playSlides(live);
   } else if (board) apply(board);
   paintScreen();
   watch();
 }
 
-/** One step back or on, from the bar or the last step's card. */
+/** One step back or on, from the bar. */
 function stepBy(by) {
   const next = STEPS[STEPS.findIndex((s) => s.id === at) + by];
   if (next) go(next.id);
 }
-backBtn.addEventListener('click', () => stepBy(-1));
 barBack.addEventListener('click', () => stepBy(-1));
 barNext.addEventListener('click', () => stepBy(1));
 
-/** The card on the last step (the code); before it only the slim bar: where you are, Back and Next. */
+/** The slim bar along the bottom: where you are, Back and Next. On the last step Next is gone: the panel above it is the end. */
 function paintSteps() {
   const i = STEPS.findIndex((s) => s.id === at);
-  const card = !!step().live;
-  deck.hidden = !card;
-  bar.hidden = card;
-  viewport.classList.toggle('viewport--card', card);
-  deck.classList.toggle('deck--ready', card);
-  document.getElementById('count').textContent = `Step ${i + 1} of ${STEPS.length}`;
-  document.getElementById('short').textContent = `· ${step().name}`;
-  document.getElementById('step-name').textContent = card ? 'Your widget is ready to add.' : step().name;
-  document.getElementById('bars').innerHTML = STEPS.map((s, n) => `<i class="${n < i ? 'done' : n === i ? 'now' : ''}"></i>`).join('');
-  document.getElementById('hint').textContent = card
-    ? 'Hand your choices to your AI agent: it asks you the rest and adds it to your app.'
-    : '';
-  backBtn.hidden = i <= 0;
+  const last = !!step().live;
+  bar.hidden = false;
+  ready.hidden = !last;
   barBack.hidden = i <= 0;
   const why = blocked();
   document.getElementById('bar-name').innerHTML =
     `<b>${step().name}</b> · ${i + 1} of ${STEPS.length}` + (why ? `<span class="stepbar__why">${why}</span>` : '');
   const after = STEPS[i + 1];
+  barNext.hidden = last;
   barNext.textContent = after?.live ? 'Finish →' : 'Next →';
   barNext.disabled = !!why;
   barNext.title = why || (after ? `Next: ${after.name}` : '');
   measureDeck();
 }
 
-// ---- The card, beside the widget or folding along the bottom --------------
-
-/** Whether the panel along the bottom is folded down to its one line. */
-let folded = false;
-
-function fold(down) {
-  folded = down && !beside.matches;
-  deck.classList.toggle('deck--folded', folded);
-  foldBtn.setAttribute('aria-expanded', String(!folded));
-  document.getElementById('fold-label').textContent = folded ? 'Show the steps' : 'Fold the steps away';
-}
-
-foldBtn.addEventListener('click', () => fold(!folded));
-
 /**
- * The app is what the bar or the card leaves of the box, so the widget is
- * always whole above them (`--deck-h`, site.css): the bar always, the
- * card only along the bottom; beside, it takes none. The widget's panel and
- * the test arrow follow.
+ * The app is what the bar leaves of the box, so the widget is always whole
+ * above it (`--deck-h`, site.css). The widget's panel follows.
  */
 function measureDeck() {
-  foldBtn.disabled = beside.matches;
-  const h = !bar.hidden ? bar.offsetHeight : deck.hidden || beside.matches ? 0 : deck.offsetHeight;
+  const h = bar.offsetHeight;
   // On a phone the theme cards are a band above the bar: the app stops above that too.
   const band = !themes.hidden && narrow.matches ? themes.offsetHeight : 0;
   // On the box, so the app, the three ways and a docked box all stop above it.
@@ -455,95 +424,111 @@ function measureDeck() {
   scaleWays();
   watch();
 }
-new ResizeObserver(measureDeck).observe(deck);
 new ResizeObserver(measureDeck).observe(bar);
 new ResizeObserver(measureDeck).observe(themes);
 narrow.addEventListener('change', measureDeck);
-beside.addEventListener('change', () => {
-  fold(false);
-  paintSteps();
-});
 
-// ---- The last step: how it gets made --------------------------------------
+// ---- The last step: how it gets made, in three slides ---------------------
 
 /**
- * Over and over, in the app's place: the prompt goes into an AI agent, it
- * says what it did, and the widget turns up in the app, the way and in the
- * look picked, as "How it opens" plays it. In the calm style of the home
- * page's demo and Why PleaseNoBugs: classes on `.made`, moved by site.css.
- * Its time stands still while it is out of view or the tab is hidden; with
- * reduced motion it shows the widget in the app and nothing moves.
+ * Three slides, one at a time, each playing its own small animation and then
+ * going on to the next, round and round: paste the prompt into an AI agent,
+ * answer its questions, try it in the app. A dot under them jumps to one.
+ * Each slide's parts come in by number (`data-in`, and `data-out` to go
+ * again), as classes moved by site.css. The time stands still while the
+ * slides are out of view, the tab is hidden, or the prompt or the code is
+ * open in their place. With reduced motion every part shows at once and the
+ * slides wait for a dot.
  */
-const made = document.getElementById('made');
-const madeApp = made.querySelector('.made__app');
+const slides = [...document.querySelectorAll('.slide')];
+const dots = [...document.querySelectorAll('#slide-dots [data-go]')];
+const slideApp = document.getElementById('slide-app');
+const peek = document.getElementById('peek');
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-/** Bumped to stop a loop that is running: leaving the step, or starting it again. */
-let madeRun = 0;
-let madeSeen = false;
-new IntersectionObserver(([e]) => (madeSeen = e.isIntersecting), { threshold: 0.3 }).observe(made);
+/** How long each slide stays, and when each of its parts comes in (ms). */
+const BEATS = [
+  { in: [500, 1500, 2700], ms: 5200 },
+  { in: [400, 1500, 2600], ms: 5200 },
+  { in: [], ms: 6800 },
+];
+/** Bumped to stop a loop that is running: leaving the step, a dot, starting again. */
+let slideRun = 0;
+let slidesSeen = false;
+new IntersectionObserver(([e]) => (slidesSeen = e.isIntersecting), { threshold: 0.3 }).observe(ready);
 
-/** The app with the widget in it, drawn as "How it opens" draws it. */
-function paintMadeApp() {
-  madeApp.innerHTML = `<span class="made__device play play--phone play--${state.mode}">${PLAYS[state.mode]}</span>`;
-  for (const w of madeApp.querySelectorAll('please-no-bugs')) {
+/** The app with the widget in it, the way picked, drawn as "How it opens" draws it. */
+function paintSlideApp() {
+  slideApp.innerHTML = `<span class="slide__device play play--phone play--${state.mode}">${PLAYS[state.mode]}</span>`;
+  for (const w of slideApp.querySelectorAll('please-no-bugs')) {
     apply(w, 'inline', 'tiles');
     customElements.whenDefined('please-no-bugs').then(() => requestAnimationFrame(() => still(w)));
   }
   requestAnimationFrame(() => {
-    const device = madeApp.querySelector('.made__device');
+    const device = slideApp.querySelector('.slide__device');
     if (device) paintSkin(device);
-    scaleMade();
+    scaleSlideApp();
   });
 }
 
-/** The phone as tall as the space allows. */
-function scaleMade() {
-  const h = made.clientHeight - 48;
-  if (h > 0) madeApp.style.setProperty('--s', String(Math.min(1, h / 560)));
+/** The phone as tall as its slide allows. */
+function scaleSlideApp() {
+  const h = slideApp.clientHeight - 16;
+  if (h > 0) slideApp.style.setProperty('--s', String(Math.min(1, h / 560)));
 }
 
-async function playMade(on) {
-  const run = ++madeRun;
-  made.hidden = !on;
+/** Slide `n` (from 1) in view, its parts up to `beat` in. */
+function showSlide(n, beat = 0) {
+  slides.forEach((el, i) => {
+    el.classList.toggle('is-on', i === n - 1);
+    el.setAttribute('aria-hidden', String(i !== n - 1));
+    if (i !== n - 1) return;
+    for (const part of el.querySelectorAll('[data-in]')) {
+      const out = Number(part.dataset.out || Infinity);
+      part.classList.toggle('is-in', beat >= Number(part.dataset.in) && beat < out);
+    }
+  });
+  dots.forEach((d, i) => d.setAttribute('aria-current', String(i === n - 1)));
+}
+
+async function playSlides(on, from = 1) {
+  const run = ++slideRun;
   if (!on) return;
-  paintMadeApp();
+  if (reduce.matches) {
+    showSlide(from, 99);
+    if (from === 3) paintSlideApp();
+    return;
+  }
   const sleep = async (ms) => {
     let left = ms;
     while (left > 0) {
       await new Promise((r) => setTimeout(r, 50));
-      if (run !== madeRun) throw run;
-      if (madeSeen && !document.hidden) left -= 50;
+      if (run !== slideRun) throw run;
+      if (slidesSeen && !document.hidden && peek.hidden) left -= 50;
     }
   };
-  const show = (...names) => (made.className = ['made', ...names.map((n) => `is-${n}`)].join(' '));
-  if (reduce.matches) return show('app');
   try {
-    for (;;) {
-      show();
-      await sleep(500);
-      show('chat');
-      await sleep(700);
-      show('chat', 'asked');
-      await sleep(900);
-      show('chat', 'asked', 'typing');
-      await sleep(1100);
-      for (let n = 1; n <= 3; n++) {
-        show('chat', 'asked', `done-${n}`);
-        await sleep(550);
-      }
-      await sleep(900);
-      show('app');
+    for (let n = from; ; n = (n % slides.length) + 1) {
+      const { in: beats, ms } = BEATS[n - 1];
+      showSlide(n, 0);
       // The play's own moves start from the top each time it is shown.
-      paintMadeApp();
-      await sleep(6200);
-      show('out');
-      await sleep(600);
+      if (n === 3) paintSlideApp();
+      let t = 0;
+      for (let b = 0; b < beats.length; b++) {
+        await sleep(beats[b] - t);
+        t = beats[b];
+        showSlide(n, b + 1);
+      }
+      await sleep(ms - t);
     }
   } catch (stopped) {
     if (stopped !== run) throw stopped;
   }
 }
-reduce.addEventListener('change', () => previewing && playMade(true));
+reduce.addEventListener('change', () => previewing && playSlides(true));
+document.getElementById('slide-dots').addEventListener('click', (e) => {
+  const dot = e.target.closest('[data-go]');
+  if (dot) playSlides(true, Number(dot.dataset.go));
+});
 
 /**
  * The widget moves while it opens and while it loads its posts, so for a
@@ -574,7 +559,7 @@ function observeRoot(el) {
 
 window.addEventListener('resize', () => {
   fitPanel();
-  scaleMade();
+  scaleSlideApp();
   paintScreen();
   watch();
 });
@@ -705,7 +690,7 @@ const APP_LOGIN = [
  */
 function prompt() {
   return [
-    `Hi! Please add PleaseNoBugs to this app: a feedback board where its users report bugs, share ideas and write reviews, as one web component. I chose its look and settings on PleaseNoBugs' "Make it yours" page; they are in the code below.`,
+    `Hi! Please add PleaseNoBugs to this app: a feedback board where its users report bugs, share ideas and write reviews, as one web component. I chose its look and settings on PleaseNoBugs' "Get your widget" page; they are in the code below.`,
     `Docs: ${REPO}`,
     '',
     '1. The server',
@@ -748,39 +733,47 @@ const COPIES = {
   ai: () => [`${prompt()}\n`, "Prompt copied. Paste it into your agent's chat."],
 };
 
-const done = document.querySelector('.mk-done');
-
 /** The prompt, the code and the choices on the last step, kept up to date with every choice. */
 function writeCode() {
-  for (const el of done.querySelectorAll('[data-code]')) {
+  for (const el of ready.querySelectorAll('[data-code]')) {
     const text = COPIES[el.dataset.code]()[0];
     if (el.dataset.code === 'ai') el.textContent = text;
     else el.innerHTML = highlight(text);
   }
-  paintDone();
+  paintChoices();
 }
 
-/** The choices made, each with a way back to change it. */
-function paintDone() {
-  const rows = [
-    ['Look', 'PleaseNoBugs', 'theme'],
-    ['Opens as', { floating: 'A button in the corner', inline: 'A page in your app', overlay: 'Over your app' }[state.mode], 'opens'],
-    ['Used in', { pay: 'Nimiq Pay', browser: 'A browser', both: 'Nimiq Pay and a browser' }[state.runs] ?? 'Not picked yet', 'runs'],
+/** The choices made, in one quiet line, each a way back to its step, every choice kept. */
+function paintChoices() {
+  const picks = [
+    ['PleaseNoBugs', 'theme', 'look'],
+    [{ floating: 'Button', inline: 'Inline', overlay: 'Overlay' }[state.mode], 'opens', 'how it opens'],
+    [{ pay: 'Nimiq Pay', browser: 'A browser', both: 'Nimiq Pay and a browser' }[state.runs] ?? 'Where it runs?', 'runs', "where it's used"],
   ];
-  const list = document.getElementById('mk-summary');
-  list.innerHTML = rows.map(() => '<div><dt></dt><dd></dd><button type="button" class="mk-change">Change</button></div>').join('');
-  list.querySelectorAll('div').forEach((row, i) => {
-    row.querySelector('dt').textContent = rows[i][0];
-    row.querySelector('dd').textContent = rows[i][1];
-    row.querySelector('button').dataset.goto = rows[i][2];
-    row.querySelector('button').setAttribute('aria-label', `Change ${rows[i][0].toLowerCase()}`);
+  const line = document.getElementById('choices');
+  line.innerHTML = picks.map(() => '<button type="button"></button>').join('<span aria-hidden="true">·</span>');
+  line.querySelectorAll('button').forEach((b, i) => {
+    b.textContent = picks[i][0];
+    b.dataset.goto = picks[i][1];
+    b.setAttribute('aria-label', `${picks[i][0]}: change ${picks[i][2]}`);
   });
 }
 
-done.addEventListener('click', async (e) => {
-  // "Change": back to that step, every choice kept.
+/** The prompt or the code in the slides' place, or the slides back (`''`). */
+function showPeek(part) {
+  peek.dataset.open = part;
+  peek.hidden = !part;
+  document.getElementById('slides').hidden = !!part;
+  for (const el of peek.querySelectorAll('[data-part]')) el.hidden = el.dataset.part !== part;
+  for (const b of ready.querySelectorAll('.ready__links [data-peek]')) b.setAttribute('aria-pressed', String(b.dataset.peek === part));
+}
+
+ready.addEventListener('click', async (e) => {
+  // A choice: back to that step.
   const back = e.target.closest('[data-goto]');
   if (back) return go(back.dataset.goto);
+  const look = e.target.closest('[data-peek]');
+  if (look) return showPeek(look.dataset.peek === peek.dataset.open ? '' : look.dataset.peek);
   const btn = e.target.closest('[data-copy]');
   if (!btn) return;
   const [text, said] = COPIES[btn.dataset.copy]();
@@ -788,9 +781,9 @@ done.addEventListener('click', async (e) => {
     await navigator.clipboard.writeText(text);
     toast(said);
   } catch {
-    // Blocked: open it in the page, to select by hand.
-    for (const peek of done.querySelectorAll('.mk-peek')) peek.open = true;
-    toast('Copying was blocked: select it below instead');
+    // Blocked: show it in the page, to select by hand.
+    showPeek(btn.dataset.copy === 'ai' ? 'prompt' : 'code');
+    toast('Copying was blocked: select it here instead');
   }
 });
 
@@ -822,5 +815,5 @@ measureDeck();
     // Only the bottom of the window, where the round button sits.
   }, { rootMargin: '-85% 0px 0px 0px' });
   io.observe(bar);
-  io.observe(deck);
+  io.observe(ready.querySelector('.ready__foot'));
 }
