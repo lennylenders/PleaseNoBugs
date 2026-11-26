@@ -1,7 +1,7 @@
 /**
  * Get your widget: one clean column. The widget style (PleaseNoBugs, the one
- * there is, with more to come), the real widget in `demo` mode on three
- * phones in a fan that go through its screens by themselves, a switch between
+ * there is, with more to come), a phone with an app on it where the real
+ * widget plays somebody sending a bug, a switch between
  * Light and Dark, and the prompt for the developer's AI agent, with the code
  * for who prefers to add it by hand.
  *
@@ -29,61 +29,163 @@ const state = {
 
 const theme = () => (state.dark ? 'dark' : 'light');
 
-// ---- The widget on the phone, going through its screens --------------------
+// ---- The demo on the phone: somebody sends a bug ---------------------------
 
 /**
- * The screens it plays, each held a moment, round and round, with a word on
- * what it is under the phone. The widget's own `screen` attribute holds
- * each (demo.ts); its posts live in this page's memory only. Still for whoever
- * asked for less motion: the board, and nothing moves.
+ * A phone with an app on it and the real widget in it, in `demo` mode, and
+ * one story played over and over: tap the round button, pick Bug, describe
+ * it, add a name, send it, and there it is on the board. A ring shows each
+ * tap and a line under the phone says the step. The taps are the widget's
+ * own buttons, clicked from here, so what plays is what the widget really
+ * does; its posts live in this page's memory only, and each round starts
+ * with a fresh widget.
+ *
+ * **Light or dark changes the look while it plays**: only the widget's
+ * \`theme\` (and the app around it) change, the story goes on where it is.
+ *
+ * Its time stands still while the phone is out of view or the tab is
+ * hidden. With reduced motion it shows the board, open, and nothing moves.
  */
-const PLAYS = [
-  ['tiles', 'Your user picks what it is'],
-  ['write', 'Writes it'],
-  ['sent', 'Sends it'],
-  ['board', 'And everyone sees it'],
-];
-const HOLD_MS = 2800;
-const phone = document.getElementById('phone-widget');
-/** Every phone in the fan: the one in front, and one either side. */
-const phones = [...document.querySelectorAll('[data-phone]')];
+const phone = document.getElementById('phone');
 const said = document.getElementById('phone-said');
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-function paintWidget() {
-  for (const p of phones) p.setAttribute('theme', theme());
-  for (const p of document.querySelectorAll('.phone3d')) p.classList.toggle('phone3d--dark', state.dark);
+const BUG = 'The save button does nothing on my phone';
+const WHO = 'Mila';
+/** One other bug on the board, somebody else's, so the new one has company. */
+const SAMPLES = [{ kind: 'bug', text: 'The send button does nothing after I switch accounts', votes: 4, ago: 20 * 3_600_000, who: 'Sam' }];
+
+/**
+ * The widget measures the window to pick a sheet (a phone) or a corner panel
+ * (wider); here it is always on a phone, so the phone's look is put in from
+ * this page, as on the home page's demo. And no "Said already, maybe?" while
+ * the bug is typed: in a demo it is one thing too many.
+ */
+const PHONE_CSS = `
+  .overlay, .overlay--leaving { inset: calc(var(--pnb-sheet-top) + 8px) 0 0 0 !important; width: auto !important;
+    max-height: none !important; border-radius: var(--pnb-radius-sheet) var(--pnb-radius-sheet) 0 0 !important; }
+  .overlay .app { height: 100% !important; max-height: none !important; }
+  .backdrop { display: block !important; }
+  .grip { display: block !important; }
+  .fab { right: 16px !important; bottom: 16px !important; }
+  .alike { display: none !important; }`;
+
+let widget = null;
+
+/** A fresh widget on the phone, in the look picked. */
+function mount() {
+  widget?.remove();
+  widget = document.createElement('please-no-bugs');
+  for (const [k, v] of Object.entries({ demo: '', mode: 'floating', screenshots: 'off', server: '%BOARD_SERVER%', theme: theme() })) widget.setAttribute(k, v);
+  widget.samples = SAMPLES;
+  widget.inert = true;
+  phone.append(widget);
+  const style = document.createElement('style');
+  style.textContent = PHONE_CSS;
+  // The shadow root is there once the element is upgraded.
+  customElements.whenDefined('please-no-bugs').then(() => widget.shadowRoot?.append(style));
+  return widget;
 }
 
-let played = 0;
-let timer = 0;
+/** The look on the widget and the app around it, whatever the story is doing. */
+function paintWidget() {
+  widget?.setAttribute('theme', theme());
+  phone.classList.toggle('phone--dark', state.dark);
+}
+
+// Time that only runs while the phone can be seen; a newer round stops an older one.
+const STOP = Symbol('stop');
+let round = 0;
 let seen = true;
 new IntersectionObserver(([e]) => (seen = e.isIntersecting)).observe(phone);
-
-/** Screen `i` on the phone in front, the one before it on the left, the one after on the right. */
-function show(i) {
-  const at = (n) => PLAYS[((n % PLAYS.length) + PLAYS.length) % PLAYS.length];
-  const [screen, words] = at(i);
-  for (const p of phones) {
-    const pos = p.closest('.phone3d')?.dataset.pos;
-    p.setAttribute('screen', pos === 'left' ? at(i - 1)[0] : pos === 'right' ? at(i + 1)[0] : screen);
+async function sleep(ms, mine) {
+  let left = ms;
+  while (left > 0) {
+    await new Promise((r) => setTimeout(r, 50));
+    if (mine !== round) throw STOP;
+    if (seen && !document.hidden) left -= 50;
   }
-  said.textContent = words;
+}
+
+/** What the widget shows, by a selector or a function over its shadow root, once it is there. */
+async function find(sel, mine, tries = 60) {
+  for (let i = 0; i < tries; i++) {
+    const root = widget?.shadowRoot;
+    const hit = root && (typeof sel === 'function' ? sel(root) : root.querySelector(sel));
+    if (hit) return hit;
+    await sleep(80, mine);
+  }
+  throw new Error(`Get your widget demo: no ${sel}`);
+}
+
+/** A ring over \`target\`, then the tap itself. */
+async function tap(target, mine) {
+  const b = phone.getBoundingClientRect();
+  const t = target.getBoundingClientRect();
+  const ring = document.createElement('span');
+  ring.className = 'tour-tap';
+  ring.style.left = `${t.left + t.width / 2 - b.left}px`;
+  ring.style.top = `${t.top + t.height / 2 - b.top}px`;
+  phone.append(ring);
+  requestAnimationFrame(() => ring.classList.add('tour-tap--on'));
+  setTimeout(() => ring.remove(), 600);
+  await sleep(220, mine);
+  target.click();
+}
+
+/** Typed into a field of the widget's a letter at a time, as the widget hears it. */
+async function type(field, text, mine) {
+  for (let i = 1; i <= text.length; i++) {
+    field.value = text.slice(0, i);
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    await sleep(45 + Math.random() * 35, mine);
+  }
+}
+
+const step = (words) => (said.textContent = words);
+
+async function story(mine) {
+  for (;;) {
+    mount();
+    step('');
+    await sleep(900, mine);
+    step('Your user taps the button');
+    await sleep(900, mine);
+    await tap(await find('.fab', mine), mine);
+    await sleep(1100, mine);
+
+    step('Picks Bug');
+    await sleep(900, mine);
+    await tap(await find('.tile--bug', mine), mine);
+    await sleep(700, mine);
+
+    step('Describes it');
+    await type(await find('textarea.field', mine), BUG, mine);
+    await sleep(500, mine);
+    await type(await find('.name-field input', mine), WHO, mine);
+    await sleep(700, mine);
+
+    step('Sends it');
+    await tap(await find('.send .btn:not([disabled])', mine), mine);
+    await find('.sent', mine);
+
+    // The widget goes on to the board by itself after "Feedback sent!", as in an app.
+    await find((root) => !root.querySelector('.sent') && [...root.querySelectorAll('.card__text')].find((t) => t.textContent.startsWith(BUG)), mine, 150);
+    step('On the board, for everyone');
+    await sleep(3600, mine);
+  }
 }
 
 function play() {
-  clearInterval(timer);
+  const mine = ++round;
   if (reduce.matches) {
-    phone.setAttribute('screen', 'board');
-    said.textContent = '';
+    mount().setAttribute('screen', 'board');
+    step('');
     return;
   }
-  show(played);
-  timer = setInterval(() => {
-    if (!seen || document.hidden) return;
-    played += 1;
-    show(played);
-  }, HOLD_MS);
+  story(mine).catch((e) => {
+    if (e !== STOP) console.warn(e);
+  });
 }
 reduce.addEventListener('change', play);
 
@@ -309,4 +411,4 @@ function toast(text) {
 
 paintWidget();
 writeCode();
-customElements.whenDefined('please-no-bugs').then(play);
+play();

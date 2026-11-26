@@ -1374,34 +1374,33 @@ section + section { padding-top: 0; }
 }
 
 /*
- * The phones, in a fan: the one in front face on, one either side further
- * back and turned towards it. Each floats a little up and down, out of step.
+ * The phone: an app on it and the real widget, which plays somebody sending
+ * a bug (customize.js). No bezel: the screen, a thin line and a soft shadow.
+ * The transform makes it the box the widget's fixed button and sheet are
+ * placed in, so they land on the phone rather than the page. Dark, the app
+ * goes dark too, as an app that picks the dark widget would be.
  */
-.get__stage { display: grid; justify-items: center; width: 100%; margin-top: 24px; padding-top: 40px; perspective: 2000px; overflow-x: clip; }
-.get__phones { position: relative; display: grid; place-items: center; width: 100%; transform-style: preserve-3d; }
-.phone3d {
-  --tilt: none;
-  grid-area: 1 / 1;
-  width: 300px;
-  height: 600px;
+.get__stage { display: grid; justify-items: center; width: 100%; margin-top: 32px; }
+.phone {
+  position: relative;
+  width: 320px;
+  height: 640px;
+  overflow: hidden;
   border-radius: 32px;
-  /* No bezel: the screen itself, a thin line round it and a soft shadow. */
+  background: #ffffff;
   box-shadow: 0 0 0 1px var(--line), 0 28px 56px -20px rgba(0, 0, 0, 0.18), 0 6px 16px rgba(0, 0, 0, 0.04);
-  transform: var(--tilt);
-  animation: phone-float 6s ease-in-out infinite;
+  transform: translateZ(0);
+  /* The widget takes what it inherits: the page is centred, an app is not. */
+  text-align: left;
+  transition: background-color 300ms ease, box-shadow 300ms ease;
 }
-.phone3d--dark { box-shadow: 0 0 0 1px #2e2e32, 0 28px 56px -20px rgba(0, 0, 0, 0.3), 0 6px 16px rgba(0, 0, 0, 0.06); }
-.phone3d__screen { height: 100%; overflow: hidden; border-radius: inherit; background: #ffffff; transition: background-color 300ms ease; }
-.phone3d--dark .phone3d__screen { background: #111111; }
-.phone3d__screen please-no-bugs { display: block; height: 100%; }
-@keyframes phone-float {
-  50% { transform: var(--tilt) translateY(-10px); }
-}
-
-.phone3d[data-pos='center'] { z-index: 2; }
-.phone3d[data-pos='left'] { --tilt: translateX(-230px) translateZ(-160px) rotateY(24deg); animation-delay: -2s; }
-.phone3d[data-pos='right'] { --tilt: translateX(230px) translateZ(-160px) rotateY(-24deg); animation-delay: -4s; }
-
+.phone__app { padding: 36px 22px; }
+.phone__app i:nth-of-type(3) { width: 100%; }
+.phone--dark { background: #111111; box-shadow: 0 0 0 1px #2e2e32, 0 28px 56px -20px rgba(0, 0, 0, 0.3), 0 6px 16px rgba(0, 0, 0, 0.06); }
+.phone--dark .phone__app { color: #ffffff; }
+.phone--dark .phone__app i { background: #2a2a2d; }
+.phone--dark .phone__app i:nth-of-type(3) { background: #1c1c1e; }
+.phone .tour-tap { z-index: 2147483647; }
 .get__said { min-height: 1.5em; margin: 36px 0 0; color: var(--sub); font-weight: 700; }
 
 /* Light or dark: two halves of one pill, the chosen one raised in white. */
@@ -1446,12 +1445,7 @@ section + section { padding-top: 0; }
 .get__code .btn { justify-self: start; }
 
 @media (max-width: 560px) {
-  .phone3d { width: 250px; height: 500px; border-radius: 28px; }
-  .phone3d[data-pos='left'] { --tilt: translateX(-110px) translateZ(-200px) rotateY(24deg); }
-  .phone3d[data-pos='right'] { --tilt: translateX(110px) translateZ(-200px) rotateY(-24deg); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .phone3d { animation: none; }
+  .phone { width: 300px; height: 600px; }
 }
 
 /* ---- The page's own board, out of the way ------------------------------ */
