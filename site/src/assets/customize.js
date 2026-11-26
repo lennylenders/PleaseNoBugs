@@ -2,8 +2,8 @@
  * Make it yours: one screen like the home page's demo, the pretend app with
  * the real widget in `demo` mode at its own place in it, and four steps:
  *
- * 1. The look: the widget's own, `pleasenobugs`, on a card that is already
- *    chosen, with a second, greyed, "More themes", coming soon.
+ * 1. Light or dark: the widget's `light` (chosen to start with) or `dark`,
+ *    on two cards.
  * 2. How it opens: the three ways side by side, each playing.
  * 3. Where it's used: Nimiq Pay, a browser or both, which decides whether the
  *    code needs a signer.
@@ -36,7 +36,7 @@ const REPO = 'https://github.com/lennylenders/PleaseNoBugs';
  * own, as it starts in an app.
  */
 const STEPS = [
-  { id: 'theme', name: 'The look', screen: 'board' },
+  { id: 'theme', name: 'Light or dark', screen: 'board' },
   // The three ways side by side, each playing (`paintWays`).
   { id: 'opens', name: 'How it opens', screen: '' },
   // Where people use the app, which decides how they sign. The server and
@@ -57,16 +57,17 @@ const narrow = window.matchMedia('(max-width: 760px)');
 
 const state = {
   mode: 'floating',
+  /** `dark` rather than `light`. */
+  dark: false,
   /** Where the app runs: `pay` (only in Nimiq Pay), `browser` or `both`, which need a signer. */
   runs: '',
-  /** The steps go on only once something is chosen (`blocked`). There is
-   *  one look for now, so it is chosen already. */
+  /** The steps go on only once something is chosen (`blocked`). Light is
+   *  chosen to start with, so the first step can go on at once. */
   pickedTheme: true,
   pickedMode: false,
 };
 
-/** The widget's theme: its own look, the one there is for now. */
-const theme = () => 'pleasenobugs';
+const theme = () => (state.dark ? 'dark' : 'light');
 
 /** Why Next waits on this step, or '' when it may go on. Said in the bar beside the step's name. */
 function blocked() {
@@ -293,12 +294,11 @@ function setMode(mode) {
   update();
 }
 
-// ---- The look ------------------------------------------------------------
+// ---- Light or dark -------------------------------------------------------
 
 /**
- * One card, PleaseNoBugs, with a small board in its colours, chosen already:
- * the widget in the app wears it. A second card, greyed, says more themes
- * are coming: it does nothing.
+ * Two cards, Light and Dark, each with a small board in its colours; the
+ * widget in the app takes the one tapped.
  */
 const themes = document.getElementById('themes');
 
@@ -307,7 +307,7 @@ function paintThemes() {
   themes.hidden = !(at === 'theme' && !previewing);
   if (was !== themes.hidden) requestAnimationFrame(measureDeck);
   for (const card of themes.querySelectorAll('[data-theme]')) {
-    card.setAttribute('aria-pressed', String(state.pickedTheme));
+    card.setAttribute('aria-pressed', String(state.pickedTheme && (card.dataset.theme === 'dark') === state.dark));
   }
 }
 
@@ -329,6 +329,7 @@ themesDots.addEventListener('click', (e) => {
 themes.addEventListener('click', (e) => {
   const card = e.target.closest('[data-theme]');
   if (!card) return;
+  state.dark = card.dataset.theme === 'dark';
   state.pickedTheme = true;
   update();
 });
@@ -746,7 +747,7 @@ function writeCode() {
 /** The choices made, in one quiet line, each a way back to its step, every choice kept. */
 function paintChoices() {
   const picks = [
-    ['PleaseNoBugs', 'theme', 'look'],
+    [state.dark ? 'Dark' : 'Light', 'theme', 'light or dark'],
     [{ floating: 'Button', inline: 'Inline', overlay: 'Overlay' }[state.mode], 'opens', 'how it opens'],
     [{ pay: 'Nimiq Pay', browser: 'A browser', both: 'Nimiq Pay and a browser' }[state.runs] ?? 'Where it runs?', 'runs', "where it's used"],
   ];

@@ -32,7 +32,7 @@
       <header class="make-head">
         <div>
           <h1>Get your widget</h1>
-          <p class="lead">See your widget, pick how it opens, then hand it to your AI agent.</p>
+          <p class="lead">Pick light or dark and how it opens, then hand it to your AI agent.</p>
         </div>
       </header>
       <!-- One screen, as the home page's demo: the pretend app, the widget at
@@ -52,20 +52,20 @@
             <div class="ways__dots" id="ways-dots" aria-hidden="true"></div>
           </div>
 
-          <!-- The first step: the look, PleaseNoBugs' own, and more themes, coming soon (customize.js, `paintThemes`). -->
+          <!-- The first step: light or dark (customize.js, `paintThemes`). -->
           <div class="themes" id="themes" role="group" aria-labelledby="themes-title" hidden>
-            <p class="themes__title" id="themes-title">The look</p>
+            <p class="themes__title" id="themes-title">Light or dark</p>
             <div class="themes__track" id="themes-track">
-            <button type="button" class="theme-card" data-theme="pleasenobugs" aria-pressed="true">
-              <span class="theme-card__preview theme-card__preview--pnb" aria-hidden="true"><b></b><i></i><i></i><i></i><em></em></span>
-              <span class="theme-card__name">PleaseNoBugs</span>
-              <span class="theme-card__line">Purple, with turquoise buttons.</span>
+            <button type="button" class="theme-card" data-theme="light" aria-pressed="true">
+              <span class="theme-card__preview theme-card__preview--light" aria-hidden="true"><b></b><i></i><i></i><i></i><em></em></span>
+              <span class="theme-card__name">Light</span>
+              <span class="theme-card__line">Black on white.</span>
             </button>
-            <div class="theme-card theme-card--soon" aria-disabled="true">
-              <span class="theme-card__preview theme-card__preview--soon" aria-hidden="true"><b></b><i></i><i></i><i></i><em></em></span>
-              <span class="theme-card__name">More themes <small>Coming soon</small></span>
-              <span class="theme-card__line">More looks to pick from.</span>
-            </div>
+            <button type="button" class="theme-card" data-theme="dark" aria-pressed="false">
+              <span class="theme-card__preview theme-card__preview--dark" aria-hidden="true"><b></b><i></i><i></i><i></i><em></em></span>
+              <span class="theme-card__name">Dark</span>
+              <span class="theme-card__line">White on black.</span>
+            </button>
             </div>
             <div class="themes__dots" id="themes-dots" aria-hidden="true"><i class="on"></i><i></i></div>
           </div>
@@ -194,6 +194,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <!-- The real board, on every page: what visitors think of PleaseNoBugs (assets/board.js signs them in). -->
-    <please-no-bugs project="%BOARD_PROJECT%" server="%BOARD_SERVER%" mode="floating" theme="pleasenobugs" screenshots="off"></please-no-bugs>
+    <please-no-bugs project="%BOARD_PROJECT%" server="%BOARD_SERVER%" mode="floating" theme="light" screenshots="off"></please-no-bugs>
   </body>
 </html>

@@ -32,24 +32,27 @@
 }
 
 :root {
-  color-scheme: dark;
-  --page: #292a56;
-  --card: #5656ac;
-  --card-2: #454689;
-  --row: #33346c;
-  --line: #6d6dc5;
-  --ink: #ffffff;
-  --ink-2: #e8e8f2;
-  --quiet: #d0d0da;
-  /* Subtext, everywhere on the site: white at 70%, so it sits back on any purple. */
-  --sub: rgba(255, 255, 255, 0.7);
-  --faint: #a7a8d0;
-  --button: #1fc7d4;
-  --button-hover: #19b4c0;
-  --band: #5656ac;
-  --device: #1a1a32;
-  --scrim: #0a0a1e;
-  --shadow: 0 12px 32px rgba(10, 10, 30, 0.28);
+  color-scheme: light;
+  /* Minimal: a light grey page, white cards, near-black words and buttons,
+     thin lines and soft shadows. Colour only where it means something: the
+     kinds of feedback (bug red, idea purple, review orange) and Why's tiles. */
+  --page: #f5f5f5;
+  --card: #ffffff;
+  --card-2: #ededed;
+  --row: #fafafa;
+  --line: #e4e4e7;
+  --ink: #111111;
+  --ink-2: #27272a;
+  --quiet: #6b6b72;
+  /* Subtext, everywhere on the site. */
+  --sub: #5f5f66;
+  --faint: #a1a1aa;
+  --button: #111111;
+  --button-hover: #2a2a2a;
+  --band: #ffffff;
+  --device: #111111;
+  --scrim: #000000;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   --radius: 10px;
   --radius-lg: 16px;
   --gutter: 16px;
@@ -228,41 +231,20 @@ code, pre, kbd { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace
 .btn:active { transform: scale(0.97); }
 
 .btn--quiet { background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line); }
-.btn--quiet:hover { background: #6060b8; }
 
 .btn--small { min-height: 32px; padding: 0 14px; font-size: 14px; }
 .btn--grey { background: var(--card-2); color: var(--ink); }
-.btn--grey:hover { background: #50519a; }
 
 .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
 
-/* Every button raised. Its own colour at the top,
-   a little darker at the bottom, a light edge along the top, a dark one
-   along the bottom, and a small dark shadow underneath. Pressed, it
-   sinks a pixel and the light goes inside. Each kind only names its colour
-   (and the quiet one its line); the raise is the same for all. */
-.btn { --btn-fill: var(--button); --btn-line: transparent; }
+/* Flat: each kind names its colour and, for the quiet one, its line. */
+.btn { --btn-fill: var(--button); --btn-line: transparent; background: var(--btn-fill); box-shadow: inset 0 0 0 1.5px var(--btn-line); }
 .btn:hover { --btn-fill: var(--button-hover); }
 .btn--quiet { --btn-fill: var(--card); --btn-line: var(--line); }
-.btn--quiet:hover { --btn-fill: #6060b8; }
+.btn--quiet:hover { --btn-fill: var(--card-2); }
 .btn--grey { --btn-fill: var(--card-2); }
-.btn--grey:hover { --btn-fill: #50519a; }
-
-.btn {
-  background: linear-gradient(var(--btn-fill), color-mix(in srgb, var(--btn-fill), #000 18%));
-  box-shadow:
-    inset 0 0 0 1.5px var(--btn-line),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 4px 10px -4px rgba(0, 0, 0, 0.35);
-  transition: translate 120ms ease, box-shadow 120ms ease;
-}
-.btn:active:not([disabled]) {
-  transform: none;
-  translate: 0 1px;
-  box-shadow: inset 0 0 0 1.5px var(--btn-line), inset 0 2px 4px rgba(0, 0, 0, 0.27);
-}
+.btn--grey:hover { --btn-fill: #e2e2e5; }
+.btn:active:not([disabled]) { transform: scale(0.98); }
 
 /* ---- Headings and text ------------------------------------------------- */
 
@@ -341,7 +323,7 @@ section + section { padding-top: 0; }
   place-items: center;
   padding: 24px;
   border-radius: inherit;
-  background: rgba(20, 20, 44, 0.72);
+  background: rgba(0, 0, 0, 0.6);
   color: #fff;
   text-align: center;
   animation: tour-title-in 320ms ease-out;
@@ -473,7 +455,7 @@ section + section { padding-top: 0; }
   height: 52px;
   border-radius: 50%;
   background: #ffffff;
-  color: #1f2348;
+  color: #111111;
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(10, 10, 30, 0.35);
 }
@@ -504,7 +486,7 @@ section + section { padding-top: 0; }
   padding: 0 10px;
   border-radius: 14px;
   background: #ffffff;
-  color: #1f2348;
+  color: #111111;
   box-shadow: 0 8px 20px rgba(10, 10, 30, 0.35);
   opacity: 0;
   transform: rotate(var(--r));
@@ -1046,7 +1028,7 @@ section + section { padding-top: 0; }
   height: 48px;
   border-radius: 50%;
   background: #d9d9e8;
-  color: #1f2348;
+  color: #111111;
   overflow: hidden;
   opacity: 0.45;
   transition: opacity 250ms ease, background-color 250ms ease, transform 250ms cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 250ms ease;
@@ -1174,7 +1156,7 @@ section + section { padding-top: 0; }
   height: 32px;
   border-radius: 50%;
   background: var(--button);
-  color: #12132b;
+  color: #ffffff;
   font-weight: 900;
 }
 .steps-list h3 { margin-top: 4px; }
@@ -2010,8 +1992,8 @@ section + section { padding-top: 0; }
 .themes__title {
   margin: 0 0 6px;
   font-size: clamp(24px, 2.4vw, 32px);
-  font-weight: 500;
-  letter-spacing: -0.04em;
+  font-weight: 900;
+  letter-spacing: -0.01em;
   line-height: 1.1;
 }
 
@@ -2056,42 +2038,25 @@ section + section { padding-top: 0; }
 
 .theme-card__preview em { position: absolute; right: 6px; bottom: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--button); }
 
-.theme-card__preview--pnb { background: var(--page); }
+/* Each card's small board, in the widget's own colours. */
+.theme-card__preview--light { background: #ffffff; }
 
-.theme-card__preview--pnb b { background: var(--card); }
+.theme-card__preview--light b,
+.theme-card__preview--light em { background: #111111; }
 
-.theme-card__preview--pnb i { background: var(--card); }
+.theme-card__preview--light i { background: #ececee; }
 
-.theme-card__preview--soon { background: var(--row); }
+.theme-card__preview--dark { background: #111111; box-shadow: none; }
 
-.theme-card__preview--soon b,
-.theme-card__preview--soon i,
-.theme-card__preview--soon em { background: var(--line); }
+.theme-card__preview--dark b,
+.theme-card__preview--dark em { background: #ffffff; }
+
+.theme-card__preview--dark i { background: #2a2a2d; }
 
 .theme-card__name { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
 
 .theme-card__line { color: var(--sub); font-size: 13px; line-height: 1.4; }
 
-.theme-card--soon { background: var(--row); color: var(--faint); cursor: not-allowed; }
-
-.theme-card--soon:hover { box-shadow: inset 0 0 0 1px var(--line); }
-
-.theme-card--soon .theme-card__line { color: var(--faint); }
-
-.theme-card__name small {
-  margin-left: 6px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--card-2);
-  color: var(--sub);
-  font-family: var(--font);
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  vertical-align: 2px;
-  white-space: nowrap;
-}
 
 /* A phone: a band along the bottom, above the bar, with one card at a time
    to swipe and dots under them, as "How it opens" does. The widget stands
@@ -2306,7 +2271,7 @@ section + section { padding-top: 0; }
   justify-self: end;
   border-radius: 12px 12px 4px 12px;
   background: var(--button);
-  color: #12132b;
+  color: #ffffff;
   font-weight: 700;
 }
 .chat__chip {
@@ -2314,7 +2279,7 @@ section + section { padding-top: 0; }
   margin-right: 6px;
   padding: 1px 6px;
   border-radius: 4px;
-  background: rgba(18, 19, 43, 0.16);
+  background: rgba(255, 255, 255, 0.2);
   font-size: 11px;
   font-weight: 900;
   text-transform: uppercase;
@@ -2337,7 +2302,7 @@ section + section { padding-top: 0; }
   height: 20px;
   border-radius: 50%;
   background: var(--button);
-  color: #12132b;
+  color: #ffffff;
   font-size: 12px;
 }
 
@@ -2530,114 +2495,47 @@ body.real-aside > please-no-bugs[project] {
   .btn, .toast { transition: none; }
 }
 
-/* ---- Trial: the minimal look, on Home and Why PleaseNoBugs ------------- */
+/* ---- The minimal look: where the parts above need more than the colours -- */
 
-/*
- * The same pages, parts and motion, in the minimal look of the owner's
- * Figma (Archief · Classic-verkenningen, "Site · Home" 124:1482): a light
- * grey page, white cards, navy words and flat navy buttons, thin lines and
- * soft shadows. Only where the body says \`look-minimal\`; Get your widget
- * keeps the Classic look for now. On the branch \`minimal\`, to try out.
- */
-.look-minimal {
-  color-scheme: light;
-  --page: #f4f5f9;
-  --card: #ffffff;
-  --card-2: #eceef4;
-  --row: #f7f8fb;
-  --line: #e6e7ef;
-  --ink: #1f2348;
-  --ink-2: #2b2f55;
-  --quiet: #6b6f8a;
-  --sub: #5d6180;
-  --faint: #9a9db3;
-  --button: #1f2348;
-  --button-hover: #2c3160;
-  --band: #ffffff;
-  --device: #1f2348;
-  --scrim: #1f2348;
-  --shadow: 0 8px 24px rgba(31, 35, 72, 0.12);
-}
-
-/* Flat buttons: their colour, a thin line for the quiet ones, no relief. */
-.look-minimal .btn { background: var(--btn-fill); box-shadow: inset 0 0 0 1.5px var(--btn-line); }
-.look-minimal .btn:active:not([disabled]) { translate: none; transform: scale(0.98); box-shadow: inset 0 0 0 1.5px var(--btn-line); }
-.look-minimal .btn--quiet:hover { --btn-fill: #eceef4; }
-.look-minimal .btn--grey:hover { --btn-fill: #e2e5ee; }
-
-/* The background's glyphs: navy, as faint as they were white. */
-.look-minimal .page-pattern use { fill: #1f2348; }
-.look-minimal .page-pattern { opacity: 0.55; }
-.look-minimal.page--pattern::before { filter: invert(1); opacity: 0.025; }
+/* The background's glyphs: black, faint but there. */
+.page-pattern use { fill: #111111; opacity: 0.08; }
+.page--pattern::before { filter: invert(1); opacity: 0.08; }
 
 /* The pretend app: a white window with a soft shadow on the grey page. */
-.look-minimal .editor { border-color: var(--line); box-shadow: var(--shadow); }
-.look-minimal .screen { background: var(--row); box-shadow: inset 0 0 0 1px var(--line); }
-.look-minimal .screen__app i { background: #ececf2; }
-.look-minimal .screen__app i:nth-of-type(3) { background: #ffffff; }
+.editor { border-color: var(--line); box-shadow: var(--shadow); }
+.screen { background: var(--row); box-shadow: inset 0 0 0 1px var(--line); }
+.screen__app i { background: #ececee; }
+.screen__app i:nth-of-type(3) { background: #ffffff; }
 
-/* The demo: taps in navy, the drawn people and bubbles outlined. */
-.look-minimal .tour-tap,
-.look-minimal .pl-tap { background: rgba(31, 35, 72, 0.12); border-color: rgba(31, 35, 72, 0.5); }
-.look-minimal .ti-tile,
-.look-minimal .ti-bubble { box-shadow: 0 0 0 1.5px var(--line), var(--shadow); }
-.look-minimal .ti-bubble i { background: #e6e7ef; }
-/* The labels the feedback lands with on the board: white on the navy. */
-.look-minimal .ti-to { color: #ffffff; }
+/* The demo: taps in black, the drawn people and bubbles outlined. */
+.tour-tap,
+.pl-tap { background: rgba(0, 0, 0, 0.12); border-color: rgba(0, 0, 0, 0.5); }
+.ti-tile,
+.ti-bubble { box-shadow: 0 0 0 1.5px var(--line), var(--shadow); }
+.ti-bubble i { background: #e4e4e7; }
+/* The labels the feedback lands with on the board: white on black. */
+.ti-to { color: #ffffff; }
 
 /* Why's drawing: the widget's light look, as on the page. */
-.look-minimal .stage {
+.stage {
   --s-bg: #ffffff;
-  --s-card: #f4f5f9;
-  --s-chip: #eceef4;
-  --s-sunken: #eceef4;
-  --s-line: #e6e7ef;
-  --s-ink: #1f2348;
-  --s-quiet: #6b6f8a;
-  --s-accent: #1f2348;
+  --s-card: #f4f4f5;
+  --s-chip: #ececee;
+  --s-sunken: #ececee;
+  --s-line: #e4e4e7;
+  --s-ink: #111111;
+  --s-quiet: #6b6b72;
+  --s-accent: #111111;
   --s-on-accent: #ffffff;
 }
-.look-minimal .bubble { box-shadow: 0 0 0 1.5px var(--line), var(--shadow); }
-.look-minimal .bubble--thanks { box-shadow: var(--shadow); }
-.look-minimal .person__tile { background: #e6e7ef; }
+.bubble { box-shadow: 0 0 0 1.5px var(--line), var(--shadow); }
+.bubble--thanks { box-shadow: var(--shadow); }
+.person__tile { background: #e4e4e7; }
 
 /* Why's parts: white cards on the grey, flat tiles, the goal on white. */
-.look-minimal .why__cards li,
-.look-minimal .steps-list > li { box-shadow: inset 0 0 0 1px var(--line), var(--shadow); }
-.look-minimal .why__icon { background: var(--tile); box-shadow: none; }
-.look-minimal .pull { background: #ffffff; border-block: 1px solid var(--line); }
-.look-minimal .steps-list > li::before { color: #ffffff; }
-.look-minimal .steps-list p code { background: var(--card-2); }
-.look-minimal .foot__note { border-top-color: var(--line); }
-
-/* The widget on these pages, real and in the demo: light, with navy
-   buttons, as the design's round button. Through its own colour settings
-   (packages/widget README, Theming), so no new widget is needed to try it. */
-.look-minimal please-no-bugs {
-  --pnb-bg: #ffffff;
-  --pnb-surface: #f4f5f9;
-  --pnb-surface-2: #eceef4;
-  --pnb-sunken: #eceef4;
-  --pnb-line: #e6e7ef;
-  --pnb-text: #1f2348;
-  --pnb-text-quiet: #6b6f8a;
-  --pnb-accent: #1f2348;
-  --pnb-accent-fill: #1f2348;
-  --pnb-on-accent: #ffffff;
-  --pnb-danger: #d23b2f;
-  --pnb-card: #ffffff;
-  --pnb-field: #f4f5f9;
-  --pnb-field-in-card: #ffffff;
-  --pnb-vote: #eceef4;
-  --pnb-filter-btn: #ffffff;
-  --pnb-raise: none;
-  --pnb-raise-pressed: none;
-  --pnb-raise-sink: 0px;
-  --pnb-fab: #1f2348;
-  --pnb-on-fab: #ffffff;
-  --pnb-fab-shadow: 0 8px 24px rgba(31, 35, 72, 0.16);
-  --pnb-fab-shadow-pressed: 0 4px 12px rgba(31, 35, 72, 0.16);
-  --pnb-fab-squeeze: 0.94;
-  --pnb-shadow: 0 8px 24px rgba(31, 35, 72, 0.14);
-  --pnb-scrim: rgba(31, 35, 72, 0.4);
-}
+.why__cards li,
+.steps-list > li { box-shadow: inset 0 0 0 1px var(--line), var(--shadow); }
+.why__icon { background: var(--tile); box-shadow: none; }
+.pull { background: #ffffff; border-block: 1px solid var(--line); }
+.steps-list p code { background: var(--card-2); }
+.foot__note { border-top-color: var(--line); }

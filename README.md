@@ -42,10 +42,11 @@ one place, without asking anybody to send you an email.
 - **A name, or anonymous.** A post shows its author's identicon and name,
   unless they post anonymously; a wallet address is never shown to anyone.
 - **Login is the Nimiq wallet your users already have.** No accounts, no email.
-- **In PleaseNoBugs' own look**: dark purple with raised turquoise buttons
-  (`pleasenobugs`, the default). The Nimiq Foundation's 2026 brand is there
-  too, light (`nimiq`) or dark (`nimiq-dark`). In English; the `strings`
-  property puts it in your app's own language.
+- **Minimal, light or dark**: white with near-black buttons (`light`, the
+  default) or the same on near-black (`dark`). PleaseNoBugs' purple
+  (`pleasenobugs`) and the Nimiq Foundation's 2026 brand (`nimiq`,
+  `nimiq-dark`) are there too. In English; the `strings` property puts it
+  in your app's own language.
 
 <br clear="right">
 

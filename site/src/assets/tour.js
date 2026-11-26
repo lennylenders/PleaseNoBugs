@@ -135,7 +135,7 @@ function widget(pov) {
   for (const [k, v] of Object.entries({
     demo: pov === 'owner' ? 'owner' : '',
     mode: 'floating',
-    theme: 'pleasenobugs',
+    theme: 'light',
     screenshots: 'off',
     // Only for the identicons: the tour's posts stay in the page (demo.ts).
     server: '%BOARD_SERVER%',

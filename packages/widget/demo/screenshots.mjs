@@ -64,9 +64,9 @@ async function signIn(page) {
   await sleep(300);
 }
 
-// The board, in the default look (`pleasenobugs`).
+// The board, in the default look (`light`).
 {
-  const page = await open({ who: 'alice', theme: 'pleasenobugs' });
+  const page = await open({ who: 'alice', theme: 'light' });
   await signIn(page);
   await shot(page, path.join(OUT, 'board.png'));
   await page.close();
@@ -74,7 +74,7 @@ async function signIn(page) {
 
 // The owner answering a bug, with the context it came with.
 {
-  const page = await open({ who: 'owner', theme: 'pleasenobugs' });
+  const page = await open({ who: 'owner', theme: 'light' });
   await signIn(page);
   await waitIn(page, '.card--owner');
   await sleep(300);
@@ -92,7 +92,7 @@ async function signIn(page) {
 
 // The three tiles behind the "+".
 {
-  const page = await open({ who: 'alice', theme: 'pleasenobugs' });
+  const page = await open({ who: 'alice', theme: 'light' });
   await signIn(page);
   await click(page, '.bar [aria-label="Write feedback"]');
   await waitIn(page, '.tile');
@@ -105,7 +105,7 @@ async function signIn(page) {
 // ffmpeg turns the frames into a GIF with the durations listed here.
 {
   const frames = fs.mkdtempSync(path.join(os.tmpdir(), 'pnb-frames-'));
-  const page = await open({ who: 'alice', theme: 'pleasenobugs' }, { width: 360, height: 640, scale: 1.5 });
+  const page = await open({ who: 'alice', theme: 'light' }, { width: 360, height: 640, scale: 1.5 });
   const list = [];
   let n = 0;
   const frame = async (seconds) => {

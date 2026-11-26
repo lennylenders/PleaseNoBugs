@@ -31,7 +31,7 @@ export const TAG = 'please-no-bugs';
  * sign in before the tiles.
  *
  * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
- * `start` (`tiles` or `board`), `theme` (`pleasenobugs`, the default, `nimiq` or `nimiq-dark`),
+ * `start` (`tiles` or `board`), `theme` (`light`, the default, `dark`, `pleasenobugs`, `nimiq` or `nimiq-dark`),
  * `lang` (the language of your `strings`, for dates; English by default), `app-name`, `name` (a display name to suggest), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
  * the board, for the app's owners only; `off` to leave them out), `names`

@@ -1876,6 +1876,24 @@ real and in the demo, is light with navy buttons, through its own colour
 settings from the site's stylesheet: if the owner keeps it, it becomes a
 widget theme.
 
+## 2026-11-26 (later): Minimal it is, in black, with a light and a dark widget
+
+The owner picked the minimal look (branch `minimal`) and asked for more:
+
+- **Black, not navy**: words, buttons and the round button near-black
+  (#111) on a light grey page with white cards; colour only for the kinds
+  of feedback and Why's tiles.
+- **Every page** is minimal now, Get your widget too; the trial class is
+  gone and the palette is the site's own (`:root`). Buttons are flat.
+- The background's floating glyphs a little more visible; the demo's title
+  cards ("Your user's perspective", "Your perspective", the end) on
+  transparent black.
+- **Two real widget themes**: `light` (the new default) and `dark`
+  (near-black, white buttons). `pleasenobugs` (the purple) and the Nimiq
+  themes stay for the apps that use them, but the site offers only Light
+  and Dark: Get your widget's first step is "Light or dark", two cards, no
+  "coming soon". Still 0.5.0, which is not out yet.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

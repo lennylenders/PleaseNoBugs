@@ -11,7 +11,7 @@
     <script src="widget/pleasenobugs.iife.js" defer></script>
     <script src="assets/board.js" type="module"></script>
   </head>
-  <body class="look-minimal">
+  <body>
     <!-- The widget's own glyphs, path for path from packages/widget/src/ui/icons.tsx, used by everything below. -->
     <svg width="0" height="0" style="position: absolute" aria-hidden="true">
       <symbol id="i-bug" viewBox="32 24 28 28"><path fill="currentColor" d="M46.5 24C47.9547 24 49.125 25.1703 49.125 26.625V38.875C49.125 40.3297 47.9547 41.5 46.5 41.5C45.0453 41.5 43.875 40.3297 43.875 38.875V26.625C43.875 25.1703 45.0453 24 46.5 24ZM43 48.5C43 47.5717 43.3687 46.6815 44.0251 46.0251C44.6815 45.3687 45.5717 45 46.5 45C47.4283 45 48.3185 45.3687 48.9749 46.0251C49.6313 46.6815 50 47.5717 50 48.5C50 49.4283 49.6313 50.3185 48.9749 50.9749C48.3185 51.6313 47.4283 52 46.5 52C45.5717 52 44.6815 51.6313 44.0251 50.9749C43.3687 50.3185 43 49.4283 43 48.5Z"/></symbol>
@@ -181,6 +181,6 @@
       </div>
     </footer>
     <!-- The real board, on every page: what visitors think of PleaseNoBugs (assets/board.js signs them in). -->
-    <please-no-bugs project="%BOARD_PROJECT%" server="%BOARD_SERVER%" mode="floating" theme="pleasenobugs" screenshots="off"></please-no-bugs>
+    <please-no-bugs project="%BOARD_PROJECT%" server="%BOARD_SERVER%" mode="floating" theme="light" screenshots="off"></please-no-bugs>
   </body>
 </html>

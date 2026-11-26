@@ -43,7 +43,7 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 | `project`, `server` | Required. |
 | `mode` | `inline`, `floating` or `overlay`. |
 | `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board, and so is the board for somebody not signed in outside Nimiq Pay: they read first, and the **+** asks them to sign in ("Sign in to share feedback") before the tiles. |
-| `theme` | `pleasenobugs` (default): PleaseNoBugs' own look, dark purple with raised turquoise buttons. `nimiq`: the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
+| `theme` | `light` (default): minimal, white with near-black words and buttons. `dark`: the same on near-black. `pleasenobugs`: dark purple with raised turquoise buttons. `nimiq`: the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
 | `lang` | The language of your `strings`, so dates follow it: `nl` writes "14 sep". English by default. |
 | `app-name` | What answers are signed with ("My app says"). Defaults to the project's name. |
 | `name` | A display name you already know, filled in for a user who has not chosen one on this board yet. |
@@ -127,22 +127,22 @@ authors get the note. Until you write the first one, only you see the button.
 
 The widget lives in a shadow root, so your CSS cannot break it. These custom
 properties cross that boundary on purpose and are the theming API. The
-defaults below are the `pleasenobugs` look; `nimiq` and `nimiq-dark` set the
-colours again, flat, in the Nimiq Foundation's brand:
+defaults below are the `light` look; `dark`, `pleasenobugs`, `nimiq` and
+`nimiq-dark` set the colours again:
 
 ```css
 please-no-bugs {
-  --pnb-bg: #292a56;                    /* the page */
-  --pnb-surface: #5656ac;               /* a card */
-  --pnb-surface-2: #454689;             /* a chip or field inside a card */
-  --pnb-sunken: #1a1a32;                /* the Top/New trough */
-  --pnb-line: #6d6dc5;
-  --pnb-text: #fff;
-  --pnb-text-quiet: rgba(255, 255, 255, 0.78);
-  --pnb-accent: #1fc7d4;
-  --pnb-accent-fill: linear-gradient(var(--pnb-accent), color-mix(in srgb, var(--pnb-accent), #000 18%)); /* what buttons are painted with */
-  --pnb-on-accent: #12132b;
-  --pnb-danger: #ff7a6b;
+  --pnb-bg: #fff;                       /* the page */
+  --pnb-surface: #f4f4f5;               /* a card */
+  --pnb-surface-2: #ececee;             /* a chip or field inside a card */
+  --pnb-sunken: #ececee;                /* the Top/New trough */
+  --pnb-line: #e4e4e7;
+  --pnb-text: #111;
+  --pnb-text-quiet: #6b6b72;
+  --pnb-accent: #111;
+  --pnb-accent-fill: var(--pnb-accent); /* what buttons are painted with; may be a gradient */
+  --pnb-on-accent: #fff;
+  --pnb-danger: #d23b2f;
   --pnb-bug: #e5484d;  --pnb-idea: #8b5cf6;  --pnb-review: #e9a00b;
   --pnb-planned: #8a8fb8;  --pnb-done: #21bca5;  --pnb-declined: #8a8fb8;
   --pnb-on-dot: #fff;                    /* the glyph on a chip's dot; or per kind and status: */
@@ -161,20 +161,20 @@ please-no-bugs {
   --pnb-choose-title: var(--pnb-text);   /* the question above the tiles */
   --pnb-title-board: var(--pnb-text);    /* the title in the board's bar */
   --pnb-title-write: var(--pnb-text);    /* the title above the form */
-  --pnb-card: var(--pnb-surface);        /* the posts and the rating on the board, */
+  --pnb-card: #fff;                     /* the posts and the rating on the board, */
   --pnb-card-text: var(--pnb-text);      /* their words, */
   --pnb-card-quiet: var(--pnb-text-quiet); /* and their names, dates and counts */
-  --pnb-field: var(--pnb-surface);       /* every field you type in (form, search, answer, update), */
+  --pnb-field: var(--pnb-surface);      /* every field you type in (form, search, answer, update), */
   --pnb-field-text: var(--pnb-text);     /* what is typed in it, */
   --pnb-field-quiet: var(--pnb-text-quiet); /* its hint while empty, */
   --pnb-field-line: var(--pnb-line);     /* and the line round it */
-  --pnb-field-in-card: var(--pnb-bg);    /* a field inside a card: the version and link under "Fixed in" */
+  --pnb-field-in-card: var(--pnb-surface); /* a field inside a card: the version and link under "Fixed in" */
   --pnb-news: var(--pnb-surface-2);      /* the note on top of the board ("... answered your idea"), */
   --pnb-news-line: var(--pnb-accent);    /* its line, */
   --pnb-news-text: var(--pnb-text);      /* its words, */
   --pnb-news-link: var(--pnb-accent);    /* its link, */
   --pnb-news-quiet: var(--pnb-text-quiet); /* and its small words and close */
-  --pnb-filter-btn: var(--pnb-surface);  /* the Filter button: its ground, */
+  --pnb-filter-btn: #fff;               /* the Filter button: its ground, */
   --pnb-filter-btn-text: var(--pnb-text); /* its word, */
   --pnb-filter-btn-line: var(--pnb-line); /* and its line */
   --pnb-bar-icon: var(--pnb-text);       /* the icons in every bar: close, back, updates, new post */
@@ -199,16 +199,16 @@ please-no-bugs {
   --pnb-sent-note: var(--pnb-text-quiet); /* its small words and "Back to the board", */
   --pnb-sent-check: var(--pnb-done);     /* and the disc behind its tick */
   --pnb-on-sent-check: #fff;            /* the tick itself */
-  --pnb-raise: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 10px -4px rgba(0, 0, 0, 0.35); /* a filled button's shadow; `none` for flat */
-  --pnb-raise-pressed: inset 0 2px 4px rgba(0, 0, 0, 0.27); /* its shadow while pressed */
-  --pnb-raise-sink: 1px;                /* how far it sinks when pressed */
+  --pnb-raise: none;                    /* a filled button's shadow; `pleasenobugs` raises it */
+  --pnb-raise-pressed: none;            /* its shadow while pressed */
+  --pnb-raise-sink: 0px;                /* how far it sinks when pressed */
   --pnb-fab: var(--pnb-accent-fill);     /* the round floating button */
   --pnb-on-fab: #fff;                   /* its glyph */
-  --pnb-fab-shadow: var(--pnb-raise), var(--pnb-shadow); /* its shadow, */
-  --pnb-fab-shadow-pressed: var(--pnb-raise-pressed), var(--pnb-shadow); /* pressed, */
-  --pnb-fab-squeeze: 1;                 /* and how small it gets pressed */
+  --pnb-fab-shadow: 0 8px 24px rgba(0, 0, 0, 0.16); /* its shadow, */
+  --pnb-fab-shadow-pressed: var(--pnb-fab-shadow); /* pressed, */
+  --pnb-fab-squeeze: 0.94;              /* and how small it gets pressed */
   --pnb-radius-panel: 16px;              /* the panel on a wide screen */
-  --pnb-radius: 8px;
+  --pnb-radius: 10px;
   --pnb-radius-sheet: 16px;              /* the sheet on a phone, and sheets inside */
   --pnb-sheet-top: 48px;                 /* how much of your app stays in view above the sheet on a phone */
   --pnb-radius-pill: 999px;  /* filters, chips, votes, Top/New, buttons */
