@@ -1783,6 +1783,158 @@ The real board is on every page of the site now (Why PleaseNoBugs and Make
 it yours too). On Make it yours it steps aside while the steps' bar is at the
 bottom of the window, where on a phone it sat on Next.
 
+## 2026-11-26: The Classic look back, one widget to pick
+
+A day after the Nimiq-only site went live, the owner reviewed it and wants
+the Classic look back. Their choices:
+
+- **The Nimiq site is parked** on the branch `nimiq` and the tag
+  `nimiq-2026-11-26` (the state of main at 2db169d), the way Classic was
+  parked on 2026-11-19. Main is Classic only: no style switch.
+- **Classic is put back on top of the site as it is now**, not by going back
+  to the `classic` branch: wallet login, identicons, the demo's name, the
+  feedback button on every page and the domain all stay. Purple, Museo Sans
+  Rounded, the raised buttons, the drifting glyphs and the playful demo come
+  back, with Classic's own words and logo.
+- **No colouring in any more.** Make it yours keeps the steps of the Nimiq
+  version (the look, how it opens, where it's used, the prompt), in the
+  Classic look. The look is one card, PleaseNoBugs, already chosen, with a
+  greyed "More themes · Coming soon" beside it: the owner wants to make more
+  themes later for developers to pick from. The demo's "Build your own
+  widget" scene is gone, and so is the light board on Why PleaseNoBugs; the
+  demo ends on the owner's fix and the three-step end.
+- **The widget's default is `pleasenobugs` again** (light only: no dark or
+  auto). `nimiq` and `nimiq-dark` stay in the widget for the apps that use
+  them, but the site does not offer them. An app with no `theme` gets the
+  purple look when it updates, so this is 0.5.0, not 0.4.1; `theme="nimiq"`
+  keeps the Nimiq look.
+- No Figma round: Classic was in Figma already. Built on a branch and shown
+  as a preview before anything goes live.
+
+The Railway template's icon goes back to the Classic logo at release time,
+in the template editor (owner's step).
+
+**After the owner's preview (same day):** the page is called **Get your
+widget** now (in the header, its heading and every link to it), and the
+button under the home page's demo is gone. The last step is calmer: three
+slides wide over the stage (paste the prompt into your AI agent, answer its
+questions, try it in your app), each with its own small animation, going on
+by themselves with a dot per slide; "Copy prompt for your AI agent" is
+always in view under them, with the choices and "See the prompt" / "Show
+the code" small beneath it. In the demo, the round button drawn in scene 5
+takes the widget's gradient, so it is turquoise rather than dark. The
+version and link under "Fixed in" were the card's own colour in
+`pleasenobugs`; a field inside a card now has its own token,
+`--pnb-field-in-card` (the page's dark purple; Nimiq's unchanged).
+
+## 2026-11-26 (later): On a phone the board is a sheet, not the whole screen
+
+The owner wants the widget on a phone to feel like a modal: opened, it no
+longer covers the whole screen. Their choices:
+
+- **A narrow strip of the app stays in view** above it, dimmed: 48px under
+  the screen's own top, a new token `--pnb-sheet-top` a theme can change.
+  The sheet has rounded top corners and a small grip.
+- **Closing**: a swipe down on the sheet's top (the grip and the bar; the
+  list keeps its own scrolling), a tap on the dimmed strip, or the X. A short
+  swipe springs back; a far or fast one closes.
+- **Opening stays as it was**: the round button grows into the sheet, and a
+  close by X or tap shrinks it back; a swipe lets it slide on down.
+- From 640px wide nothing changes: the panel in the corner.
+
+Tested in headless Chrome with real touch: open at 48px, a short swipe
+springs back, a long one closes, the strip and the X close, a tap on X stays
+a tap.
+
+## 2026-11-26 (later): Why PleaseNoBugs in bands, as the Nimiq version had it
+
+The owner found the Nimiq version of Why PleaseNoBugs clearer than Classic's
+three parts with a drawing each. The page keeps the Classic look but takes
+the Nimiq layout (Figma 293:6570): the heading on a band of its own, the
+"black hole" drawing beside its text, "Why Nimiq developers use it" as four
+cards in a row with an icon each (Phosphor, MIT, as in the Nimiq version),
+the goal on the darkest band, and the three steps as three equal cards. The
+drawings of the votes and of the code typing itself are gone; the first one
+stays.
+
+Same day, after the owner looked: the line icons were Nimiq's. The cards now
+have bold glyphs of our own (a server, a wallet, a vote arrow, a crown) on
+raised tiles in the widget's colours, like its Report a bug / Share an idea /
+Write a review tiles; the Phosphor icons are gone. In the drawing Fons no
+longer gets a tick when his bug is fixed: he says "Thanks for the fix!".
+
+## 2026-11-26 (trial, branch `minimal`): A minimal look on Home and Why
+
+The owner wants to see whether a more minimal style suits better, from an
+earlier Figma design (Archief · Classic-verkenningen, "Site · Home"
+124:1482): a light grey page, white cards, navy words and flat navy
+buttons. On its own branch, so Classic stays as it is; only Home and Why
+PleaseNoBugs (`look-minimal` on their body), Get your widget keeps Classic.
+Everything stays (demo, drawings, glyph background, coloured tiles and
+labels), only in the minimal colours and flat. The widget on these pages,
+real and in the demo, is light with navy buttons, through its own colour
+settings from the site's stylesheet: if the owner keeps it, it becomes a
+widget theme.
+
+## 2026-11-26 (later): Minimal it is, in black, with a light and a dark widget
+
+The owner picked the minimal look (branch `minimal`) and asked for more:
+
+- **Black, not navy**: words, buttons and the round button near-black
+  (#111) on a light grey page with white cards; colour only for the kinds
+  of feedback and Why's tiles.
+- **Every page** is minimal now, Get your widget too; the trial class is
+  gone and the palette is the site's own (`:root`). Buttons are flat.
+- The background's floating glyphs a little more visible; the demo's title
+  cards ("Your user's perspective", "Your perspective", the end) on
+  transparent black.
+- **Two real widget themes**: `light` (the new default) and `dark`
+  (near-black, white buttons). `pleasenobugs` (the purple) and the Nimiq
+  themes stay for the apps that use them, but the site offers only Light
+  and Dark: Get your widget's first step is "Light or dark", two cards, no
+  "coming soon". Still 0.5.0, which is not out yet.
+
+## 2026-11-26 (later): Get your widget, one clean column
+
+The owner wanted Get your widget much simpler. Now it is one centred column
+on a plain page (no floating glyphs there): the title, the widget's style
+(PleaseNoBugs, selected, with a greyed "More soon" beside it), a phone with an
+app on it where the real widget plays somebody sending a bug, over and over
+(tap the round button, pick Bug, describe it, add a name, send it, on the
+board; then Mila writes a review with four stars from the board's +, and it
+joins the board and its rating; a ring for each tap and a line under the phone per step). Light or
+dark changes the widget's look, and the app's, while it plays: the story
+goes on where it is. Tried first: one tilted phone, then a fan of three
+bezel-less phones; the owner wanted one screen with a story. Then a Light /
+Dark switch, and "Copy prompt for your AI agent" with "See the prompt" and
+"Show the code" under it. How it opens and where the app runs are no
+longer picked on the page: the prompt has the agent ask, and the code
+starts as a round button with the signer for outside Nimiq Pay, which is
+right everywhere. The four steps, the slides and their styles are gone.
+The floating glyphs on Home and Why are a little fainter again.
+
+## 2026-11-26 (later): The site in light or dark
+
+Visitors can use the site dark. A round button at the top right (a moon in
+light, a sun in dark) flips it; it starts as the device is set and follows
+it until the visitor chooses, and this browser remembers the choice
+(`localStorage`, nothing leaves it). `assets/mode.js` runs in the head, so
+a dark visit is never light first. The widgets follow: the real board, the
+home page's demo and the apps board take `dark`; on Get your widget the
+phone's widget starts as the site is and its own Light / Dark switch still
+works. Dark is near-black (#0c0c0d) with near-white words and white buttons;
+the floating glyphs turn white, as faint.
+
+## 2026-11-26 (later): "Built for Nimiq" over the home page's heading
+
+So a visitor sees at once that it is for Nimiq, a small pill over "Stop
+guessing what your users want." says "Built for Nimiq" with the Nimiq
+hexagon in its gold (#FFB700), the one colour on the page that is not a
+kind of feedback. "Built for", not "by": PleaseNoBugs is a community tool,
+not an official Nimiq product. Also proposed and not taken (for now): the
+hexagon in the header, the demo's app as a Nimiq Pay mini app, the hexagon
+in the footer.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its

@@ -16,7 +16,7 @@ export interface OpenOptions {
   server: string;
   /** The language of your `strings`, for dates. English by default. */
   lang?: string;
-  theme?: 'nimiq' | 'nimiq-dark';
+  theme?: 'light' | 'dark' | 'pleasenobugs' | 'nimiq' | 'nimiq-dark';
   appName?: string;
   /** A display name to suggest when the user chooses to show theirs. */
   name?: string;
@@ -37,7 +37,7 @@ export interface OpenOptions {
 }
 
 /**
- * Open the board over the whole screen, from a button of your own.
+ * Open the board over the page (a sheet on a phone), from a button of your own.
  * Answers a function that closes it again.
  *
  * @example

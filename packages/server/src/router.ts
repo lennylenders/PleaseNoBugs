@@ -15,6 +15,7 @@ import {
   cleanVersion,
   decodeProof,
   identiconCode,
+  shortAddress,
   isClosed,
   isPostKind,
   isPostStatus,
@@ -178,7 +179,12 @@ export function createRouter(options: RouterOptions): express.Router {
   /** What one wallet needs to know about itself on one board. */
   async function me(p: Project, address: string, owner: boolean): Promise<Me> {
     const used = await store.countByAuthorSince(p.id, address, now() - DAY_MS);
-    const out: Me = { owner, left: Math.max(0, p.rules.perDay - used), face: identiconCode(address) };
+    const out: Me = {
+      owner,
+      left: Math.max(0, p.rules.perDay - used),
+      face: identiconCode(address),
+      short: shortAddress(address),
+    };
     const name = (await store.names(p.id, [address])).get(address);
     if (name) out.name = name;
     return out;

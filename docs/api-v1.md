@@ -216,17 +216,23 @@ The whole board: a `BoardRead`.
   identicon, as the twelve digits `identiconCode()` in core makes from their
   address, and `who`, their name, when they have one. `GET
   /v1/identicons/:code.svg` draws it. An anonymous post carries neither.
+- A post that is not anonymous and whose author has no name carries `short`
+  *(0.6.0)* instead of `who`: the address cut to its first and last four
+  characters, `NQ12 … AB34` (`shortAddress()` in core), so people who chose no
+  name can still be told apart. Never the whole address, and never on an
+  anonymous post.
 - Paging may be added later as an optional `cursor` parameter, which is an
   addition rather than a change.
 
 `Me` is what the reader needs before they type anything:
 
 ```ts
-{ owner: boolean; name?: string; face?: string; left: number }
+{ owner: boolean; name?: string; face?: string; short?: string; left: number }
 ```
 
 `face` *(0.4.0)* is this wallet's own identicon code, so a client can show it
-beside the name before anything is posted.
+beside the name before anything is posted. `short` *(0.6.0)* is this wallet's
+address cut short, what others see on its posts while it has no name.
 
 `left` is how many posts remain in this wallet's rolling day. The allowance
 itself is `project.rules.perDay`: **read it from here, never from a copy**, or

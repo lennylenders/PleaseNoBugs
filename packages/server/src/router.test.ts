@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { DAY_MS, LOGIN_TTL_MS, identiconCode, type Rules } from '@pleasenobugs/core';
+import { DAY_MS, LOGIN_TTL_MS, identiconCode, shortAddress, type Rules } from '@pleasenobugs/core';
 import { MemoryStore } from './memory-store.js';
 import { newProject } from './projects.js';
 import { serve, wallet } from './test-helpers.js';
@@ -131,6 +131,21 @@ describe('what never leaves the server', () => {
     // The identicon goes with the name, and with it stays off an anonymous post.
     expect(posts.find((p: any) => p.id === 'p1').face).toBeUndefined();
     expect(posts.find((p: any) => p.id === 'p2').face).toBe(identiconCode(A.address));
+  });
+
+  it('without a name, the address cut short and never whole; nothing at all when anonymous', async () => {
+    const { as, post } = await setup();
+    await post(A, { anon: false });
+    await post(A, { anon: true, text: 'Second one' });
+    const res = await as(B, 'GET', '/posts');
+    const named = res.data.posts.find((p: any) => p.id === 'p1');
+    const anon = res.data.posts.find((p: any) => p.id === 'p2');
+    expect(named.who).toBeUndefined();
+    expect(named.short).toBe(shortAddress(A.address));
+    expect(named.short).toMatch(/^NQ\d{2} … [0-9A-Z]{4}$/);
+    expect(anon.short).toBeUndefined();
+    expect(anon.face).toBeUndefined();
+    expect(res.raw).not.toContain(A.address);
   });
 
   it('an identicon is a picture of the wallet, never the address', async () => {
@@ -312,7 +327,12 @@ describe('posting', () => {
   it('answers what is left of the day, and the board says the same', async () => {
     const { as, post } = await setup();
     expect((await post(A)).data).toEqual({ ok: true, left: 4 });
-    expect((await as(A, 'GET', '/posts')).data.me).toEqual({ owner: false, left: 4, face: identiconCode(A.address) });
+    expect((await as(A, 'GET', '/posts')).data.me).toEqual({
+      owner: false,
+      left: 4,
+      face: identiconCode(A.address),
+      short: shortAddress(A.address),
+    });
   });
 
   it('stops at the daily allowance, and the allowance rolls rather than resetting', async () => {
@@ -530,6 +550,8 @@ describe('names', () => {
     expect((await as(B, 'GET', '/posts')).data.posts[0].who).toBe('Ally');
     expect((await as(A, 'PUT', '/me', { name: '' })).data).toEqual({ ok: true });
     expect((await as(B, 'GET', '/posts')).data.posts[0].who).toBeUndefined();
+    // Without a name, the address cut short instead; with one, never both.
+    expect((await as(B, 'GET', '/posts')).data.posts[0].short).toBe(shortAddress(A.address));
     // board2 never heard of it.
     const other = await call('GET', '/v1/projects/board2/me', {
       auth: A.proof('board2', OTHER_APP),

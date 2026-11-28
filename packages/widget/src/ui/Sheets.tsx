@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'preact/hooks';
-import type { PostKind, PostStatus } from '@pleasenobugs/core';
+import { NAME_MAX, type BoardSort, type PostKind, type PostStatus } from '@pleasenobugs/core';
 import { NO_FILTER, type BoardFilter, type OwnFilter } from '../filter.js';
 import type { CopyKey, Translate } from '../i18n.js';
+import { Face } from './Face.js';
 import { KIND, doneLabel } from './PostCard.js';
 import * as Icon from './icons.js';
 
@@ -31,9 +32,126 @@ function Sheet({
   return (
     <div class="scrim" onClick={onClose}>
       <div class="sheet" role="dialog" aria-modal="true" aria-label={label} onClick={(e) => e.stopPropagation()}>
+        <span class="sheet__grip" aria-hidden="true" />
         {children}
       </div>
     </div>
+  );
+}
+
+/**
+ * Somebody not signed in tapped Send feedback or a vote, outside Nimiq Pay
+ * where signing in is a step of its own (a wallet window). Said here, at the
+ * moment it matters, instead of a card on top of the board for everybody who
+ * only came to read; with what signing is not, before it is asked.
+ */
+export function SignInSheet({
+  t,
+  why,
+  canSign,
+  appName,
+  onSignIn,
+  onClose,
+}: {
+  t: Translate;
+  why: 'feedback' | 'vote';
+  /** Whether there is a wallet to ask at all. Without one, it only says so. */
+  canSign: boolean;
+  appName: string;
+  onSignIn: () => void;
+  onClose: () => void;
+}) {
+  const title: CopyKey = why === 'vote' ? 'board.signInVote' : 'board.signInFeedback';
+  return (
+    <Sheet label={t(title)} onClose={onClose}>
+      <h2 class="sheet__title">{t(title)}</h2>
+      <p class="sheet__quote">{canSign ? t('board.signInNote') : t('board.needWallet', { app: appName })}</p>
+      <div class="sheet__actions">
+        {canSign && (
+          <button type="button" class="btn" onClick={onSignIn}>
+            {t('board.signInButton')}
+          </button>
+        )}
+        <button type="button" class="text-btn" onClick={onClose}>
+          {t(canSign ? 'board.notNow' : 'board.close')}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
+/** Asking before Log out, which is easy to tap by mistake and a wallet window to undo. */
+export function LogOutSheet({ t, onConfirm, onClose }: { t: Translate; onConfirm: () => void; onClose: () => void }) {
+  return (
+    <Sheet label={t('settings.logOutTitle')} onClose={onClose}>
+      <h2 class="sheet__title">{t('settings.logOutTitle')}</h2>
+      <p class="sheet__quote">{t('settings.logOutText')}</p>
+      <div class="sheet__actions">
+        <button type="button" class="btn btn--danger" onClick={onConfirm}>
+          {t('settings.logOut')}
+        </button>
+        <button type="button" class="text-btn" onClick={onClose}>
+          {t('board.cancel')}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
+/**
+ * Once, on somebody's first post: how should others see you? Asked as the
+ * post goes up rather than in a form before it, so the name is there under
+ * the very first post, and asked only of somebody who has none and is not
+ * posting anonymously. Skip is a real answer: others see a short address.
+ */
+export function NameSheet({
+  t,
+  face,
+  faceUrl,
+  suggest = '',
+  onSave,
+  onSkip,
+  onClose,
+}: {
+  t: Translate;
+  face?: string;
+  faceUrl?: (code: string) => string;
+  /** A name the host app already knows, filled in to keep or change. */
+  suggest?: string;
+  onSave: (name: string) => void;
+  onSkip: () => void;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState(suggest);
+  const src = face && faceUrl ? faceUrl(face) : undefined;
+  return (
+    <Sheet label={t('name.title')} onClose={onClose}>
+      <Face code={face} src={src} size={48} />
+      <h2 class="sheet__title sheet__title--under">{t('name.title')}</h2>
+      <p class="sheet__quote">{t('name.text')}</p>
+      <label class="name-field sheet__field">
+        <Face code={face} src={src} size={24} />
+        <input
+          class="input"
+          value={name}
+          maxLength={NAME_MAX}
+          placeholder={t('board.namePlaceholder')}
+          aria-label={t('board.namePlaceholder')}
+          onInput={(e) => setName((e.target as HTMLInputElement).value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && name.trim()) onSave(name.trim());
+          }}
+        />
+      </label>
+      <div class="sheet__actions">
+        <button type="button" class="btn" disabled={!name.trim()} onClick={() => onSave(name.trim())}>
+          {t('name.save')}
+        </button>
+        <button type="button" class="text-btn" onClick={onSkip}>
+          {t('name.skip')}
+        </button>
+      </div>
+    </Sheet>
   );
 }
 
@@ -120,10 +238,13 @@ export function filterLabel(
 }
 
 /**
- * Everything the board can be narrowed to, in one sheet so the board itself
- * keeps one row for it. Choices are made here and land together with the
- * button, which says how many posts that will be, so nobody filters their
- * way to an empty board without seeing it coming. "All" turns a group off.
+ * Everything the board can be narrowed to, and its order, in one sheet so the
+ * board itself keeps one row for it. Choices are made here and land together
+ * with the button, which says how many posts that will be, so nobody filters
+ * their way to an empty board without seeing it coming. "All" turns a group off.
+ *
+ * The order (Top or Newest) comes first: it is the choice people change most,
+ * and it never changes how many posts there are.
  *
  * `own` (Waiting on you, Off the board, Waiting for approval) is for owners
  * only, and "Only my posts" for somebody signed in: nobody else has any.
@@ -134,6 +255,7 @@ export function FilterSheet({
   owners,
   signedIn,
   value,
+  sort: sortNow,
   count,
   onApply,
   onClose,
@@ -145,12 +267,15 @@ export function FilterSheet({
   owners: OwnFilter[];
   signedIn: boolean;
   value: BoardFilter;
+  /** The board's order now. */
+  sort: BoardSort;
   /** How many posts a filter leaves. */
   count: (f: BoardFilter) => number;
-  onApply: (f: BoardFilter) => void;
+  onApply: (f: BoardFilter, sort: BoardSort) => void;
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState<BoardFilter>(value);
+  const [sort, setSort] = useState<BoardSort>(sortNow);
   const n = count(draft);
   const toggle = <K extends 'kinds' | 'statuses' | 'own'>(key: K, item: BoardFilter[K][number]) =>
     setDraft((d) => {
@@ -202,6 +327,17 @@ export function FilterSheet({
         </button>
       </div>
 
+      <div class="pick-group" role="group" aria-label={t('filter.sort')}>
+        <span class="label">{t('filter.sort')}</span>
+        <div class="states">
+          {(['top', 'new'] as const).map((s) => (
+            <button key={s} type="button" class="chip-pick" aria-pressed={sort === s} onClick={() => setSort(s)}>
+              {t(s === 'top' ? 'board.top' : 'board.newest')}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {kinds.length > 1 && group('kinds', 'filter.kind', kinds, (k) => filterLabel(t, { kind: k }))}
       {group('statuses', 'filter.status', FILTER_STATUSES, (s) => filterLabel(t, { status: s, kinds: draft.kinds.length ? draft.kinds : kinds }))}
       {kinds.includes('review') && <p class="note">{t('filter.statusNote')}</p>}
@@ -227,10 +363,17 @@ export function FilterSheet({
       )}
 
       <div class="sheet__foot">
-        <button type="button" class="text-btn filter-reset" onClick={() => setDraft(NO_FILTER)}>
+        <button
+          type="button"
+          class="text-btn filter-reset"
+          onClick={() => {
+            setDraft(NO_FILTER);
+            setSort('top');
+          }}
+        >
           {t('filter.reset')}
         </button>
-        <button type="button" class="btn" onClick={() => onApply(draft)}>
+        <button type="button" class="btn" onClick={() => onApply(draft, sort)}>
           {n === 1 ? t('filter.showOne') : t('filter.show', { n })}
         </button>
       </div>

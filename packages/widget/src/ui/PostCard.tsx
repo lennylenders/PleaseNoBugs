@@ -198,7 +198,8 @@ export function VoteButton({
  * thing it is, whether anything has happened to it, and how many want it. The
  * vote is the one control everybody gets.
  *
- * **Who wrote it is a label and never an address**, and an anonymous post says
+ * **Who wrote it is a name, or the address cut short** (`NQ12 … AB34`) for
+ * somebody who chose none, never the whole address; an anonymous post says
  * so where the name would be, because a blank reads as a name that failed to
  * load.
  *
@@ -332,8 +333,9 @@ export function PostCard({
         <span class="card__who">
           {post.face && <Face code={post.face} src={faceUrl} />}
           <span class="card__name">
-            {/* An identicon is somebody already; "Anonymous" beside one would contradict it. */}
-            {post.mine ? t('board.byYou') : (post.who ?? (post.face ? '' : t('board.anon')))}
+            {/* An identicon is somebody already; "Anonymous" beside one would
+                contradict it. Without a name, the address cut short. */}
+            {post.mine ? t('board.byYou') : (post.who ?? post.short ?? (post.face ? '' : t('board.anon')))}
           </span>
         </span>
         {onDelete && (

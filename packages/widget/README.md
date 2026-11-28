@@ -22,9 +22,12 @@ wallet by itself; everywhere else it reads, and your app can hand it a signer.
 Each opens on the tiles (bug, idea, review), with the board one tap under
 them. `start="board"` opens on the board instead.
 
-`floating` and `overlay` cover the whole screen on a phone. From 640 pixels
-wide they are a panel in the bottom-right corner instead, 375 wide and up to
-640 tall, over a dimmed page; a click beside it or Escape closes it.
+`floating` and `overlay` are a sheet from the bottom on a phone: nearly the
+whole screen, with a strip of your app still in view above it, dimmed
+(`--pnb-sheet-top`). A tap on that strip, a swipe down on the sheet's top or
+its X closes it. From 640 pixels wide they are a panel in the bottom-right
+corner instead, 375 wide and up to 640 tall, over a dimmed page; a click
+beside it or Escape closes it.
 
 From a button of your own:
 
@@ -39,15 +42,16 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 |---|---|
 | `project`, `server` | Required. |
 | `mode` | `inline`, `floating` or `overlay`. |
-| `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board, and so is the board for somebody not signed in outside Nimiq Pay: they read first, and the **+** asks them to sign in ("Sign in to share feedback") before the tiles. |
-| `theme` | `nimiq` (default): the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
+| `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board, and so is the board for somebody not signed in outside Nimiq Pay: they read first, and **Send feedback** (or a vote) asks them to sign in, in a sheet, before the tiles. |
+| `theme` | `light` (default): minimal, white with near-black words and buttons. `dark`: the same on near-black. `pleasenobugs`: dark purple with raised turquoise buttons. `nimiq`: the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
 | `lang` | The language of your `strings`, so dates follow it: `nl` writes "14 sep". English by default. |
 | `app-name` | What answers are signed with ("My app says"). Defaults to the project's name. |
-| `name` | A display name you already know, filled in for a user who has not chosen one on this board yet. |
+| `name` | A display name you already know, filled in when a user who has not chosen one on this board is asked for one on their first post. |
+| `logo` | The image before the board's title. PleaseNoBugs' own little bug when absent; a URL for your app's own logo (about 22px high is how it shows); `none` for no logo. |
 | `kinds` | Which kinds to offer, of the ones your project takes: `bug,idea,review` by default. `kinds="bug,idea"` leaves reviews off the tiles and out of the list. |
 | `screenshots` | Who sees screenshots on bugs and ideas. On the board for everyone by default, each one only after its author ticks that everyone may see it. `owners` keeps them for your eyes only; `off` leaves the "Add a screenshot" button out. An unknown value counts as `owners`. The project's own rule (`PNB_PROJECT_SCREENSHOTS` on the server) wins when it is stricter. |
-| `names` | `off` leaves out the name field and the "Post anonymously" switch: every post is anonymous, with no name and no identicon. |
-| `readonly` | The board to read and scroll through, nothing else: no **+**, no votes (the count still shows), no "Sign in", and it never asks a wallet or sends a proof, not even inside Nimiq Pay. Every post shows as anonymous and without its screenshot, whatever its author chose, because a read-only board is usually shown somewhere other than the app its authors wrote for. |
+| `names` | `off` leaves the name and "Post anonymously" out of Settings and never asks for a name: every post is anonymous, with no name and no identicon. |
+| `readonly` | The board to read and scroll through, nothing else: no **Send feedback**, no votes (the count still shows), no "Sign in", and it never asks a wallet or sends a proof, not even inside Nimiq Pay. Every post shows as anonymous and without its screenshot, whatever its author chose, because a read-only board is usually shown somewhere other than the app its authors wrote for. |
 | `demo` | A board of sample posts in the page's memory, with no server: `<please-no-bugs demo>`. Voting and writing work, nothing is sent or stored, and a reload starts over. For trying the widget, or showing it off. `demo="owner"` is the same board as its owner sees it: answer, set a status and "Fixed in", write updates. With a `server`, a demo still keeps its posts in the page and asks that server only for the identicons. |
 | `screen` | With `demo` only: hold one screen in view, `button`, `tiles`, `board`, `write`, `sent` or `updates`. What the website's Make it yours uses to show each part. |
 
@@ -64,14 +68,19 @@ Events: `pleasenobugs:posted` (`detail: { id, kind }`) and `pleasenobugs:close`.
 
 ## What your users see
 
-Tapping **+** opens three tiles: **Report a bug**, **Share an idea** and
+Tapping **Send feedback**, at the foot of the board, opens three tiles: **Report a bug**, **Share an idea** and
 **Write a review**. A review is one to five stars and a few words, shown on the
 board with the average on top, so people can see what others like about your
 app. One review per wallet.
 
-A post goes out with **the user's wallet identicon and a name** they fill in
-once per board, never their address. Changing the name changes it on their
-earlier posts too. **"Post anonymously"** leaves both off. The identicon is
+A post goes out with **the user's wallet identicon and a name**, never their
+whole address. The name is asked for once, as their first post goes up, and
+changed any time in **Settings**, behind their identicon in the top right;
+changing it changes it on their earlier posts too. Without a name, others see
+the address cut short (`NQ12 … AB34`). **"Post anonymously"**, also in
+Settings, leaves name and identicon off every post. Outside Nimiq Pay,
+Settings also has **Log out**. Top or Newest is chosen in the **Filter**
+panel, with the kind and the status. The identicon is
 drawn by your PleaseNoBugs server (`/v1/identicons/…`), like screenshots, so
 the page needs that server in its `img-src`.
 
@@ -124,32 +133,33 @@ authors get the note. Until you write the first one, only you see the button.
 
 The widget lives in a shadow root, so your CSS cannot break it. These custom
 properties cross that boundary on purpose and are the theming API. The
-defaults below are the `nimiq` look; `nimiq-dark` sets the colours again on
-navy:
+defaults below are the `light` look; `dark`, `pleasenobugs`, `nimiq` and
+`nimiq-dark` set the colours again:
 
 ```css
 please-no-bugs {
-  --pnb-bg: #ffffff;            /* the page */
-  --pnb-surface: #fafaf8;    /* a card */
-  --pnb-surface-2: #f2f3f4;  /* a chip or field inside a card */
-  --pnb-sunken: #f2f3f4;     /* the Top/New trough */
-  --pnb-line: #e6e6e9;
-  --pnb-text: #040724;
-  --pnb-text-quiet: #686a7c;
-  --pnb-accent: #040724;
-  --pnb-on-accent: #ffffff;
-  --pnb-danger: #cb0015;
-  --pnb-bug: #cb0015;  --pnb-idea: #ffb700;  --pnb-review: #4f5166;
-  --pnb-planned: #ffc758;  --pnb-done: #040724;  --pnb-declined: #9b9ca7;
-  --pnb-on-dot: #ffffff;                    /* the glyph on a chip's dot; or per kind and status: */
+  --pnb-bg: #fff;                       /* the page */
+  --pnb-surface: #f4f4f5;               /* a card */
+  --pnb-surface-2: #ececee;             /* a chip or field inside a card */
+  --pnb-sunken: #ececee;                /* the Top/New trough */
+  --pnb-line: #e4e4e7;
+  --pnb-text: #111;
+  --pnb-text-quiet: #6b6b72;
+  --pnb-accent: #111;
+  --pnb-accent-fill: var(--pnb-accent); /* what buttons are painted with; may be a gradient */
+  --pnb-on-accent: #fff;
+  --pnb-danger: #d23b2f;
+  --pnb-bug: #e5484d;  --pnb-idea: #8b5cf6;  --pnb-review: #e9a00b;
+  --pnb-planned: #8a8fb8;  --pnb-done: #21bca5;  --pnb-declined: #8a8fb8;
+  --pnb-on-dot: #fff;                    /* the glyph on a chip's dot; or per kind and status: */
   --pnb-on-bug: var(--pnb-on-dot);       /* --pnb-on-idea, -review, -planned, -done, -declined */
-  --pnb-star: #ffb700;
-  --pnb-filter: var(--pnb-text);         /* the chosen filter, and the chosen status in your answer sheet */
-  --pnb-on-filter: var(--pnb-bg);        /* its words: set both, as they are not picked for you */
+  --pnb-star: #f5a524;
+  --pnb-filter: color-mix(in srgb, var(--pnb-text) 16%, var(--pnb-bg)); /* the chosen filter, and the chosen status in your answer sheet: a state, so grey, not the button black */
+  --pnb-on-filter: var(--pnb-text);      /* and its words */
   --pnb-tile-bug: var(--pnb-bug);        /* the three tiles; may be gradients */
   --pnb-tile-idea: var(--pnb-idea);
   --pnb-tile-review: var(--pnb-review);
-  --pnb-tile-ink: #ffffff;                  /* the words on them */
+  --pnb-tile-ink: #fff;                  /* the words on them */
   --pnb-tile-ink-bug: var(--pnb-tile-ink); /* the words on one tile (-idea, -review too) */
   --pnb-tile-dot-bug: transparent;       /* a disc behind each tile's glyph (-idea, -review too) */
   --pnb-tile-glyph-bug: var(--pnb-tile-ink-bug); /* and the glyph's colour (-idea, -review too) */
@@ -157,25 +167,24 @@ please-no-bugs {
   --pnb-choose-title: var(--pnb-text);   /* the question above the tiles */
   --pnb-title-board: var(--pnb-text);    /* the title in the board's bar */
   --pnb-title-write: var(--pnb-text);    /* the title above the form */
-  --pnb-card: #ffffff;        /* the posts and the rating on the board, */
+  --pnb-card: #fff;                     /* the posts and the rating on the board, */
   --pnb-card-text: var(--pnb-text);      /* their words, */
   --pnb-card-quiet: var(--pnb-text-quiet); /* and their names, dates and counts */
-  --pnb-field: #f2f3f4;       /* every field you type in (form, search, answer, update), */
+  --pnb-field: var(--pnb-surface);      /* every field you type in (form, search, answer, update), */
   --pnb-field-text: var(--pnb-text);     /* what is typed in it, */
   --pnb-field-quiet: var(--pnb-text-quiet); /* its hint while empty, */
   --pnb-field-line: var(--pnb-line);     /* and the line round it */
+  --pnb-field-in-card: var(--pnb-surface); /* a field inside a card: the version and link under "Fixed in" */
   --pnb-news: var(--pnb-surface-2);      /* the note on top of the board ("... answered your idea"), */
   --pnb-news-line: var(--pnb-accent);    /* its line, */
   --pnb-news-text: var(--pnb-text);      /* its words, */
   --pnb-news-link: var(--pnb-accent);    /* its link, */
   --pnb-news-quiet: var(--pnb-text-quiet); /* and its small words and close */
-  --pnb-filter-btn: #ffffff;  /* the Filter button: its ground, */
+  --pnb-filter-btn: #fff;               /* the Filter button: its ground, */
   --pnb-filter-btn-text: var(--pnb-text); /* its word, */
-  --pnb-filter-btn-line: #cdcdd3; /* and its line */
+  --pnb-filter-btn-line: var(--pnb-line); /* and its line */
   --pnb-bar-icon: var(--pnb-text);       /* the icons in every bar: close, back, updates, new post */
-  --pnb-order: var(--pnb-sunken);        /* behind Top / New, */
-  --pnb-order-text: var(--pnb-text-quiet); /* and the word not chosen */
-  --pnb-vote: #f2f3f4;      /* the vote button, */
+  --pnb-vote: var(--pnb-surface-2);      /* the vote button, */
   --pnb-vote-text: var(--pnb-card-text); /* its count, */
   --pnb-vote-on: var(--pnb-accent);      /* a vote you gave, */
   --pnb-on-vote-on: var(--pnb-on-accent); /* and its count */
@@ -187,21 +196,23 @@ please-no-bugs {
   --pnb-switch-on: var(--pnb-accent);    /* the switch when on, */
   --pnb-on-switch-on: var(--pnb-on-accent); /* and its knob */
   --pnb-shot-line: var(--pnb-line);      /* the line round "Add screenshot" */
-  --pnb-order-on: var(--pnb-surface);    /* the chosen half of Top/New, */
-  --pnb-on-order: var(--pnb-text);       /* and its words */
   --pnb-sent: var(--pnb-bg);             /* behind "Feedback sent!" */
   --pnb-sent-title: var(--pnb-text);     /* its title, */
   --pnb-sent-note: var(--pnb-text-quiet); /* its small words and "Back to the board", */
-  --pnb-sent-check: #040724;            /* and the disc behind its tick */
-  --pnb-on-sent-check: #ffffff;         /* the tick itself */
-  --pnb-fab: #ffb700;                    /* the round floating button */
-  --pnb-on-fab: #040724;                 /* its glyph */
-  --pnb-fab-shadow: var(--pnb-shadow);   /* its shadow, */
+  --pnb-sent-check: var(--pnb-done);     /* and the disc behind its tick */
+  --pnb-on-sent-check: #fff;            /* the tick itself */
+  --pnb-raise: none;                    /* a filled button's shadow; `pleasenobugs` raises it */
+  --pnb-raise-pressed: none;            /* its shadow while pressed */
+  --pnb-raise-sink: 0px;                /* how far it sinks when pressed */
+  --pnb-fab: var(--pnb-accent-fill);     /* the round floating button, and Send feedback at the foot of the board */
+  --pnb-on-fab: #fff;                   /* its glyph */
+  --pnb-fab-shadow: 0 8px 24px rgba(0, 0, 0, 0.16); /* its shadow, */
   --pnb-fab-shadow-pressed: var(--pnb-fab-shadow); /* pressed, */
-  --pnb-fab-squeeze: 0.94;               /* and how small it gets pressed */
+  --pnb-fab-squeeze: 0.94;              /* and how small it gets pressed */
   --pnb-radius-panel: 16px;              /* the panel on a wide screen */
   --pnb-radius: 10px;
-  --pnb-radius-sheet: 16px;
+  --pnb-radius-sheet: 16px;              /* the sheet on a phone, and sheets inside */
+  --pnb-sheet-top: 48px;                 /* how much of your app stays in view above the sheet on a phone */
   --pnb-radius-pill: 999px;  /* filters, chips, votes, Top/New, buttons */
   --pnb-font: inherit;       /* your app's font */
   --pnb-z: 2147483000;       /* overlay and floating button */
@@ -211,8 +222,8 @@ please-no-bugs {
 ```
 
 **Inside Nimiq Pay, set the two insets yourself if you measure Pay's bar.**
-Pay draws its own bar over the page and `env()` cannot see it, so a full-screen
-board can end up underneath it. Only the overlay and the floating button use
+Pay draws its own bar over the page and `env()` cannot see it, so the sheet can
+end up underneath it. Only the overlay and the floating button use
 them; an inline board ignores both.
 
 ## Reusing your app's own login

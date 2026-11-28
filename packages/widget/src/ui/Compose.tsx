@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
-  NAME_MAX,
   SHOT_MAX_BYTES,
   takesShot,
   type Post,
@@ -11,7 +10,6 @@ import {
 import type { CopyKey, Translate } from '../i18n.js';
 import { KIND, statusLabel } from './PostCard.js';
 import * as Icon from './icons.js';
-import { Face } from './Face.js';
 
 /** A screenshot ready to send, plus a URL to show it with while you decide. */
 export interface Attached {
@@ -33,8 +31,6 @@ export type Screenshots = 'board' | 'owners' | 'off';
 export interface Draft {
   kind: PostKind;
   text: string;
-  anon: boolean;
-  name: string;
   rating?: number;
   shot?: Attached;
 }
@@ -58,6 +54,10 @@ export interface Draft {
  *   noticing. Sending stays off until the box is ticked or the picture
  *   removed, so nobody posts one by tapping past the warning.
  *
+ * **Nothing here asks who you are.** Your name and posting anonymously are
+ * set once, in Settings; the very first post asks for a name as it goes up
+ * (see `NameSheet`), never in this form.
+ *
  * **One column that scrolls, with the button at the end of it.** The app this
  * grew out of pinned a footer and then spent a page of notes on what a phone keyboard does to a
  * pinned footer. A widget lives in apps whose keyboards it has never met, so it
@@ -76,12 +76,8 @@ export function Compose({
   left,
   perDay,
   textMax,
-  name: knownName,
-  face,
-  faceUrl,
   appName,
   screenshots,
-  names = true,
   onMeToo,
   onSend,
 }: {
@@ -93,17 +89,9 @@ export function Compose({
   left: number | null;
   perDay: number;
   textMax: number;
-  /** The name the server has for this wallet, or the app's suggestion. */
-  name: string;
-  /** This wallet's identicon code, once signed in; a stand-in until then. */
-  face?: string;
-  /** Where the server draws an identicon. */
-  faceUrl?: (code: string) => string;
   appName: string;
   /** Whether a bug or an idea may carry a screenshot, and who sees it. */
   screenshots: Screenshots;
-  /** Whether the writer may show a name and identicon; without it every post is anonymous. */
-  names?: boolean;
   /** Seconding a lookalike instead of writing it: votes for it and leaves this screen. */
   onMeToo: (id: string) => void;
   /**
@@ -121,11 +109,6 @@ export function Compose({
   const [agreed, setAgreed] = useState(false);
   const onBoard = screenshots === 'board';
   const [reading, setReading] = useState(false);
-  // Named by default: a post with a face and a name is somebody, and people
-  // answer somebody. Anonymous is one tap away, and on a board without names
-  // it is the only way.
-  const [anon, setAnon] = useState(!names);
-  const [name, setName] = useState(knownName);
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<{ key: CopyKey; vars?: Record<string, string | number> } | null>(null);
   const picker = useRef<HTMLInputElement>(null);
@@ -137,7 +120,6 @@ export function Compose({
   const alike = useMemo(() => (review ? [] : likeThis(requests, text)), [review, requests, text, likeThis]);
   const said = text.trim();
   const none = left !== null && left <= 0;
-  const nameMissing = !anon && !name.trim();
   const unchecked = !!shot && onBoard && !agreed;
 
   useEffect(() => () => void (shot && URL.revokeObjectURL(shot.preview)), [shot]);
@@ -162,8 +144,6 @@ export function Compose({
     const refused = await onSend({
       kind,
       text: said,
-      anon,
-      name: name.trim(),
       ...(review ? { rating } : {}),
       ...(shot ? { shot: { ...shot, board: onBoard && agreed } } : {}),
     });
@@ -303,41 +283,11 @@ export function Compose({
         </div>
       )}
 
-      {names && (
-        <div class="switch-row">
-          <span class="switch-row__label" id="pnb-anon">
-            {t('board.postAnon')}
-          </span>
-          <button
-            type="button"
-            role="switch"
-            class="switch"
-            aria-checked={anon}
-            aria-labelledby="pnb-anon"
-            onClick={() => setAnon(!anon)}
-          />
-        </div>
-      )}
-      {!anon && (
-        <label class="name-field">
-          <Face code={face} src={face && faceUrl ? faceUrl(face) : undefined} size={24} />
-          <input
-            class="input"
-            value={name}
-            maxLength={NAME_MAX}
-            placeholder={t('board.namePlaceholder')}
-            aria-label={t('board.namePlaceholder')}
-            onInput={(e) => setName((e.target as HTMLInputElement).value)}
-          />
-        </label>
-      )}
-      <p class="note">{t(anon ? 'board.anonNote' : 'board.namedNote')}</p>
-
       <div class="send">
         <button
           type="button"
           class="btn"
-          disabled={!said || none || sending || reading || nameMissing || unchecked || (review && !rating)}
+          disabled={!said || none || sending || reading || unchecked || (review && !rating)}
           aria-busy={sending}
           onClick={() => void go()}
         >

@@ -9,13 +9,12 @@ broken and what is missing, second each other's wishes, and you answer them in
 one place, without asking anybody to send you an email.
 
 <p>
-  <img src="docs/images/board-light.png" width="250" alt="The board in light mode: ideas and bugs with votes and the app's answers">
-  <img src="docs/images/board-dark.png" width="250" alt="The same board in dark mode">
+  <img src="docs/images/board.png" width="250" alt="The board: ideas and bugs with votes and the app's answers">
   <img src="docs/images/owner-answer.png" width="250" alt="The owner answering a bug: status, a reply, and the app version it came from">
   <img src="docs/images/tiles.png" width="250" alt="The three tiles behind the plus: report a bug, share an idea, write a review">
 </p>
 
-> **Status: 0.4.0, early.** It runs the board on its own home page.
+> **Status: 0.5.0, early.** It runs the board on its own home page.
 > This is a community tool, not an official Nimiq product.
 
 ## What it does
@@ -40,12 +39,14 @@ one place, without asking anybody to send you an email.
   user ticks that everyone may see it. You can take one off again, or keep them
   all to yourself with `screenshots="owners"`. A screenshot is deleted by
   itself once you mark the post Done or Not doing.
-- **Anonymous by default.** A name shows only if the author turns it on, and a
-  wallet address is never shown to anyone.
+- **A name, or anonymous.** A post shows its author's identicon and name,
+  unless they post anonymously; a wallet address is never shown to anyone.
 - **Login is the Nimiq wallet your users already have.** No accounts, no email.
-- **In Nimiq's look**: the Nimiq Foundation's 2026 brand, light (`nimiq`)
-  or dark (`nimiq-dark`). In English; the `strings` property puts it in your
-  app's own language.
+- **Minimal, light or dark**: white with near-black buttons (`light`, the
+  default) or the same on near-black (`dark`). PleaseNoBugs' purple
+  (`pleasenobugs`) and the Nimiq Foundation's 2026 brand (`nimiq`,
+  `nimiq-dark`) are there too. In English; the `strings` property puts it
+  in your app's own language.
 
 <br clear="right">
 

@@ -8,7 +8,7 @@ import * as Icon from './icons.js';
 export function speaker(m: Message, post: Post, appName: string, t: Translate): string {
   if (m.from === 'app') return t('board.reply', { app: appName });
   if (post.mine) return t('talk.you');
-  return t('talk.who', { who: post.who ?? t('board.anon') });
+  return t('talk.who', { who: post.who ?? post.short ?? t('board.anon') });
 }
 
 /**

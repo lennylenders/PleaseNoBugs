@@ -1,13 +1,13 @@
 /**
  * The drawing on Why PleaseNoBugs, beside "Feedback without the black hole".
  * It is HTML in the widget's colours and glyphs (what-is-it.html, site.css),
- * not the widget: this script plays it by putting classes on its `.stage`
- * and the things in it, and site.css moves them there.
+ * not the widget: this script plays it by putting classes on its `.stage` and
+ * the things in it, and site.css moves them there.
  *
- * Three users each say something in a bubble, a bug, an idea and a review,
- * and it lands on the board; the others read along and vote for the idea;
- * you answer the bug, it is Done and fixed in a version, and whoever
- * reported it gets a tick. About 10 s, then again.
+ * - **What it is about**: three users each say something in a bubble, a bug,
+ *   an idea and a review, and it lands on the board; the others read along
+ *   and vote for the idea; you answer the bug, it is Done and fixed in a
+ *   version, and whoever reported it says thanks. About 10 s, then again.
  *
  * It starts when it comes into view, and its time stands still while it is
  * out of view or the tab is hidden. With reduced motion it shows its last
@@ -64,20 +64,6 @@ function stage(el, run, end) {
   void go();
 }
 
-/** Show a tap on `target`: the tour's ring, in the stage. */
-async function tap(el, target, sleep) {
-  const b = el.getBoundingClientRect();
-  const t = target.getBoundingClientRect();
-  const ring = document.createElement('span');
-  ring.className = 'tour-tap';
-  ring.style.left = `${t.left + t.width / 2 - b.left}px`;
-  ring.style.top = `${t.top + t.height / 2 - b.top}px`;
-  el.append(ring);
-  requestAnimationFrame(() => ring.classList.add('tour-tap--on'));
-  setTimeout(() => ring.remove(), 600);
-  await sleep(180);
-}
-
 /** One vote more on `vote`, with a little bump. */
 function bump(vote, voted = false) {
   const n = vote.querySelector('[data-count]');
@@ -86,6 +72,8 @@ function bump(vote, voted = false) {
   vote.classList.add('is-bump');
   setTimeout(() => vote.classList.remove('is-bump'), 200);
 }
+
+// ---- 1. What it is about ------------------------------------------------
 
 {
   const el = document.getElementById('about');
@@ -151,7 +139,7 @@ function bump(vote, voted = false) {
         }
         await sleep(300);
 
-        // The app developer answers the bug, and Fons sees it fixed.
+        // The app developer answers the bug, and Fons thanks them for the fix.
         await say(who.you, sleep);
         el.classList.add('is-answered');
         await sleep(500);

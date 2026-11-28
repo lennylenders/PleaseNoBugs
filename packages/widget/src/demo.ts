@@ -3,6 +3,7 @@ import {
   authorMayAnswer,
   cleanFix,
   identiconCode,
+  shortAddress,
   isClosed,
   lastWord,
   latestReply,
@@ -118,11 +119,11 @@ export function createDemoClient({
         data: {
           project: { id: 'demo', name: 'Demo app', rules: { ...DEFAULT_RULES, kinds: [...DEFAULT_RULES.kinds] } },
           posts: posts.map((p) => ({ ...p })),
-          me: { owner, left, face: ME_FACE, ...(name ? { name } : {}) },
+          me: { owner, left, face: ME_FACE, short: ME_SHORT, ...(name ? { name } : {}) },
           updates: updates.length,
         },
       }),
-    me: () => ok({ owner, left, face: ME_FACE, ...(name ? { name } : {}) }),
+    me: () => ok({ owner, left, face: ME_FACE, short: ME_SHORT, ...(name ? { name } : {}) }),
     answers: () => ok({ answers: [] }),
 
     post(p) {
@@ -139,7 +140,7 @@ export function createDemoClient({
           votes: 1,
           voted: true,
           mine: true,
-          ...(!p.anon ? { face: ME_FACE, ...(name ? { who: name } : {}) } : {}),
+          ...(!p.anon ? { face: ME_FACE, ...(name ? { who: name } : { short: ME_SHORT }) } : {}),
           ...(p.kind === 'review' ? { rating: p.rating } : {}),
           ...(p.shot?.board ? { shot: true } : {}),
         },
@@ -175,7 +176,16 @@ export function createDemoClient({
     setName(n) {
       name = n.trim() || undefined;
       // Like the server: a name shows on the posts already written with one.
-      for (const p of posts) if (p.mine && p.face !== undefined) p.who = name;
+      for (const p of posts) {
+        if (!p.mine || p.face === undefined) continue;
+        if (name) {
+          p.who = name;
+          delete p.short;
+        } else {
+          delete p.who;
+          p.short = ME_SHORT;
+        }
+      }
       return ok({ ok: true as const, ...(name ? { name } : {}) });
     },
     // As the server: one change for all of it, and a fix only on a done
@@ -307,6 +317,7 @@ export function createDemoClient({
 /** Not a real address: nothing in a demo is anybody's. */
 const DEMO_ADDRESS = 'NQ00 DEMO DEMO DEMO DEMO DEMO DEMO DEMO DEMO';
 const ME_FACE = identiconCode(DEMO_ADDRESS);
+const ME_SHORT = shortAddress(DEMO_ADDRESS);
 
 /**
  * Where the demo's fixes and updates go: a real page on GitHub, this

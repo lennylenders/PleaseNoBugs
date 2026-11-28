@@ -20,20 +20,23 @@ export const TAG = 'please-no-bugs';
  * - `inline` (default): fills the element. Give it a height, or it grows with
  *   its contents.
  * - `floating`: a small button in the corner that opens the board over the
- *   whole screen. The "paste one line and done" route.
- * - `overlay`: the board over the whole screen, now. What {@link open} uses.
+ *   page: a sheet from the bottom on a phone, a panel in the corner on a
+ *   wider screen. The "paste one line and done" route.
+ * - `overlay`: the board over the page, now, as a sheet or panel. What
+ *   {@link open} uses.
  *
  * Each opens on the tiles that ask what to write, with the board one tap
  * under them; `start="board"` opens on the board instead. Outside Nimiq Pay,
- * somebody not signed in always starts on the board, and the + asks them to
- * sign in before the tiles.
+ * somebody not signed in always starts on the board, and Send feedback asks
+ * them to sign in before the tiles.
  *
  * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
- * `start` (`tiles` or `board`), `theme` (`nimiq`, the default, or `nimiq-dark`),
- * `lang` (the language of your `strings`, for dates; English by default), `app-name`, `name` (a display name to suggest), `kinds` (which
+ * `start` (`tiles` or `board`), `theme` (`light`, the default, `dark`, `pleasenobugs`, `nimiq` or `nimiq-dark`),
+ * `lang` (the language of your `strings`, for dates; English by default), `app-name`, `name` (a display name to suggest),
+ * `logo` (the image before the board's title: a URL for your app's own, `none` for none; PleaseNoBugs' own when absent), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
  * the board, for the app's owners only; `off` to leave them out), `names`
- * (`off` leaves out the name and the "Post anonymously" switch, so every post
+ * (`off` leaves the name and "Post anonymously" out of Settings, so every post
  * is anonymous),
  * `readonly` (the board to scroll through and nothing else: see
  * `readonly.ts`), `demo` (sample posts in the page's memory, no server: see
@@ -61,6 +64,7 @@ export class PleaseNoBugsElement extends HTMLElement {
     'theme',
     'app-name',
     'name',
+    'logo',
     'kinds',
     'screenshots',
     'readonly',
@@ -238,6 +242,7 @@ export class PleaseNoBugsElement extends HTMLElement {
       locale: lang,
       appName: this.getAttribute('app-name') ?? undefined,
       suggestName: this.getAttribute('name') ?? undefined,
+      logo: this.hasAttribute('logo') ? this.getAttribute('logo') || 'none' : undefined,
       context: this.#context,
       noise: this.#noise,
       kinds: readKinds(this.getAttribute('kinds')),
@@ -294,9 +299,11 @@ export function readScreen(v: string | null): Screen | undefined {
 /**
  * The board over the page, which slides away before it says it is gone.
  *
- * **On a phone it is the whole screen**; anything smaller is a board you have
- * to aim at. **On a wider screen it is a panel in the bottom-right corner**,
- * where the button was, over a dimmed page: the app stays in view, and a click
+ * **On a phone it is a sheet from the bottom**: nearly the whole screen, but a
+ * strip of the app stays in view above it, dimmed (`--pnb-sheet-top`). A tap
+ * on that strip closes it, and so does a swipe down on the sheet's top (its
+ * grip and bar, see {@link swipe}). **On a wider screen it is a panel in the
+ * bottom-right corner**, where the button was, over a dimmed page: a click
  * beside the panel or Escape closes it. Which of the two is decided by the
  * stylesheet alone (`.overlay` at 640px), so a window dragged narrower changes
  * over without a re-render.
@@ -327,6 +334,20 @@ function Overlay({
     const from = button?.();
     if (from && panel.current) morph(panel.current, from, 'close').then(onGone);
   };
+  /** Swiped down far enough: it goes on down from where the finger left it. */
+  const swipedAway = () => {
+    if (leaving) return;
+    setLeaving(true);
+    const el = panel.current;
+    if (!el || typeof el.animate !== 'function') return onGone();
+    const from = getComputedStyle(el).transform;
+    el.animate([{ transform: from === 'none' ? 'translateY(0)' : from }, { transform: 'translateY(100%)' }], {
+      duration: 200,
+      easing: 'cubic-bezier(0.4, 0, 1, 1)',
+      fill: 'forwards',
+    }).finished.then(onGone, onGone);
+  };
+  useEffect(() => (panel.current ? swipe(panel.current, swipedAway) : undefined), []);
 
   useLayoutEffect(() => {
     const from = button?.();
@@ -358,9 +379,103 @@ function Overlay({
         }}
       >
         <App {...app} onClose={leave} start={start} screen={screen} />
+        <span class="grip" aria-hidden="true" />
       </div>
     </>
   );
+}
+
+/** How far down a swipe has to go before it closes the sheet, and how fast instead (px, px/ms). */
+const SWIPE_CLOSE_PX = 96;
+const SWIPE_CLOSE_SPEED = 0.6;
+/** How far a finger moves before a tap on the bar becomes a swipe. */
+const SWIPE_SLOP_PX = 8;
+
+/**
+ * A swipe down on the sheet's top (its grip and bar) on a phone: the sheet
+ * follows the finger, and once let go it either closes (far or fast enough:
+ * `onAway`) or springs back. Only downwards, and only where the sheet is a
+ * sheet: on a wider screen the panel stays put. The list under the bar keeps
+ * its own scrolling; a tap on a button in the bar stays a tap, as nothing
+ * moves until the finger has gone a few pixels. Returns what undoes it.
+ */
+function swipe(panel: HTMLElement, onAway: () => void): () => void {
+  const phone = window.matchMedia('(max-width: 639px)');
+  let id: number | null = null;
+  let startY = 0;
+  let lastY = 0;
+  let lastT = 0;
+  let speed = 0;
+  let moving = false;
+  /** A swipe just ended: the click the browser sends after it is not a tap. */
+  let swallow = false;
+
+  const down = (e: PointerEvent) => {
+    if (!phone.matches || id !== null || e.button > 0) return;
+    const target = e.composedPath()[0];
+    if (!(target instanceof Element) || !target.closest('.bar, .grip')) return;
+    // Only the sheet's own top bar, not the bar of a sheet inside it.
+    if (target.closest('.scrim')) return;
+    id = e.pointerId;
+    startY = lastY = e.clientY;
+    lastT = e.timeStamp;
+    speed = 0;
+    moving = false;
+  };
+  const move = (e: PointerEvent) => {
+    if (e.pointerId !== id) return;
+    const dy = Math.max(0, e.clientY - startY);
+    if (!moving) {
+      if (dy < SWIPE_SLOP_PX) return;
+      moving = true;
+      try {
+        panel.setPointerCapture(e.pointerId);
+      } catch {
+        // A pointer the browser no longer tracks: the swipe still follows it here.
+      }
+      panel.classList.add('overlay--dragging');
+    }
+    const dt = Math.max(1, e.timeStamp - lastT);
+    speed = (e.clientY - lastY) / dt;
+    lastY = e.clientY;
+    lastT = e.timeStamp;
+    panel.style.transform = `translateY(${dy}px)`;
+  };
+  const up = (e: PointerEvent) => {
+    if (e.pointerId !== id) return;
+    id = null;
+    if (!moving) return;
+    moving = false;
+    swallow = true;
+    setTimeout(() => (swallow = false), 0);
+    panel.classList.remove('overlay--dragging');
+    const dy = Math.max(0, e.clientY - startY);
+    if (dy > SWIPE_CLOSE_PX || speed > SWIPE_CLOSE_SPEED) return onAway();
+    // Not far enough: back up, eased.
+    if (typeof panel.animate === 'function') {
+      panel.animate([{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }], {
+        duration: 180,
+        easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      });
+    }
+    panel.style.transform = '';
+  };
+  // A tap that turned into a swipe is not also a click on whatever it started on.
+  const click = (e: MouseEvent) => {
+    if (swallow) e.stopPropagation();
+  };
+  panel.addEventListener('pointerdown', down);
+  panel.addEventListener('pointermove', move);
+  panel.addEventListener('pointerup', up);
+  panel.addEventListener('pointercancel', up);
+  panel.addEventListener('click', click, true);
+  return () => {
+    panel.removeEventListener('pointerdown', down);
+    panel.removeEventListener('pointermove', move);
+    panel.removeEventListener('pointerup', up);
+    panel.removeEventListener('pointercancel', up);
+    panel.removeEventListener('click', click, true);
+  };
 }
 
 /**

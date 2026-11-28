@@ -70,6 +70,41 @@ const COPY = {
   // purpose: on a website it means its own login, in a mini app opened in a
   // plain browser it means Nimiq Pay, and the widget cannot tell which.
   'board.needWallet': 'Sign in with your Nimiq wallet to post and vote.',
+  // The button at the foot of the board, where the + used to be.
+  'board.sendFeedback': 'Send feedback',
+  // Top right, outside Nimiq Pay, before signing in.
+  'board.signInShort': 'Sign in',
+  // The sheet that rises when somebody not signed in taps Send feedback or a vote.
+  'board.signInFeedback': 'Sign in to send feedback',
+  'board.signInVote': 'Sign in to vote',
+  'board.notNow': 'Not now',
+  // The megaphone's dot: there is an update you have not seen.
+  'updates.new': 'New updates',
+
+  // ---- Settings, behind your identicon ----
+  'settings.title': 'Settings',
+  'settings.open': 'Your settings',
+  'settings.profile': 'Profile',
+  'settings.name': 'Display name',
+  'settings.nameNote': 'Leave it empty and others see a short address.',
+  'settings.nameOff': 'Not used while you post anonymously.',
+  'settings.saved': 'Saved',
+  'settings.anon': 'Post anonymously',
+  'settings.anonNote': 'Off: others see your identicon and your name. On: no name and no identicon on your posts.',
+  'settings.anonOnNote': 'On: no name and no identicon on your posts. Your address is never shown.',
+  'settings.hidden': 'Your name and identicon stay hidden',
+  'settings.namesOff': 'On this board every post is anonymous.',
+  'settings.account': 'Account',
+  'settings.logOut': 'Log out',
+  'settings.logOutNote': 'Signed in with your Nimiq wallet in this browser. Log out to switch wallets.',
+  'settings.logOutTitle': 'Log out?',
+  'settings.logOutText': 'You can sign in again any time with your Nimiq wallet.',
+
+  // ---- Once, on somebody's first post ----
+  'name.title': 'How should others see you?',
+  'name.text': 'Your first post. Pick a name, or skip and others see a short address. You can change it in Settings.',
+  'name.save': 'Save and post',
+  'name.skip': 'Skip',
 
   // ---- Choosing what to write ----
   'board.chooseTitle': 'What do you want to share?',
@@ -236,6 +271,8 @@ const COPY = {
   'filter.title': 'Filter',
   'filter.kind': 'Kind',
   'filter.status': 'Status',
+  'filter.sort': 'Sort',
+  'board.newest': 'Newest',
   'filter.statusNote': 'Reviews have no status, so choosing one hides them.',
   'filter.own': 'Only for you',
   'filter.waiting': 'Waiting on you',

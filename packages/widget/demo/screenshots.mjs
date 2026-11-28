@@ -4,7 +4,7 @@
  *   npm run demo -w pleasenobugs           (in one terminal, keep it running)
  *   npm run screenshots -w pleasenobugs    (in another)
  *
- * Writes docs/images/board-light.png, board-dark.png, owner-answer.png,
+ * Writes docs/images/board.png, owner-answer.png,
  * tiles.png and writing.gif. Needs Chrome or Edge (or CHROME=path/to/browser) and, for the
  * animation, ffmpeg on the PATH. Take them again whenever the look changes.
  */
@@ -56,18 +56,26 @@ const shot = async (page, file) => (await page.$('.phone')).screenshot({ path: f
 // covers the bottom of the list, and a real click lands on it instead.
 const click = async (page, sel, i = 0) =>
   (await page.$$('please-no-bugs >>> ' + sel))[i].evaluate((el) => el.click());
+/** Signed in with the page's wallet (the note on top of the board), and the note gone. */
+async function signIn(page) {
+  await waitIn(page, '.signin-note .btn');
+  await click(page, '.signin-note .btn');
+  await page.waitForFunction(() => !document.querySelector('please-no-bugs')?.shadowRoot?.querySelector('.signin-note'), { polling: 100, timeout: 10_000 });
+  await sleep(300);
+}
 
-// The board, light (`nimiq`) and dark (`nimiq-dark`).
-for (const scheme of ['light', 'dark']) {
-  const page = await open({ who: 'alice', theme: scheme === 'dark' ? 'nimiq-dark' : 'nimiq' }, { scheme });
-  await shot(page, path.join(OUT, `board-${scheme}.png`));
+// The board, in the default look (`light`).
+{
+  const page = await open({ who: 'alice', theme: 'light' });
+  await signIn(page);
+  await shot(page, path.join(OUT, 'board.png'));
   await page.close();
 }
 
 // The owner answering a bug, with the context it came with.
 {
-  const page = await open({ who: 'owner', theme: 'nimiq' });
-  await click(page, '.sign-in .text-btn');
+  const page = await open({ who: 'owner', theme: 'light' });
+  await signIn(page);
   await waitIn(page, '.card--owner');
   await sleep(300);
   for (const card of await page.$$('please-no-bugs >>> .card--owner')) {
@@ -84,7 +92,8 @@ for (const scheme of ['light', 'dark']) {
 
 // The three tiles behind the "+".
 {
-  const page = await open({ who: 'alice', theme: 'nimiq' });
+  const page = await open({ who: 'alice', theme: 'light' });
+  await signIn(page);
   await click(page, '.bar [aria-label="Write feedback"]');
   await waitIn(page, '.tile');
   await sleep(300);
@@ -96,7 +105,7 @@ for (const scheme of ['light', 'dark']) {
 // ffmpeg turns the frames into a GIF with the durations listed here.
 {
   const frames = fs.mkdtempSync(path.join(os.tmpdir(), 'pnb-frames-'));
-  const page = await open({ who: 'alice', theme: 'nimiq' }, { width: 360, height: 640, scale: 1.5 });
+  const page = await open({ who: 'alice', theme: 'light' }, { width: 360, height: 640, scale: 1.5 });
   const list = [];
   let n = 0;
   const frame = async (seconds) => {
@@ -105,6 +114,7 @@ for (const scheme of ['light', 'dark']) {
     list.push(`file '${file}'`, `duration ${seconds}`);
   };
 
+  await signIn(page);
   await frame(2.0);
   await click(page, '.bar [aria-label="Write feedback"]');
   await waitIn(page, '.tile');
