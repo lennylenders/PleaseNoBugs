@@ -52,10 +52,11 @@
   --pnb-on-declined: var(--pnb-on-dot);
   /* A filled star. */
   --pnb-star: #f5a524;
-  /* The chosen filter over the list, and the chosen status where an owner
-     answers: the text colour turned round, unless a theme says otherwise. */
-  --pnb-filter: var(--pnb-text);
-  --pnb-on-filter: var(--pnb-bg);
+  /* The chosen filter, and the chosen status where an owner answers: a
+     darker grey with bold words. A state, not an action: black (the accent)
+     is for the buttons that do something. */
+  --pnb-filter: color-mix(in srgb, var(--pnb-text) 16%, var(--pnb-bg));
+  --pnb-on-filter: var(--pnb-text);
   /* Parts that can have a colour of their own, each following the shared
      one above unless set: the question over the tiles, the title in the
      board's bar and in the writing screen's, the cards on the board (posts
@@ -284,8 +285,8 @@
   --pnb-star: #ffb700;
   /* The chosen filter over the list, and the chosen status where an owner
      answers: the text colour turned round, unless set otherwise. */
-  --pnb-filter: var(--pnb-text);
-  --pnb-on-filter: var(--pnb-bg);
+  --pnb-filter: color-mix(in srgb, var(--pnb-text) 16%, var(--pnb-bg));
+  --pnb-on-filter: var(--pnb-text);
   /* Parts that can have a colour of their own, each following the shared
      one above unless set: the question over the tiles, the title in the
      board's bar and in the writing screen's, the cards on the board (posts
@@ -515,6 +516,66 @@ button {
   color: var(--pnb-bar-icon);
 }
 
+/* The board's title with the app's logo before it, together in the middle. */
+.bar__brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bar__brand > svg,
+.bar__logo {
+  flex-shrink: 0;
+  display: block;
+}
+
+.bar__logo {
+  height: 22px;
+  width: auto;
+  max-width: 64px;
+  object-fit: contain;
+}
+
+.bar__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* A dot on the megaphone: an update you have not seen yet. */
+.bar__updates {
+  position: relative;
+}
+
+.dot {
+  position: absolute;
+  top: 10px;
+  right: 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--pnb-danger);
+  box-shadow: 0 0 0 2px var(--pnb-bg);
+}
+
+/* Your identicon, top right: the way to your settings. */
+.me-btn {
+  margin-right: 4px;
+}
+
+/* Top right before signing in, outside Nimiq Pay. */
+.signin-btn {
+  margin-right: 8px;
+  padding: 8px 14px;
+  border-radius: var(--pnb-radius-pill);
+  background: var(--pnb-surface-2);
+  color: var(--pnb-text);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .filters {
   display: flex;
   gap: 8px;
@@ -530,15 +591,16 @@ button {
   padding: 8px 16px;
   border-radius: var(--pnb-radius-pill);
   background: var(--pnb-surface);
-  color: var(--pnb-text-quiet);
+  color: var(--pnb-text);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .chip-pick[aria-pressed='true'],
 .chip-pick[aria-checked='true'] {
   background: var(--pnb-filter);
   color: var(--pnb-on-filter);
+  font-weight: 700;
 }
 
 .scroll {
@@ -905,46 +967,48 @@ button {
   color: var(--pnb-on-vote-on);
 }
 
-/* ---- The order, floating over the foot of the list ---------------------- */
+/* ---- Send feedback, floating over the foot of the list ---------------- */
 
-.order {
+/* Over a fade of the board's own ground, so the last post fades out under
+   the button instead of being cut off by it. */
+.foot {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(20px + var(--_bottom));
+  bottom: 0;
   display: flex;
   justify-content: center;
+  padding: 40px 16px calc(20px + var(--_bottom));
+  background: linear-gradient(to bottom, transparent, var(--pnb-bg) 55%);
   pointer-events: none;
   transition: transform 220ms ease, opacity 160ms ease;
 }
 
-.order--away {
-  transform: translateY(80px);
+.foot--away {
+  transform: translateY(100%);
   opacity: 0;
 }
 
-.order__pill {
+.send-fab {
   pointer-events: auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: min(240px, calc(100% - 32px));
-  height: 48px;
-  padding: 4px;
+  height: 40px;
+  padding: 0 18px;
   border-radius: var(--pnb-radius-pill);
-  background: var(--pnb-order);
-  box-shadow: var(--pnb-shadow);
-}
-
-.order__tab {
-  border-radius: max(0px, calc(var(--pnb-radius-pill) - 4px));
+  background: var(--pnb-fab);
+  color: var(--pnb-on-fab);
+  box-shadow: var(--pnb-fab-shadow);
+  font-size: 14px;
   font-weight: 700;
-  font-size: 15px;
-  color: var(--pnb-order-text);
+  transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
-.order__tab[aria-selected='true'] {
-  background: var(--pnb-order-on);
-  color: var(--pnb-on-order);
+.send-fab:active:not(:disabled) {
+  transform: scale(var(--pnb-fab-squeeze));
+  box-shadow: var(--pnb-fab-shadow-pressed);
+}
+
+.send-fab:disabled {
+  opacity: 0.45;
 }
 
 .pager {
@@ -1715,6 +1779,136 @@ button {
   font-weight: 700;
 }
 
+.sheet__grip {
+  display: block;
+  width: 36px;
+  height: 4px;
+  margin: -12px auto 16px;
+  border-radius: 2px;
+  background: var(--pnb-line);
+}
+
+.sheet__title--under {
+  margin-top: 12px;
+}
+
+.sheet__field {
+  margin-top: 16px;
+}
+
+/* ---- Settings ----------------------------------------------------------- */
+
+/* Groups of rows: a heading, a card, a note under it. One more setting is one
+   more row in a card. */
+.settings__who {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 0 20px;
+  text-align: center;
+}
+
+.settings__face {
+  margin-bottom: 8px;
+}
+
+.settings__face--off {
+  opacity: 0.35;
+}
+
+.settings__name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.settings__sub {
+  font-size: 14px;
+  color: var(--pnb-text-quiet);
+}
+
+.settings__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.settings__head {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pnb-text-quiet);
+}
+
+.settings__card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--pnb-radius);
+  background: var(--pnb-card);
+  border: 1px solid var(--pnb-line);
+  overflow: hidden;
+}
+
+.settings__card > * + * {
+  border-top: 1px solid var(--pnb-line);
+}
+
+.settings__block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.settings__block--off {
+  opacity: 0.45;
+}
+
+.settings__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings__label {
+  font-size: 16px;
+}
+
+.settings__saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pnb-done);
+}
+
+.settings__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 16px;
+  width: 100%;
+  text-align: left;
+  color: var(--pnb-text);
+}
+
+.settings__row-label {
+  flex: 1;
+  font-size: 16px;
+}
+
+.settings__row--danger {
+  color: var(--pnb-danger);
+  font-weight: 700;
+}
+
+.settings__note {
+  margin: 0;
+}
+
 .sheet__quote {
   margin: 8px 0 0;
   color: var(--pnb-text-quiet);
@@ -2025,10 +2219,10 @@ button {
   .fab {
     transition: none;
   }
-  .order {
+  .foot {
     transition: opacity 160ms ease;
   }
-  .order--away {
+  .foot--away {
     transform: none;
   }
   .spinner {

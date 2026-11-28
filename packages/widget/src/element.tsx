@@ -27,15 +27,16 @@ export const TAG = 'please-no-bugs';
  *
  * Each opens on the tiles that ask what to write, with the board one tap
  * under them; `start="board"` opens on the board instead. Outside Nimiq Pay,
- * somebody not signed in always starts on the board, and the + asks them to
- * sign in before the tiles.
+ * somebody not signed in always starts on the board, and Send feedback asks
+ * them to sign in before the tiles.
  *
  * Attributes: `project` and `server` (both required, unless `demo`), `mode`,
  * `start` (`tiles` or `board`), `theme` (`light`, the default, `dark`, `pleasenobugs`, `nimiq` or `nimiq-dark`),
- * `lang` (the language of your `strings`, for dates; English by default), `app-name`, `name` (a display name to suggest), `kinds` (which
+ * `lang` (the language of your `strings`, for dates; English by default), `app-name`, `name` (a display name to suggest),
+ * `logo` (the image before the board's title: a URL for your app's own, `none` for none; PleaseNoBugs' own when absent), `kinds` (which
  * of `bug,idea,review` to offer), `screenshots` (`owners` to keep them off
  * the board, for the app's owners only; `off` to leave them out), `names`
- * (`off` leaves out the name and the "Post anonymously" switch, so every post
+ * (`off` leaves the name and "Post anonymously" out of Settings, so every post
  * is anonymous),
  * `readonly` (the board to scroll through and nothing else: see
  * `readonly.ts`), `demo` (sample posts in the page's memory, no server: see
@@ -63,6 +64,7 @@ export class PleaseNoBugsElement extends HTMLElement {
     'theme',
     'app-name',
     'name',
+    'logo',
     'kinds',
     'screenshots',
     'readonly',
@@ -240,6 +242,7 @@ export class PleaseNoBugsElement extends HTMLElement {
       locale: lang,
       appName: this.getAttribute('app-name') ?? undefined,
       suggestName: this.getAttribute('name') ?? undefined,
+      logo: this.hasAttribute('logo') ? this.getAttribute('logo') || 'none' : undefined,
       context: this.#context,
       noise: this.#noise,
       kinds: readKinds(this.getAttribute('kinds')),

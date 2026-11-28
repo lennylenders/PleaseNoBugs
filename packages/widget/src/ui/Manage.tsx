@@ -121,7 +121,7 @@ export function Manage({
   const appLast = post.kind === 'review' ? thread.find((m) => m.from === 'app' && !m.hidden) : last?.from === 'app' ? last : undefined;
   const [editing, setEditing] = useState<Message | null>(post.kind === 'review' ? (appLast ?? null) : null);
   const [message, setMessage] = useState(editing?.text ?? '');
-  const who = post.who ?? t('talk.author');
+  const who = post.who ?? post.short ?? t('talk.author');
   const [hidden, setHidden] = useState(!!post.hidden);
   const [shotOff, setShotOff] = useState(post.shotFor === 'off');
   const [approved, setApproved] = useState(false);
@@ -298,7 +298,7 @@ export function Manage({
           aria-label={t('board.replyLabel')}
           onInput={(e) => setMessage((e.target as HTMLTextAreaElement).value)}
         />
-        {post.kind !== 'review' && !post.mine && <p class="note">{t('talk.gets', { who: post.who ?? t('board.anon') })}</p>}
+        {post.kind !== 'review' && !post.mine && <p class="note">{t('talk.gets', { who: post.who ?? post.short ?? t('board.anon') })}</p>}
 
         {/* Approving comes first on a waiting post: it is what the post is waiting for. */}
         {post.pending && (

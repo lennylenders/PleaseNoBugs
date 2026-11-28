@@ -1,14 +1,15 @@
-import { identiconCode, latestReply, shownThread, type Post, type Project, type PublicProject } from '@pleasenobugs/core';
+import { identiconCode, latestReply, shortAddress, shownThread, type Post, type Project, type PublicProject } from '@pleasenobugs/core';
 import type { PostWithVotes } from './store.js';
 
 /**
  * Trim a stored post down to what one reader may have.
  *
- * Everything left out is the point: the author's address never leaves, named
- * or not, and neither does the list of who voted. A post that is not anonymous
- * carries the author's identicon instead: the picture, as a code that cannot
- * be turned back into the address. A reader learns only whether
- * they wrote it and whether they voted.
+ * Everything left out is the point: the author's whole address never leaves,
+ * named or not, and neither does the list of who voted. A post that is not
+ * anonymous carries the author's identicon: the picture, as a code that cannot
+ * be turned back into the address, and, when they chose no name, the address
+ * cut short (`NQ12 … AB34`) so others can tell them apart. A reader learns
+ * only whether they wrote it and whether they voted.
  *
  * @param row     the stored post with its vote count
  * @param reader  the wallet asking, normalised, or null for a stranger
@@ -37,7 +38,10 @@ export function toVisible(
     mine: reader !== null && row.author === reader,
   };
   if (!row.anon) {
+    // A name if they chose one; else the address cut short, so a post that
+    // is not anonymous is still somebody others can tell apart.
     if (name) out.who = name;
+    else out.short = shortAddress(row.author);
     out.face = identiconCode(row.author);
   }
   // A message an owner took off the board is gone for everybody else, its

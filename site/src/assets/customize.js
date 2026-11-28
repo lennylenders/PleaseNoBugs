@@ -164,12 +164,19 @@ async function story(mine) {
 
     step('Describes it');
     await type(await find('textarea.field', mine), BUG, mine);
-    await sleep(500, mine);
-    await type(await find('.name-field input', mine), WHO, mine);
     await sleep(700, mine);
 
     step('Sends it');
     await tap(await find('.send .btn:not([disabled])', mine), mine);
+    // Her first post asks how others should see her, once.
+    const asked = await find((root) => root.querySelector('.sent') || root.querySelector('.sheet .name-field input'), mine);
+    if (asked.tagName === 'INPUT') {
+      step('Picks a name');
+      await sleep(500, mine);
+      await type(asked, WHO, mine);
+      await sleep(500, mine);
+      await tap(await find('.sheet .btn:not([disabled])', mine), mine);
+    }
     await find('.sent', mine);
 
     // The widget goes on to the board by itself after "Feedback sent!", as in an app.
@@ -177,10 +184,10 @@ async function story(mine) {
     step('On the board, for everyone');
     await sleep(3200, mine);
 
-    // Then a review, from the board's own +.
+    // Then a review, from the board's own Send feedback.
     step('Mila adds a review');
     await sleep(700, mine);
-    await tap(await find('.bar [aria-label="Write feedback"]', mine), mine);
+    await tap(await find('.send-fab', mine), mine);
     await sleep(900, mine);
     await tap(await find('.tile--review', mine), mine);
     await sleep(700, mine);
@@ -191,11 +198,7 @@ async function story(mine) {
 
     step('Says why');
     await type(await find('textarea.field', mine), REVIEW, mine);
-    await sleep(400, mine);
-    // Her name is remembered from the bug; typed again only if it is not.
-    const name = widget.shadowRoot.querySelector('.name-field input');
-    if (name && !name.value) await type(name, WHO, mine);
-    await sleep(600, mine);
+    await sleep(1000, mine);
 
     step('Sends it');
     await tap(await find('.send .btn:not([disabled])', mine), mine);

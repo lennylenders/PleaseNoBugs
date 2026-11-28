@@ -105,9 +105,11 @@ export type ShotRule = 'board' | 'owners' | 'off';
 /**
  * One post, as a reader receives it.
  *
- * What is *not* here is the point: the author's address and the list of who
- * voted never leave the server. A reader learns only whether they wrote it
- * themselves and whether they voted.
+ * What is *not* here is the point: the author's whole address and the list
+ * of who voted never leave the server. A reader learns only whether they
+ * wrote it themselves and whether they voted, and, for an author who chose
+ * no name and did not post anonymously, a short form of the address
+ * (`short`).
  */
 export interface Post {
   id: string;
@@ -130,6 +132,12 @@ export interface Post {
    * that is not anonymous. `GET /v1/identicons/:code.svg` draws it.
    */
   face?: string;
+  /**
+   * The author's address cut short, `NQ12 … AB34` (see `shortAddress`), shown
+   * beside the identicon when they chose no name. Only on a post that is not
+   * anonymous and has no `who`. Never the whole address.
+   */
+  short?: string;
   /** The app's latest message, for widgets from before `thread`. */
   reply?: PostReply;
   /**
@@ -207,6 +215,8 @@ export interface Me {
   name?: string;
   /** This wallet's identicon code, to show beside the name before posting. */
   face?: string;
+  /** This wallet's address cut short, `NQ12 … AB34`: what others see without a name. */
+  short?: string;
   /** Posts left in this wallet's rolling day. The allowance itself is
    *  `rules.perDay`: read it from the project, never from a copy. */
   left: number;

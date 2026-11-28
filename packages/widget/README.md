@@ -42,15 +42,16 @@ menuItem.onclick = () => open({ project: 'YOUR_PROJECT_ID', server: 'https://YOU
 |---|---|
 | `project`, `server` | Required. |
 | `mode` | `inline`, `floating` or `overlay`. |
-| `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board, and so is the board for somebody not signed in outside Nimiq Pay: they read first, and the **+** asks them to sign in ("Sign in to share feedback") before the tiles. |
+| `start` | `tiles` (default) or `board`: what opens first. A `readonly` board is always the board, and so is the board for somebody not signed in outside Nimiq Pay: they read first, and **Send feedback** (or a vote) asks them to sign in, in a sheet, before the tiles. |
 | `theme` | `light` (default): minimal, white with near-black words and buttons. `dark`: the same on near-black. `pleasenobugs`: dark purple with raised turquoise buttons. `nimiq`: the Nimiq Foundation's 2026 brand, navy on white with a gold round button. `nimiq-dark`: the same on navy. |
 | `lang` | The language of your `strings`, so dates follow it: `nl` writes "14 sep". English by default. |
 | `app-name` | What answers are signed with ("My app says"). Defaults to the project's name. |
-| `name` | A display name you already know, filled in for a user who has not chosen one on this board yet. |
+| `name` | A display name you already know, filled in when a user who has not chosen one on this board is asked for one on their first post. |
+| `logo` | The image before the board's title. PleaseNoBugs' own little bug when absent; a URL for your app's own logo (about 22px high is how it shows); `none` for no logo. |
 | `kinds` | Which kinds to offer, of the ones your project takes: `bug,idea,review` by default. `kinds="bug,idea"` leaves reviews off the tiles and out of the list. |
 | `screenshots` | Who sees screenshots on bugs and ideas. On the board for everyone by default, each one only after its author ticks that everyone may see it. `owners` keeps them for your eyes only; `off` leaves the "Add a screenshot" button out. An unknown value counts as `owners`. The project's own rule (`PNB_PROJECT_SCREENSHOTS` on the server) wins when it is stricter. |
-| `names` | `off` leaves out the name field and the "Post anonymously" switch: every post is anonymous, with no name and no identicon. |
-| `readonly` | The board to read and scroll through, nothing else: no **+**, no votes (the count still shows), no "Sign in", and it never asks a wallet or sends a proof, not even inside Nimiq Pay. Every post shows as anonymous and without its screenshot, whatever its author chose, because a read-only board is usually shown somewhere other than the app its authors wrote for. |
+| `names` | `off` leaves the name and "Post anonymously" out of Settings and never asks for a name: every post is anonymous, with no name and no identicon. |
+| `readonly` | The board to read and scroll through, nothing else: no **Send feedback**, no votes (the count still shows), no "Sign in", and it never asks a wallet or sends a proof, not even inside Nimiq Pay. Every post shows as anonymous and without its screenshot, whatever its author chose, because a read-only board is usually shown somewhere other than the app its authors wrote for. |
 | `demo` | A board of sample posts in the page's memory, with no server: `<please-no-bugs demo>`. Voting and writing work, nothing is sent or stored, and a reload starts over. For trying the widget, or showing it off. `demo="owner"` is the same board as its owner sees it: answer, set a status and "Fixed in", write updates. With a `server`, a demo still keeps its posts in the page and asks that server only for the identicons. |
 | `screen` | With `demo` only: hold one screen in view, `button`, `tiles`, `board`, `write`, `sent` or `updates`. What the website's Make it yours uses to show each part. |
 
@@ -67,14 +68,19 @@ Events: `pleasenobugs:posted` (`detail: { id, kind }`) and `pleasenobugs:close`.
 
 ## What your users see
 
-Tapping **+** opens three tiles: **Report a bug**, **Share an idea** and
+Tapping **Send feedback**, at the foot of the board, opens three tiles: **Report a bug**, **Share an idea** and
 **Write a review**. A review is one to five stars and a few words, shown on the
 board with the average on top, so people can see what others like about your
 app. One review per wallet.
 
-A post goes out with **the user's wallet identicon and a name** they fill in
-once per board, never their address. Changing the name changes it on their
-earlier posts too. **"Post anonymously"** leaves both off. The identicon is
+A post goes out with **the user's wallet identicon and a name**, never their
+whole address. The name is asked for once, as their first post goes up, and
+changed any time in **Settings**, behind their identicon in the top right;
+changing it changes it on their earlier posts too. Without a name, others see
+the address cut short (`NQ12 … AB34`). **"Post anonymously"**, also in
+Settings, leaves name and identicon off every post. Outside Nimiq Pay,
+Settings also has **Log out**. Top or Newest is chosen in the **Filter**
+panel, with the kind and the status. The identicon is
 drawn by your PleaseNoBugs server (`/v1/identicons/…`), like screenshots, so
 the page needs that server in its `img-src`.
 
@@ -148,8 +154,8 @@ please-no-bugs {
   --pnb-on-dot: #fff;                    /* the glyph on a chip's dot; or per kind and status: */
   --pnb-on-bug: var(--pnb-on-dot);       /* --pnb-on-idea, -review, -planned, -done, -declined */
   --pnb-star: #f5a524;
-  --pnb-filter: var(--pnb-text);         /* the chosen filter, and the chosen status in your answer sheet */
-  --pnb-on-filter: var(--pnb-bg);        /* its words: set both, as they are not picked for you */
+  --pnb-filter: color-mix(in srgb, var(--pnb-text) 16%, var(--pnb-bg)); /* the chosen filter, and the chosen status in your answer sheet: a state, so grey, not the button black */
+  --pnb-on-filter: var(--pnb-text);      /* and its words */
   --pnb-tile-bug: var(--pnb-bug);        /* the three tiles; may be gradients */
   --pnb-tile-idea: var(--pnb-idea);
   --pnb-tile-review: var(--pnb-review);
@@ -178,8 +184,6 @@ please-no-bugs {
   --pnb-filter-btn-text: var(--pnb-text); /* its word, */
   --pnb-filter-btn-line: var(--pnb-line); /* and its line */
   --pnb-bar-icon: var(--pnb-text);       /* the icons in every bar: close, back, updates, new post */
-  --pnb-order: var(--pnb-sunken);        /* behind Top / New, */
-  --pnb-order-text: var(--pnb-text-quiet); /* and the word not chosen */
   --pnb-vote: var(--pnb-surface-2);      /* the vote button, */
   --pnb-vote-text: var(--pnb-card-text); /* its count, */
   --pnb-vote-on: var(--pnb-accent);      /* a vote you gave, */
@@ -192,8 +196,6 @@ please-no-bugs {
   --pnb-switch-on: var(--pnb-accent);    /* the switch when on, */
   --pnb-on-switch-on: var(--pnb-on-accent); /* and its knob */
   --pnb-shot-line: var(--pnb-line);      /* the line round "Add screenshot" */
-  --pnb-order-on: var(--pnb-surface);    /* the chosen half of Top/New, */
-  --pnb-on-order: var(--pnb-text);       /* and its words */
   --pnb-sent: var(--pnb-bg);             /* behind "Feedback sent!" */
   --pnb-sent-title: var(--pnb-text);     /* its title, */
   --pnb-sent-note: var(--pnb-text-quiet); /* its small words and "Back to the board", */
@@ -202,7 +204,7 @@ please-no-bugs {
   --pnb-raise: none;                    /* a filled button's shadow; `pleasenobugs` raises it */
   --pnb-raise-pressed: none;            /* its shadow while pressed */
   --pnb-raise-sink: 0px;                /* how far it sinks when pressed */
-  --pnb-fab: var(--pnb-accent-fill);     /* the round floating button */
+  --pnb-fab: var(--pnb-accent-fill);     /* the round floating button, and Send feedback at the foot of the board */
   --pnb-on-fab: #fff;                   /* its glyph */
   --pnb-fab-shadow: 0 8px 24px rgba(0, 0, 0, 0.16); /* its shadow, */
   --pnb-fab-shadow-pressed: var(--pnb-fab-shadow); /* pressed, */

@@ -14,6 +14,7 @@ import {
 } from '@pleasenobugs/core';
 import type { Client } from '../client.js';
 import { NO_FILTER, filtersOn, findIn, matchesFilter, type BoardFilter, type Found, type OwnFilter } from '../filter.js';
+import { readAnon, readAsked, readUpdatesSeen, writeAnon, writeAsked, writeUpdatesSeen } from '../prefs.js';
 import { forReaders } from '../readonly.js';
 import { insideNimiqPay } from '../signer.js';
 import type { CopyKey, Translate } from '../i18n.js';
@@ -21,7 +22,9 @@ import { Choose, Sent } from './Choose.js';
 import { Compose, type Draft, type Screenshots } from './Compose.js';
 import { Badge, CodeLink, PostCard, Stars, doneLabel } from './PostCard.js';
 import { Manage, type ManageChange } from './Manage.js';
-import { DeleteSheet, FilterSheet, ShotSheet, filterLabel } from './Sheets.js';
+import { DeleteSheet, FilterSheet, LogOutSheet, NameSheet, ShotSheet, SignInSheet, filterLabel } from './Sheets.js';
+import { Face } from './Face.js';
+import { Settings } from './Settings.js';
 import { Talk } from './Talk.js';
 import { Updates, type UpdateDraft } from './Updates.js';
 import * as Icon from './icons.js';
@@ -61,6 +64,11 @@ export interface AppProps {
   readonly?: boolean;
   /** Whether a writer may show a name. Off for a board on a public page, where nobody should leave one. */
   names?: boolean;
+  /**
+   * The logo before the board's title: PleaseNoBugs' own when absent, none
+   * for `null` or `'none'`, or the image at a URL, an app's own.
+   */
+  logo?: string | null;
   /** Present when the board is an overlay: draws the X. */
   onClose?: () => void;
   /**
@@ -78,13 +86,18 @@ export interface AppProps {
   onPosted?: (post: { id: string; kind: PostKind }) => void;
 }
 
-export type View = 'board' | 'choose' | 'signin' | 'compose' | 'sent' | 'updates' | 'talk' | 'manage';
+export type View = 'board' | 'choose' | 'compose' | 'sent' | 'updates' | 'talk' | 'manage' | 'settings';
 
 /** Whatever is over the board, as one value so two can never be up at once. */
 type Over =
   | { kind: 'delete'; post: Post }
   | { kind: 'shot'; post: Post }
   | { kind: 'filter' }
+  /** Somebody not signed in tapped Send feedback or a vote: sign in first, then `then`. */
+  | { kind: 'signin'; why: 'feedback' | 'vote'; then: () => void }
+  | { kind: 'logout' }
+  /** Their first post, asking for a name before it goes up. `answer` lets the post go on. */
+  | { kind: 'name'; answer: (name: string | null | undefined) => void }
   | null;
 
 /**
@@ -110,6 +123,7 @@ export function App({
   screenshots = 'board',
   readonly = false,
   names = true,
+  logo,
   onClose,
   onPosted,
   start: asked = 'board',
@@ -139,6 +153,10 @@ export function App({
   const [away, setAway] = useState(false);
   // Whether the last post landed on a board that approves first.
   const [waiting, setWaiting] = useState(false);
+  // Posting anonymously, set once in Settings rather than on every post.
+  const [anon, setAnonNow] = useState(() => readAnon(client.project));
+  // How many updates this browser had seen, for the megaphone's dot.
+  const [updatesSeen, setUpdatesSeen] = useState(() => readUpdatesSeen(client.project));
   // The posts of yours whose "it is fixed" note you closed.
   const [seen, setSeen] = useState<string[]>(() => readSeen(client.project, 'fixed'));
   // The answers from the app you read or closed the note for, as `post@at`.
@@ -191,7 +209,7 @@ export function App({
   }, [view, screen]);
 
   /**
-   * The order pill steps aside going down and comes straight back going up.
+   * The Send feedback button steps aside going down and comes straight back going up.
    * Wanting it back is deliberate, so it answers sooner (8px) than it leaves
    * (24px), and it never hides near the top where there is nothing under it.
    */
@@ -335,6 +353,17 @@ export function App({
 
   // An owner always, to write the first one; anybody else once there is one.
   const hasUpdates = !!rules && (owner || (read?.updates ?? 0) > 0);
+  // A dot on the megaphone while there is an update this browser has not seen.
+  const updatesNew = !owner && (read?.updates ?? 0) > updatesSeen;
+  const openUpdates = () => {
+    const n = read?.updates ?? 0;
+    setUpdatesSeen(n);
+    writeUpdatesSeen(client.project, n);
+    setView('updates');
+  };
+  const signedIn = !!read?.me;
+  // Outside Nimiq Pay, signing in is a step of its own: a wallet window.
+  const signInFirst = !signedIn && !client.address() && !insideNimiqPay();
 
   const pages = Math.max(1, Math.ceil(shown.length / PER_PAGE));
   const at = Math.min(page, pages);
@@ -352,6 +381,10 @@ export function App({
   const vote = async (id: string, up: boolean) => {
     const before = posts.find((p) => p.id === id);
     if (!before) return;
+    if (signInFirst) {
+      setOver({ kind: 'signin', why: 'vote', then: () => void vote(id, up) });
+      return;
+    }
     patch(id, { votes: Math.max(0, before.votes + (up ? 1 : -1)), voted: up });
     const res = await client.vote(id, up);
     if (res.ok) {
@@ -365,6 +398,31 @@ export function App({
   };
 
   const send = async (draft: Draft): Promise<{ key: CopyKey | null; vars?: Record<string, string | number> } | null> => {
+    const postAnon = !names || anon;
+    // Once, on the first post of somebody with no name who is not posting
+    // anonymously: how should others see you? Inside Nimiq Pay the wallet is
+    // asked first, so a name chosen on another visit is known before asking.
+    let chosen: string | undefined;
+    if (!postAnon && !readAsked(client.project, client.address())) {
+      let me = read?.me;
+      if (!me && insideNimiqPay()) {
+        const signed = await client.signIn();
+        if (!signed.ok) return signed.error === 'declined' ? { key: null } : { key: 'board.needWallet', vars: { app: name } };
+        me = (await pull())?.me;
+      }
+      if (!me?.name) {
+        const answer = await new Promise<string | null | undefined>((resolve) =>
+          setOver({ kind: 'name', answer: resolve }),
+        );
+        setOver(null);
+        // Closed without an answer: back to the post, nothing sent.
+        if (answer === undefined) return { key: null };
+        writeAsked(client.project, client.address());
+        chosen = answer ?? undefined;
+      } else {
+        writeAsked(client.project, client.address());
+      }
+    }
     const id = newId();
     // What the owner needs to reproduce a bug, and only on a bug: an idea does
     // not get better for knowing which build it was written on.
@@ -375,7 +433,7 @@ export function App({
       id,
       kind: draft.kind,
       text: draft.text,
-      anon: draft.anon,
+      anon: postAnon,
       context: sentWith,
       rating: draft.rating,
       shot: draft.shot
@@ -395,9 +453,9 @@ export function App({
       }
       return { key: 'board.failed' };
     }
-    // Only now: setting a name is a write, and the post was the one that
-    // signed in. A failure here costs a name on a card, never the post.
-    if (!draft.anon && draft.name && draft.name !== read?.me?.name) await client.setName(draft.name);
+    // Only now: setting a name is a write, and the post may have been the one
+    // that signed in. A failure here costs a name on a card, never the post.
+    if (chosen) await client.setName(chosen);
 
     setWaiting(!!res.data.pending);
     setView('sent');
@@ -521,13 +579,13 @@ export function App({
   const reviewed = posts.some((p) => p.mine && p.kind === 'review');
 
   /**
-   * The "+": straight to writing when there is only one kind to write. Outside
-   * Nimiq Pay, somebody not signed in signs in first, on a screen that says
-   * why, so nobody writes a whole post before learning it needs a wallet.
+   * Send feedback: straight to writing when there is only one kind to write.
+   * Outside Nimiq Pay, somebody not signed in signs in first, in a sheet that
+   * says why, so nobody writes a whole post before learning it needs a wallet.
    */
-  const write = (signedIn = !!read?.me || !!client.address()) => {
-    if (!signedIn && !insideNimiqPay()) {
-      setView('signin');
+  const write = (now = !signInFirst) => {
+    if (!now) {
+      setOver({ kind: 'signin', why: 'feedback', then: () => write(true) });
     } else if (kinds.length === 1) {
       setWriting(kinds[0]);
       setView('compose');
@@ -541,13 +599,68 @@ export function App({
     setView('board');
   };
 
-  /** From the sign-in screen: the wallet, then on to writing. A "no" stays on it. */
-  const signInToWrite = async () => {
+  /** From the sign-in sheet: the wallet, then on to what was tapped. A "no" closes it and says nothing. */
+  const signInThen = async (then: () => void) => {
+    setOver(null);
     const res = await client.signIn();
     if (!res.ok) return sayRefusal(res.error);
-    void pull();
-    write(true);
+    await pull();
+    then();
   };
+
+  /** Posting anonymously, from Settings: remembered in this browser, sent with every post. */
+  const setAnon = (on: boolean) => {
+    setAnonNow(on);
+    writeAnon(client.project, on);
+  };
+  /** A name from Settings. Answers whether it was saved, so "Saved" only shows when it was. */
+  const saveName = async (value: string) => {
+    const res = await client.setName(value);
+    if (!res.ok) {
+      sayRefusal(res.error);
+      return false;
+    }
+    void pull();
+    return true;
+  };
+  /** Log out, after the sheet asked: the proof goes, and the board reads as a stranger's again. */
+  const logOut = async () => {
+    setOver(null);
+    client.signOut();
+    setRead((r) => (r ? { ...r, me: undefined } : r));
+    setView('board');
+    await pull();
+  };
+  // Inside Nimiq Pay the wallet is the app's: nothing to log out of there.
+  const canLogOut = !insideNimiqPay();
+
+  /** The sheets that can rise over any screen: signing in, logging out, a name. */
+  const sheets = (
+    <>
+      {over?.kind === 'signin' && (
+        <SignInSheet
+          t={t}
+          why={over.why}
+          canSign={client.canSign}
+          appName={name}
+          onSignIn={() => void signInThen(over.then)}
+          onClose={() => setOver(null)}
+        />
+      )}
+      {over?.kind === 'logout' && <LogOutSheet t={t} onConfirm={() => void logOut()} onClose={() => setOver(null)} />}
+      {over?.kind === 'name' && (
+        <NameSheet
+          t={t}
+          face={read?.me?.face}
+          faceUrl={client.faceUrl}
+          suggest={suggestName}
+          onSave={(n) => over.answer(n)}
+          onSkip={() => over.answer(null)}
+          onClose={() => over.answer(undefined)}
+        />
+      )}
+    </>
+  );
 
   if (view === 'sent') {
     return (
@@ -620,32 +733,23 @@ export function App({
     );
   }
 
-  if (view === 'signin') {
+  if (view === 'settings' && read?.me) {
     return (
       <div class="app">
-        <header class="bar">
-          <button type="button" class="icon-btn" aria-label={t('board.back')} onClick={toBoard}>
-            <Icon.Back />
-          </button>
-          <h2 class="bar__title bar__title--write">{t('board.composeTitle')}</h2>
-          <span />
-        </header>
-        <div class="scroll">
-          <div class="signin-page">
-            <strong class="signin-page__title">{t('board.signInWrite')}</strong>
-            {client.canSign ? (
-              <>
-                <p class="signin-page__text">{t('board.signInNote')}</p>
-                <button type="button" class="btn" onClick={() => void signInToWrite()}>
-                  {t('board.signInButton')}
-                </button>
-              </>
-            ) : (
-              <p class="signin-page__text">{t('board.needWallet', { app: name })}</p>
-            )}
-          </div>
-        </div>
+        <Settings
+          t={t}
+          me={read.me}
+          faceUrl={client.faceUrl}
+          names={names}
+          anon={anon}
+          canLogOut={canLogOut}
+          onAnon={setAnon}
+          onName={saveName}
+          onLogOut={() => setOver({ kind: 'logout' })}
+          onBack={toBoard}
+        />
         {toast && <div class="toast" role="status">{toast}</div>}
+        {sheets}
       </div>
     );
   }
@@ -730,17 +834,14 @@ export function App({
             left={read?.me ? read.me.left : null}
             perDay={rules.perDay}
             textMax={rules.textMax}
-            name={read?.me?.name ?? suggestName ?? ''}
-            face={read?.me?.face}
-            faceUrl={client.faceUrl}
             appName={name}
             screenshots={shots}
-            names={names}
             onMeToo={meToo}
             onSend={send}
           />
         </div>
         {toast && <div class="toast" role="status">{toast}</div>}
+        {sheets}
       </div>
     );
   }
@@ -755,24 +856,38 @@ export function App({
             </button>
           )}
           {hasUpdates && (
-            <button type="button" class="icon-btn" aria-label={t('updates.title')} onClick={() => setView('updates')}>
+            <button
+              type="button"
+              class="icon-btn bar__updates"
+              aria-label={updatesNew ? `${t('updates.title')}: ${t('updates.new')}` : t('updates.title')}
+              onClick={openUpdates}
+            >
               <Icon.Updates />
+              {updatesNew && <span class="dot" aria-hidden="true" />}
             </button>
           )}
         </div>
-        <h2 class="bar__title bar__title--board">{t('board.title')}</h2>
+        <h2 class="bar__title bar__title--board bar__brand">
+          {logo === undefined ? (
+            <Icon.Logo />
+          ) : logo && logo !== 'none' ? (
+            <img class="bar__logo" src={logo} alt="" height={22} />
+          ) : null}
+          <span class="bar__name">{t('board.title')}</span>
+        </h2>
         {readonly ? (
           <span />
-        ) : (
-          <button
-            type="button"
-            class="icon-btn"
-            aria-label={t('board.write')}
-            disabled={!rules || !kinds.length}
-            onClick={() => write()}
-          >
-            <Icon.Plus />
+        ) : signedIn ? (
+          // Your identicon is the way to your settings: who you are here.
+          <button type="button" class="icon-btn me-btn" aria-label={t('settings.open')} onClick={() => setView('settings')}>
+            <Face code={read?.me?.face} src={read?.me?.face ? client.faceUrl(read.me.face) : undefined} size={30} />
           </button>
+        ) : read && client.canSign ? (
+          <button type="button" class="signin-btn" onClick={() => void signIn()}>
+            {t('board.signInShort')}
+          </button>
+        ) : (
+          <span />
         )}
       </header>
 
@@ -889,19 +1004,6 @@ export function App({
           </div>
         )}
 
-        {/* Outside Nimiq Pay signing is a step of its own, in a wallet window,
-            so it is offered up front, with what it is not. Inside Nimiq Pay
-            the first vote or post signs, and only a quiet link waits below. */}
-        {read && !read.me && client.canSign && !readonly && !insideNimiqPay() && (
-          <div class="signin-note">
-            <strong class="signin-note__title">{t('board.signInTitle')}</strong>
-            <p class="signin-note__text">{t('board.signInNote')}</p>
-            <button type="button" class="btn" onClick={() => void signIn()}>
-              {t('board.signInButton')}
-            </button>
-          </div>
-        )}
-
         {searching && read && (
           <p class="found-count">
             {shown.length === 1 ? t('search.countOne', { q: query.trim() }) : t('search.count', { n: shown.length, q: query.trim() })}
@@ -1002,39 +1104,23 @@ export function App({
           </nav>
         )}
 
-        {/* Quiet and last: the board is for reading, and this is only the way
-            to be recognised before doing anything. Gone once signed in, and
-            never drawn where there is no wallet to ask. */}
-        {read && !read.me && client.canSign && !readonly && insideNimiqPay() && (
-          <div class="sign-in">
-            <button type="button" class="text-btn" onClick={() => void signIn()}>
-              {t('board.signIn')}
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* Floating over the foot of the list, because it is the control you
-          change while reading: the end of Top, wondering what is new. */}
-      <div class={`order${away ? ' order--away' : ''}`}>
-        <div class="order__pill" role="tablist" aria-label={t('board.order')}>
-          {(['top', 'new'] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              role="tab"
-              class="order__tab"
-              aria-selected={sort === s}
-              onClick={() => {
-                setSort(s);
-                setPage(1);
-              }}
-            >
-              {t(s === 'top' ? 'board.top' : 'board.new')}
-            </button>
-          ))}
+      {/* Floating over the foot of the list: the one thing to do here that is
+          not reading. It steps aside while you scroll down, comes back going
+          up, and the list fades out under it rather than being cut off. */}
+      {!readonly && (
+        <div class={`foot${away ? ' foot--away' : ''}`}>
+          <button
+            type="button"
+            class="send-fab"
+            disabled={!rules || !kinds.length}
+            onClick={() => write()}
+          >
+            {t('board.sendFeedback')}
+          </button>
         </div>
-      </div>
+      )}
 
       {toast && <div class="toast" role="status">{toast}</div>}
 
@@ -1048,10 +1134,12 @@ export function App({
           owners={ownFilters}
           signedIn={!!read?.me}
           value={filter}
+          sort={sort}
           count={countFor}
-          onApply={(f) => {
+          onApply={(f, order) => {
             setOver(null);
             setFilter(f);
+            setSort(order);
           }}
           onClose={() => setOver(null)}
         />
@@ -1059,6 +1147,7 @@ export function App({
       {over?.kind === 'shot' && (
         <ShotSheet t={t} src={client.shotUrl(over.post.id)} onClose={() => setOver(null)} />
       )}
+      {sheets}
     </div>
   );
 }

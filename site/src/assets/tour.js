@@ -618,16 +618,19 @@ async function userRound() {
   await say(USER, 3);
   await wait(1200);
   await type(field, BUG);
-  await wait(600);
-  // Named, as every post is unless its author picks anonymous: the name goes
-  // out with their wallet's identicon.
-  const name = await find(el, '.name-field input');
-  await reveal(name);
-  await type(name, WHO);
   await wait(700);
   const send = await find(el, '.send .btn:not([disabled])');
   await reveal(send);
   await tap(send);
+  // Their first post asks how others should see them, once: the name goes
+  // out with their wallet's identicon.
+  const asked = await find(el, (root) => root.querySelector('.sent') || root.querySelector('.sheet .name-field input'));
+  if (asked.tagName === 'INPUT') {
+    await wait(500);
+    await type(asked, WHO);
+    await wait(500);
+    await tap(await find(el, '.sheet .btn:not([disabled])'));
+  }
   await find(el, '.sent');
   await say(USER, 4);
 
