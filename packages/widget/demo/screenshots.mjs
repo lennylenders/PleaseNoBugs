@@ -52,15 +52,15 @@ async function open(params, { width = 390, height = 760, scale = 2, scheme = 'li
 const waitIn = (page, sel) =>
   page.waitForFunction((s) => document.querySelector('please-no-bugs')?.shadowRoot?.querySelector(s), { polling: 100, timeout: 10_000 }, sel);
 const shot = async (page, file) => (await page.$('.phone')).screenshot({ path: file });
-// Clicked in the page rather than with the mouse: the floating Top/New pill
-// covers the bottom of the list, and a real click lands on it instead.
+// Clicked in the page rather than with the mouse: the floating Send feedback
+// button covers the bottom of the list, and a real click lands on it instead.
 const click = async (page, sel, i = 0) =>
   (await page.$$('please-no-bugs >>> ' + sel))[i].evaluate((el) => el.click());
-/** Signed in with the page's wallet (the note on top of the board), and the note gone. */
+/** Signed in with the page's wallet ("Sign in" top right), and your identicon there instead. */
 async function signIn(page) {
-  await waitIn(page, '.signin-note .btn');
-  await click(page, '.signin-note .btn');
-  await page.waitForFunction(() => !document.querySelector('please-no-bugs')?.shadowRoot?.querySelector('.signin-note'), { polling: 100, timeout: 10_000 });
+  await waitIn(page, '.signin-btn');
+  await click(page, '.signin-btn');
+  await waitIn(page, '.me-btn');
   await sleep(300);
 }
 
@@ -90,11 +90,11 @@ async function signIn(page) {
   await page.close();
 }
 
-// The three tiles behind the "+".
+// The three tiles behind Send feedback.
 {
   const page = await open({ who: 'alice', theme: 'light' });
   await signIn(page);
-  await click(page, '.bar [aria-label="Write feedback"]');
+  await click(page, '.send-fab');
   await waitIn(page, '.tile');
   await sleep(300);
   await shot(page, path.join(OUT, 'tiles.png'));
@@ -116,7 +116,7 @@ async function signIn(page) {
 
   await signIn(page);
   await frame(2.0);
-  await click(page, '.bar [aria-label="Write feedback"]');
+  await click(page, '.send-fab');
   await waitIn(page, '.tile');
   await sleep(200);
   await frame(1.2);

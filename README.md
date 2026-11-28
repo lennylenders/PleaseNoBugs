@@ -11,7 +11,7 @@ one place, without asking anybody to send you an email.
 <p>
   <img src="docs/images/board.png" width="250" alt="The board: ideas and bugs with votes and the app's answers">
   <img src="docs/images/owner-answer.png" width="250" alt="The owner answering a bug: status, a reply, and the app version it came from">
-  <img src="docs/images/tiles.png" width="250" alt="The three tiles behind the plus: report a bug, share an idea, write a review">
+  <img src="docs/images/tiles.png" width="250" alt="The three tiles behind Send feedback: report a bug, share an idea, write a review">
 </p>
 
 > **Status: 0.5.0, early.** It runs the board on its own home page.
@@ -40,7 +40,9 @@ one place, without asking anybody to send you an email.
   all to yourself with `screenshots="owners"`. A screenshot is deleted by
   itself once you mark the post Done or Not doing.
 - **A name, or anonymous.** A post shows its author's identicon and name,
-  unless they post anonymously; a wallet address is never shown to anyone.
+  asked once on their first post and changed in Settings, behind their
+  identicon. Without a name it shows the address cut short (`NQ12 … AB34`);
+  "Post anonymously" in Settings hides both. A whole address is never shown.
 - **Login is the Nimiq wallet your users already have.** No accounts, no email.
 - **Minimal, light or dark**: white with near-black buttons (`light`, the
   default) or the same on near-black (`dark`). PleaseNoBugs' purple

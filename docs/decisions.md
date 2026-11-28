@@ -1935,6 +1935,43 @@ not an official Nimiq product. Also proposed and not taken (for now): the
 hexagon in the header, the demo's app as a Nimiq Pay mini app, the hexagon
 in the footer.
 
+## 2026-11-28: Widget V2, and 0.5.0 goes out
+
+Designed in Figma first (page "📱 Screens V2" in the widget file), then built
+(PR #12, merged with the minimal site). What changed, and why:
+
+- **Who you are is set once, in Settings, not on every post.** The writing
+  screen lost its name field and "Post anonymously" switch; both live on a
+  Settings page behind your identicon, top right, where the + was. The name
+  saves itself ("Saved"); "Post anonymously" is remembered in the browser and
+  sent with each post. Settings is groups of rows, so a new setting is one
+  more row. Log out is there only in a browser, with a sheet that asks first:
+  inside Nimiq Pay the wallet is the app's.
+- **No name means a short address, not "nothing".** Owner's choice: a post
+  that is not anonymous and has no name shows `NQ12 … AB34`. The API grew
+  `Post.short` and `Me.short` (0.5.0); the whole address still never leaves
+  the server, which a test checks. This reverses the old line "your address is
+  never shown": the cut-short form now is.
+- **The first post asks for a name**, once per wallet, as it goes up ("How
+  should others see you?", Save and post / Skip), so there is a name under the
+  very first post without a form before it.
+- **Signing in is asked when it matters.** The card on top of the board for
+  everybody who only came to read is gone; Send feedback or a vote, signed out
+  in a browser, opens a sheet, and after signing in it carries on.
+- **One button to write: "Send feedback"** at the foot, over a fade, compact
+  and text only. Top/Newest moved into the Filter sheet. Tried and not taken
+  on the way: a row of sideways-scrolling chips (awkward with a mouse), tabs,
+  and coloured kind chips.
+- **A chosen filter is a state, not an action**: grey and bold, not black.
+  Black stays for the buttons that do something.
+- **The app's logo before "Feedback"**: PleaseNoBugs' own by default, an app's
+  own with `logo="https://…"`, none with `logo="none"`.
+- A dot on the Updates megaphone while there is an update the browser has not
+  seen.
+
+Released as 0.5.0 rather than 0.6.0: 0.5.0 (light and dark themes, the
+minimal site) was never published, so this goes out with it.
+
 ## Where it stands
 
 The first app moved onto PleaseNoBugs on 2026-10-15 and that move is finished: its
